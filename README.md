@@ -1,4 +1,4 @@
 GoHM
 ====
 
-HM Codec with Go Lang
+HM Codec with Go
