@@ -207,31 +207,31 @@ func (this *TComPicYuv)   GetCrAddr   ()  []Pel   {
 }
  
   //  Access starting position of original picture for specific coding unit (CU) or partition unit (PU)
-/* 
-func (this *TComPicYuv)   GetLumaAddr1 ( iCuAddr int ) *Pel{ 
-	return this.m_piPicOrgY + this.m_cuOffsetY[ iCuAddr ]; 
+
+func (this *TComPicYuv)   GetLumaAddr1 ( iCuAddr int ) []Pel{ 
+	return this.m_piPicOrgY[this.m_cuOffsetY[ iCuAddr ]: ]; 
 }
 
-func (this *TComPicYuv)   GetCbAddr1   ( iCuAddr int ) *Pel{ 
-	return this.m_piPicOrgU + this.m_cuOffsetC[ iCuAddr ]; 
+func (this *TComPicYuv)   GetCbAddr1   ( iCuAddr int ) []Pel{ 
+	return this.m_piPicOrgU[this.m_cuOffsetC[ iCuAddr ]: ]; 
 }
 
-func (this *TComPicYuv)   GetCrAddr1   ( iCuAddr int ) *Pel{ 
-	return this.m_piPicOrgV + this.m_cuOffsetC[ iCuAddr ]; 
+func (this *TComPicYuv)   GetCrAddr1   ( iCuAddr int ) []Pel{ 
+	return this.m_piPicOrgV[this.m_cuOffsetC[ iCuAddr ]: ]; 
 }
 
-func (this *TComPicYuv)   GetLumaAddr2 ( iCuAddr, uiAbsZorderIdx int ) *Pel{ 
-	return this.m_piPicOrgY + this.m_cuOffsetY[iCuAddr] + this.m_buOffsetY[g_auiZscanToRaster[uiAbsZorderIdx]]; 
+func (this *TComPicYuv)   GetLumaAddr2 ( iCuAddr, uiAbsZorderIdx int ) []Pel{ 
+	return this.m_piPicOrgY[this.m_cuOffsetY[iCuAddr] + this.m_buOffsetY[g_auiZscanToRaster[uiAbsZorderIdx]]: ]; 
 }
 
-func (this *TComPicYuv)   GetCbAddr2   ( iCuAddr, uiAbsZorderIdx int ) *Pel{ 
-	return this.m_piPicOrgU + this.m_cuOffsetC[iCuAddr] + this.m_buOffsetC[g_auiZscanToRaster[uiAbsZorderIdx]]; 
+func (this *TComPicYuv)   GetCbAddr2   ( iCuAddr, uiAbsZorderIdx int ) []Pel{ 
+	return this.m_piPicOrgU[this.m_cuOffsetC[iCuAddr] + this.m_buOffsetC[g_auiZscanToRaster[uiAbsZorderIdx]]: ]; 
 }
 
-func (this *TComPicYuv)   GetCrAddr2   ( iCuAddr, uiAbsZorderIdx int ) *Pel{ 
-	return this.m_piPicOrgV + this.m_cuOffsetC[iCuAddr] + this.m_buOffsetC[g_auiZscanToRaster[uiAbsZorderIdx]]; 
+func (this *TComPicYuv)   GetCrAddr2   ( iCuAddr, uiAbsZorderIdx int ) []Pel{ 
+	return this.m_piPicOrgV[this.m_cuOffsetC[iCuAddr] + this.m_buOffsetC[g_auiZscanToRaster[uiAbsZorderIdx]]: ]; 
 }
-*/  
+  
   // ------------------------------------------------------------------------------------------------
   //  Miscellaneous
   // ------------------------------------------------------------------------------------------------
