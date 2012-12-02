@@ -1,6 +1,7 @@
 package TLibCommon
 
 import (
+	"io"
 	"os"
 	"log"
 )
@@ -117,19 +118,19 @@ func (this *TVideoIOYuv) SkipFrames(numFrames, width, height uint) (err error){
  */
 func (this *TVideoIOYuv) Read ( pPicYuv *TComPicYuv, aiPad []int ) bool {   
   // check end-of-file
-  if this.IsEof() {
-  	return false;
-  }
+  //if this.IsEof() {
+  //	return false;
+  //}
   
-  iStride := uint(pPicYuv.GetStride());
+  iStride := pPicYuv.GetStride();
   
   // compute actual YUV width & height excluding padding size
-  pad_h 		:= uint(aiPad[0]);
-  pad_v 		:= uint(aiPad[1]);
-  width_full 	:= uint(pPicYuv.GetWidth());
-  height_full 	:= uint(pPicYuv.GetHeight());
-  width  		:= uint(width_full - pad_h);
-  height 		:= uint(height_full - pad_v);
+  pad_h 		:= aiPad[0];
+  pad_v 		:= aiPad[1];
+  width_full 	:= pPicYuv.GetWidth();
+  height_full 	:= pPicYuv.GetHeight();
+  width  		:= width_full - pad_h;
+  height 		:= height_full - pad_v;
   is16bit 		:= this.m_fileBitDepthY > 8 || this.m_fileBitDepthC > 8;
 
   desired_bitdepthY := uint(this.m_fileBitDepthY + this.m_bitDepthShiftY);
@@ -181,26 +182,216 @@ func (this *TVideoIOYuv) Read ( pPicYuv *TComPicYuv, aiPad []int ) bool {
   return true;
 }
 
+/**
+ * Write one Y'CbCr frame. No bit-depth conversion is performed, pcPicYuv is
+ * assumed to be at TVideoIO::m_fileBitdepth depth.
+ *
+ * @param pPicYuv     input picture YUV buffer class pointer
+ * @param aiPad       source padding size, aiPad[0] = horizontal, aiPad[1] = vertical
+ * @return true for success, false in case of error
+ */
 func (this *TVideoIOYuv) Write( pPicYuv *TComPicYuv, cropLeft, cropRight, cropTop, cropBottom int ) bool {
+  // compute actual YUV frame size excluding padding size
+  iStride 	:= pPicYuv.GetStride();
+  width  	:= pPicYuv.GetWidth()  - cropLeft - cropRight;
+  height 	:= pPicYuv.GetHeight() - cropTop  - cropBottom;
+  is16bit 	:= this.m_fileBitDepthY > 8 || this.m_fileBitDepthC > 8;
+  var dstPicYuv *TComPicYuv;
+  retval := true;
 
-	return true
+  if this.m_bitDepthShiftY != 0 || this.m_bitDepthShiftC != 0 {
+    dstPicYuv = NewTComPicYuv();
+    dstPicYuv.Create( pPicYuv.GetWidth(), pPicYuv.GetHeight(), 1, 1, 0 );
+    pPicYuv.CopyToPic(dstPicYuv);
+
+    minvalY := Pel(0);
+    minvalC := Pel(0);
+    maxvalY := Pel( (1 << uint(this.m_fileBitDepthY)) - 1 );
+    maxvalC := Pel( (1 << uint(this.m_fileBitDepthC)) - 1 );
+
+/*#if CLIP_TO_709_RANGE
+    if (-m_bitDepthShiftY < 0 && m_fileBitDepthY >= 8)
+    {
+      // ITU-R BT.709 compliant clipping for converting say 10b to 8b
+      minvalY = 1 << (m_fileBitDepthY - 8);
+      maxvalY = (0xff << (m_fileBitDepthY - 8)) -1;
+    }
+    if (-m_bitDepthShiftC < 0 && m_fileBitDepthC >= 8)
+    {
+      // ITU-R BT.709 compliant clipping for converting say 10b to 8b
+      minvalC = 1 << (m_fileBitDepthC - 8);
+      maxvalC = (0xff << (m_fileBitDepthC - 8)) -1;
+    }
+#endif*/
+    
+    this.scalePlane(dstPicYuv.GetLumaAddr(), dstPicYuv.GetStride() , dstPicYuv.GetWidth(),    dstPicYuv.GetHeight(),    -this.m_bitDepthShiftY, minvalY, maxvalY);
+    this.scalePlane(dstPicYuv.GetCbAddr(),   dstPicYuv.GetCStride(), dstPicYuv.GetWidth()>>1, dstPicYuv.GetHeight()>>1, -this.m_bitDepthShiftC, minvalC, maxvalC);
+    this.scalePlane(dstPicYuv.GetCrAddr(),   dstPicYuv.GetCStride(), dstPicYuv.GetWidth()>>1, dstPicYuv.GetHeight()>>1, -this.m_bitDepthShiftC, minvalC, maxvalC);
+  }else{
+    dstPicYuv = pPicYuv;
+  }
+  // location of upper left pel in a plane
+  planeOffset := 0; //cropLeft + cropTop * iStride;
+  
+  if ! this.writePlane(this.m_cHandle, dstPicYuv.GetLumaAddr(), is16bit, iStride, width, height, planeOffset){
+    retval=false; 
+    goto exit;
+  }
+
+  width >>= 1;
+  height >>= 1;
+  iStride >>= 1;
+  cropLeft >>= 1;
+  cropRight >>= 1;
+
+  planeOffset = 0; // cropLeft + cropTop * iStride;
+
+  if ! this.writePlane(this.m_cHandle, dstPicYuv.GetCbAddr(), is16bit, iStride, width, height, planeOffset){
+    retval=false; 
+    goto exit;
+  }
+  if ! this.writePlane(this.m_cHandle, dstPicYuv.GetCrAddr(), is16bit, iStride, width, height, planeOffset){
+    retval=false; 
+    goto exit;
+  }
+  
+exit:
+  if this.m_bitDepthShiftY != 0 || this.m_bitDepthShiftC != 0 {
+    dstPicYuv.Destroy();
+  }  
+  return retval;
 }
   
 ///< check for end-of-file  
-func (this *TVideoIOYuv) IsEof () bool {                                           
-
-	return true
-}
+//func (this *TVideoIOYuv) IsEof () bool {                                           
+//	this.m_cHandle.
+//	return true
+//}
 
 ///< check for failure
-func (this *TVideoIOYuv) IsFail() bool {                                           
+//func (this *TVideoIOYuv) IsFail() bool {                                           
+//	return true
+//}
 
-	return true
+func (this *TVideoIOYuv) readPlane (dst []Pel, fd *os.File, is16bit bool, stride, width, height, pad_x, pad_y int) bool{
+  var read_len, x, y int
+  
+  if is16bit{
+  	read_len = width*2
+  }else{
+  	read_len = width
+  }
+  
+  buf := make([]byte, read_len);
+  for y = 0; y < height; y++ {
+  	n, err := fd.Read(buf)
+    if err == io.EOF || n != read_len {
+      return false;
+    }
+
+    if !is16bit {
+      for x = 0; x < width; x++ {
+        dst[y*stride+x] = Pel(buf[x]);
+      }
+    }else{
+      for x = 0; x < width; x++ {
+        dst[y*stride+x] = (Pel(buf[2*x+1]) << 8) | Pel(buf[2*x]);
+      }
+    }
+
+    for x = width; x < width + pad_x; x++ {
+      dst[y*stride+x] = dst[y*stride + width - 1];
+    }
+  }
+  
+  for y = height; y < height + pad_y; y++ {
+    for x = 0; x < width + pad_x; x++ {
+      dst[y*stride+x] = dst[(y-1)*stride+x];
+    }
+  }
+  
+  return true;
 }
 
-func (this *TVideoIOYuv) readPlane(dst *Pel, fd *os.File, is16bit bool, stride, width, height, pad_x, pad_y uint) bool{
-	return true
+func (this *TVideoIOYuv) writePlane(fd *os.File, src []Pel, is16bit bool, stride, width, height, planeOffset int) bool{
+  var write_len, x, y int;
+  
+  if is16bit {
+  	write_len = width * 2;
+  }else{
+  	write_len = width;
+  }
+  
+  buf := make([]byte, write_len);
+  for y = 0; y < height; y++ {
+    if !is16bit {
+      for x = 0; x < width; x++ {
+        buf[x] = byte(src[y*stride+x]);
+      }
+    }else{
+      for x = 0; x < width; x++ {
+        buf[2*x  ] = byte( src[y*stride+x]       & 0xff);
+        buf[2*x+1] = byte((src[y*stride+x] >> 8) & 0xff);
+      }
+    }
+	
+	n, err := fd.Write(buf)
+    if err!=nil || n!=write_len {
+      return false;
+    }
+  }
+
+  return true;
 }
 
-func (this *TVideoIOYuv) scalePlane(img *Pel, stride, width, height uint, shiftbits int, minval, maxval Pel){
+func (this *TVideoIOYuv) scalePlane(img []Pel, stride, width, height, shiftbits int, minval, maxval Pel){
+  if shiftbits == 0 {
+    return;
+  }
+
+  if shiftbits > 0 {
+    this.fwdScalePlane(img, stride, width, height, shiftbits);
+  }else{
+    this.invScalePlane(img, stride, width, height, -shiftbits, minval, maxval);
+  }
+}
+
+/**
+ * Multiply all pixels in img by 2<sup>shiftbits</sup>.
+ *
+ * @param img        pointer to image to be transformed
+ * @param stride     distance between vertically adjacent pixels of img.
+ * @param width      width of active area in img.
+ * @param height     height of active area in img.
+ * @param shiftbits  number of bits to shift
+ */
+func (this *TVideoIOYuv) fwdScalePlane(img []Pel, stride, width, height, shiftbits int) {
+  for y := 0; y < height; y++ {
+    for x := 0; x < width; x++ {
+      img[y*stride+x] <<= uint(shiftbits);
+    }
+  }
+}
+
+/**
+ * Perform division with rounding of all pixels in img by
+ * 2<sup>shiftbits</sup>. All pixels are clipped to [minval, maxval]
+ *
+ * @param img        pointer to image to be transformed
+ * @param stride     distance between vertically adjacent pixels of img.
+ * @param width      width of active area in img.
+ * @param height     height of active area in img.
+ * @param shiftbits  number of rounding bits
+ * @param minval     minimum clipping value
+ * @param maxval     maximum clipping value
+ */
+func (this *TVideoIOYuv) invScalePlane(img []Pel, stride, width, height, shiftbits int, minval, maxval Pel){
+  offset := Pel(1 << uint(shiftbits-1));
+  
+  for y := 0; y < height; y++ {
+    for x := 0; x < width; x++ {
+      val := (img[y*stride+x] + offset) >> uint(shiftbits);
+      img[y*stride+x] = Clip3(minval, maxval, val);
+    }
+  }
 }

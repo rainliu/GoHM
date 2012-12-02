@@ -208,29 +208,27 @@ type       Pxl			   	byte;        ///< 8-bit pixel type
 type       Pel				int16;       ///< 16-bit pixel type
 type       TCoeff			int32;       ///< transform coefficient
 
-/*
+
 /// parameters for adaptive loop filter
-class TComPicSym;
+//class TComPicSym;
 
-#define NUM_DOWN_PART 4
+const NUM_DOWN_PART = 4
 
-enum SAOTypeLen
-{
-  SAO_EO_LEN    = 4, 
-  SAO_BO_LEN    = 4,
+const (//enum SAOTypeLen
+  SAO_EO_LEN    = 4 
+  SAO_BO_LEN    = 4
   SAO_MAX_BO_CLASSES = 32
-};
+)
 
-enum SAOType
-{
-  SAO_EO_0 = 0, 
-  SAO_EO_1,
-  SAO_EO_2, 
-  SAO_EO_3,
-  SAO_BO,
+const (//enum SAOType
+  SAO_EO_0 = iota
+  SAO_EO_1
+  SAO_EO_2 
+  SAO_EO_3
+  SAO_BO
   MAX_NUM_SAO_TYPE
-};
-
+)
+/*
 typedef struct _SaoQTPart
 {
   Int         iBestType;
@@ -291,188 +289,174 @@ typedef struct _LFCUParam
   Bool bLeftEdge;                         ///< indicates left edge
   Bool bTopEdge;                          ///< indicates top edge
 } LFCUParam;
-
+*/
 // ====================================================================================================================
 // Enumeration
 // ====================================================================================================================
 
 /// supported slice type
-enum SliceType
-{
-  B_SLICE,
-  P_SLICE,
+const (//enum SliceType
+  B_SLICE = iota
+  P_SLICE
   I_SLICE
-};
+)
 
 /// chroma formats (according to semantics of chroma_format_idc)
-enum ChromaFormat
-{
-  CHROMA_400  = 0,
-  CHROMA_420  = 1,
-  CHROMA_422  = 2,
+const (//enum ChromaFormat
+  CHROMA_400  = 0
+  CHROMA_420  = 1
+  CHROMA_422  = 2
   CHROMA_444  = 3
-};
+)
 
 /// supported partition shape
-enum PartSize
-{
-  SIZE_2Nx2N,           ///< symmetric motion partition,  2Nx2N
-  SIZE_2NxN,            ///< symmetric motion partition,  2Nx N
-  SIZE_Nx2N,            ///< symmetric motion partition,   Nx2N
-  SIZE_NxN,             ///< symmetric motion partition,   Nx N
-  SIZE_2NxnU,           ///< asymmetric motion partition, 2Nx( N/2) + 2Nx(3N/2)
-  SIZE_2NxnD,           ///< asymmetric motion partition, 2Nx(3N/2) + 2Nx( N/2)
-  SIZE_nLx2N,           ///< asymmetric motion partition, ( N/2)x2N + (3N/2)x2N
-  SIZE_nRx2N,           ///< asymmetric motion partition, (3N/2)x2N + ( N/2)x2N
+const (//enum PartSize
+  SIZE_2Nx2N = iota    ///< symmetric motion partition,  2Nx2N
+  SIZE_2NxN             ///< symmetric motion partition,  2Nx N
+  SIZE_Nx2N             ///< symmetric motion partition,   Nx2N
+  SIZE_NxN              ///< symmetric motion partition,   Nx N
+  SIZE_2NxnU            ///< asymmetric motion partition, 2Nx( N/2) + 2Nx(3N/2)
+  SIZE_2NxnD            ///< asymmetric motion partition, 2Nx(3N/2) + 2Nx( N/2)
+  SIZE_nLx2N            ///< asymmetric motion partition, ( N/2)x2N + (3N/2)x2N
+  SIZE_nRx2N            ///< asymmetric motion partition, (3N/2)x2N + ( N/2)x2N
   SIZE_NONE = 15
-};
+)
 
 /// supported prediction type
-enum PredMode
-{
-  MODE_INTER,           ///< inter-prediction mode
-  MODE_INTRA,           ///< intra-prediction mode
+const (//enum PredMode
+  MODE_INTER = 0           ///< inter-prediction mode
+  MODE_INTRA = 1           ///< intra-prediction mode
   MODE_NONE = 15
-};
+)
 
 /// texture component type
-enum TextType
-{
-  TEXT_LUMA,            ///< luma
-  TEXT_CHROMA,          ///< chroma (U+V)
-  TEXT_CHROMA_U,        ///< chroma U
-  TEXT_CHROMA_V,        ///< chroma V
-  TEXT_ALL,             ///< Y+U+V
+const (//enum TextType
+  TEXT_LUMA = iota            ///< luma
+  TEXT_CHROMA          ///< chroma (U+V)
+  TEXT_CHROMA_U        ///< chroma U
+  TEXT_CHROMA_V        ///< chroma V
+  TEXT_ALL             ///< Y+U+V
   TEXT_NONE = 15
-};
+)
 
 /// reference list index
-enum RefPicList
-{
-  REF_PIC_LIST_0 = 0,   ///< reference list 0
-  REF_PIC_LIST_1 = 1,   ///< reference list 1
-  REF_PIC_LIST_C = 2,   ///< combined reference list for uni-prediction in B-Slices
+const (//enum RefPicList
+  REF_PIC_LIST_0 = 0   ///< reference list 0
+  REF_PIC_LIST_1 = 1   ///< reference list 1
+  REF_PIC_LIST_C = 2   ///< combined reference list for uni-prediction in B-Slices
   REF_PIC_LIST_X = 100  ///< special mark
-};
+)
 
 /// distortion function index
-enum DFunc
-{
-  DF_DEFAULT  = 0,
-  DF_SSE      = 1,      ///< general size SSE
-  DF_SSE4     = 2,      ///<   4xM SSE
-  DF_SSE8     = 3,      ///<   8xM SSE
-  DF_SSE16    = 4,      ///<  16xM SSE
-  DF_SSE32    = 5,      ///<  32xM SSE
-  DF_SSE64    = 6,      ///<  64xM SSE
-  DF_SSE16N   = 7,      ///< 16NxM SSE
+const (//enum DFunc
+  DF_DEFAULT  = 0
+  DF_SSE      = 1      ///< general size SSE
+  DF_SSE4     = 2      ///<   4xM SSE
+  DF_SSE8     = 3      ///<   8xM SSE
+  DF_SSE16    = 4      ///<  16xM SSE
+  DF_SSE32    = 5      ///<  32xM SSE
+  DF_SSE64    = 6      ///<  64xM SSE
+  DF_SSE16N   = 7      ///< 16NxM SSE
   
-  DF_SAD      = 8,      ///< general size SAD
-  DF_SAD4     = 9,      ///<   4xM SAD
-  DF_SAD8     = 10,     ///<   8xM SAD
-  DF_SAD16    = 11,     ///<  16xM SAD
-  DF_SAD32    = 12,     ///<  32xM SAD
-  DF_SAD64    = 13,     ///<  64xM SAD
-  DF_SAD16N   = 14,     ///< 16NxM SAD
+  DF_SAD      = 8      ///< general size SAD
+  DF_SAD4     = 9      ///<   4xM SAD
+  DF_SAD8     = 10     ///<   8xM SAD
+  DF_SAD16    = 11     ///<  16xM SAD
+  DF_SAD32    = 12     ///<  32xM SAD
+  DF_SAD64    = 13     ///<  64xM SAD
+  DF_SAD16N   = 14     ///< 16NxM SAD
   
-  DF_SADS     = 15,     ///< general size SAD with step
-  DF_SADS4    = 16,     ///<   4xM SAD with step
-  DF_SADS8    = 17,     ///<   8xM SAD with step
-  DF_SADS16   = 18,     ///<  16xM SAD with step
-  DF_SADS32   = 19,     ///<  32xM SAD with step
-  DF_SADS64   = 20,     ///<  64xM SAD with step
-  DF_SADS16N  = 21,     ///< 16NxM SAD with step
+  DF_SADS     = 15     ///< general size SAD with step
+  DF_SADS4    = 16     ///<   4xM SAD with step
+  DF_SADS8    = 17     ///<   8xM SAD with step
+  DF_SADS16   = 18     ///<  16xM SAD with step
+  DF_SADS32   = 19     ///<  32xM SAD with step
+  DF_SADS64   = 20     ///<  64xM SAD with step
+  DF_SADS16N  = 21     ///< 16NxM SAD with step
   
-  DF_HADS     = 22,     ///< general size Hadamard with step
-  DF_HADS4    = 23,     ///<   4xM HAD with step
-  DF_HADS8    = 24,     ///<   8xM HAD with step
-  DF_HADS16   = 25,     ///<  16xM HAD with step
-  DF_HADS32   = 26,     ///<  32xM HAD with step
-  DF_HADS64   = 27,     ///<  64xM HAD with step
-  DF_HADS16N  = 28,     ///< 16NxM HAD with step
+  DF_HADS     = 22     ///< general size Hadamard with step
+  DF_HADS4    = 23     ///<   4xM HAD with step
+  DF_HADS8    = 24     ///<   8xM HAD with step
+  DF_HADS16   = 25     ///<  16xM HAD with step
+  DF_HADS32   = 26     ///<  32xM HAD with step
+  DF_HADS64   = 27     ///<  64xM HAD with step
+  DF_HADS16N  = 28     ///< 16NxM HAD with step
   
-#if AMP_SAD
-  DF_SAD12    = 43,
-  DF_SAD24    = 44,
-  DF_SAD48    = 45,
+//#if AMP_SAD
+  DF_SAD12    = 43
+  DF_SAD24    = 44
+  DF_SAD48    = 45
 
-  DF_SADS12   = 46,
-  DF_SADS24   = 47,
-  DF_SADS48   = 48,
+  DF_SADS12   = 46
+  DF_SADS24   = 47
+  DF_SADS48   = 48
 
   DF_SSE_FRAME = 50     ///< Frame-based SSE
-#else
-  DF_SSE_FRAME = 33     ///< Frame-based SSE
-#endif
-};
+//#else
+//  DF_SSE_FRAME = 33     ///< Frame-based SSE
+//#endif
+)
 
 /// index for SBAC based RD optimization
-enum CI_IDX
-{
-  CI_CURR_BEST = 0,     ///< best mode index
-  CI_NEXT_BEST,         ///< next best index
-  CI_TEMP_BEST,         ///< temporal index
-  CI_CHROMA_INTRA,      ///< chroma intra index
-  CI_QT_TRAFO_TEST,
-  CI_QT_TRAFO_ROOT,
-  CI_NUM,               ///< total number
-};
+const (//enum CI_IDX
+  CI_CURR_BEST = iota     ///< best mode index
+  CI_NEXT_BEST         ///< next best index
+  CI_TEMP_BEST         ///< temporal index
+  CI_CHROMA_INTRA      ///< chroma intra index
+  CI_QT_TRAFO_TEST
+  CI_QT_TRAFO_ROOT
+  CI_NUM               ///< total number
+)
 
 /// motion vector predictor direction used in AMVP
-enum MVP_DIR
-{
-  MD_LEFT = 0,          ///< MVP of left block
-  MD_ABOVE,             ///< MVP of above block
-  MD_ABOVE_RIGHT,       ///< MVP of above right block
-  MD_BELOW_LEFT,        ///< MVP of below left block
+const (//enum MVP_DIR
+  MD_LEFT = iota          ///< MVP of left block
+  MD_ABOVE             ///< MVP of above block
+  MD_ABOVE_RIGHT       ///< MVP of above right block
+  MD_BELOW_LEFT        ///< MVP of below left block
   MD_ABOVE_LEFT         ///< MVP of above left block
-};
+)
 
 /// coefficient scanning type used in ACS
-enum COEFF_SCAN_TYPE
-{
-  SCAN_ZIGZAG = 0,      ///< typical zigzag scan
-  SCAN_HOR,             ///< horizontal first scan
-  SCAN_VER,              ///< vertical first scan
+const (//enum COEFF_SCAN_TYPE
+  SCAN_ZIGZAG = iota      ///< typical zigzag scan
+  SCAN_HOR             ///< horizontal first scan
+  SCAN_VER              ///< vertical first scan
   SCAN_DIAG              ///< up-right diagonal scan
-};
+)
 
-namespace Profile
-{
-  enum Name
-  {
-    NONE = 0,
-    MAIN = 1,
-    MAIN10 = 2,
-    MAINSTILLPICTURE = 3,
-  };
-}
+//namespace Profile
+//{
+  const(//enum Name
+    PROFILE_NONE = 0
+    PROFILE_MAIN = 1
+    PROFILE_MAIN10 = 2
+    PROFILE_MAINSTILLPICTURE = 3
+  )
+//}
 
-namespace Level
-{
-  enum Tier
-  {
-    MAIN = 0,
-    HIGH = 1,
-  };
+//namespace Level
+//{
+  const (//enum Tier
+    TIER_MAIN = 0
+    TIER_HIGH = 1
+  )
 
-  enum Name
-  {
-    NONE     = 0,
-    LEVEL1   = 30,
-    LEVEL2   = 60,
-    LEVEL2_1 = 63,
-    LEVEL3   = 90,
-    LEVEL3_1 = 93,
-    LEVEL4   = 120,
-    LEVEL4_1 = 123,
-    LEVEL5   = 150,
-    LEVEL5_1 = 153,
-    LEVEL5_2 = 156,
-    LEVEL6   = 180,
-    LEVEL6_1 = 183,
-    LEVEL6_2 = 186,
-  };
-}
+  const (//enum Name
+    LEVELNONE= 0
+    LEVEL1   = 30
+    LEVEL2   = 60
+    LEVEL2_1 = 63
+    LEVEL3   = 90
+    LEVEL3_1 = 93
+    LEVEL4   = 120
+    LEVEL4_1 = 123
+    LEVEL5   = 150
+    LEVEL5_1 = 153
+    LEVEL5_2 = 156
+    LEVEL6   = 180
+    LEVEL6_1 = 183
+    LEVEL6_2 = 186
+  )
+//}
 //! \}
-*/

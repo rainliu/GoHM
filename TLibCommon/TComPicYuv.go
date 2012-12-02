@@ -1,7 +1,8 @@
 package TLibCommon
 
 import (
-
+	"errors"
+	"os"
 )
 
 /// picture YUV buffer class
@@ -9,13 +10,13 @@ type TComPicYuv struct{
   // ------------------------------------------------------------------------------------------------
   //  YUV buffer
   // ------------------------------------------------------------------------------------------------
-  m_apiPicBufY *Pel;           ///< Buffer (including margin)
-  m_apiPicBufU *Pel;
-  m_apiPicBufV *Pel;
+  m_apiPicBufY []Pel;           ///< Buffer (including margin)
+  m_apiPicBufU []Pel;
+  m_apiPicBufV []Pel;
   
-  m_piPicOrgY *Pel;            ///< m_apiPicBufY + m_iMarginLuma*getStride() + m_iMarginLuma
-  m_piPicOrgU *Pel;
-  m_piPicOrgV *Pel;
+  m_piPicOrgY []Pel;            ///< m_apiPicBufY + m_iMarginLuma*getStride() + m_iMarginLuma
+  m_piPicOrgU []Pel;
+  m_piPicOrgV []Pel;
   
   // ------------------------------------------------------------------------------------------------
   //  Parameter for general YUV buffer usage
@@ -26,10 +27,10 @@ type TComPicYuv struct{
   
   m_iCuWidth		int;             ///< Width of Coding Unit (CU)
   m_iCuHeight		int;             ///< Height of Coding Unit (CU)
-  m_cuOffsetY		*int;
-  m_cuOffsetC		*int;
-  m_buOffsetY		*int;
-  m_buOffsetC		*int;
+  m_cuOffsetY		[]int;
+  m_cuOffsetC		[]int;
+  m_buOffsetY		[]int;
+  m_buOffsetC		[]int;
   
   m_iLumaMarginX	int;
   m_iLumaMarginY	int;
@@ -37,11 +38,6 @@ type TComPicYuv struct{
   m_iChromaMarginY	int;
   
   m_bIsBorderExtended	bool;
-}
-
- 
-//protected:
-func (this *TComPicYuv) xExtendPicCompBorder (piTxt *Pel, iStride, iWidth, iHeight, iMarginX, iMarginY int){
 }
   
 //public:
@@ -53,15 +49,103 @@ func NewTComPicYuv() (*TComPicYuv){
   //  Memory management
   // ------------------------------------------------------------------------------------------------
 func (this *TComPicYuv) Create      ( iPicWidth, iPicHeight int, uiMaxCUWidth, uiMaxCUHeight, uiMaxCUDepth uint ){
+  this.m_iPicWidth       = iPicWidth;
+  this.m_iPicHeight      = iPicHeight;
+  
+  // --> After config finished!
+  this.m_iCuWidth        = int(uiMaxCUWidth);
+  this.m_iCuHeight       = int(uiMaxCUHeight);
+
+  numCuInWidth  := this.m_iPicWidth  / this.m_iCuWidth;
+  if (this.m_iPicWidth  % this.m_iCuWidth ) != 0 {
+  	numCuInWidth += 1;
+  }
+  numCuInHeight := this.m_iPicHeight / this.m_iCuHeight;
+  if (this.m_iPicHeight % this.m_iCuHeight) != 0 {
+  	numCuInHeight += 1;
+  }
+  
+  this.m_iLumaMarginX    = int(g_uiMaxCUWidth ) + 16; // for 16-byte alignment
+  this.m_iLumaMarginY    = int(g_uiMaxCUHeight) + 16;  // margin for 8-tap filter and infinite padding
+  
+  this.m_iChromaMarginX  = this.m_iLumaMarginX>>1;
+  this.m_iChromaMarginY  = this.m_iLumaMarginY>>1;
+  
+  this.m_apiPicBufY      = make([]Pel, ( this.m_iPicWidth       + (this.m_iLumaMarginX  <<1)) * ( this.m_iPicHeight       + (this.m_iLumaMarginY  <<1)));
+  this.m_apiPicBufU      = make([]Pel, ((this.m_iPicWidth >> 1) + (this.m_iChromaMarginX<<1)) * ((this.m_iPicHeight >> 1) + (this.m_iChromaMarginY<<1)));
+  this.m_apiPicBufV      = make([]Pel, ((this.m_iPicWidth >> 1) + (this.m_iChromaMarginX<<1)) * ((this.m_iPicHeight >> 1) + (this.m_iChromaMarginY<<1)));
+  
+  this.m_piPicOrgY       = this.m_apiPicBufY[this.m_iLumaMarginY   * this.GetStride()  + this.m_iLumaMarginX	 :];
+  this.m_piPicOrgU       = this.m_apiPicBufU[this.m_iChromaMarginY * this.GetCStride() + this.m_iChromaMarginX:];
+  this.m_piPicOrgV       = this.m_apiPicBufV[this.m_iChromaMarginY * this.GetCStride() + this.m_iChromaMarginX:];
+  
+  this.m_bIsBorderExtended = false;
+  
+  this.m_cuOffsetY = make([]int, numCuInWidth * numCuInHeight);
+  this.m_cuOffsetC = make([]int, numCuInWidth * numCuInHeight);
+  for cuRow := 0; cuRow < numCuInHeight; cuRow++ {
+    for cuCol := 0; cuCol < numCuInWidth; cuCol++ {
+      this.m_cuOffsetY[cuRow * numCuInWidth + cuCol] = this.GetStride()  * cuRow *  this.m_iCuHeight      + cuCol *  this.m_iCuWidth;
+      this.m_cuOffsetC[cuRow * numCuInWidth + cuCol] = this.GetCStride() * cuRow * (this.m_iCuHeight / 2) + cuCol * (this.m_iCuWidth / 2);
+    }
+  }
+  
+  this.m_buOffsetY = make([]int, 1 << (2 * uiMaxCUDepth));
+  this.m_buOffsetC = make([]int, 1 << (2 * uiMaxCUDepth));
+  for buRow := 0; buRow < (1 << uiMaxCUDepth); buRow++ {
+    for buCol := 0; buCol < (1 << uiMaxCUDepth); buCol++ {
+      this.m_buOffsetY[(buRow << uiMaxCUDepth) + buCol] = this.GetStride()  * buRow * int( uiMaxCUHeight      >> uiMaxCUDepth) + buCol * int( uiMaxCUWidth      >> uiMaxCUDepth);
+      this.m_buOffsetC[(buRow << uiMaxCUDepth) + buCol] = this.GetCStride() * buRow * int((uiMaxCUHeight / 2) >> uiMaxCUDepth) + buCol * int((uiMaxCUWidth / 2) >> uiMaxCUDepth);
+    }
+  }
+  return;
 }
 
 func (this *TComPicYuv) Destroy     (){
+//do nothing due to Garbage Collection of GO 
 }
   
 func (this *TComPicYuv) CreateLuma  ( iPicWidth, iPicHeight int, uiMaxCUWidth, uiMaxCUHeight, uiMaxCUDepth uint ){
+  this.m_iPicWidth       = iPicWidth;
+  this.m_iPicHeight      = iPicHeight;
+  
+  // --> After config finished!
+  this.m_iCuWidth        = int(uiMaxCUWidth);
+  this.m_iCuHeight       = int(uiMaxCUHeight);
+  
+  numCuInWidth  := this.m_iPicWidth  / this.m_iCuWidth;
+  if (this.m_iPicWidth  % this.m_iCuWidth ) != 0 {
+  	numCuInWidth += 1;
+  }
+  numCuInHeight := this.m_iPicHeight / this.m_iCuHeight;
+  if (this.m_iPicHeight % this.m_iCuHeight) != 0 {
+  	numCuInHeight += 1;
+  }
+ 
+  this.m_iLumaMarginX    = int(g_uiMaxCUWidth ) + 16; // for 16-byte alignment
+  this.m_iLumaMarginY    = int(g_uiMaxCUHeight) + 16;  // margin for 8-tap filter and infinite padding
+   
+  this.m_apiPicBufY      = make([]Pel, ( this.m_iPicWidth       + (this.m_iLumaMarginX  <<1)) * ( this.m_iPicHeight       + (this.m_iLumaMarginY  <<1)));
+  this.m_piPicOrgY       = this.m_apiPicBufY[this.m_iLumaMarginY   * this.GetStride()  + this.m_iLumaMarginX	 :];
+ 
+  this.m_cuOffsetY = make([]int, numCuInWidth * numCuInHeight);
+  for cuRow := 0; cuRow < numCuInHeight; cuRow++ {
+    for cuCol := 0; cuCol < numCuInWidth; cuCol++ {
+      this.m_cuOffsetY[cuRow * numCuInWidth + cuCol] = this.GetStride()  * cuRow *  this.m_iCuHeight      + cuCol *  this.m_iCuWidth;
+    }
+  }
+  
+  this.m_buOffsetY = make([]int, 1 << (2 * uiMaxCUDepth));
+  for buRow := 0; buRow < (1 << uiMaxCUDepth); buRow++ {
+    for buCol := 0; buCol < (1 << uiMaxCUDepth); buCol++ {
+      this.m_buOffsetY[(buRow << uiMaxCUDepth) + buCol] = this.GetStride()  * buRow * int( uiMaxCUHeight      >> uiMaxCUDepth) + buCol * int( uiMaxCUWidth      >> uiMaxCUDepth);
+    }
+  }
+  return;
 }
 
 func (this *TComPicYuv)	DestroyLuma (){
+//do nothing
 }
   
   // ------------------------------------------------------------------------------------------------
@@ -97,28 +181,28 @@ func (this *TComPicYuv) GetChromaMargin () int{
   // ------------------------------------------------------------------------------------------------
   
   //  Access starting position of picture buffer with margin
-func (this *TComPicYuv)   GetBufY     ()  *Pel   { 
+func (this *TComPicYuv)   GetBufY     ()  []Pel   { 
 	return  this.m_apiPicBufY;   
 }
 
-func (this *TComPicYuv)   GetBufU     ()  *Pel   { 
+func (this *TComPicYuv)   GetBufU     ()  []Pel   { 
 	return  this.m_apiPicBufU;   
 }
 
-func (this *TComPicYuv)   GetBufV     ()  *Pel   { 
+func (this *TComPicYuv)   GetBufV     ()  []Pel   { 
 	return  this.m_apiPicBufV;   
 }
   
   //  Access starting position of original picture
-func (this *TComPicYuv)   GetLumaAddr ()  *Pel   { 
+func (this *TComPicYuv)   GetLumaAddr ()  []Pel   { 
 	return  this.m_piPicOrgY;    
 }
 
-func (this *TComPicYuv)   GetCbAddr   ()  *Pel   { 
+func (this *TComPicYuv)   GetCbAddr   ()  []Pel   { 
 	return  this.m_piPicOrgU;    
 }
 
-func (this *TComPicYuv)   GetCrAddr   ()  *Pel   { 
+func (this *TComPicYuv)   GetCrAddr   ()  []Pel   { 
 	return  this.m_piPicOrgV;    
 }
  
@@ -153,27 +237,163 @@ func (this *TComPicYuv)   GetCrAddr2   ( iCuAddr, uiAbsZorderIdx int ) *Pel{
   // ------------------------------------------------------------------------------------------------
   
   //  Copy function to picture
-func (this *TComPicYuv)   CopyToPic       ( pcPicYuvDst *TComPicYuv ){
-}
+func (this *TComPicYuv)   CopyToPic       ( pcPicYuvDst *TComPicYuv ) (err error){
+  if this.m_iPicWidth  != pcPicYuvDst.GetWidth() ||  
+     this.m_iPicHeight != pcPicYuvDst.GetHeight() {
+  	err = errors.New("this.m_iPicWidth  != pcPicYuvDst.GetWidth() || this.m_iPicHeight != pcPicYuvDst.GetHeight()")
+  	return err
+  }
 
-func (this *TComPicYuv)   CopyToPicLuma   ( pcPicYuvDst *TComPicYuv ){
-}
-
-func (this *TComPicYuv)   CopyToPicCb     ( pcPicYuvDst *TComPicYuv ){
-}
-
-func (this *TComPicYuv)   CopyToPicCr     ( pcPicYuvDst *TComPicYuv ){
-}
+  this.CopyToPicLuma ( pcPicYuvDst );
+  this.CopyToPicCb   ( pcPicYuvDst );
+  this.CopyToPicCr   ( pcPicYuvDst );
   
-  //  Extend function of picture buffer
-func (this *TComPicYuv)   ExtendPicBorder      (){
+  return nil;
 }
+
+func (this *TComPicYuv)   CopyToPicLuma   ( pcPicYuvDst *TComPicYuv ) (err error){
+  if this.m_iPicWidth  != pcPicYuvDst.GetWidth() ||  
+     this.m_iPicHeight != pcPicYuvDst.GetHeight() {
+  	err = errors.New("this.m_iPicWidth  != pcPicYuvDst.GetWidth() || this.m_iPicHeight != pcPicYuvDst.GetHeight()")
+  	return err
+  }
   
-  //  Dump picture
-func (this *TComPicYuv)   Dump (pFileName string, bAdd bool){
+  pcPicYuvDstY := pcPicYuvDst.GetBufY()
+  for k:=0; k < (this.m_iPicHeight + (this.m_iLumaMarginY << 1))*(this.m_iPicWidth + (this.m_iLumaMarginX << 1)); k++ {
+    pcPicYuvDstY[k]= this.m_apiPicBufY[k]
+  }
+  
+  return nil;
+}
+
+func (this *TComPicYuv)   CopyToPicCb     ( pcPicYuvDst *TComPicYuv ) (err error){
+  if this.m_iPicWidth  != pcPicYuvDst.GetWidth() ||  
+     this.m_iPicHeight != pcPicYuvDst.GetHeight() {
+  	err = errors.New("this.m_iPicWidth  != pcPicYuvDst.GetWidth() || this.m_iPicHeight != pcPicYuvDst.GetHeight()")
+  	return err
+  }
+  
+  pcPicYuvDstU := pcPicYuvDst.GetBufU()
+  for k:=0; k < ((this.m_iPicWidth >> 1) + (this.m_iChromaMarginX << 1)) * ((this.m_iPicHeight >> 1) + (this.m_iChromaMarginY << 1)); k++ {
+    pcPicYuvDstU[k]= this.m_apiPicBufU[k]
+  }
+  
+  return nil;
+}
+
+func (this *TComPicYuv)   CopyToPicCr     ( pcPicYuvDst *TComPicYuv ) (err error){
+  if this.m_iPicWidth  != pcPicYuvDst.GetWidth() ||  
+     this.m_iPicHeight != pcPicYuvDst.GetHeight() {
+  	err = errors.New("this.m_iPicWidth  != pcPicYuvDst.GetWidth() || this.m_iPicHeight != pcPicYuvDst.GetHeight()")
+  	return err
+  }
+  
+  pcPicYuvDstV := pcPicYuvDst.GetBufV()
+  for k:=0; k < ((this.m_iPicWidth >> 1) + (this.m_iChromaMarginX << 1)) * ((this.m_iPicHeight >> 1) + (this.m_iChromaMarginY << 1)); k++ {
+    pcPicYuvDstV[k]= this.m_apiPicBufV[k]
+  }
+  
+  return nil;
 }
   
   // Set border extension flag
 func (this *TComPicYuv)   SetBorderExtension(bIsBorderExtended bool) { 
 	this.m_bIsBorderExtended = bIsBorderExtended; 
+}
+  
+  //  Extend function of picture buffer
+func (this *TComPicYuv)   ExtendPicBorder      (){
+  if this.m_bIsBorderExtended {
+  	return;
+  }
+  
+  this.xExtendPicCompBorder( this.GetBufY(), this.GetLumaAddr(), this.GetStride(),  this.GetWidth(),      this.GetHeight(),      this.m_iLumaMarginX,   this.m_iLumaMarginY   );
+  this.xExtendPicCompBorder( this.GetBufU(), this.GetCbAddr()  , this.GetCStride(), this.GetWidth() >> 1, this.GetHeight() >> 1, this.m_iChromaMarginX, this.m_iChromaMarginY );
+  this.xExtendPicCompBorder( this.GetBufV(), this.GetCrAddr()  , this.GetCStride(), this.GetWidth() >> 1, this.GetHeight() >> 1, this.m_iChromaMarginX, this.m_iChromaMarginY );
+  
+  this.m_bIsBorderExtended = true;
+}
+  
+  //  Dump picture
+func (this *TComPicYuv)   Dump (pFileName string, bAdd bool) (err error){
+  var pFile *os.File;
+  
+  if !bAdd {
+    pFile, err = os.Create(pFileName);
+  } else {
+    pFile, err = os.OpenFile(pFileName, os.O_APPEND, os.ModeAppend);
+  }
+  if err!= nil{
+  	return err
+  }
+  defer pFile.Close()
+
+  var offset Pel
+  
+  shift := uint(g_bitDepthY-8);
+  if shift>0 {
+  	offset = 1<<(shift-1);
+  }else{
+  	offset = 0;
+  }
+  
+  var x, y int;
+  
+  piY   := this.GetLumaAddr();
+  piCb  := this.GetCbAddr();
+  piCr  := this.GetCrAddr();
+  iStride := this.GetStride();
+  iStrideC := this.GetCStride();
+  uy := make([]byte, this.m_iPicWidth) 
+  uc := make([]byte, this.m_iPicWidth>>1) 
+  
+  for y = 0; y < this.m_iPicHeight; y++ {
+    for x = 0; x < this.m_iPicWidth; x++ {
+      uy[x] = byte(Clip3(0, 255, (piY[y*iStride+x]+offset)>>shift));
+    }
+    pFile.Write(uy);
+  }
+  
+  shift = uint(g_bitDepthC-8);
+  if shift>0 {
+  	offset = 1<<(shift-1);
+  }else{
+  	offset = 0;
+  }
+
+
+  for y = 0; y < this.m_iPicHeight >> 1; y++ {
+    for x = 0; x < this.m_iPicWidth >> 1; x++ {
+      uc[x] = byte(Clip3(0, 255, (piCb[y*iStrideC+x]+offset)>>shift));
+    }
+    pFile.Write(uc);
+  }
+  
+  for y = 0; y < this.m_iPicHeight >> 1; y++ {
+    for x = 0; x < this.m_iPicWidth >> 1; x++ {
+      uc[x] = byte(Clip3(0, 255, (piCr[y*iStrideC+x]+offset)>>shift));
+    }
+    pFile.Write(uc);
+  }
+  
+  return nil
+}
+
+//protected:
+func (this *TComPicYuv) xExtendPicCompBorder (pi []Pel, piTxt []Pel, iStride, iWidth, iHeight, iMarginX, iMarginY int){
+  var x, y int;
+  
+  for y = 0; y < iHeight; y++ {
+    for x = 0; x < iMarginX; x++ {
+      pi[(y+iMarginY)*iStride - iMarginX + x + iMarginX] = piTxt[y*iStride + 0];
+      pi[(y+iMarginY)*iStride +   iWidth + x + iMarginX] = piTxt[y*iStride + iWidth-1];
+    }
+  }
+  
+  for y = 0; y < iMarginY; y++ {
+    for x = 0; x < iWidth+(iMarginX<<1); x++ {
+    	pi[y*iStride+x] = pi[iMarginY*iStride+x];
+    	pi[(y+iHeight+iMarginY)*iStride+x] = pi[(iHeight-1+iMarginY)*iStride+x];
+    }
+  }
 }

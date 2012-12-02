@@ -8,7 +8,7 @@ type TAppDecTop struct{
 	TAppDecCfg
 	
 	//m_cTDecTop	TDecTop
-	//m_cTVideoIOYuvReconFile	TVideoIOYuv
+	m_cTVideoIOYuvReconFile	TLibCommon.TVideoIOYuv
 	
 	m_abDecFlag	[TLibCommon.MAX_GOP]bool
 	m_iPOCLastDisplay	int
@@ -36,9 +36,9 @@ func (this *TAppDecTop) xCreateDecLib(){
 }
 
 func (this *TAppDecTop) xDestroyDecLib(){
-   	//if m_pchReconFile != "" {
-    //	this.m_cTVideoIOYuvReconFile. close();
-  	//}
+   	if this.m_pchReconFile != "" {
+    	this.m_cTVideoIOYuvReconFile.Close();
+  	}
   
 	//destroy decoder class
   	//this.m_cTDecTop.destroy();
