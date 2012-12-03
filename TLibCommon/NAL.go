@@ -8,7 +8,7 @@ import (
  * Represents a single NALunit header and the associated RBSPayload
  */
 type NALUnit struct{
-  m_nalUnitType			uint8; //NalUnitType///< nal_unit_type
+  m_nalUnitType			NalUnitType;///< nal_unit_type
   m_temporalId 			uint;  ///< temporal_id
   m_reservedZero6Bits 	uint; ///< reserved_zero_6bits
 }

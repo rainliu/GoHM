@@ -71,6 +71,8 @@ const MAX_CHROMA_FORMAT_IDC  =    3
 // TODO: Existing names used for the different NAL unit types can be altered to better reflect the names in the spec.
 //       However, the names in the spec are not yet stable at this point. Once the names are stable, a cleanup 
 //       effort can be done without use of macros to alter the names used to indicate the different NAL unit types.
+type NalUnitType uint8
+
 const (//enum NalUnitType
 //#if HM9_NALU_TYPES
   NAL_UNIT_CODED_SLICE_TRAIL_N = iota   // 0
@@ -148,6 +150,22 @@ const (//enum NalUnitType
   NAL_UNIT_UNSPECIFIED_63
   NAL_UNIT_INVALID
 )
+
+func MAX(a, b Pel) Pel {
+	if a < b {
+		return b
+	}
+	
+	return a
+}
+
+func MIN(a, b Pel) Pel {
+	if a > b {
+		return b
+	}
+	
+	return a
+}
 
 func ClipY(a Pel) Pel { 
 	if a < 0 {
