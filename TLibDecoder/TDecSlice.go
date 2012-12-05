@@ -1,7 +1,7 @@
 package TLibDecoder
 
 import (
-
+	"gohm/TLibCommon"
 )
 
 
@@ -41,9 +41,15 @@ func NewTDecSlice() *TDecSlice{
 //#endif
 //};
 
+
+type ParameterSetManagerDecoder struct{
+  TLibCommon.ParameterSetManager
+//private:
+//  ParameterSetMap<TComVPS> m_vpsBuffer;
+//  ParameterSetMap<TComSPS> m_spsBuffer; 
+//  ParameterSetMap<TComPPS> m_ppsBuffer;
+}
 /*
-class ParameterSetManagerDecoder:public ParameterSetManager
-{
 public:
   ParameterSetManagerDecoder();
   virtual ~ParameterSetManagerDecoder();
@@ -54,10 +60,4 @@ public:
   Void     storePrefetchedPPS(TComPPS *pps)  { m_ppsBuffer.storePS( pps->getPPSId(), pps); };
   TComPPS* getPrefetchedPPS  (Int ppsId);
   Void     applyPrefetchedPS();
-
-private:
-  ParameterSetMap<TComVPS> m_vpsBuffer;
-  ParameterSetMap<TComSPS> m_spsBuffer; 
-  ParameterSetMap<TComPPS> m_ppsBuffer;
-};
 */

@@ -1,7 +1,7 @@
 package TLibCommon
 
 import (
-
+	"container/list"
 )
 
 /**
@@ -14,7 +14,7 @@ type NALUnit struct{
 }
 
   /** construct an NALunit structure with given header values. */
-func NewNALUnit( nalUnitType uint8, temporalId, reservedZero6Bits uint ) *NALUnit{
+func NewNALUnit( nalUnitType NalUnitType, temporalId, reservedZero6Bits uint ) *NALUnit{
 	return &NALUnit{nalUnitType, temporalId, reservedZero6Bits}
 }
 
@@ -34,4 +34,22 @@ func (this *NALUnit) isSlice() bool {
            this.m_nalUnitType == NAL_UNIT_CODED_SLICE_CRA	 ||
            this.m_nalUnitType == NAL_UNIT_CODED_SLICE_DLP	 ||
            this.m_nalUnitType == NAL_UNIT_CODED_SLICE_TFD;
+}
+
+
+
+/**
+ * A convenience wrapper to NALUnit that also provides a
+ * bitstream object.
+ */
+type InputNALUnit struct{
+  NALUnit
+  m_Bitstream	*TComInputBitstream;
+};
+
+func NewInputNALUnit() *InputNALUnit{
+	return &InputNALUnit{};
+}
+
+func (this *InputNALUnit) Read(nalUnitBuf *list.List){
 }

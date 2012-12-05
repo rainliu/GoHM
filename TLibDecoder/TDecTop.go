@@ -1,28 +1,30 @@
-package TLibCommon
+package TLibDecoder
 
 import (
 	"container/list"
+	"gohm/TLibCommon"
 )
-/*
+
 /// decoder class
 type TDecTop struct{
 //private:
-  Int                     m_iGopSize		int;
-  Bool                    m_bGopSizeSet		bool;
-  Int                     m_iMaxRefPicNum	int;
+  m_iGopSize		int;
+  m_bGopSizeSet		bool;
+  m_iMaxRefPicNum	int;
   
-  Bool                    m_bRefreshPending	bool;    ///< refresh pending flag
-  Int                     m_pocCRA			int;            ///< POC number of the latest CRA picture
-  Bool                    m_prevRAPisBLA	bool;      ///< true if the previous RAP (CRA/CRANT/BLA/BLANT/IDR) picture is a BLA/BLANT picture
-  Int                     m_pocRandomAccess	int;   ///< POC number of the random access point (the first IDR or CRA picture)
+  m_bRefreshPending	bool;    ///< refresh pending flag
+  m_pocCRA			int;            ///< POC number of the latest CRA picture
+  m_prevRAPisBLA	bool;      ///< true if the previous RAP (CRA/CRANT/BLA/BLANT/IDR) picture is a BLA/BLANT picture
+  m_pocRandomAccess	int;   ///< POC number of the random access point (the first IDR or CRA picture)
 
-  TComList<TComPic*>      m_cListPic		*list.List;         //  Dynamic buffer
-  ParameterSetManagerDecoder m_parameterSetManagerDecoder;  // storage for parameter sets 
-  TComSlice*              m_apcSlicePilot;
+  m_cListPic		*list.List;         //  Dynamic buffer
+  m_parameterSetManagerDecoder				ParameterSetManagerDecoder;  // storage for parameter sets 
+  m_apcSlicePilot	*TLibCommon.TComSlice;
   
-  SEImessages *m_SEIs; ///< "all" SEI messages.  If not NULL, we own the object.
+  //SEImessages *m_SEIs; ///< "all" SEI messages.  If not NULL, we own the object.
 
   // functional classes
+ /* 
   TComPrediction          m_cPrediction;
   TComTrQuant             m_cTrQuant;
   TDecGop                 m_cGopDecoder;
@@ -35,42 +37,86 @@ type TDecTop struct{
   SEIReader               m_seiReader;
   TComLoopFilter          m_cLoopFilter;
   TComSampleAdaptiveOffset m_cSAO;
+ */
 
-  Bool isSkipPictureForBLA(Int& iPOCLastDisplay);
-  Bool isRandomAccessSkipPicture(Int& iSkipFrame,  Int& iPOCLastDisplay);
-  TComPic*                m_pcPic;
-  UInt                    m_uiSliceIdx;
-  Int                     m_prevPOC;
-  Bool                    m_bFirstSliceInPicture;
-  Bool                    m_bFirstSliceInSequence;
+  m_pcPic		*TLibCommon.TComPic;
+  m_uiSliceIdx	uint;
+  m_prevPOC		int;
+  m_bFirstSliceInPicture	bool;
+  m_bFirstSliceInSequence	bool;
+}
 
-public:
-  TDecTop();
-  virtual ~TDecTop();
+
+//public:
+func NewTDecTop() *TDecTop{
+  return &TDecTop{ m_pcPic : nil,
+  m_iGopSize : 0,
+  m_bGopSizeSet : false,
+  m_iMaxRefPicNum : 0,
+//#if ENC_DEC_TRACE
+//  g_hTrace = fopen( "TraceDec.txt", "wb" );
+//  g_bJustDoIt = g_bEncDecTraceDisable;
+//  g_nSymbolCounter = 0;
+//#endif
+  m_bRefreshPending : false,
+  m_pocCRA : 0,
+  m_prevRAPisBLA : false,
+  m_pocRandomAccess : TLibCommon.MAX_INT,          
+  m_prevPOC                 : TLibCommon.MAX_INT,
+  m_bFirstSliceInPicture    : true,
+  m_bFirstSliceInSequence   : true}
+}
   
-  Void  create  ();
-  Void  destroy ();
-
-  void setDecodedPictureHashSEIEnabled(Int enabled) { m_cGopDecoder.setDecodedPictureHashSEIEnabled(enabled); }
-
-  Void  init();
-  Bool  decode(InputNALUnit& nalu, Int& iSkipFrame, Int& iPOCLastDisplay);
+func (this *TDecTop)  Create  (){
+  //this.m_cGopDecoder.Create();
+  this.m_apcSlicePilot = TLibCommon.NewTComSlice();
+  this.m_uiSliceIdx = 0;
+}
+func (this *TDecTop)  Destroy (){
+}
   
-  Void  deletePicBuffer();
+func (this *TDecTop)  IsSkipPictureForBLA(iPOCLastDisplay *int) bool{
+	return true;
+}
+func (this *TDecTop)  IsRandomAccessSkipPicture(iSkipFrame *int,  iPOCLastDisplay *int) bool {
+	return true;
+}
 
-  Void executeDeblockAndAlf(Int& poc, TComList<TComPic*>*& rpcListPic, Int& iSkipFrame,  Int& iPOCLastDisplay);
+func (this *TDecTop)  SetDecodedPictureHashSEIEnabled(enabled int) { 
+	//this.m_cGopDecoder.SetDecodedPictureHashSEIEnabled(enabled); 
+}
 
-protected:
-  Void  xGetNewPicBuffer  (TComSlice* pcSlice, TComPic*& rpcPic);
-  Void  xUpdateGopSize    (TComSlice* pcSlice);
-  Void  xCreateLostPicture (Int iLostPOC);
+func (this *TDecTop)  Init(){
+}
+func (this *TDecTop)  Decode(nalu *TLibCommon.InputNALUnit, iSkipFrame *int, iPOCLastDisplay *int) bool {
+	return true;
+}
+  
+func (this *TDecTop)  DeletePicBuffer(){
+}
 
-  Void      xActivateParameterSets();
-  Bool      xDecodeSlice(InputNALUnit &nalu, Int &iSkipFrame, Int iPOCLastDisplay);
-  Void      xDecodeVPS();
-  Void      xDecodeSPS();
-  Void      xDecodePPS();
-  Void      xDecodeSEI( TComInputBitstream* bs );
+func (this *TDecTop)  ExecuteDeblockAndAlf(poc *int, rpcListPic *list.List, iSkipFrame *int,  iPOCLastDisplay *int){
+}
 
-};// END CLASS DEFINITION TDecTop
-*/
+//protected:
+func (this *TDecTop)  xGetNewPicBuffer  (pcSlice *TLibCommon.TComSlice, rpcPic *TLibCommon.TComPic){
+}
+func (this *TDecTop)  xUpdateGopSize    (pcSlice *TLibCommon.TComSlice){
+}
+func (this *TDecTop)  xCreateLostPicture (iLostPOC int){
+}
+
+func (this *TDecTop)  xActivateParameterSets(){
+}
+func (this *TDecTop)  xDecodeSlice(nalu *TLibCommon.InputNALUnit, iSkipFrame *int, iPOCLastDisplay int) bool{
+	return true;
+}
+func (this *TDecTop)  xDecodeVPS(){
+}
+func (this *TDecTop)  xDecodeSPS(){
+}
+func (this *TDecTop)  xDecodePPS(){
+}
+func (this *TDecTop)  xDecodeSEI( bs *TLibCommon.TComInputBitstream ){
+}
+

@@ -1,7 +1,7 @@
 package TLibCommon
 
 import (
-
+	"container/list"
 )
 
 // ====================================================================================================================
@@ -23,7 +23,7 @@ type TComReferencePictureSet struct{
   m_numberOfPositivePictures	int;
   m_numberOfLongtermPictures	int;
   m_deltaPOC	[MAX_NUM_REF_PICS]int;
-  m_POC		[MAX_NUM_REF_PICS]int;
+  m_POC			[MAX_NUM_REF_PICS]int;
   m_used		[MAX_NUM_REF_PICS]bool;
   m_interRPSPrediction			bool;
   m_deltaRIdxMinus1			int;   
@@ -1805,7 +1805,7 @@ type TComSlice struct{
   m_iLastIDR	int;
   m_prevPOC	int;
   m_pcRPS	*TComReferencePictureSet;
-  m_LocalRPS *TComReferencePictureSet;
+  m_LocalRPS TComReferencePictureSet;
   m_iBDidx	int; 
   m_iCombinationBDidx	int;
   m_bCombineWithReferenceFlag	bool;
@@ -1838,7 +1838,7 @@ type TComSlice struct{
   m_iSliceQpDelta	int;
   m_iSliceQpDeltaCb	int;
   m_iSliceQpDeltaCr	int;
-  m_apcRefPicList [][2][MAX_NUM_REF+1]TComPic;
+  m_apcRefPicList   [2][MAX_NUM_REF+1]*TComPic;
   m_aiRefPOCList    [2][MAX_NUM_REF+1]int;
   m_iDepth	int;
   
@@ -1910,546 +1910,656 @@ func NewTComSlice() *TComSlice{
 	return &TComSlice{}
 }
 
-func (this *TComSlice)  initSlice       (){
+func (this *TComSlice)  InitSlice       (){
 }
 
-func (this *TComSlice)  setVPS          ( pcVPS *TComVPS) { 
-	m_pcVPS = pcVPS; 
+func (this *TComSlice)  SetVPS          ( pcVPS *TComVPS) { 
+	this.m_pcVPS = pcVPS; 
 }
-func (this *TComSlice)  getVPS          () *TComVPS { 
-	return m_pcVPS; 
+func (this *TComSlice)  GetVPS          () *TComVPS { 
+	return this.m_pcVPS; 
 }
-func (this *TComSlice)  setSPS          ( pcSPS *TComSPS) { 
-	m_pcSPS = pcSPS; 
+func (this *TComSlice)  SetSPS          ( pcSPS *TComSPS) { 
+	this.m_pcSPS = pcSPS; 
 }
-func (this *TComSlice)  getSPS          () *TComVPS { 
-	return m_pcSPS; 
+func (this *TComSlice)  GetSPS          () *TComSPS { 
+	return this.m_pcSPS; 
 }
   
-func (this *TComSlice)  setPPS          ( pcPPS *TComPPS)         { 
+func (this *TComSlice)  SetPPS          ( pcPPS *TComPPS)         { 
 	//assert(pcPPS!=NULL); 
-	m_pcPPS = pcPPS; 
-	m_iPPSId = pcPPS.getPPSId(); 
+	this.m_pcPPS = pcPPS; 
+	this.m_iPPSId = pcPPS.GetPPSId(); 
 }
-func (this *TComSlice)  getPPS          () *TComVPS { 
-	return m_pcPPS; 
+func (this *TComSlice)  GetPPS          () *TComPPS { 
+	return this.m_pcPPS; 
 }
 
 //#if ADAPTIVE_QP_SELECTION
-func (this *TComSlice)  setTrQuant          ( pcTrQuant *TComTrQuant) { 
-	m_pcTrQuant = pcTrQuant; 
+func (this *TComSlice)  SetTrQuant          ( pcTrQuant *TComTrQuant) { 
+	this.m_pcTrQuant = pcTrQuant; 
 }
-func (this *TComSlice)  getTrQuant          () *TComTrQuant { 
-	return m_pcTrQuant; 
+func (this *TComSlice)  GetTrQuant          () *TComTrQuant { 
+	return this.m_pcTrQuant; 
 }
 //#endif
 
-func (this *TComSlice)  setPPSId        ( PPSId int )         { 
-	m_iPPSId = PPSId; 
+func (this *TComSlice)  SetPPSId        ( PPSId int )         { 
+	this.m_iPPSId = PPSId; 
 }
-func (this *TComSlice)  getPPSId        () int { 
-	return m_iPPSId; 
+func (this *TComSlice)  GetPPSId        () int { 
+	return this.m_iPPSId; 
 }
-func (this *TComSlice)  setPicOutputFlag( b bool)         { 
-	m_PicOutputFlag = b;    
+func (this *TComSlice)  SetPicOutputFlag( b bool)         { 
+	this.m_PicOutputFlag = b;    
 }
-func (this *TComSlice)  getPicOutputFlag() bool                { 
-	return m_PicOutputFlag; 
+func (this *TComSlice)  GetPicOutputFlag() bool                { 
+	return this.m_PicOutputFlag; 
 }
-func (this *TComSlice)  setSaoEnabledFlag(s bool) {
-	m_saoEnabledFlag =s; 
+func (this *TComSlice)  SetSaoEnabledFlag(s bool) {
+	this.m_saoEnabledFlag =s; 
 }
-func (this *TComSlice)  getSaoEnabledFlag() bool { 
-	return m_saoEnabledFlag; 
+func (this *TComSlice)  GetSaoEnabledFlag() bool { 
+	return this.m_saoEnabledFlag; 
 }
-func (this *TComSlice)  setSaoEnabledFlagChroma(s bool) {
-	m_saoEnabledFlagChroma = s; 
-}       //!< set SAO Cb&Cr enabled flag
-func (this *TComSlice)  getSaoEnabledFlagChroma() bool { 
-	return m_saoEnabledFlagChroma; 
-}        //!< get SAO Cb&Cr enabled flag
-func (this *TComSlice)  setRPS          ( pcRPS *TComReferencePictureSet) { 
-	m_pcRPS = pcRPS; 
+func (this *TComSlice)  SetSaoEnabledFlagChroma(s bool) {
+	this.m_saoEnabledFlagChroma = s; 
+}       //!< Set SAO Cb&Cr enabled flag
+func (this *TComSlice)  GetSaoEnabledFlagChroma() bool { 
+	return this.m_saoEnabledFlagChroma; 
+}        //!< Get SAO Cb&Cr enabled flag
+func (this *TComSlice)  SetRPS          ( pcRPS *TComReferencePictureSet) { 
+	this.m_pcRPS = pcRPS; 
 }
-func (this *TComSlice)  getRPS          () *TComReferencePictureSet{ 
-	return m_pcRPS; 
+func (this *TComSlice)  GetRPS          () *TComReferencePictureSet{ 
+	return this.m_pcRPS; 
 }
-func (this *TComSlice)  getLocalRPS     () *TComReferencePictureSet{ 
-	return &m_LocalRPS; 
+func (this *TComSlice)  GetLocalRPS     () *TComReferencePictureSet{ 
+	return &this.m_LocalRPS; 
 }
 
-func (this *TComSlice)  setRPSidx          ( iBDidx int ) { 
-	m_iBDidx = iBDidx; 
+func (this *TComSlice)  SetRPSidx          ( iBDidx int ) { 
+	this.m_iBDidx = iBDidx; 
 }
-func (this *TComSlice)  getRPSidx          () int{ 
-	return m_iBDidx; 
+func (this *TComSlice)  GetRPSidx          () int{ 
+	return this.m_iBDidx; 
 }
-func (this *TComSlice)  setCombinationBDidx          ( iCombinationBDidx int ) {
-	m_iCombinationBDidx = iCombinationBDidx; 
+func (this *TComSlice)  SetCombinationBDidx          ( iCombinationBDidx int ) {
+	this.m_iCombinationBDidx = iCombinationBDidx; 
 }
-func (this *TComSlice)  getCombinationBDidx          () int { 
-	return m_iCombinationBDidx; 
+func (this *TComSlice)  GetCombinationBDidx          () int { 
+	return this.m_iCombinationBDidx; 
 }
-func (this *TComSlice)  setCombineWithReferenceFlag          ( bCombineWithReferenceFlag bool) { 
-	m_bCombineWithReferenceFlag = bCombineWithReferenceFlag; 
+func (this *TComSlice)  SetCombineWithReferenceFlag          ( bCombineWithReferenceFlag bool) { 
+	this.m_bCombineWithReferenceFlag = bCombineWithReferenceFlag; 
 }
-func (this *TComSlice)  getCombineWithReferenceFlag          () bool { 
-	return m_bCombineWithReferenceFlag; 
+func (this *TComSlice)  GetCombineWithReferenceFlag          () bool { 
+	return this.m_bCombineWithReferenceFlag; 
 }
-func (this *TComSlice)  getPrevPOC      ()                     int     { 
-	return  m_prevPOC;      
+func (this *TComSlice)  GetPrevPOC      ()                     int     { 
+	return  this.m_prevPOC;      
 }
-func (this *TComSlice)  getRefPicListModification() *TComRefPicListModification { 
-	return &m_RefPicListModification; 
+func (this *TComSlice)  GetRefPicListModification() *TComRefPicListModification { 
+	return &this.m_RefPicListModification; 
 }
-func (this *TComSlice)  setLastIDR(iIDRPOC int)                       { 
-	m_iLastIDR = iIDRPOC; 
+func (this *TComSlice)  SetLastIDR(iIDRPOC int)                       { 
+	this.m_iLastIDR = iIDRPOC; 
 }
-func (this *TComSlice)  getLastIDR()            int                      { 
-	return m_iLastIDR; 
+func (this *TComSlice)  GetLastIDR()            int                      { 
+	return this.m_iLastIDR; 
 }
-func (this *TComSlice)  getSliceType    ()      SliceType                 { 
-	return  m_eSliceType;         
+func (this *TComSlice)  GetSliceType    ()      SliceType                 { 
+	return  this.m_eSliceType;         
 }
-func (this *TComSlice)  getPOC          ()      int                    { 
-	return  m_iPOC;           
+func (this *TComSlice)  GetPOC          ()      int                    { 
+	return  this.m_iPOC;           
 }
-func (this *TComSlice)  getSliceQp      ()      int                    { 
-	return  m_iSliceQp;           
+func (this *TComSlice)  GetSliceQp      ()      int                    { 
+	return  this.m_iSliceQp;           
 }
-func (this *TComSlice)  getDependentSliceFlag() bool               { 
-	return m_dependentSliceFlag; 
+func (this *TComSlice)  GetDependentSliceFlag() bool               { 
+	return this.m_dependentSliceFlag; 
 }
-func (this *TComSlice)  setDependentSliceFlag(val bool)             { 
-	m_dependentSliceFlag = val; 
+func (this *TComSlice)  SetDependentSliceFlag(val bool)             { 
+	this.m_dependentSliceFlag = val; 
 }
 //#if ADAPTIVE_QP_SELECTION
-func (this *TComSlice)  getSliceQpBase  ()       int                   { 
-	return  m_iSliceQpBase;       
+func (this *TComSlice)  GetSliceQpBase  ()       int                   { 
+	return  this.m_iSliceQpBase;       
 }
 //#endif
-func (this *TComSlice)  getSliceQpDelta ()       int                   { 
-	return  m_iSliceQpDelta;      
+func (this *TComSlice)  GetSliceQpDelta ()       int                   { 
+	return  this.m_iSliceQpDelta;      
 }
-func (this *TComSlice)  getSliceQpDeltaCb ()     int                  { 
-	return  m_iSliceQpDeltaCb;      
+func (this *TComSlice)  GetSliceQpDeltaCb ()     int                  { 
+	return  this.m_iSliceQpDeltaCb;      
 }
-func (this *TComSlice)  getSliceQpDeltaCr ()     int                  { 
-	return  m_iSliceQpDeltaCr;      
+func (this *TComSlice)  GetSliceQpDeltaCr ()     int                  { 
+	return  this.m_iSliceQpDeltaCr;      
 }
-func (this *TComSlice)  getDeblockingFilterDisable()  bool              { 
-	return  m_deblockingFilterDisable; 
+func (this *TComSlice)  GetDeblockingFilterDisable()  bool              { 
+	return  this.m_deblockingFilterDisable; 
 }
-func (this *TComSlice)  getDeblockingFilterOverrideFlag() bool          { 
-	return  m_deblockingFilterOverrideFlag; 
+func (this *TComSlice)  GetDeblockingFilterOverrideFlag() bool          { 
+	return  this.m_deblockingFilterOverrideFlag; 
 }
-func (this *TComSlice)  getDeblockingFilterBetaOffsetDiv2()  int       { 
-	return  m_deblockingFilterBetaOffsetDiv2; 
+func (this *TComSlice)  GetDeblockingFilterBetaOffsetDiv2()  int       { 
+	return  this.m_deblockingFilterBetaOffsetDiv2; 
 }
-func (this *TComSlice)  getDeblockingFilterTcOffsetDiv2()    int       { 
-	return  m_deblockingFilterTcOffsetDiv2; 
-}
-
-func (this *TComSlice)  getNumRefIdx        ( e RefPicList )   int             { 
-	return  m_aiNumRefIdx[e];             
-}
-func (this *TComSlice)  getPic              ()                *TComPic              { 
-	return  m_pcPic;                      
-}
-func (this *TComSlice)  getRefPic           ( e RefPicList, iRefIdx int ) *TComPic   { 
-	return  m_apcRefPicList[e][iRefIdx];  
-}
-func (this *TComSlice)  getRefPOC           ( e RefPicList, iRefIdx int )  int  { 
-	return  m_aiRefPOCList[e][iRefIdx];   
-}
-func (this *TComSlice)  getDepth            ()               int               { 
-	return  m_iDepth;                     
-}
-func (this *TComSlice)  getColFromL0Flag    ()               uint               { 
-	return  m_colFromL0Flag;              
-}
-func (this *TComSlice)  getColRefIdx        ()               uint               { 
-	return  m_colRefIdx;                  
-}
-func (this *TComSlice)  checkColRefIdx      ( curSliceIdx uint, pic *TComPic){
-}
-func (this *TComSlice)  getCheckLDC     ()               bool                   { 
-	return m_bCheckLDC; 
-}
-func (this *TComSlice)  getMvdL1ZeroFlag ()              bool                    { 
-	return m_bLMvdL1Zero;    
-}
-func (this *TComSlice)  getNumRpsCurrTempList()			int{
-}
-func (this *TComSlice)  getRefIdxOfLC       ( e RefPicList, iRefIdx int ) int    { 
-	return m_iRefIdxOfLC[e][iRefIdx];           
-}
-func (this *TComSlice)  getListIdFromIdxOfLC(iRefIdx int)       int            { 
-	return m_eListIdFromIdxOfLC[iRefIdx];       
-}
-func (this *TComSlice)  getRefIdxFromIdxOfLC(iRefIdx int)       int            { 
-	return m_iRefIdxFromIdxOfLC[iRefIdx];       
+func (this *TComSlice)  GetDeblockingFilterTcOffsetDiv2()    int       { 
+	return  this.m_deblockingFilterTcOffsetDiv2; 
 }
 
-func (this *TComSlice)  getRefIdxOfL0FromRefIdxOfL1(iRefIdx int) int           { 
-	return m_iRefIdxOfL0FromRefIdxOfL1[iRefIdx];
+func (this *TComSlice)  GetNumRefIdx        ( e RefPicList )   int             { 
+	return  this.m_aiNumRefIdx[e];             
 }
-func (this *TComSlice)  getRefIdxOfL1FromRefIdxOfL0(iRefIdx int) int           { 
-	return m_iRefIdxOfL1FromRefIdxOfL0[iRefIdx];
+func (this *TComSlice)  GetPic              ()                *TComPic              { 
+	return  this.m_pcPic;                      
 }
-func (this *TComSlice)  getRefPicListModificationFlagLC()        bool           {
-	return m_bRefPicListModificationFlagLC;
+func (this *TComSlice)  GetRefPic           ( e RefPicList, iRefIdx int ) *TComPic   { 
+	return  this.m_apcRefPicList[e][iRefIdx];  
 }
-func (this *TComSlice)  setRefPicListModificationFlagLC(bflag bool)         {
-	m_bRefPicListModificationFlagLC=bflag;
+func (this *TComSlice)  GetRefPOC           ( e RefPicList, iRefIdx int )  int  { 
+	return  this.m_aiRefPOCList[e][iRefIdx];   
+}
+func (this *TComSlice)  GetDepth            ()               int               { 
+	return  this.m_iDepth;                     
+}
+func (this *TComSlice)  GetColFromL0Flag    ()               uint               { 
+	return  this.m_colFromL0Flag;              
+}
+func (this *TComSlice)  GetColRefIdx        ()               uint               { 
+	return  this.m_colRefIdx;                  
+}
+func (this *TComSlice)  CheckColRefIdx      ( curSliceIdx uint, pic *TComPic){
+}
+func (this *TComSlice)  GetCheckLDC     ()               bool                   { 
+	return this.m_bCheckLDC; 
+}
+func (this *TComSlice)  GetMvdL1ZeroFlag ()              bool                    { 
+	return this.m_bLMvdL1Zero;    
+}
+func (this *TComSlice)  GetNumRpsCurrTempList()			int{
+	return 0;
+}
+func (this *TComSlice)  GetRefIdxOfLC       ( e RefPicList, iRefIdx int ) int    { 
+	return this.m_iRefIdxOfLC[e][iRefIdx];           
+}
+func (this *TComSlice)  GetListIdFromIdxOfLC(iRefIdx int)       int            { 
+	return this.m_eListIdFromIdxOfLC[iRefIdx];       
+}
+func (this *TComSlice)  GetRefIdxFromIdxOfLC(iRefIdx int)       int            { 
+	return this.m_iRefIdxFromIdxOfLC[iRefIdx];       
+}
+
+func (this *TComSlice)  GetRefIdxOfL0FromRefIdxOfL1(iRefIdx int) int           { 
+	return this.m_iRefIdxOfL0FromRefIdxOfL1[iRefIdx];
+}
+func (this *TComSlice)  GetRefIdxOfL1FromRefIdxOfL0(iRefIdx int) int           { 
+	return this.m_iRefIdxOfL1FromRefIdxOfL0[iRefIdx];
+}
+func (this *TComSlice)  GetRefPicListModificationFlagLC()        bool           {
+	return this.m_bRefPicListModificationFlagLC;
+}
+func (this *TComSlice)  SetRefPicListModificationFlagLC(bflag bool)         {
+	this.m_bRefPicListModificationFlagLC=bflag;
 }     
-func (this *TComSlice)  getRefPicListCombinationFlag()          bool            {
-	return m_bRefPicListCombinationFlag;
+func (this *TComSlice)  GetRefPicListCombinationFlag()          bool            {
+	return this.m_bRefPicListCombinationFlag;
 }
-func (this *TComSlice)  setRefPicListCombinationFlag(bflag bool)            {
-	m_bRefPicListCombinationFlag=bflag;
+func (this *TComSlice)  SetRefPicListCombinationFlag(bflag bool)            {
+	this.m_bRefPicListCombinationFlag=bflag;
 }   
-func (this *TComSlice)  setReferenced(b bool)                               { 
-	m_bRefenced = b; 
+func (this *TComSlice)  SetReferenced(b bool)                               { 
+	this.m_bRefenced = b; 
 }
-func (this *TComSlice)  isReferenced()                      bool                { 
-	return m_bRefenced; 
+func (this *TComSlice)  IsReferenced()                      bool                { 
+	return this.m_bRefenced; 
 }
-func (this *TComSlice)  setPOC              ( i int )                       { 
-	m_iPOC              = i; 
-	if getTLayer()==0 {
-		m_prevPOC=i; 
+func (this *TComSlice)  SetPOC              ( i int )                       { 
+	this.m_iPOC              = i; 
+	if this.GetTLayer()==0 {
+		this.m_prevPOC=i; 
 	}
 }
-func (this *TComSlice)  setNalUnitType      ( e NalUnitType)               { 
-	m_eNalUnitType      = e;      
+func (this *TComSlice)  SetNalUnitType      ( e NalUnitType)               { 
+	this.m_eNalUnitType      = e;      
 }
-func (this *TComSlice)  getNalUnitType    ()            NalUnitType                  { 
-	return m_eNalUnitType;        
+func (this *TComSlice)  GetNalUnitType    ()            NalUnitType                  { 
+	return this.m_eNalUnitType;        
 }
-func (this *TComSlice)  getRapPicFlag       ()	bool{
+func (this *TComSlice)  GetRapPicFlag       ()	bool{
+	return true;
 }
-func (this *TComSlice)  getIdrPicFlag       ()    bool                          { 
-	return getNalUnitType() == NAL_UNIT_CODED_SLICE_IDR || getNalUnitType() == NAL_UNIT_CODED_SLICE_IDR_N_LP; 
+func (this *TComSlice)  GetIdrPicFlag       ()    bool                          { 
+	return this.GetNalUnitType() == NAL_UNIT_CODED_SLICE_IDR || this.GetNalUnitType() == NAL_UNIT_CODED_SLICE_IDR_N_LP; 
 }
-func (this *TComSlice)  checkCRA(pReferencePictureSet *TComReferencePictureSet, pocCRA *int, prevRAPisBLA *bool, rcListPic *list.List){
+func (this *TComSlice)  CheckCRA(pReferencePictureSet *TComReferencePictureSet, pocCRA *int, prevRAPisBLA *bool, rcListPic *list.List){
 }
-func (this *TComSlice)  decodingRefreshMarking(pocCRA *int, bRefreshPending *bool, rcListPic *list.List){
+func (this *TComSlice)  DecodingRefreshMarking(pocCRA *int, bRefreshPending *bool, rcListPic *list.List){
 }
-func (this *TComSlice)  setSliceType        ( e SliceType)                 { 
-	m_eSliceType        = e;      
+func (this *TComSlice)  SetSliceType        ( e SliceType)                 { 
+	this.m_eSliceType        = e;      
 }
-func (this *TComSlice)  setSliceQp          ( i int)                       { 
-	m_iSliceQp          = i;      
+func (this *TComSlice)  SetSliceQp          ( i int)                       { 
+	this.m_iSliceQp          = i;      
 }
 //#if ADAPTIVE_QP_SELECTION
-func (this *TComSlice)  setSliceQpBase      ( i int)                       { 
-	m_iSliceQpBase      = i;      
+func (this *TComSlice)  SetSliceQpBase      ( i int)                       { 
+	this.m_iSliceQpBase      = i;      
 }
 //#endif
-func (this *TComSlice)  setSliceQpDelta     ( i int )                       { 
-	m_iSliceQpDelta     = i;      
+func (this *TComSlice)  SetSliceQpDelta     ( i int )                       { 
+	this.m_iSliceQpDelta     = i;      
 }
-func (this *TComSlice)  setSliceQpDeltaCb   ( i int )                       { 
-	m_iSliceQpDeltaCb   = i;      
+func (this *TComSlice)  SetSliceQpDeltaCb   ( i int )                       { 
+	this.m_iSliceQpDeltaCb   = i;      
 }
-func (this *TComSlice)  setSliceQpDeltaCr   ( i int )                       { 
-	m_iSliceQpDeltaCr   = i;     
+func (this *TComSlice)  SetSliceQpDeltaCr   ( i int )                       { 
+	this.m_iSliceQpDeltaCr   = i;     
 }
-func (this *TComSlice)  setDeblockingFilterDisable( b bool)                { 
-	m_deblockingFilterDisable= b;      
+func (this *TComSlice)  SetDeblockingFilterDisable( b bool)                { 
+	this.m_deblockingFilterDisable= b;      
 }
-func (this *TComSlice)  setDeblockingFilterOverrideFlag( b bool)           { 
-	m_deblockingFilterOverrideFlag = b; 
+func (this *TComSlice)  SetDeblockingFilterOverrideFlag( b bool)           { 
+	this.m_deblockingFilterOverrideFlag = b; 
 }
-func (this *TComSlice)  setDeblockingFilterBetaOffsetDiv2( i int)          { 
-	m_deblockingFilterBetaOffsetDiv2 = i; 
+func (this *TComSlice)  SetDeblockingFilterBetaOffsetDiv2( i int)          { 
+	this.m_deblockingFilterBetaOffsetDiv2 = i; 
 }
-func (this *TComSlice)  setDeblockingFilterTcOffsetDiv2( i int)            { 
-	m_deblockingFilterTcOffsetDiv2 = i; 
-}
-  
-func (this *TComSlice)  setRefPic           ( p *TComPic, e RefPicList, iRefIdx int ) { 
-	m_apcRefPicList[e][iRefIdx] = p; 
-}
-func (this *TComSlice)  setRefPOC           ( i int, e RefPicList, iRefIdx int ) { 
-	m_aiRefPOCList[e][iRefIdx] = i; 
-}
-func (this *TComSlice)  setNumRefIdx        ( e RefPicList, i int )         { 
-	m_aiNumRefIdx[e]    = i;      
-}
-func (this *TComSlice)  setPic              ( p *TComPic )                  { 
-	m_pcPic             = p;      
-}
-func (this *TComSlice)  setDepth            ( iDepth int)                  { 
-	m_iDepth            = iDepth; 
+func (this *TComSlice)  SetDeblockingFilterTcOffsetDiv2( i int)            { 
+	this.m_deblockingFilterTcOffsetDiv2 = i; 
 }
   
-func (this *TComSlice)  setRefPicList       ( rcListPic *list.List){
+func (this *TComSlice)  SetRefPic           ( p *TComPic, e RefPicList, iRefIdx int ) { 
+	this.m_apcRefPicList[e][iRefIdx] = p; 
 }
-func (this *TComSlice)  setRefPOCList       (){
+func (this *TComSlice)  SetRefPOC           ( i int, e RefPicList, iRefIdx int ) { 
+	this.m_aiRefPOCList[e][iRefIdx] = i; 
 }
-func (this *TComSlice)  setColFromL0Flag    ( colFromL0 uint ) { 
-	m_colFromL0Flag = colFromL0; 
+func (this *TComSlice)  SetNumRefIdx        ( e RefPicList, i int )         { 
+	this.m_aiNumRefIdx[e]    = i;      
 }
-func (this *TComSlice)  setColRefIdx        ( refIdx uint) { 
-	m_colRefIdx = refIdx; 
+func (this *TComSlice)  SetPic              ( p *TComPic )                  { 
+	this.m_pcPic             = p;      
 }
-func (this *TComSlice)  setCheckLDC         ( b bool)                      { 
-	m_bCheckLDC = b; 
+func (this *TComSlice)  SetDepth            ( iDepth int)                  { 
+	this.m_iDepth            = iDepth; 
 }
-func (this *TComSlice)  setMvdL1ZeroFlag    ( b bool)                       { 
-	m_bLMvdL1Zero = b; 
+  
+func (this *TComSlice)  SetRefPicList       ( rcListPic *list.List){
+}
+func (this *TComSlice)  SetRefPOCList       (){
+}
+func (this *TComSlice)  SetColFromL0Flag    ( colFromL0 uint ) { 
+	this.m_colFromL0Flag = colFromL0; 
+}
+func (this *TComSlice)  SetColRefIdx        ( refIdx uint) { 
+	this.m_colRefIdx = refIdx; 
+}
+func (this *TComSlice)  SetCheckLDC         ( b bool)                      { 
+	this.m_bCheckLDC = b; 
+}
+func (this *TComSlice)  SetMvdL1ZeroFlag    ( b bool)                       { 
+	this.m_bLMvdL1Zero = b; 
 }
 
-func (this *TComSlice)  isIntra         ()     bool                     { 
-	return  m_eSliceType == I_SLICE;  
+func (this *TComSlice)  IsIntra         ()     bool                     { 
+	return  this.m_eSliceType == I_SLICE;  
 }
-func (this *TComSlice)  isInterB        ()     bool                     { 
-	return  m_eSliceType == B_SLICE;  
+func (this *TComSlice)  IsInterB        ()     bool                     { 
+	return  this.m_eSliceType == B_SLICE;  
 }
-func (this *TComSlice)  isInterP        ()     bool                     { 
-	return  m_eSliceType == P_SLICE;  
+func (this *TComSlice)  IsInterP        ()     bool                     { 
+	return  this.m_eSliceType == P_SLICE;  
 }
   
 //#if SAO_CHROMA_LAMBDA  
-func (this *TComSlice)  setLambda( d, e float64 ) { 
-	m_dLambdaLuma = d; 
-	m_dLambdaChroma = e;
+func (this *TComSlice)  SetLambda( d, e float64 ) { 
+	this.m_dLambdaLuma = d; 
+	this.m_dLambdaChroma = e;
 }
-func (this *TComSlice)  getLambdaLuma()		float64 { 
-	return m_dLambdaLuma;        
+func (this *TComSlice)  GetLambdaLuma()		float64 { 
+	return this.m_dLambdaLuma;        
 }
-func (this *TComSlice)  getLambdaChroma() 	float64 { 
-	return m_dLambdaChroma;        
+func (this *TComSlice)  GetLambdaChroma() 	float64 { 
+	return this.m_dLambdaChroma;        
 }
 //#else
-//  Void      setLambda( Double d ) { m_dLambda = d; }
-//  Double    getLambda() { return m_dLambda;        }
+//  Void      SetLambda( Double d ) { this.m_dLambda = d; }
+//  Double    GetLambda() { return this.m_dLambda;        }
 //#endif
   
-func (this *TComSlice)  initEqualRef(){
+func (this *TComSlice)  InitEqualRef(){
 }
-func (this *TComSlice)  isEqualRef  ( e RefPicList, iRefIdx1 int, iRefIdx2 int ) bool{
+func (this *TComSlice)  IsEqualRef  ( e RefPicList, iRefIdx1 int, iRefIdx2 int ) bool{
     if iRefIdx1 < 0 || iRefIdx2 < 0 {
     	return false;
     }
     
-    return m_abEqualRef[e][iRefIdx1][iRefIdx2];
+    return this.m_abEqualRef[e][iRefIdx1][iRefIdx2];
 }
   
-func (this *TComSlice)  setEqualRef( e RefPicList, iRefIdx1 int, iRefIdx2 int, b bool){
-    m_abEqualRef[e][iRefIdx1][iRefIdx2] = b;
-    m_abEqualRef[e][iRefIdx2][iRefIdx1] = b;
+func (this *TComSlice)  SetEqualRef( e RefPicList, iRefIdx1 int, iRefIdx2 int, b bool){
+    this.m_abEqualRef[e][iRefIdx1][iRefIdx2] = b;
+    this.m_abEqualRef[e][iRefIdx2][iRefIdx1] = b;
 }
   
-func (this *TComSlice)  sortPicList         ( rcListPic *list.List){
+func (this *TComSlice)  SortPicList         ( rcListPic *list.List){
 }
   
-func (this *TComSlice)  getNoBackPredFlag() bool{ 
-	return m_bNoBackPredFlag; 
+func (this *TComSlice)  GetNoBackPredFlag() bool{ 
+	return this.m_bNoBackPredFlag; 
 }
-func (this *TComSlice)  setNoBackPredFlag( b bool ) { 
-	m_bNoBackPredFlag = b; 
+func (this *TComSlice)  SetNoBackPredFlag( b bool ) { 
+	this.m_bNoBackPredFlag = b; 
 }
-func (this *TComSlice)  generateCombinedList       (){
-}
-
-func (this *TComSlice)  getTLayer             ()       uint                     { 
-	return m_uiTLayer;                      
-}
-func (this *TComSlice)  setTLayer             ( uiTLayer uint)             { 
-	m_uiTLayer = uiTLayer;                  
+func (this *TComSlice)  GenerateCombinedList       (){
 }
 
-func (this *TComSlice)  setTLayerInfo( uiTLayer uint ){
+func (this *TComSlice)  GetTLayer             ()       uint                     { 
+	return this.m_uiTLayer;                      
 }
-func (this *TComSlice)  decodingMarking( rcListPic *list.List, iGOPSIze int, iMaxRefPicNum *int ){
-}
-func (this *TComSlice)  applyReferencePictureSet( rcListPic *list.List, RPSList *TComReferencePictureSet){
-}
-func (this *TComSlice)  isTemporalLayerSwitchingPoint( rcListPic *list.List, RPSList *TComReferencePictureSet) bool{
-}
-func (this *TComSlice)  isStepwiseTemporalLayerSwitchingPointCandidate( rcListPic *list.List, RPSList *TComReferencePictureSet) bool{
-}
-func (this *TComSlice)  checkThatAllRefPicsAreAvailable( rcListPic *list.List, pReferencePictureSet *TComReferencePictureSet, printErrors bool, pocRandomAccess int) int{
-}
-func (this *TComSlice)  createExplicitReferencePictureSetFromReference( rcListPic *list.List, pReferencePictureSet *TComReferencePictureSet){
+func (this *TComSlice)  SetTLayer             ( uiTLayer uint)             { 
+	this.m_uiTLayer = uiTLayer;                  
 }
 
-func (this *TComSlice)  setMaxNumMergeCand               (val uint)         { 
-	m_maxNumMergeCand = val;                    
+func (this *TComSlice)  SetTLayerInfo( uiTLayer uint ){
 }
-func (this *TComSlice)  getMaxNumMergeCand               ()      uint            { 
-	return m_maxNumMergeCand;                   
+func (this *TComSlice)  DecodingMarking( rcListPic *list.List, iGOPSIze int, iMaxRefPicNum *int ){
 }
-
-func (this *TComSlice)  setSliceMode                     (uiMode uint)     { 
-	m_uiSliceMode = uiMode;                     
+func (this *TComSlice)  ApplyReferencePictureSet( rcListPic *list.List, RPSList *TComReferencePictureSet){
 }
-func (this *TComSlice)  getSliceMode                     ()     uint             { 
-	return m_uiSliceMode;                       
+func (this *TComSlice)  IsTemporalLayerSwitchingPoint( rcListPic *list.List, RPSList *TComReferencePictureSet) bool{
+	return true;
 }
-func (this *TComSlice)  setSliceArgument                 (uiArgument uint) { 
-	m_uiSliceArgument = uiArgument;             
+func (this *TComSlice)  IsStepwiseTemporalLayerSwitchingPointCandidate( rcListPic *list.List, RPSList *TComReferencePictureSet) bool{
+	return true;
 }
-func (this *TComSlice)  getSliceArgument                 ()     uint             { 
-	return m_uiSliceArgument;                   
+func (this *TComSlice)  CheckThatAllRefPicsAreAvailable( rcListPic *list.List, pReferencePictureSet *TComReferencePictureSet, printErrors bool, pocRandomAccess int) int{
+	return 0;
 }
-func (this *TComSlice)  setSliceCurStartCUAddr           (uiAddr uint)     { m_uiSliceCurStartCUAddr = uiAddr;           }
-func (this *TComSlice)  getSliceCurStartCUAddr           ()     uint             { return m_uiSliceCurStartCUAddr;             }
-func (this *TComSlice)  setSliceCurEndCUAddr             (uiAddr uint)     { m_uiSliceCurEndCUAddr = uiAddr;             }
-func (this *TComSlice)  getSliceCurEndCUAddr             ()     uint             { return m_uiSliceCurEndCUAddr;               }
-func (this *TComSlice)  setSliceIdx                      (i uint)           { m_uiSliceIdx = i;                           }
-func (this *TComSlice)  getSliceIdx                      ()     uint             { return  m_uiSliceIdx;                       }
-func (this *TComSlice)  copySliceInfo                    (pcSliceSrc *TComSlice);
-func (this *TComSlice)  setDependentSliceMode              ( uiMode uint )     { m_uiDependentSliceMode = uiMode;              }
-func (this *TComSlice)  getDependentSliceMode              ()   uint               { return m_uiDependentSliceMode;                }
-func (this *TComSlice)  setDependentSliceArgument          ( uiArgument uint ) { m_uiDependentSliceArgument = uiArgument;      }
-func (this *TComSlice)  getDependentSliceArgument          ()   uint               { return m_uiDependentSliceArgument;            }
-func (this *TComSlice)  setDependentSliceCurStartCUAddr    ( uiAddr uint )     { m_uiDependentSliceCurStartCUAddr = uiAddr;    }
-func (this *TComSlice)  getDependentSliceCurStartCUAddr    ()   uint               { return m_uiDependentSliceCurStartCUAddr;      }
-func (this *TComSlice)  setDependentSliceCurEndCUAddr      ( uiAddr uint )     { m_uiDependentSliceCurEndCUAddr = uiAddr;      }
-func (this *TComSlice)  getDependentSliceCurEndCUAddr      ()   uint               { return m_uiDependentSliceCurEndCUAddr;        }
-func (this *TComSlice)  setNextSlice                     ( b bool )          { m_bNextSlice = b;                           }
-func (this *TComSlice)  isNextSlice                      ()     bool             { return m_bNextSlice;                        }
-func (this *TComSlice)  setNextDependentSlice              ( b bool )          { m_bNextDependentSlice = b;                    }
-func (this *TComSlice)  isNextDependentSlice               ()   bool               { return m_bNextDependentSlice;                 }
-func (this *TComSlice)  setSliceBits                     ( uiVal uint )      { m_uiSliceBits = uiVal;                      }
-func (this *TComSlice)  getSliceBits                     ()     uint             { return m_uiSliceBits;                       }  
-func (this *TComSlice)  setDependentSliceCounter           (  uiVal uint)      { m_uiDependentSliceCounter = uiVal;            }
-func (this *TComSlice)  getDependentSliceCounter           ()   uint               { return m_uiDependentSliceCounter;             }
-func (this *TComSlice)  setFinalized                     ( uiVal bool)      { m_bFinalized = uiVal;                       }
-func (this *TComSlice)  getFinalized                     ()     bool             { return m_bFinalized;                        }
-func (this *TComSlice)  setWpScaling    ( wp [2][MAX_NUM_REF][3]wpScalingParam ) { memcpy(m_weightPredTable, wp, sizeof(wpScalingParam)*2*MAX_NUM_REF*3); }
-func (this *TComSlice)  getWpScaling    ( e RefPicList, iRefIdx int, wp *wpScalingParam);
-
-func (this *TComSlice)  resetWpScaling   (  wp [2][MAX_NUM_REF][3]wpScalingParam);
-func (this *TComSlice)  initWpScaling1   (  wp [2][MAX_NUM_REF][3]wpScalingParam);
-func (this *TComSlice)  initWpScaling   (){
-}
-func (this *TComSlice)  applyWP   () bool { 
-	return( (m_eSliceType==P_SLICE && m_pcPPS->getUseWP()) || (m_eSliceType==B_SLICE && m_pcPPS->getWPBiPred()) ); 
+func (this *TComSlice)  CreateExplicitReferencePictureSetFromReference( rcListPic *list.List, pReferencePictureSet *TComReferencePictureSet){
 }
 
-func (this *TComSlice)  setWpAcDcParam  (  wp [3]wpACDCParam ) { memcpy(m_weightACDCParam, wp, sizeof(wpACDCParam)*3); }
-func (this *TComSlice)  getWpAcDcParam  (  wp *wpACDCParam );
-func (this *TComSlice)  initWpAcDcParam ();
+func (this *TComSlice)  SetMaxNumMergeCand               (val uint)         { 
+	this.m_maxNumMergeCand = val;                    
+}
+func (this *TComSlice)  GetMaxNumMergeCand               ()      uint            { 
+	return this.m_maxNumMergeCand;                   
+}
+
+func (this *TComSlice)  SetSliceMode                     (uiMode uint)     { 
+	this.m_uiSliceMode = uiMode;                     
+}
+func (this *TComSlice)  GetSliceMode                     ()     uint             { 
+	return this.m_uiSliceMode;                       
+}
+func (this *TComSlice)  SetSliceArgument                 (uiArgument uint) { 
+	this.m_uiSliceArgument = uiArgument;             
+}
+func (this *TComSlice)  GetSliceArgument                 ()     uint             { 
+	return this.m_uiSliceArgument;                   
+}
+func (this *TComSlice)  SetSliceCurStartCUAddr           (uiAddr uint)     { 
+	this.m_uiSliceCurStartCUAddr = uiAddr;           
+}
+func (this *TComSlice)  GetSliceCurStartCUAddr           ()     uint             { 
+	return this.m_uiSliceCurStartCUAddr;             
+}
+func (this *TComSlice)  SetSliceCurEndCUAddr             (uiAddr uint)     { 
+	this.m_uiSliceCurEndCUAddr = uiAddr;             
+}
+func (this *TComSlice)  GetSliceCurEndCUAddr             ()     uint             { 
+	return this.m_uiSliceCurEndCUAddr;               
+}
+func (this *TComSlice)  SetSliceIdx                      (i uint)           { 
+	this.m_uiSliceIdx = i;                           
+}
+func (this *TComSlice)  GetSliceIdx                      ()     uint             { 
+	return  this.m_uiSliceIdx;                       
+}
+func (this *TComSlice)  CopySliceInfo                    (pcSliceSrc *TComSlice){
+}
+func (this *TComSlice)  SetDependentSliceMode              ( uiMode uint )     { 
+	this.m_uiDependentSliceMode = uiMode;              
+}
+func (this *TComSlice)  GetDependentSliceMode              ()   uint               { 
+	return this.m_uiDependentSliceMode;                
+}
+func (this *TComSlice)  SetDependentSliceArgument          ( uiArgument uint ) { 
+	this.m_uiDependentSliceArgument = uiArgument;      
+}
+func (this *TComSlice)  GetDependentSliceArgument          ()   uint               { 
+	return this.m_uiDependentSliceArgument;            
+}
+func (this *TComSlice)  SetDependentSliceCurStartCUAddr    ( uiAddr uint )     { 
+	this.m_uiDependentSliceCurStartCUAddr = uiAddr;    
+}
+func (this *TComSlice)  GetDependentSliceCurStartCUAddr    ()   uint               { 
+	return this.m_uiDependentSliceCurStartCUAddr;      
+}
+func (this *TComSlice)  SetDependentSliceCurEndCUAddr      ( uiAddr uint )     { 
+	this.m_uiDependentSliceCurEndCUAddr = uiAddr;      
+}
+func (this *TComSlice)  GetDependentSliceCurEndCUAddr      ()   uint               { 
+	return this.m_uiDependentSliceCurEndCUAddr;        
+}
+func (this *TComSlice)  SetNextSlice                     ( b bool )          { 
+	this.m_bNextSlice = b;                           
+}
+func (this *TComSlice)  IsNextSlice                      ()     bool             { 
+	return this.m_bNextSlice;                        
+}
+func (this *TComSlice)  SetNextDependentSlice              ( b bool )          { 
+	this.m_bNextDependentSlice = b;                    
+}
+func (this *TComSlice)  IsNextDependentSlice               ()   bool               { 
+	return this.m_bNextDependentSlice;                 
+}
+func (this *TComSlice)  SetSliceBits                     ( uiVal uint )      { 
+	this.m_uiSliceBits = uiVal;                      
+}
+func (this *TComSlice)  GetSliceBits                     ()     uint             { 
+	return this.m_uiSliceBits;                       
+}  
+func (this *TComSlice)  SetDependentSliceCounter           (  uiVal uint)      { 
+	this.m_uiDependentSliceCounter = uiVal;            
+}
+func (this *TComSlice)  GetDependentSliceCounter           ()   uint               { 
+	return this.m_uiDependentSliceCounter;             
+}
+func (this *TComSlice)  SetFinalized                     ( uiVal bool)      { 
+	this.m_bFinalized = uiVal;                       
+}
+func (this *TComSlice)  GetFinalized                     ()     bool             { 
+	return this.m_bFinalized;                        
+}
+func (this *TComSlice)  SetWpScaling    ( wp [2][MAX_NUM_REF][3]wpScalingParam ) { 
+	//memcpy(this.m_weightPredTable, wp, sizeof(wpScalingParam)*2*MAX_NUM_REF*3); 
+	this.m_weightPredTable = wp;
+}
+func (this *TComSlice)  GetWpScaling    ( e RefPicList, iRefIdx int, wp *wpScalingParam){
+}
+
+func (this *TComSlice)  ResetWpScaling   (  wp [2][MAX_NUM_REF][3]wpScalingParam){
+}
+func (this *TComSlice)  InitWpScaling1   (  wp [2][MAX_NUM_REF][3]wpScalingParam){
+}
+func (this *TComSlice)  InitWpScaling   (){
+}
+func (this *TComSlice)  ApplyWP   () bool { 
+	return( (this.m_eSliceType==P_SLICE && this.m_pcPPS.GetUseWP()) || (this.m_eSliceType==B_SLICE && this.m_pcPPS.GetWPBiPred()) ); 
+}
+
+func (this *TComSlice)  SetWpAcDcParam  (  wp [3]wpACDCParam ) { 
+	//memcpy(this.m_weightACDCParam, wp, sizeof(wpACDCParam)*3); 
+	this.m_weightACDCParam = wp;
+}
+func (this *TComSlice)  GetWpAcDcParam  (  wp *wpACDCParam ){
+}
+func (this *TComSlice)  InitWpAcDcParam (){
+}
   
-func (this *TComSlice)  setTileLocationCount             ( cnt uint)               { return m_tileByteLocation.resize(cnt);    }
-func (this *TComSlice)  getTileLocationCount             ()    uint                     { return (UInt) m_tileByteLocation.size();  }
-func (this *TComSlice)  setTileLocation                  ( idx int, location uint ) { assert (idx<m_tileByteLocation.size());
-                                                                m_tileByteLocation[idx] = location;       }
-func (this *TComSlice)  addTileLocation                  ( location uint )          { m_tileByteLocation.push_back(location);   }
-func (this *TComSlice)  getTileLocation                  ( idx int)   uint             { return m_tileByteLocation[idx];           }
-
-func (this *TComSlice)  setTileOffstForMultES            ( uiOffset uint)      { m_uiTileOffstForMultES = uiOffset;        }
-func (this *TComSlice)  getTileOffstForMultES            ()    uint                { return m_uiTileOffstForMultES;            }
-func (this *TComSlice)  allocSubstreamSizes              ( uiNumSubstreams uint);
-func (this *TComSlice)  getSubstreamSizes               ()    *uint              { return m_puiSubstreamSizes; }
-func (this *TComSlice)  setScalingList              	( scalingList *TComScalingList ) { m_scalingList = scalingList; }
-func (this *TComSlice)  getScalingList 					()        *TComScalingList                        { return m_scalingList; }
-func (this *TComSlice)  setDefaultScalingList       ();
-func (this *TComSlice)  checkDefaultScalingList     () bool{
+func (this *TComSlice)  SetTileLocationCount             ( cnt uint)               { 
+//	return this.m_tileByteLocation.Resize(cnt);    
 }
-func (this *TComSlice)  setCabacInitFlag  ( val bool ) { m_cabacInitFlag = val;      }  //!< set CABAC initial flag 
-func (this *TComSlice)  getCabacInitFlag  ()     bool      { return m_cabacInitFlag;     }  //!< get CABAC initial flag 
-func (this *TComSlice)  setNumEntryPointOffsets(val int)  { m_numEntryPointOffsets = val;     }
-func (this *TComSlice)  getNumEntryPointOffsets()   int      { return m_numEntryPointOffsets;    }
-func (this *TComSlice)  getTemporalLayerNonReferenceFlag()  bool     { return m_temporalLayerNonReferenceFlag;}
-func (this *TComSlice)  setTemporalLayerNonReferenceFlag(x bool) { m_temporalLayerNonReferenceFlag = x;}
-func (this *TComSlice)  setLFCrossSliceBoundaryFlag     ( val bool )    { m_LFCrossSliceBoundaryFlag = val; }
-func (this *TComSlice)  getLFCrossSliceBoundaryFlag     ()     bool           { return m_LFCrossSliceBoundaryFlag;} 
+func (this *TComSlice)  GetTileLocationCount             ()    uint                     { 
+	return uint(this.m_tileByteLocation.Len());  
+}
+func (this *TComSlice)  SetTileLocation                  ( idx int, location uint ) { 
+	//assert (idx<this.m_tileByteLocation.size());
+	//this.m_tileByteLocation[idx] = location;       
+}
+func (this *TComSlice)  AddTileLocation                  ( location uint )          { 
+	this.m_tileByteLocation.PushBack(location);   
+}
+func (this *TComSlice)  GetTileLocation                  ( idx int)   uint             { 
+	return 0;//this.m_tileByteLocation[idx];          
+}
 
-func (this *TComSlice)  setEnableTMVPFlag     ( b bool)    { m_enableTMVPFlag = b; }
-func (this *TComSlice)  getEnableTMVPFlag     ()      bool        { return m_enableTMVPFlag;}
+func (this *TComSlice)  SetTileOffstForMultES            ( uiOffset uint)      { 
+	this.m_uiTileOffstForMultES = uiOffset;        
+}
+func (this *TComSlice)  GetTileOffstForMultES            ()    uint                { 
+	return this.m_uiTileOffstForMultES;            
+}
+func (this *TComSlice)  AllocSubstreamSizes              ( uiNumSubstreams uint){
+}
+func (this *TComSlice)  GetSubstreamSizes               ()    *uint              { 
+	return this.m_puiSubstreamSizes; 
+}
+func (this *TComSlice)  SetScalingList              	( scalingList *TComScalingList ) { 
+	this.m_scalingList = scalingList; 
+}
+func (this *TComSlice)  GetScalingList 					()        *TComScalingList                        { 
+	return this.m_scalingList; 
+}
+func (this *TComSlice)  SetDefaultScalingList       (){
+}
+func (this *TComSlice)  CheckDefaultScalingList     () bool{
+	return true;
+}
+func (this *TComSlice)  SetCabacInitFlag  ( val bool ) { 
+	this.m_cabacInitFlag = val;      
+}  //!< Set CABAC initial flag 
+func (this *TComSlice)  GetCabacInitFlag  ()     bool      { 
+	return this.m_cabacInitFlag;     
+}  //!< Get CABAC initial flag 
+func (this *TComSlice)  SetNumEntryPointOffsets(val int)  { 
+	this.m_numEntryPointOffsets = val;     
+}
+func (this *TComSlice)  GetNumEntryPointOffsets()   int      { 
+	return this.m_numEntryPointOffsets;    
+}
+func (this *TComSlice)  GetTemporalLayerNonReferenceFlag()  bool     { 
+	return this.m_temporalLayerNonReferenceFlag;
+}
+func (this *TComSlice)  SetTemporalLayerNonReferenceFlag(x bool) { 
+	this.m_temporalLayerNonReferenceFlag = x;
+}
+func (this *TComSlice)  SetLFCrossSliceBoundaryFlag     ( val bool )    { 
+	this.m_LFCrossSliceBoundaryFlag = val; 
+}
+func (this *TComSlice)  GetLFCrossSliceBoundaryFlag     ()     bool           { 
+	return this.m_LFCrossSliceBoundaryFlag;
+} 
+
+func (this *TComSlice)  SetEnableTMVPFlag     ( b bool)    { 
+	this.m_enableTMVPFlag = b; 
+}
+func (this *TComSlice)  GetEnableTMVPFlag     ()      bool        { 
+	return this.m_enableTMVPFlag;
+}
 
 //protected:
 func (this *TComSlice)  xGetRefPic  (rcListPic *list.List, poc int) *TComPic{
+	return nil
 }
 func (this *TComSlice)  xGetLongTermRefPic  (rcListPic *list.List, poc int) *TComPic{
+	return nil
 }
 //};// END CLASS DEFINITION TComSlice
 
 /*
-template <class T> class ParameterSetMap
-{
-public:
-  ParameterSetMap(Int maxId)
-  :m_maxId (maxId)
-  {}
+type ParameterSetMap struct{
+//private:
+  m_maxId	int;
+  m_paramsetMap map[int]interface{};
+};
 
-  ~ParameterSetMap()
-  {
-    for (typename std::map<Int,T *>::iterator i = m_paramsetMap.begin(); i!= m_paramsetMap.end(); i++)
-    {
-      delete (*i).second;
-    }
-  }
+//public:
+func NewParameterSetMap(maxId int) *ParameterSetMap{
+	return &ParameterSetMap{m_maxId:maxId}
+}
 
-  Void storePS(Int psId, T *ps)
-  {
-    assert ( psId < m_maxId );
-    if ( m_paramsetMap.find(psId) != m_paramsetMap.end() )
-    {
-      delete m_paramsetMap[psId];
-    }
+func (this *ParameterSetMap) StorePS(psId int, ps interface{}){
+    //assert ( psId < m_maxId );
     m_paramsetMap[psId] = ps; 
-  }
-
-  Void mergePSList(ParameterSetMap<T> &rPsList)
-  {
-    for (typename std::map<Int,T *>::iterator i = rPsList.m_paramsetMap.begin(); i!= rPsList.m_paramsetMap.end(); i++)
-    {
+}
+func (this *ParameterSetMap) MergePSList(rPsList *ParameterSetMap){
+    for id, ps := this.m_paramsetMap {
       storePS(i->first, i->second);
     }
-    rPsList.m_paramsetMap.clear();
-  }
+}
 
 
-  T* getPS(Int psId)
-  {
-    return ( m_paramsetMap.find(psId) == m_paramsetMap.end() ) ? NULL : m_paramsetMap[psId];
-  }
+func (this *ParameterSetMap) GetPS(psId int) interface{}{
+	value, ok := m_paramsetMap[psId];
+	if ok {
+		return value
+	}
+	
+	return nil
+}
 
-  T* getFirstPS()
+ T* getFirstPS()
   {
     return (m_paramsetMap.begin() == m_paramsetMap.end() ) ? NULL : m_paramsetMap.begin()->second;
-  }
+  }*/
 
-private:
-  std::map<Int,T *> m_paramsetMap;
-  Int               m_maxId;
-};
 
-class ParameterSetManager
-{
-public:
-  ParameterSetManager();
-  virtual ~ParameterSetManager();
+
+type ParameterSetManager struct{  
+  m_vpsMap	map[int]*TComVPS;
+  m_spsMap	map[int]*TComSPS; 
+  m_ppsMap	map[int]*TComPPS;
+}
+
+//public:
+func NewParameterSetManager() *ParameterSetManager{
+	return &ParameterSetManager{}
+}
 
   //! store sequence parameter set and take ownership of it 
-  Void storeVPS(TComVPS *vps) { m_vpsMap.storePS( vps->getVPSId(), vps); };
+func (this *ParameterSetManager)  SetVPS(vps *TComVPS) { 
+	this.m_vpsMap[vps.GetVPSId()] = vps; 
+}
   //! get pointer to existing video parameter set  
-  TComVPS* getVPS(Int vpsId)  { return m_vpsMap.getPS(vpsId); };
-  TComVPS* getFirstVPS()      { return m_vpsMap.getFirstPS(); };
+func (this *ParameterSetManager)  GetVPS(vpsId int) *TComVPS { 
+	return this.m_vpsMap[vpsId]
+}
+//func (this *ParameterSetManager)  TComVPS* getFirstVPS()      { return m_vpsMap.getFirstPS(); };
   
   //! store sequence parameter set and take ownership of it 
-  Void storeSPS(TComSPS *sps) { m_spsMap.storePS( sps->getSPSId(), sps); };
+func (this *ParameterSetManager)  SetSPS(sps *TComSPS) {
+	this.m_spsMap[sps.GetSPSId()] = sps; 
+}
   //! get pointer to existing sequence parameter set  
-  TComSPS* getSPS(Int spsId)  { return m_spsMap.getPS(spsId); };
-  TComSPS* getFirstSPS()      { return m_spsMap.getFirstPS(); };
+func (this *ParameterSetManager)  GetSPS(spsId int) *TComSPS  { 
+	return this.m_spsMap[spsId];
+}
+//func (this *ParameterSetManager)  TComSPS* getFirstSPS()      { return m_spsMap.getFirstPS(); };
 
   //! store picture parameter set and take ownership of it 
-  Void storePPS(TComPPS *pps) { m_ppsMap.storePS( pps->getPPSId(), pps); };
+func (this *ParameterSetManager)  SetPPS(pps *TComPPS) { 
+	this.m_ppsMap[pps.GetPPSId()] = pps; 
+}
   //! get pointer to existing picture parameter set  
-  TComPPS* getPPS(Int ppsId)  { return m_ppsMap.getPS(ppsId); };
-  TComPPS* getFirstPPS()      { return m_ppsMap.getFirstPS(); };
+func (this *ParameterSetManager)  GetPPS(ppsId int) *TComPPS { 
+	return this.m_ppsMap[ppsId]; 
+}
+//func (this *ParameterSetManager)  TComPPS* getFirstPPS()      { return m_ppsMap.getFirstPS(); };
 
-protected:
-  
-  ParameterSetMap<TComVPS> m_vpsMap;
-  ParameterSetMap<TComSPS> m_spsMap; 
-  ParameterSetMap<TComPPS> m_ppsMap;
-};
-*/
+
+

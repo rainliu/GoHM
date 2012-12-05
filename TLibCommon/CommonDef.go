@@ -21,7 +21,7 @@ const MAX_NUM_REF     =            16          ///< max. number of entries in pi
 const MAX_NUM_REF_LC  =            MAX_NUM_REF_PICS  // TODO: remove this macro definition (leftover from combined list concept)
 
 //const MAX_UINT        =            0xFFFFFFFFU ///< max. value of unsigned 32-bit integer
-//const MAX_INT         =            2147483647  ///< max. value of signed 32-bit integer
+const MAX_INT         =            2147483647  ///< max. value of signed 32-bit integer
 //const MAX_INT64       =            0x7FFFFFFFFFFFFFFFLL  ///< max. value of signed 64-bit integer
 //const MAX_DOUBLE      =            1.7e+308    ///< max. value of double-type value
 
@@ -151,21 +151,47 @@ const (//enum NalUnitType
   NAL_UNIT_INVALID
 )
 
-func MAX(a, b Pel) Pel {
-	if a < b {
-		return b
+func MAX(a, b interface{}) interface{} {
+	switch a.(type){
+		case Pxl:	
+			if a.(Pxl) < b.(Pxl) {
+				return b
+			}
+		case Pel:
+			if a.(Pel) < b.(Pel) {
+				return b
+			}
+		case TCoeff:
+			if a.(TCoeff) < b.(TCoeff) {
+				return b
+			}
 	}
-	
+
 	return a
 }
 
-func MIN(a, b Pel) Pel {
-	if a > b {
-		return b
+func MIN(a, b interface{}) interface{} {
+	switch a.(type){
+		case Pxl:	
+			if a.(Pxl) > b.(Pxl) {
+				return b
+			}
+		case Pel:
+			if a.(Pel) > b.(Pel) {
+				return b
+			}
+		case TCoeff:
+			if a.(TCoeff) > b.(TCoeff) {
+				return b
+			}
 	}
-	
+
 	return a
 }
+
+func CLIP3( minVal, maxVal, a interface{}) interface{}  { 
+	return  MIN(MAX (a, minVal), maxVal);
+}  
 
 func ClipY(a Pel) Pel { 
 	if a < 0 {
