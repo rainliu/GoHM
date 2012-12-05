@@ -21,17 +21,17 @@ type TDecTop struct{
   m_parameterSetManagerDecoder				ParameterSetManagerDecoder;  // storage for parameter sets 
   m_apcSlicePilot	*TLibCommon.TComSlice;
   
-  //SEImessages *m_SEIs; ///< "all" SEI messages.  If not NULL, we own the object.
+  m_SEIs			*TLibCommon.SEImessages; ///< "all" SEI messages.  If not NULL, we own the object.
 
   // functional classes
- /* 
-  TComPrediction          m_cPrediction;
-  TComTrQuant             m_cTrQuant;
-  TDecGop                 m_cGopDecoder;
-  TDecSlice               m_cSliceDecoder;
-  TDecCu                  m_cCuDecoder;
-  TDecEntropy             m_cEntropyDecoder;
-  TDecCavlc               m_cCavlcDecoder;
+
+  m_cPrediction		TLibCommon.TComPrediction;
+  m_cTrQuant 		TLibCommon.TComTrQuant;
+  m_cGopDecoder		TDecGop;
+  m_cSliceDecoder	TDecSlice;
+  m_cCuDecoder		TDecCu;
+  m_cEntropyDecoder TDecEntropy;
+/*  TDecCavlc               m_cCavlcDecoder;
   TDecSbac                m_cSbacDecoder;
   TDecBinCABAC            m_cBinCABAC;
   SEIReader               m_seiReader;
