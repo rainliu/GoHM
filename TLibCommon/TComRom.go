@@ -13,18 +13,29 @@ const     MAX_CU_SIZE     =        (1<<(MAX_CU_DEPTH))         // maximum allowa
 const     MIN_PU_SIZE     =        4
 const     MAX_NUM_SPU_W   =        (MAX_CU_SIZE/MIN_PU_SIZE)   // maximum number of SPU in horizontal line
 
+// ====================================================================================================================
+// Initialize / destroy functions
+// ====================================================================================================================
 
-var g_uiMaxCUWidth  uint = MAX_CU_SIZE;
-var g_uiMaxCUHeight uint = MAX_CU_SIZE;
-var g_uiMaxCUDepth  uint = MAX_CU_DEPTH;
-var g_uiAddCUDepth  uint = 0;
-var g_auiZscanToRaster [ MAX_NUM_SPU_W*MAX_NUM_SPU_W ]uint;// = { 0, };
-var g_auiRasterToZscan [ MAX_NUM_SPU_W*MAX_NUM_SPU_W ]uint;// = { 0, };
-var g_auiRasterToPelX  [ MAX_NUM_SPU_W*MAX_NUM_SPU_W ]uint;// = { 0, };
-var g_auiRasterToPelY  [ MAX_NUM_SPU_W*MAX_NUM_SPU_W ]uint;// = { 0, };
+func InitROM(){
+}
+func DestroyROM(){
+}
+func InitSigLastScan(pBuffD, pBuffH, pBuffV *uint, iWidth, iHeight, iDepth int){
+}
 
-var g_bitDepthY      int = 8;
-var g_bitDepthC 	 int = 8;
+
+var G_uiMaxCUWidth  uint = MAX_CU_SIZE;
+var G_uiMaxCUHeight uint = MAX_CU_SIZE;
+var G_uiMaxCUDepth  uint = MAX_CU_DEPTH;
+var G_uiAddCUDepth  uint = 0;
+var G_auiZscanToRaster [ MAX_NUM_SPU_W*MAX_NUM_SPU_W ]uint;// = { 0, };
+var G_auiRasterToZscan [ MAX_NUM_SPU_W*MAX_NUM_SPU_W ]uint;// = { 0, };
+var G_auiRasterToPelX  [ MAX_NUM_SPU_W*MAX_NUM_SPU_W ]uint;// = { 0, };
+var G_auiRasterToPelY  [ MAX_NUM_SPU_W*MAX_NUM_SPU_W ]uint;// = { 0, };
+
+var G_bitDepthY      int = 8;
+var G_bitDepthC 	 int = 8;
 
 
 const SCALING_LIST_NUM 			= 6         ///< list number for quantization matrix

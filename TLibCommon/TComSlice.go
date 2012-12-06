@@ -939,6 +939,72 @@ func (this *TComVUI)   GetNumDU                              ( )            uint
 	return this.m_numDU;          
 }
 
+
+type CroppingWindow struct{
+//private:
+  m_picCroppingFlag				bool;
+  m_picCropLeftOffset			int;
+  m_picCropRightOffset			int;
+  m_picCropTopOffset			int;
+  m_picCropBottomOffset			int;
+}
+/*  
+public:
+  CroppingWindow()
+  : m_picCroppingFlag     (false)
+  , m_picCropLeftOffset   (0)
+  , m_picCropRightOffset  (0)
+  , m_picCropTopOffset    (0)
+  , m_picCropBottomOffset (0)
+  { }
+*/
+func (this *CroppingWindow)  GetPicCroppingFlag() bool           { 
+	return this.m_picCroppingFlag; 
+}
+func (this *CroppingWindow)  SetPicCroppingFlag(val bool)        { 
+	this.m_picCroppingFlag = val; 
+}
+func (this *CroppingWindow)  GetPicCropLeftOffset() int          { 
+	return this.m_picCropLeftOffset; 
+}
+func (this *CroppingWindow)  SetPicCropLeftOffset(val int)       { 
+	this.m_picCropLeftOffset = val; 
+}
+func (this *CroppingWindow)  GetPicCropRightOffset() int         { 
+	return this.m_picCropRightOffset; 
+}
+func (this *CroppingWindow)  SetPicCropRightOffset(val int)      { 
+	this.m_picCropRightOffset = val; 
+}
+func (this *CroppingWindow)  GetPicCropTopOffset() int           { 
+	return this.m_picCropTopOffset; 
+}
+func (this *CroppingWindow)  SetPicCropTopOffset(val int)        { 
+	this.m_picCropTopOffset = val; 
+}
+func (this *CroppingWindow)  GetPicCropBottomOffset() int        { 
+	return this.m_picCropBottomOffset; 
+}
+func (this *CroppingWindow)  SetPicCropBottomOffset(val int)     { 
+	this.m_picCropBottomOffset = val; 
+}
+
+func (this *CroppingWindow)  ResetCropping()                     { 
+	this.m_picCroppingFlag = false; 
+	this.m_picCropLeftOffset = 0;
+	this.m_picCropRightOffset = 0;
+	this.m_picCropTopOffset = 0;
+	this.m_picCropBottomOffset = 0; 
+}
+
+func (this *CroppingWindow) SetPicCropping(cropLeft, cropRight, cropTop, cropBottom int){
+    this.m_picCroppingFlag     = true;
+    this.m_picCropLeftOffset   = cropLeft;
+    this.m_picCropRightOffset  = cropRight;
+    this.m_picCropTopOffset    = cropTop;
+    this.m_picCropBottomOffset = cropBottom;
+}
+
 /// SPS class
 type TComSPS struct{
 //private:
@@ -951,11 +1017,9 @@ type TComSPS struct{
   	// Structure
   m_picWidthInLumaSamples		uint;
   m_picHeightInLumaSamples		uint;
-  m_picCroppingFlag				bool;
-  m_picCropLeftOffset			int;
-  m_picCropRightOffset			int;
-  m_picCropTopOffset			int;
-  m_picCropBottomOffset			int;
+  
+  m_picCroppingWindow			*CroppingWindow;
+  
   m_uiMaxCUWidth				uint;
   m_uiMaxCUHeight				uint;
   m_uiMaxCUDepth				uint;
@@ -1071,36 +1135,13 @@ func (this *TComSPS)  GetPicHeightInLumaSamples      ()  uint   {
 	return  this.m_picHeightInLumaSamples;   
 }
 
-func (this *TComSPS)  GetPicCroppingFlag() bool           { 
-	return this.m_picCroppingFlag; 
+func (this *TComSPS)  GetPicCroppingWindow() *CroppingWindow    { 
+	return  this.m_picCroppingWindow;          
 }
-func (this *TComSPS)  SetPicCroppingFlag(val bool)        { 
-	this.m_picCroppingFlag = val; 
+func (this *TComSPS)  SetPicCroppingWindow(croppingWindow *CroppingWindow) { 
+	this.m_picCroppingWindow = croppingWindow; 
 }
-func (this *TComSPS)  GetPicCropLeftOffset() int          { 
-	return this.m_picCropLeftOffset; 
-}
-func (this *TComSPS)  SetPicCropLeftOffset(val int)       { 
-	this.m_picCropLeftOffset = val; 
-}
-func (this *TComSPS)  GetPicCropRightOffset() int         { 
-	return this.m_picCropRightOffset; 
-}
-func (this *TComSPS)  SetPicCropRightOffset(val int)      { 
-	this.m_picCropRightOffset = val; 
-}
-func (this *TComSPS)  GetPicCropTopOffset() int           { 
-	return this.m_picCropTopOffset; 
-}
-func (this *TComSPS)  SetPicCropTopOffset(val int)        { 
-	this.m_picCropTopOffset = val; 
-}
-func (this *TComSPS)  GetPicCropBottomOffset() int        { 
-	return this.m_picCropBottomOffset; 
-}
-func (this *TComSPS)  SetPicCropBottomOffset(val int)     { 
-	this.m_picCropBottomOffset = val; 
-}
+
 func (this *TComSPS)  GetNumLongTermRefPicSPS() uint     { 
 	return this.m_numLongTermRefPicSPS; 
 }
@@ -2245,7 +2286,7 @@ func (this *TComSlice)  SetEqualRef( e RefPicList, iRefIdx1 int, iRefIdx2 int, b
     this.m_abEqualRef[e][iRefIdx2][iRefIdx1] = b;
 }
   
-func (this *TComSlice)  SortPicList         ( rcListPic *list.List){
+func /*(this *TComSlice)*/  SortPicList         ( rcListPic *list.List){
 }
   
 func (this *TComSlice)  GetNoBackPredFlag() bool{ 

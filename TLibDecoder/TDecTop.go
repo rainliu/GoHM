@@ -1,6 +1,7 @@
 package TLibDecoder
 
 import (
+	"fmt"
 	"container/list"
 	"gohm/TLibCommon"
 )
@@ -17,7 +18,7 @@ type TDecTop struct{
   m_prevRAPisBLA	bool;      ///< true if the previous RAP (CRA/CRANT/BLA/BLANT/IDR) picture is a BLA/BLANT picture
   m_pocRandomAccess	int;   ///< POC number of the random access point (the first IDR or CRA picture)
 
-  m_cListPic		*list.List;         //  Dynamic buffer
+  m_pcListPic		*list.List;         //  Dynamic buffer
   m_parameterSetManagerDecoder				ParameterSetManagerDecoder;  // storage for parameter sets 
   m_apcSlicePilot	*TLibCommon.TComSlice;
   
@@ -31,24 +32,28 @@ type TDecTop struct{
   m_cSliceDecoder	TDecSlice;
   m_cCuDecoder		TDecCu;
   m_cEntropyDecoder TDecEntropy;
-/*  TDecCavlc               m_cCavlcDecoder;
-  TDecSbac                m_cSbacDecoder;
-  TDecBinCABAC            m_cBinCABAC;
-  SEIReader               m_seiReader;
-  TComLoopFilter          m_cLoopFilter;
-  TComSampleAdaptiveOffset m_cSAO;
- */
-
+  m_cCavlcDecoder	TDecCavlc;
+  m_cSbacDecoder	TDecSbac;
+  m_cBinCabac		TDecBinCabac;
+  m_cSeiReader		TDecSeiReader;
+  m_cLoopFilter		TLibCommon.TComLoopFilter;
+  m_cSAO			TLibCommon.TComSampleAdaptiveOffset;
+ 
   m_pcPic		*TLibCommon.TComPic;
   m_uiSliceIdx	uint;
   m_prevPOC		int;
   m_bFirstSliceInPicture	bool;
   m_bFirstSliceInSequence	bool;
+  
+  //static
+  warningMessage bool;
 }
 
 
 //public:
 func NewTDecTop() *TDecTop{
+  pcListPic := list.New();
+  
   return &TDecTop{ m_pcPic : nil,
   m_iGopSize : 0,
   m_bGopSizeSet : false,
@@ -64,49 +69,270 @@ func NewTDecTop() *TDecTop{
   m_pocRandomAccess : TLibCommon.MAX_INT,          
   m_prevPOC                 : TLibCommon.MAX_INT,
   m_bFirstSliceInPicture    : true,
-  m_bFirstSliceInSequence   : true}
+  m_bFirstSliceInSequence   : true,
+  m_pcListPic				: pcListPic,
+  warningMessage: false}
 }
   
 func (this *TDecTop)  Create  (){
-  //this.m_cGopDecoder.Create();
+  this.m_cGopDecoder.Create();
   this.m_apcSlicePilot = TLibCommon.NewTComSlice();
   this.m_uiSliceIdx = 0;
 }
 func (this *TDecTop)  Destroy (){
+  this.m_cGopDecoder.Destroy();
+  this.m_apcSlicePilot = nil;
+  this.m_cSliceDecoder.Destroy();
 }
   
 func (this *TDecTop)  IsSkipPictureForBLA(iPOCLastDisplay *int) bool{
-	return true;
+  if this.m_prevRAPisBLA && 
+  	 this.m_apcSlicePilot.GetPOC() < this.m_pocCRA && 
+  	 this.m_apcSlicePilot.GetNalUnitType() == TLibCommon.NAL_UNIT_CODED_SLICE_TFD {
+    *iPOCLastDisplay++;
+    return true;
+  }
+  return false;
 }
 func (this *TDecTop)  IsRandomAccessSkipPicture(iSkipFrame *int,  iPOCLastDisplay *int) bool {
-	return true;
+  if *iSkipFrame != 0 {
+    *iSkipFrame--;   // decrement the counter
+    return true;
+  }else if this.m_pocRandomAccess == TLibCommon.MAX_INT { // start of random access point, m_pocRandomAccess has not been set yet.
+    if this.m_apcSlicePilot.GetNalUnitType() == TLibCommon.NAL_UNIT_CODED_SLICE_CRA 		||
+       this.m_apcSlicePilot.GetNalUnitType() == TLibCommon.NAL_UNIT_CODED_SLICE_BLA 		||
+       this.m_apcSlicePilot.GetNalUnitType() == TLibCommon.NAL_UNIT_CODED_SLICE_BLA_N_LP	||
+       this.m_apcSlicePilot.GetNalUnitType() == TLibCommon.NAL_UNIT_CODED_SLICE_BLANT {
+      // set the POC random access since we need to skip the reordered pictures in the case of CRA/CRANT/BLA/BLANT.
+      this.m_pocRandomAccess = this.m_apcSlicePilot.GetPOC();
+    }else if this.m_apcSlicePilot.GetNalUnitType() == TLibCommon.NAL_UNIT_CODED_SLICE_IDR || 
+    		 this.m_apcSlicePilot.GetNalUnitType() == TLibCommon.NAL_UNIT_CODED_SLICE_IDR_N_LP {
+      this.m_pocRandomAccess = -TLibCommon.MAX_INT; // no need to skip the reordered pictures in IDR, they are decodable.
+    }else{
+      //static Bool warningMessage = false;
+      if !this.warningMessage {
+        fmt.Printf("\nWarning: this is not a valid random access point and the data is discarded until the first CRA picture");
+        this.warningMessage = true;
+      }
+      return true;
+    }
+  }else if this.m_apcSlicePilot.GetPOC() < this.m_pocRandomAccess && 
+  		   this.m_apcSlicePilot.GetNalUnitType() == TLibCommon.NAL_UNIT_CODED_SLICE_TFD {// skip the reordered pictures, if necessary
+    *iPOCLastDisplay++;
+    return true;
+  }
+  // if we reach here, then the picture is not skipped.
+  return false; 
 }
 
 func (this *TDecTop)  SetDecodedPictureHashSEIEnabled(enabled int) { 
-	//this.m_cGopDecoder.SetDecodedPictureHashSEIEnabled(enabled); 
+	this.m_cGopDecoder.SetDecodedPictureHashSEIEnabled(enabled); 
 }
 
 func (this *TDecTop)  Init(){
+  // initialize ROM
+  TLibCommon.InitROM();
+  this.m_cGopDecoder.Init( &this.m_cEntropyDecoder, &this.m_cSbacDecoder, &this.m_cBinCabac, &this.m_cCavlcDecoder, &this.m_cSliceDecoder, &this.m_cLoopFilter, &this.m_cSAO);
+  this.m_cSliceDecoder.Init( &this.m_cEntropyDecoder, &this.m_cCuDecoder );
+  this.m_cEntropyDecoder.Init(&this.m_cPrediction);
 }
+
 func (this *TDecTop)  Decode(nalu *TLibCommon.InputNALUnit, iSkipFrame *int, iPOCLastDisplay *int) bool {
-	return true;
+  // Initialize entropy decoder
+  //this.m_cEntropyDecoder.SetEntropyDecoder (&this.m_cCavlcDecoder);
+  this.m_cEntropyDecoder.SetBitstream      (nalu.GetBitstream());
+
+  switch nalu.GetNalUnitType() {
+    case TLibCommon.NAL_UNIT_VPS:
+      this.xDecodeVPS();
+      return false;
+      
+    case TLibCommon.NAL_UNIT_SPS:
+      this.xDecodeSPS();
+      return false;
+
+    case TLibCommon.NAL_UNIT_PPS:
+      this.xDecodePPS();
+      return false;
+      
+    case TLibCommon.NAL_UNIT_SEI:fallthrough
+//#if SUFFIX_SEI_NUT_DECODED_HASH_SEI
+    case TLibCommon.NAL_UNIT_SEI_SUFFIX:
+      this.xDecodeSEI( nalu.GetBitstream(), nalu.GetNalUnitType() );
+//#else
+//      xDecodeSEI( nalu.m_Bitstream );
+//#endif
+      return false;
+
+    case TLibCommon.NAL_UNIT_CODED_SLICE_TRAIL_R:fallthrough
+    case TLibCommon.NAL_UNIT_CODED_SLICE_TRAIL_N:fallthrough
+    case TLibCommon.NAL_UNIT_CODED_SLICE_TLA:fallthrough
+    case TLibCommon.NAL_UNIT_CODED_SLICE_TSA_N:fallthrough
+    case TLibCommon.NAL_UNIT_CODED_SLICE_STSA_R:fallthrough
+    case TLibCommon.NAL_UNIT_CODED_SLICE_STSA_N:fallthrough
+    case TLibCommon.NAL_UNIT_CODED_SLICE_BLA:fallthrough
+    case TLibCommon.NAL_UNIT_CODED_SLICE_BLANT:fallthrough
+    case TLibCommon.NAL_UNIT_CODED_SLICE_BLA_N_LP:fallthrough
+    case TLibCommon.NAL_UNIT_CODED_SLICE_IDR:fallthrough
+    case TLibCommon.NAL_UNIT_CODED_SLICE_IDR_N_LP:fallthrough
+    case TLibCommon.NAL_UNIT_CODED_SLICE_CRA:fallthrough
+    case TLibCommon.NAL_UNIT_CODED_SLICE_DLP:fallthrough
+    case TLibCommon.NAL_UNIT_CODED_SLICE_TFD:
+      return this.xDecodeSlice(nalu, iSkipFrame, *iPOCLastDisplay);
+      break;
+    default:
+      //assert (1);
+  }
+
+  return false;
 }
   
 func (this *TDecTop)  DeletePicBuffer(){
+  /*TComList<TComPic*>::iterator  iterPic   = m_cListPic.begin();
+  Int iSize = Int( m_cListPic.size() );
+  
+  for (Int i = 0; i < iSize; i++ )
+  {
+    TComPic* pcPic = *(iterPic++);
+    pcPic->destroy();
+    
+    delete pcPic;
+    pcPic = NULL;
+  }*/
+  
+  this.m_cSAO.Destroy();
+  
+  this.m_cLoopFilter.Destroy();
+  
+  // destroy ROM
+  TLibCommon.DestroyROM();
 }
 
-func (this *TDecTop)  ExecuteDeblockAndAlf(poc *int, rpcListPic *list.List, iSkipFrame *int,  iPOCLastDisplay *int){
+func (this *TDecTop)  ExecuteLoopFilters(poc *int, rpcListPic *list.List, iSkipFrame *int,  iPOCLastDisplay *int){
+  if this.m_pcPic==nil {
+    /* nothing to deblock */
+    return;
+  }
+  
+  pcPic := this.m_pcPic;
+
+  // Execute Deblock + Cleanup
+
+  this.m_cGopDecoder.FilterPicture(pcPic);
+
+  //TComSlice::sortPicList( m_cListPic ); // sorting for application output
+  TLibCommon.SortPicList( this.m_pcListPic );
+  *poc                = pcPic.GetSlice(this.m_uiSliceIdx-1).GetPOC();
+  rpcListPic          = this.m_pcListPic;  
+  this.m_cCuDecoder.Destroy();        
+  this.m_bFirstSliceInPicture  = true;
+
+  return;
 }
 
 //protected:
 func (this *TDecTop)  xGetNewPicBuffer  (pcSlice *TLibCommon.TComSlice, rpcPic *TLibCommon.TComPic){
+  var  numReorderPics	[TLibCommon.MAX_TLAYER]int;
+  picCroppingWindow := pcSlice.GetSPS().GetPicCroppingWindow();
+
+  for temporalLayer := uint(0); temporalLayer < TLibCommon.MAX_TLAYER; temporalLayer++ {
+    numReorderPics[temporalLayer] = pcSlice.GetSPS().GetNumReorderPics(temporalLayer);
+  }
+
+  this.xUpdateGopSize(pcSlice);
+  
+  this.m_iMaxRefPicNum = int(pcSlice.GetSPS().GetMaxDecPicBuffering(pcSlice.GetTLayer()))+pcSlice.GetSPS().GetNumReorderPics(pcSlice.GetTLayer()) + 1; // +1 to have space for the picture currently being decoded
+  if this.m_pcListPic.Len() < this.m_iMaxRefPicNum {
+    rpcPic := TLibCommon.NewTComPic();
+    
+    rpcPic.Create ( int(pcSlice.GetSPS().GetPicWidthInLumaSamples()), int(pcSlice.GetSPS().GetPicHeightInLumaSamples()), 
+    				 TLibCommon.G_uiMaxCUWidth, TLibCommon.G_uiMaxCUHeight, TLibCommon.G_uiMaxCUDepth, 
+                     picCroppingWindow, numReorderPics[:], true);
+    rpcPic.GetPicSym().AllocSaoParam(&this.m_cSAO);
+    this.m_pcListPic.PushBack( rpcPic );
+    
+    return;
+  }
+  
+  /*bBufferIsAvailable := false;
+  
+  TComList<TComPic*>::iterator  iterPic   = m_cListPic.begin();
+  while (iterPic != m_cListPic.end())
+  {
+    rpcPic = *(iterPic++);
+    if ( rpcPic->getReconMark() == false && rpcPic->getOutputMark() == false)
+    {
+      rpcPic->setOutputMark(false);
+      bBufferIsAvailable = true;
+      break;
+    }
+
+    if ( rpcPic->getSlice( 0 )->isReferenced() == false  && rpcPic->getOutputMark() == false)
+    {
+      rpcPic->setOutputMark(false);
+      rpcPic->setReconMark( false );
+      rpcPic->getPicYuvRec()->setBorderExtension( false );
+      bBufferIsAvailable = true;
+      break;
+    }
+  }
+  
+  if ( !bBufferIsAvailable )
+  {
+    //There is no room for this picture, either because of faulty encoder or dropped NAL. Extend the buffer.
+    m_iMaxRefPicNum++;
+    rpcPic = new TComPic();
+    m_cListPic.pushBack( rpcPic );
+  }*/
+  rpcPic.Destroy();
+  rpcPic.Create ( int(pcSlice.GetSPS().GetPicWidthInLumaSamples()), int(pcSlice.GetSPS().GetPicHeightInLumaSamples()), 
+  				  TLibCommon.G_uiMaxCUWidth, TLibCommon.G_uiMaxCUHeight, TLibCommon.G_uiMaxCUDepth,
+                   picCroppingWindow, numReorderPics[:], true);
+  rpcPic.GetPicSym().AllocSaoParam(&this.m_cSAO);
 }
 func (this *TDecTop)  xUpdateGopSize    (pcSlice *TLibCommon.TComSlice){
+  if !pcSlice.IsIntra() && !this.m_bGopSizeSet {
+    this.m_iGopSize    = pcSlice.GetPOC();
+    this.m_bGopSizeSet = true;
+    this.m_cGopDecoder.SetGopSize(this.m_iGopSize);
+  }
 }
 func (this *TDecTop)  xCreateLostPicture (iLostPOC int){
 }
 
 func (this *TDecTop)  xActivateParameterSets(){
+  this.m_parameterSetManagerDecoder.ApplyPrefetchedPS();
+
+  pps := this.m_parameterSetManagerDecoder.GetPPS(this.m_apcSlicePilot.GetPPSId());
+  //assert (pps != 0);
+
+  sps := this.m_parameterSetManagerDecoder.GetSPS(pps.GetSPSId());
+  //assert (sps != 0);
+
+  this.m_apcSlicePilot.SetPPS(pps);
+  this.m_apcSlicePilot.SetSPS(sps);
+  pps.SetSPS(sps);
+  
+  if pps.GetEntropyCodingSyncEnabledFlag() {
+  	pps.SetNumSubstreams( int((sps.GetPicHeightInLumaSamples() + sps.GetMaxCUHeight() - 1) / sps.GetMaxCUHeight()) * (pps.GetNumColumnsMinus1() + 1) );
+  }else{
+  	pps.SetNumSubstreams(1);
+  }
+  
+  pps.SetMinCuDQPSize( sps.GetMaxCUWidth() >> ( pps.GetMaxCuDQPDepth()) );
+  
+
+  for i := uint(0); i < sps.GetMaxCUDepth() - TLibCommon.G_uiAddCUDepth; i++ {
+    sps.SetAMPAcc( i, int(TLibCommon.B2U(sps.GetUseAMP())) );
+  }
+
+  for i := sps.GetMaxCUDepth() - TLibCommon.G_uiAddCUDepth; i < sps.GetMaxCUDepth(); i++ {
+    sps.SetAMPAcc( i, 0 );
+  }
+
+  this.m_cSAO.Destroy();
+  this.m_cSAO.Create( sps.GetPicWidthInLumaSamples(), sps.GetPicHeightInLumaSamples(), TLibCommon.G_uiMaxCUWidth, TLibCommon.G_uiMaxCUHeight );
+  this.m_cLoopFilter.Create( TLibCommon.G_uiMaxCUDepth );
 }
 func (this *TDecTop)  xDecodeSlice(nalu *TLibCommon.InputNALUnit, iSkipFrame *int, iPOCLastDisplay int) bool{
 	return true;
@@ -117,6 +343,11 @@ func (this *TDecTop)  xDecodeSPS(){
 }
 func (this *TDecTop)  xDecodePPS(){
 }
-func (this *TDecTop)  xDecodeSEI( bs *TLibCommon.TComInputBitstream ){
+
+//#if SUFFIX_SEI_NUT_DECODED_HASH_SEI
+func (this *TDecTop)  xDecodeSEI( bs *TLibCommon.TComInputBitstream, nalUnitType TLibCommon.NalUnitType){
 }
+//#else
+//  Void      xDecodeSEI( TComInputBitstream* bs );
+//#endif
 

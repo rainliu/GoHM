@@ -15,7 +15,7 @@ type TComPic struct{
   m_bUsedByCurr		bool;            //  Used by current picture
   m_bIsLongTerm		bool;            //  IS long term picture
   m_bIsUsedAsLongTerm	bool;      //  long term picture is used as reference before
-  //m_apcPicSym			*TComPicSym;              //  Symbol
+  m_apcPicSym			*TComPicSym;              //  Symbol
   
   m_apcPicYuv	[2]*TComPicYuv;           //  Texture,  0:org / 1:rec
   
@@ -35,14 +35,18 @@ type TComPic struct{
 
   //SEImessages* m_SEIs; ///< Any SEI messages that have been received.  If !NULL we own the object.
 }
-/*
 //public:
-  TComPic();
-  virtual ~TComPic();
+func NewTComPic() *TComPic{
+	return &TComPic{}
+}
+
   
-  Void          create( Int iWidth, Int iHeight, UInt uiMaxWidth, UInt uiMaxHeight, UInt uiMaxDepth, Bool bIsVirtual = false );
-  virtual Void  destroy();
-  
+func (this *TComPic) Create( iWidth, iHeight int, uiMaxWidth, uiMaxHeight, uiMaxDepth uint, 
+						croppingWindow *CroppingWindow, numReorderPics []int, bIsVirtual bool ){
+}
+func (this *TComPic) Destroy(){
+}
+/*  
   UInt          getTLayer()                { return m_uiTLayer;   }
   Void          setTLayer( UInt uiTLayer ) { m_uiTLayer = uiTLayer; }
 
@@ -54,9 +58,15 @@ type TComPic struct{
   Void          setIsUsedAsLongTerm( Bool lt ) { m_bIsUsedAsLongTerm = lt; }
   Void          setCheckLTMSBPresent     (Bool b ) {m_bCheckLTMSB=b;}
   Bool          getCheckLTMSBPresent     () { return m_bCheckLTMSB;}
-
-  TComPicSym*   getPicSym()           { return  m_apcPicSym;    }
-  TComSlice*    getSlice(Int i)       { return  m_apcPicSym->getSlice(i);  }
+ */
+func (this *TComPic) GetPicSym() *TComPicSym          { 
+	return  this.m_apcPicSym;    
+}
+ 
+func (this *TComPic) GetSlice(i uint) *TComSlice { 
+	return  this.m_apcPicSym.GetSlice(i);  
+}
+ /* 
   Int           getPOC()              { return  m_apcPicSym->getSlice(m_uiCurrSliceIdx)->getPOC();  }
   TComDataCU*&  getCU( UInt uiCUAddr )  { return  m_apcPicSym->getCU( uiCUAddr ); }
   

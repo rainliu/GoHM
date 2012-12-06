@@ -2,6 +2,7 @@ package TLibDecoder
 
 import (
 	"container/list"
+	"gohm/TLibCommon"
 )
 
 
@@ -34,25 +35,32 @@ type TDecGop struct{
   m_sliceStartCUAddress *list.List;
   m_LFCrossSliceBoundaryFlag	*list.List;
 }
-/*
-public:
-  TDecGop();
-  virtual ~TDecGop();
+
+//public:
+func NewTDecGop() *TDecGop{
+	return &TDecGop{}
+}
   
-  Void  init    ( TDecEntropy*            pcEntropyDecoder, 
-                 TDecSbac*               pcSbacDecoder, 
-                 TDecBinCABAC*           pcBinCABAC,
-                 TDecCavlc*              pcCavlcDecoder, 
-                 TDecSlice*              pcSliceDecoder, 
-                 TComLoopFilter*         pcLoopFilter,
-                 TComSampleAdaptiveOffset* pcSAO
-                 );
-  Void  create  ();
-  Void  destroy ();
-  Void  decompressSlice(TComInputBitstream* pcBitstream, TComPic*& rpcPic );
-  Void  filterPicture  (TComPic*& rpcPic );
-  Void  setGopSize( Int i) { m_iGopSize = i; }
+func (this *TDecGop)  Init    ( pcEntropyDecoder	*TDecEntropy, 
+                 pcSbacDecoder 			*TDecSbac, 
+                 pcBinCabac				*TDecBinCabac,
+                 pcCavlcDecoder			*TDecCavlc, 
+                 pcSliceDecoder			*TDecSlice, 
+                 pcLoopFilter			*TLibCommon.TComLoopFilter,
+                 pcSAO					*TLibCommon.TComSampleAdaptiveOffset){
+}
+func (this *TDecGop)   Create  (){
+}
+func (this *TDecGop)   Destroy (){
+}
+func (this *TDecGop)   DecompressSlice(pcBitstream *TLibCommon.TComInputBitstream, rpcPic *TLibCommon.TComPic){
+}
+func (this *TDecGop)   FilterPicture  (rpcPic *TLibCommon.TComPic){
+}
+func (this *TDecGop)   SetGopSize( i int ) { 
+	this.m_iGopSize = i; 
+}
 
-  void setDecodedPictureHashSEIEnabled(Int enabled) { m_decodedPictureHashSEIEnabled = enabled; }
-
-};*/
+func (this *TDecGop)   SetDecodedPictureHashSEIEnabled(enabled int) { 
+	this.m_decodedPictureHashSEIEnabled = enabled; 
+}

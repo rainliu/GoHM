@@ -65,8 +65,8 @@ func (this *TComPicYuv) Create      ( iPicWidth, iPicHeight int, uiMaxCUWidth, u
   	numCuInHeight += 1;
   }
   
-  this.m_iLumaMarginX    = int(g_uiMaxCUWidth ) + 16; // for 16-byte alignment
-  this.m_iLumaMarginY    = int(g_uiMaxCUHeight) + 16;  // margin for 8-tap filter and infinite padding
+  this.m_iLumaMarginX    = int(G_uiMaxCUWidth ) + 16; // for 16-byte alignment
+  this.m_iLumaMarginY    = int(G_uiMaxCUHeight) + 16;  // margin for 8-tap filter and infinite padding
   
   this.m_iChromaMarginX  = this.m_iLumaMarginX>>1;
   this.m_iChromaMarginY  = this.m_iLumaMarginY>>1;
@@ -122,8 +122,8 @@ func (this *TComPicYuv) CreateLuma  ( iPicWidth, iPicHeight int, uiMaxCUWidth, u
   	numCuInHeight += 1;
   }
  
-  this.m_iLumaMarginX    = int(g_uiMaxCUWidth ) + 16; // for 16-byte alignment
-  this.m_iLumaMarginY    = int(g_uiMaxCUHeight) + 16;  // margin for 8-tap filter and infinite padding
+  this.m_iLumaMarginX    = int(G_uiMaxCUWidth ) + 16; // for 16-byte alignment
+  this.m_iLumaMarginY    = int(G_uiMaxCUHeight) + 16;  // margin for 8-tap filter and infinite padding
    
   this.m_apiPicBufY      = make([]Pel, ( this.m_iPicWidth       + (this.m_iLumaMarginX  <<1)) * ( this.m_iPicHeight       + (this.m_iLumaMarginY  <<1)));
   this.m_piPicOrgY       = this.m_apiPicBufY[this.m_iLumaMarginY   * this.GetStride()  + this.m_iLumaMarginX	 :];
@@ -221,15 +221,15 @@ func (this *TComPicYuv)   GetCrAddr1   ( iCuAddr int ) []Pel{
 }
 
 func (this *TComPicYuv)   GetLumaAddr2 ( iCuAddr, uiAbsZorderIdx int ) []Pel{ 
-	return this.m_piPicOrgY[this.m_cuOffsetY[iCuAddr] + this.m_buOffsetY[g_auiZscanToRaster[uiAbsZorderIdx]]: ]; 
+	return this.m_piPicOrgY[this.m_cuOffsetY[iCuAddr] + this.m_buOffsetY[G_auiZscanToRaster[uiAbsZorderIdx]]: ]; 
 }
 
 func (this *TComPicYuv)   GetCbAddr2   ( iCuAddr, uiAbsZorderIdx int ) []Pel{ 
-	return this.m_piPicOrgU[this.m_cuOffsetC[iCuAddr] + this.m_buOffsetC[g_auiZscanToRaster[uiAbsZorderIdx]]: ]; 
+	return this.m_piPicOrgU[this.m_cuOffsetC[iCuAddr] + this.m_buOffsetC[G_auiZscanToRaster[uiAbsZorderIdx]]: ]; 
 }
 
 func (this *TComPicYuv)   GetCrAddr2   ( iCuAddr, uiAbsZorderIdx int ) []Pel{ 
-	return this.m_piPicOrgV[this.m_cuOffsetC[iCuAddr] + this.m_buOffsetC[g_auiZscanToRaster[uiAbsZorderIdx]]: ]; 
+	return this.m_piPicOrgV[this.m_cuOffsetC[iCuAddr] + this.m_buOffsetC[G_auiZscanToRaster[uiAbsZorderIdx]]: ]; 
 }
   
   // ------------------------------------------------------------------------------------------------
@@ -330,7 +330,7 @@ func (this *TComPicYuv)   Dump (pFileName string, bAdd bool) (err error){
 
   var offset Pel
   
-  shift := uint(g_bitDepthY-8);
+  shift := uint(G_bitDepthY-8);
   if shift>0 {
   	offset = 1<<(shift-1);
   }else{
@@ -354,7 +354,7 @@ func (this *TComPicYuv)   Dump (pFileName string, bAdd bool) (err error){
     pFile.Write(uy);
   }
   
-  shift = uint(g_bitDepthC-8);
+  shift = uint(G_bitDepthC-8);
   if shift>0 {
   	offset = 1<<(shift-1);
   }else{

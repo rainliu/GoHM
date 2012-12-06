@@ -282,15 +282,14 @@ struct SAOParam
   Int          numCuInWidth;
   ~SAOParam();
 };
-
-/// parameters for deblocking filter
-typedef struct _LFCUParam
-{
-  Bool bInternalEdge;                     ///< indicates internal edge
-  Bool bLeftEdge;                         ///< indicates left edge
-  Bool bTopEdge;                          ///< indicates top edge
-} LFCUParam;
 */
+/// parameters for deblocking filter
+type LFCUParam struct{
+  bInternalEdge	bool;                     ///< indicates internal edge
+  bLeftEdge		bool;                         ///< indicates left edge
+  bTopEdge		bool;                          ///< indicates top edge
+};
+
 // ====================================================================================================================
 // Enumeration
 // ====================================================================================================================

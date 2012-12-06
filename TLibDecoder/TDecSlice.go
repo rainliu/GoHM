@@ -27,11 +27,12 @@ func NewTDecSlice() *TDecSlice{
 	return &TDecSlice{}
 }
   
-//func (this *TDecSlice) Init( TDecEntropy* pcEntropyDecoder, TDecCu* pcMbDecoder ){
-//}
+func (this *TDecSlice) Init( pcEntropyDecoder *TDecEntropy, pcMbDecoder *TDecCu){
+}
 
 //func (this *TDecSlice) Create            ( TComSlice* pcSlice, Int iWidth, Int iHeight, UInt uiMaxWidth, UInt uiMaxHeight, UInt uiMaxDepth );
-//func (this *TDecSlice) Destroy           ();
+func (this *TDecSlice) Destroy           (){
+}
   
 //func (this *TDecSlice) DecompressSlice   ( TComInputBitstream* pcBitstream, TComInputBitstream** ppcSubstreams,   TComPic*& rpcPic, TDecSbac* pcSbacDecoder, TDecSbac* pcSbacDecoders );
 
@@ -59,5 +60,6 @@ public:
   TComSPS* getPrefetchedSPS  (Int spsId);
   Void     storePrefetchedPPS(TComPPS *pps)  { m_ppsBuffer.storePS( pps->getPPSId(), pps); };
   TComPPS* getPrefetchedPPS  (Int ppsId);
-  Void     applyPrefetchedPS();
-*/
+*/  
+func (this *ParameterSetManagerDecoder) ApplyPrefetchedPS(){
+}

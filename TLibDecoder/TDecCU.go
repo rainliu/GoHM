@@ -33,10 +33,11 @@ public:
   
   /// create internal buffers
   Void  create                  ( UInt uiMaxDepth, UInt uiMaxWidth, UInt uiMaxHeight );
-  
+*/  
   /// destroy internal buffers
-  Void  destroy                 ();
-  
+func (this *TDecCu)  Destroy                 (){
+}
+/*  
   /// decode CU information
   Void  decodeCU                ( TComDataCU* pcCU, UInt& ruiIsLast );
   

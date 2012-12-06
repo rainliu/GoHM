@@ -196,8 +196,8 @@ func CLIP3( minVal, maxVal, a interface{}) interface{}  {
 func ClipY(a Pel) Pel { 
 	if a < 0 {
 		a = 0
-	}else if a > (1 << uint(g_bitDepthY))-1 {
-		a = (1 << uint(g_bitDepthY))-1
+	}else if a > (1 << uint(G_bitDepthY))-1 {
+		a = (1 << uint(G_bitDepthY))-1
 	}
 
 	return a; 
@@ -205,8 +205,8 @@ func ClipY(a Pel) Pel {
 func ClipC(a Pel) Pel { 
 	if a < 0 {
 		a = 0
-	}else if a > (1 << uint(g_bitDepthC))-1 {
-		a = (1 << uint(g_bitDepthC))-1
+	}else if a > (1 << uint(G_bitDepthC))-1 {
+		a = (1 << uint(G_bitDepthC))-1
 	}
 
 	return a; 
@@ -221,3 +221,16 @@ func Clip3( minVal, maxVal, a Pel) Pel  {
 
 	return a; 
 }  ///< general min/max clip
+
+func B2U(b bool) uint8 {
+	if b {
+    	return 1
+    }
+    return 0
+}
+func U2B(u uint8) bool {
+	if u!=0 {
+    	return true
+    }
+    return false
+}

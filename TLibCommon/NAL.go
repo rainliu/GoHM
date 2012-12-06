@@ -19,7 +19,7 @@ func NewNALUnit( nalUnitType NalUnitType, temporalId, reservedZero6Bits uint ) *
 }
 
   /** returns true if the NALunit is a slice NALunit */
-func (this *NALUnit) isSlice() bool {
+func (this *NALUnit) IsSlice() bool {
 	return this.m_nalUnitType == NAL_UNIT_CODED_SLICE_TRAIL_R ||
            this.m_nalUnitType == NAL_UNIT_CODED_SLICE_TRAIL_N ||
            this.m_nalUnitType == NAL_UNIT_CODED_SLICE_TLA	 ||
@@ -36,7 +36,13 @@ func (this *NALUnit) isSlice() bool {
            this.m_nalUnitType == NAL_UNIT_CODED_SLICE_TFD;
 }
 
+func (this *NALUnit) GetNalUnitType() NalUnitType{
+	return this.m_nalUnitType
+}
 
+func (this *NALUnit) SetNalUnitType(nalUnitType NalUnitType){
+	this.m_nalUnitType = nalUnitType
+}
 
 /**
  * A convenience wrapper to NALUnit that also provides a
@@ -52,4 +58,13 @@ func NewInputNALUnit() *InputNALUnit{
 }
 
 func (this *InputNALUnit) Read(nalUnitBuf *list.List){
+}
+
+func (this *InputNALUnit)  GetBitstream() *TComInputBitstream{
+	return this.m_Bitstream;
+}
+
+
+func (this *InputNALUnit)  SetBitstream(bitstream *TComInputBitstream){
+	this.m_Bitstream = bitstream;
 }

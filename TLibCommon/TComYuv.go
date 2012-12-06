@@ -32,8 +32,8 @@ type TComYuv struct{
 }
 
 func (this *TComYuv) getAddrOffset2( uiPartUnitIdx, width uint) int {
-    blkX := g_auiRasterToPelX[ g_auiZscanToRaster[ uiPartUnitIdx ] ];
-    blkY := g_auiRasterToPelY[ g_auiZscanToRaster[ uiPartUnitIdx ] ];
+    blkX := G_auiRasterToPelX[ G_auiZscanToRaster[ uiPartUnitIdx ] ];
+    blkY := G_auiRasterToPelY[ G_auiZscanToRaster[ uiPartUnitIdx ] ];
     
     return int(blkX + blkY * width);
 }
@@ -462,7 +462,7 @@ func (this *TComYuv) AddAvg            ( pcYuvSrc0 *TComYuv, pcYuvSrc1 *TComYuv,
   iSrc1Stride := pcYuvSrc1.GetStride();
   iDstStride  := this.GetStride();
   
-  shiftNum := uint(IF_INTERNAL_PREC + 1 - g_bitDepthY);
+  shiftNum := uint(IF_INTERNAL_PREC + 1 - G_bitDepthY);
   offset := Pel(( 1 << ( shiftNum - 1 ) ) + 2 * IF_INTERNAL_OFFS);
   
   for y = 0; y < iHeight; y++ {
@@ -474,7 +474,7 @@ func (this *TComYuv) AddAvg            ( pcYuvSrc0 *TComYuv, pcYuvSrc1 *TComYuv,
     }
   }
   
-  shiftNum = uint(IF_INTERNAL_PREC + 1 - g_bitDepthC);
+  shiftNum = uint(IF_INTERNAL_PREC + 1 - G_bitDepthC);
   offset = Pel(( 1 << ( shiftNum - 1 ) ) + 2 * IF_INTERNAL_OFFS);
 
   iSrc0Stride = pcYuvSrc0.GetCStride();

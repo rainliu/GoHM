@@ -68,17 +68,23 @@ type TDecEntropy struct{
   m_uiBakChromaOffset	uint;
   m_bakAbsPartIdxCU		uint;
 }
-/*  
-public:
-  Void init (TComPrediction* p) {m_pcPrediction = p;}
-  Void decodePUWise       ( TComDataCU* pcCU, UInt uiAbsPartIdx, UInt uiDepth, TComDataCU* pcSubCU );
+  
+//public:
+func (this *TDecEntropy)  Init (p *TLibCommon.TComPrediction) {
+	this.m_pcPrediction = p;
+}
+/*  Void decodePUWise       ( TComDataCU* pcCU, UInt uiAbsPartIdx, UInt uiDepth, TComDataCU* pcSubCU );
   Void decodeInterDirPU   ( TComDataCU* pcCU, UInt uiAbsPartIdx, UInt uiDepth, UInt uiPartIdx );
   Void decodeRefFrmIdxPU  ( TComDataCU* pcCU, UInt uiAbsPartIdx, UInt uiDepth, UInt uiPartIdx, RefPicList eRefList );
   Void decodeMvdPU        ( TComDataCU* pcCU, UInt uiAbsPartIdx, UInt uiDepth, UInt uiPartIdx, RefPicList eRefList );
   Void decodeMVPIdxPU     ( TComDataCU* pcSubCU, UInt uiPartAddr, UInt uiDepth, UInt uiPartIdx, RefPicList eRefList );
-  
-  Void    setEntropyDecoder           ( TDecEntropyIf* p );
-  Void    setBitstream                ( TComInputBitstream* p ) { m_pcEntropyDecoderIf->setBitstream(p);                    }
+*/  
+func (this *TDecEntropy)    SetEntropyDecoder           ( p *TDecEntropyIf){
+}
+func (this *TDecEntropy)    SetBitstream                ( p *TLibCommon.TComInputBitstream) { 
+	//this.m_pcEntropyDecoderIf.SetBitstream(p);                    
+}
+ /* 
   Void    resetEntropy                ( TComSlice* p)           { m_pcEntropyDecoderIf->resetEntropy(p);                    }
   Void    decodeVPS                   ( TComVPS* pcVPS ) { m_pcEntropyDecoderIf->parseVPS(pcVPS); }
   Void    decodeSPS                   ( TComSPS* pcSPS     )    { m_pcEntropyDecoderIf->parseSPS(pcSPS);                    }
