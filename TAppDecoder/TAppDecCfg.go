@@ -3,6 +3,7 @@ package TAppDecoder
 import (
 	"strconv"
 	"errors"
+	"container/list"
 )
 
 type TAppDecCfg struct{
@@ -14,7 +15,7 @@ type TAppDecCfg struct{
   m_outputBitDepthC		int;                   ///< bit depth used for writing output (chroma)t
   m_iMaxTemporalLayer	int;                   ///< maximum temporal layer to be decoded
   m_decodedPictureHashSEIEnabled	int;       ///< Checksum(3)/CRC(2)/MD5(1)/disable(0) acting on decoded picture hash SEI message
-  //m_targetDecLayerIdSet	list.List;             ///< set of LayerIds to be included in the sub-bitstream extraction process.
+  m_targetDecLayerIdSet	*list.List;             ///< set of LayerIds to be included in the sub-bitstream extraction process.
 }  
   
 func NewTAppDecCfg() (*TAppDecCfg){

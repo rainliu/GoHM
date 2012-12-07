@@ -226,60 +226,56 @@ const ( //enum SAOType
     MAX_NUM_SAO_TYPE
 )
 
-/*
-typedef struct _SaoQTPart
-{
-  Int         iBestType;
-  Int         iLength;
-  Int         subTypeIdx ;                 ///< indicates EO class or BO band position
-  Int         iOffset[4];
-  Int         StartCUX;
-  Int         StartCUY;
-  Int         EndCUX;
-  Int         EndCUY;
 
-  Int         PartIdx;
-  Int         PartLevel;
-  Int         PartCol;
-  Int         PartRow;
+type SAOQTPart struct{
+  iBestType		int;
+  iLength		int;
+  subTypeIdx 	int;                 ///< indicates EO class or BO band position
+  iOffset	[4]int;
+  StartCUX		int;
+  StartCUY		int;
+  EndCUX		int;
+  EndCUY		int;
 
-  Int         DownPartsIdx[NUM_DOWN_PART];
-  Int         UpPartIdx;
+  PartIdx		int;
+  PartLevel		int;
+  PartCol		int;
+  PartRow		int;
 
-  Bool        bSplit;
+  DownPartsIdx	[NUM_DOWN_PART]int;
+  UpPartIdx		int;
+
+  bSplit		bool;
 
   //---- encoder only start -----//
-  Bool        bProcessed;
-  Double      dMinCost;
-  Int64       iMinDist;
-  Int         iMinRate;
+  bProcessed	bool;
+  dMinCost		float64;
+  iMinDist		int64;
+  iMinRate		int;
   //---- encoder only end -----//
-} SAOQTPart;
+} ;
 
-typedef struct _SaoLcuParam
-{
-  Bool       mergeUpFlag;
-  Bool       mergeLeftFlag;
-  Int        typeIdx;
-  Int        subTypeIdx;                  ///< indicates EO class or BO band position
-  Int        offset[4];
-  Int        partIdx;
-  Int        partIdxTmp;
-  Int        length;
-} SaoLcuParam;
-
-struct SAOParam
-{
-  Bool       bSaoFlag[2];
-  SAOQTPart* psSaoPart[3];
-  Int        iMaxSplitLevel;
-  Bool         oneUnitFlag[3];
-  SaoLcuParam* saoLcuParam[3];
-  Int          numCuInHeight;
-  Int          numCuInWidth;
-  ~SAOParam();
+type SaoLcuParam struct{
+  mergeUpFlag		bool;
+  mergeLeftFlag		bool;
+  typeIdx			int;
+  subTypeIdx			int;                  ///< indicates EO class or BO band position
+  offset			[4]int;
+  partIdx			int;
+  partIdxTmp			int;
+  length				int;
 };
-*/
+
+type SAOParam struct{
+  bSaoFlag			[2]bool;
+  psSaoPart			[3]*SAOQTPart;
+  iMaxSplitLevel		int;
+  oneUnitFlag		[3]bool;
+  saoLcuParam		[3]*SaoLcuParam;
+  numCuInHeight	int;
+  numCuInWidth		int;
+};
+
 /// parameters for deblocking filter
 type LFCUParam struct {
     bInternalEdge bool ///< indicates internal edge

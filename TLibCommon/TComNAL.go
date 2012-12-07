@@ -36,6 +36,20 @@ func (this *NALUnit) IsSlice() bool {
         this.m_nalUnitType == NAL_UNIT_CODED_SLICE_TFD
 }
 
+func (this *NALUnit) GetReservedZero6Bits() uint {
+	return this.m_reservedZero6Bits
+}
+func (this *NALUnit) GetTemporalId() uint{
+	return this.m_temporalId;
+}
+func (this *NALUnit) SetTemporalId(temporalId uint){
+	this.m_temporalId = temporalId;
+}
+
+func (this *NALUnit) SetReservedZero6Bits(reservedZero6Bits uint) {
+	this.m_reservedZero6Bits = reservedZero6Bits
+}
+
 func (this *NALUnit) GetNalUnitType() NalUnitType {
     return this.m_nalUnitType
 }

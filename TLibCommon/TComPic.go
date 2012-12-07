@@ -24,16 +24,19 @@ type TComPic struct {
     m_bReconstructed                        bool
     m_bNeededForOutput                      bool
     m_uiCurrSliceIdx                        uint // Index of current slice
-    m_pSliceSUMap                           *int
-    m_pbValidSlice                          *bool
+    m_pSliceSUMap                           []int
+    m_pbValidSlice                          []bool
     m_sliceGranularityForNDBFilter          int
     m_bIndependentSliceBoundaryForNDBFilter bool
     m_bIndependentTileBoundaryForNDBFilter  bool
     m_pNDBFilterYuvTmp                      *TComPicYuv //!< temporary picture buffer when non-cross slice/tile boundary in-loop filtering is enabled
     m_bCheckLTMSB                           bool
+    m_numReorderPics				[MAX_TLAYER]int;
+  	m_croppingWindow				*CroppingWindow;
+  
     m_vSliceCUDataLink                      *list.List //std::vector<std::vector<TComDataCU*> > ;
 
-    //SEImessages* m_SEIs; ///< Any SEI messages that have been received.  If !NULL we own the object.
+    m_SEIs		*SEImessages; ///< Any SEI messages that have been received.  If !NULL we own the object.
 }
 
 //public:
@@ -76,7 +79,7 @@ func (this *TComPic) SetCheckLTMSBPresent(b bool) {
     this.m_bCheckLTMSB = b
 }
 func (this *TComPic) GetCheckLTMSBPresent() bool  {
-    return m_bCheckLTMSB
+    return this.m_bCheckLTMSB
 }
 
 func (this *TComPic) GetPicSym() *TComPicSym {
@@ -88,64 +91,143 @@ func (this *TComPic) GetSlice(i uint) *TComSlice {
 }
 
 
-func (this *TComPic)  Int           getPOC()        uint    { return  m_apcPicSym->getSlice(m_uiCurrSliceIdx)->getPOC();  }
-func (this *TComPic)  TComDataCU*&  getCU( uiCUAddr uint ) *TComDataCU { return  m_apcPicSym->getCU( uiCUAddr ); }
+func (this *TComPic)  GetPOC()        uint    { 
+	return  uint(this.m_apcPicSym.GetSlice(this.m_uiCurrSliceIdx).GetPOC());  
+}
+func (this *TComPic)  GetCU( uiCUAddr uint ) *TComDataCU { 
+	return  this.m_apcPicSym.GetCU( uiCUAddr ); 
+}
 
-func (this *TComPic)  TComPicYuv*   getPicYuvOrg()        { return  m_apcPicYuv[0]; }
-func (this *TComPic)  TComPicYuv*   getPicYuvRec()        { return  m_apcPicYuv[1]; }
+func (this *TComPic)  GetPicYuvOrg()  *TComPicYuv      { 
+	return  this.m_apcPicYuv[0]; 
+}
+func (this *TComPic)  GetPicYuvRec()  *TComPicYuv      { 
+	return  this.m_apcPicYuv[1]; 
+}
 
-func (this *TComPic)  TComPicYuv*   getPicYuvPred()       { return  m_pcPicYuvPred; }
-func (this *TComPic)  TComPicYuv*   getPicYuvResi()       { return  m_pcPicYuvResi; }
-func (this *TComPic)  Void          setPicYuvPred( TComPicYuv* pcPicYuv )       { m_pcPicYuvPred = pcPicYuv; }
-func (this *TComPic)  Void          setPicYuvResi( TComPicYuv* pcPicYuv )       { m_pcPicYuvResi = pcPicYuv; }
+func (this *TComPic)  GetPicYuvPred() *TComPicYuv      { 
+	return  this.m_pcPicYuvPred; 
+}
+func (this *TComPic)  GetPicYuvResi() *TComPicYuv      { 
+	return  this.m_pcPicYuvResi; 
+}
+func (this *TComPic)  SetPicYuvPred( pcPicYuv *TComPicYuv )       { 
+	this.m_pcPicYuvPred = pcPicYuv; 
+}
+func (this *TComPic)  SetPicYuvResi( pcPicYuv *TComPicYuv )       { 
+	this.m_pcPicYuvResi = pcPicYuv; 
+}
 
-func (this *TComPic)  UInt          getNumCUsInFrame()      { return m_apcPicSym->getNumberOfCUsInFrame(); }
-func (this *TComPic)  UInt          getNumPartInWidth()     { return m_apcPicSym->getNumPartInWidth();     }
-func (this *TComPic)  UInt          getNumPartInHeight()    { return m_apcPicSym->getNumPartInHeight();    }
-func (this *TComPic)  UInt          getNumPartInCU()        { return m_apcPicSym->getNumPartition();       }
-func (this *TComPic)  UInt          getFrameWidthInCU()     { return m_apcPicSym->getFrameWidthInCU();     }
-func (this *TComPic)  UInt          getFrameHeightInCU()    { return m_apcPicSym->getFrameHeightInCU();    }
-func (this *TComPic)  UInt          getMinCUWidth()         { return m_apcPicSym->getMinCUWidth();         }
-func (this *TComPic)  UInt          getMinCUHeight()        { return m_apcPicSym->getMinCUHeight();        }
+func (this *TComPic)  GetNumCUsInFrame()    uint  { 
+	return this.m_apcPicSym.GetNumberOfCUsInFrame(); 
+}
+func (this *TComPic)  GetNumPartInWidth()   uint  { 
+	return this.m_apcPicSym.GetNumPartInWidth();     
+}
+func (this *TComPic)  GetNumPartInHeight()  uint  { 
+	return this.m_apcPicSym.GetNumPartInHeight();    
+}
+func (this *TComPic)  GetNumPartInCU()      uint  { 
+	return this.m_apcPicSym.GetNumPartition();       
+}
+func (this *TComPic)  GetFrameWidthInCU()   uint  { 
+	return this.m_apcPicSym.GetFrameWidthInCU();     
+}
+func (this *TComPic)  GetFrameHeightInCU()  uint  { 
+	return this.m_apcPicSym.GetFrameHeightInCU();    
+}
+func (this *TComPic)  GetMinCUWidth()       uint  { 
+	return this.m_apcPicSym.GetMinCUWidth();         
+}
+func (this *TComPic)  GetMinCUHeight()      uint  { 
+	return this.m_apcPicSym.GetMinCUHeight();        
+}
 
-func (this *TComPic)  UInt          getParPelX(UChar uhPartIdx) { return getParPelX(uhPartIdx); }
-func (this *TComPic)  UInt          getParPelY(UChar uhPartIdx) { return getParPelX(uhPartIdx); }
+func (this *TComPic)  GetParPelX(uhPartIdx	byte) uint{ 
+	return this.GetParPelX(uhPartIdx); 
+}
+func (this *TComPic)  GetParPelY(uhPartIdx	byte) uint{ 
+	return this.GetParPelX(uhPartIdx); 
+}
 
-func (this *TComPic)  Int           getStride()           { return m_apcPicYuv[1]->getStride(); }
-func (this *TComPic)  Int           getCStride()          { return m_apcPicYuv[1]->getCStride(); }
+func (this *TComPic)  GetStride()     int      { 
+	return this.m_apcPicYuv[1].GetStride(); 
+}
+func (this *TComPic)  GetCStride()    int      { 
+	return this.m_apcPicYuv[1].GetCStride(); 
+}
 
-func (this *TComPic)  Void          setReconMark (Bool b) { m_bReconstructed = b;     }
-func (this *TComPic)  Bool          getReconMark ()       { return m_bReconstructed;  }
-func (this *TComPic)  Void          setOutputMark (Bool b) { m_bNeededForOutput = b;     }
-func (this *TComPic)  Bool          getOutputMark ()       { return m_bNeededForOutput;  }
+func (this *TComPic)  SetReconMark (b bool) { 
+	this.m_bReconstructed = b;     
+}
+func (this *TComPic)  GetReconMark () bool  { 
+	return this.m_bReconstructed;  
+}
+func (this *TComPic)  SetOutputMark (b bool) { 
+	this.m_bNeededForOutput = b;     
+}
+func (this *TComPic)  GetOutputMark () bool  { 
+	return this.m_bNeededForOutput;  
+}
+func (this *TComPic)  SetNumReorderPics(i int, tlayer uint) { 
+	this.m_numReorderPics[tlayer] = i;    
+}
+func (this *TComPic)  GetNumReorderPics(tlayer uint) int       { 
+	return this.m_numReorderPics[tlayer]; 
+}
 
-func (this *TComPic)  Void          compressMotion();
-func (this *TComPic)  UInt          getCurrSliceIdx()            { return m_uiCurrSliceIdx;                }
-func (this *TComPic)  Void          setCurrSliceIdx(UInt i)      { m_uiCurrSliceIdx = i;                   }
-func (this *TComPic)  UInt          getNumAllocatedSlice()       {return m_apcPicSym->getNumAllocatedSlice();}
-func (this *TComPic)  Void          allocateNewSlice()           {m_apcPicSym->allocateNewSlice();         }
-func (this *TComPic)  Void          clearSliceBuffer()           {m_apcPicSym->clearSliceBuffer();         }
+func (this *TComPic)  CompressMotion(){
+}
+func (this *TComPic)  GetCurrSliceIdx() uint       { 
+	return this.m_uiCurrSliceIdx;                
+}
+func (this *TComPic)  SetCurrSliceIdx(i uint)      { 
+	this.m_uiCurrSliceIdx = i;                   
+}
+func (this *TComPic)  GetNumAllocatedSlice() uint  {
+	return this.m_apcPicSym.GetNumAllocatedSlice();
+}
+func (this *TComPic)  AllocateNewSlice()           {
+	this.m_apcPicSym.AllocateNewSlice();         
+}
+func (this *TComPic)  ClearSliceBuffer()           {
+	this.m_apcPicSym.ClearSliceBuffer();         
+}
 
-func (this *TComPic)  Void          createNonDBFilterInfo   (std::vector<Int> sliceStartAddress, Int sliceGranularityDepth
-                                        ,std::vector<Bool>* LFCrossSliceBoundary
-                                        ,Int  numTiles = 1
-                                        ,Bool bNDBFilterCrossTileBoundary = true);
-func (this *TComPic)  Void          createNonDBFilterInfoLCU(Int tileID, Int sliceID, TComDataCU* pcCU, UInt startSU, UInt endSU, Int sliceGranularyDepth, UInt picWidth, UInt picHeight);
-func (this *TComPic)  Void          destroyNonDBFilterInfo();
+func (this *TComPic)  GetCroppingWindow() *CroppingWindow        { 
+	return this.m_croppingWindow; 
+}
 
-func (this *TComPic)  Bool          getValidSlice                                  (Int sliceID)  {return m_pbValidSlice[sliceID];}
-func (this *TComPic)  Bool          getIndependentSliceBoundaryForNDBFilter        ()             {return m_bIndependentSliceBoundaryForNDBFilter;}
-func (this *TComPic)  Bool          getIndependentTileBoundaryForNDBFilter         ()             {return m_bIndependentTileBoundaryForNDBFilter; }
-func (this *TComPic)  TComPicYuv*   getYuvPicBufferForIndependentBoundaryProcessing()             {return m_pNDBFilterYuvTmp;}
-func (this *TComPic)  std::vector<TComDataCU*>& getOneSliceCUDataForNDBFilter      (Int sliceID) { return m_vSliceCUDataLink[sliceID];}
+func (this *TComPic)  CreateNonDBFilterInfo   (sliceStartAddress *list.List, sliceGranularityDepth int, LFCrossSliceBoundary *list.List, numTiles int, bNDBFilterCrossTileBoundary bool){
+}
+func (this *TComPic)  CreateNonDBFilterInfoLCU(tileID, sliceID int, pcCU *TComDataCU, startSU, endSU uint, sliceGranularyDepth int, picWidth, picHeight uint){
+}
+func (this *TComPic)  DestroyNonDBFilterInfo(){
+}
+
+func (this *TComPic)  GetValidSlice                                  (sliceID int) bool {
+	return this.m_pbValidSlice[sliceID];
+}
+func (this *TComPic)  GetIndependentSliceBoundaryForNDBFilter        ()            bool {
+	return this.m_bIndependentSliceBoundaryForNDBFilter;
+}
+func (this *TComPic)  GetIndependentTileBoundaryForNDBFilter         ()            bool {
+	return this.m_bIndependentTileBoundaryForNDBFilter; 
+}
+func (this *TComPic)  GetYuvPicBufferForIndependentBoundaryProcessing() *TComPicYuv            {
+	return this.m_pNDBFilterYuvTmp;
+}
+func (this *TComPic)  GetOneSliceCUDataForNDBFilter      (sliceID int) *list.List{ 
+	return nil;//this.m_vSliceCUDataLink[sliceID];
+}
 
   // transfer ownership of seis to this picture
-func (this *TComPic)  void setSEIs(SEImessages* seis) { m_SEIs = seis; }
+func (this *TComPic)  SetSEIs(seis *SEImessages) { 
+	this.m_SEIs = seis; 
+}
 
   //return the current list of SEI messages associated with this picture.
-  //Pointer is valid until this->destroy() is called
-func (this *TComPic)  SEImessages* getSEIs() { return m_SEIs; }
-
-  //return the current list of SEI messages associated with this picture.
-  // Pointer is valid until this->destroy() is called
-func (this *TComPic)  const SEImessages* getSEIs() const { return m_SEIs; }
+  //Pointer is valid until this.destroy() is called
+func (this *TComPic)  GetSEIs() *SEImessages { 
+	return this.m_SEIs; 
+}

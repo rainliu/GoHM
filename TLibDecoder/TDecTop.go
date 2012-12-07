@@ -88,7 +88,7 @@ func (this *TDecTop) IsSkipPictureForBLA(iPOCLastDisplay *int) bool {
     if this.m_prevRAPisBLA &&
         this.m_apcSlicePilot.GetPOC() < this.m_pocCRA &&
         this.m_apcSlicePilot.GetNalUnitType() == TLibCommon.NAL_UNIT_CODED_SLICE_TFD {
-        *iPOCLastDisplay++
+        (*iPOCLastDisplay)++
         return true
     }
     return false
