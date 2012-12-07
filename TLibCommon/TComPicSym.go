@@ -1,22 +1,20 @@
 package TLibCommon
 
-import (
-
-)
-
+import ()
 
 // ====================================================================================================================
 // Class definition
 // ====================================================================================================================
 
-type TComTile struct{
-//private:
-  m_uiTileWidth			uint;
-  m_uiTileHeight			uint;
-  m_uiRightEdgePosInCU	uint;
-  m_uiBottomEdgePosInCU	uint;
-  m_uiFirstCUAddr			uint;
+type TComTile struct {
+    //private:
+    m_uiTileWidth         uint
+    m_uiTileHeight        uint
+    m_uiRightEdgePosInCU  uint
+    m_uiBottomEdgePosInCU uint
+    m_uiFirstCUAddr       uint
 }
+
 /*
 public:  
   TComTile();
@@ -35,53 +33,55 @@ public:
 };
 */
 /// picture symbol class
-type TComPicSym struct{
-//private:
-  m_uiWidthInCU		uint;
-  m_uiHeightInCU		uint;
-  
-  m_uiMaxCUWidth		uint;
-  m_uiMaxCUHeight		uint;
-  m_uiMinCUWidth		uint;
-  m_uiMinCUHeight		uint;
-  
-  m_uhTotalDepth		byte;       ///< max. depth
-  m_uiNumPartitions	uint;
-  m_uiNumPartInWidth	uint;
-  m_uiNumPartInHeight	uint;
-  m_uiNumCUsInFrame	uint;
-  
-  m_apcTComSlice		[]*TComSlice;
-  m_uiNumAllocatedSlice	uint;
-  //m_apcTComDataCU		**TComDataCU;        ///< array of CU data
-  
-  m_iTileBoundaryIndependenceIdr	int;
-  m_iNumColumnsMinus1				int; 
-  m_iNumRowsMinus1				int;
-  m_apcTComTile				**TComTile;
-  m_puiCUOrderMap		*uint;       //the map of LCU raster scan address relative to LCU encoding order 
-  m_puiTileIdxMap		*uint;       //the map of the tile index relative to LCU raster scan address 
-  m_puiInverseCUOrderMap	*uint;
+type TComPicSym struct {
+    //private:
+    m_uiWidthInCU  uint
+    m_uiHeightInCU uint
 
-  //m_saoParam	*SAOParam;
+    m_uiMaxCUWidth  uint
+    m_uiMaxCUHeight uint
+    m_uiMinCUWidth  uint
+    m_uiMinCUHeight uint
+
+    m_uhTotalDepth      byte ///< max. depth
+    m_uiNumPartitions   uint
+    m_uiNumPartInWidth  uint
+    m_uiNumPartInHeight uint
+    m_uiNumCUsInFrame   uint
+
+    m_apcTComSlice        []*TComSlice
+    m_uiNumAllocatedSlice uint
+    //m_apcTComDataCU		**TComDataCU;        ///< array of CU data
+
+    m_iTileBoundaryIndependenceIdr int
+    m_iNumColumnsMinus1            int
+    m_iNumRowsMinus1               int
+    m_apcTComTile                  **TComTile
+    m_puiCUOrderMap                *uint //the map of LCU raster scan address relative to LCU encoding order 
+    m_puiTileIdxMap                *uint //the map of the tile index relative to LCU raster scan address 
+    m_puiInverseCUOrderMap         *uint
+
+    //m_saoParam	*SAOParam;
 }
+
 /*
 public:
   Void        create  ( Int iPicWidth, Int iPicHeight, UInt uiMaxWidth, UInt uiMaxHeight, UInt uiMaxDepth );
   Void        destroy ();
 
   TComPicSym  ();*/
-func (this *TComPicSym)  GetSlice(i uint) *TComSlice { 
-	return  this.m_apcTComSlice[i];            
+func (this *TComPicSym) GetSlice(i uint) *TComSlice {
+    return this.m_apcTComSlice[i]
 }
- /* 
+
+/* 
   UInt        getFrameWidthInCU()       { return m_uiWidthInCU;                 }
   UInt        getFrameHeightInCU()      { return m_uiHeightInCU;                }
   UInt        getMinCUWidth()           { return m_uiMinCUWidth;                }
   UInt        getMinCUHeight()          { return m_uiMinCUHeight;               }
   UInt        getNumberOfCUsInFrame()   { return m_uiNumCUsInFrame;  }
   TComDataCU*&  getCU( UInt uiCUAddr )  { return m_apcTComDataCU[uiCUAddr];     }
-  
+
   Void        setSlice(TComSlice* p, UInt i) { m_apcTComSlice[i] = p;           }
   UInt        getNumAllocatedSlice()    { return m_uiNumAllocatedSlice;         }
   Void        allocateNewSlice();
@@ -106,8 +106,9 @@ func (this *TComPicSym)  GetSlice(i uint) *TComSlice {
   Void         xInitTiles();
   UInt         xCalculateNxtCUAddr( UInt uiCurrCUAddr );
 */
-func (this *TComPicSym) AllocSaoParam(sao *TComSampleAdaptiveOffset){
+func (this *TComPicSym) AllocSaoParam(sao *TComSampleAdaptiveOffset) {
 }
+
 /*  
   SAOParam *getSaoParam() { return m_saoParam; }
 };// END CLASS DEFINITION TComPicSym

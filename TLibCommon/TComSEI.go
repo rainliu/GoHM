@@ -1,14 +1,11 @@
 package TLibCommon
 
-import (
-
-)
-
+import ()
 
 /**
  * Abstract class representing an SEI message with lightweight RTTI.
  */
- /*
+/*
 class SEI
 {
 public:
@@ -31,10 +28,10 @@ public:
     DECODED_PICTURE_HASH   = 256,
 #endif
   };
-  
+
   SEI() {}
   virtual ~SEI() {}
-  
+
   virtual PayloadType payloadType() const = 0;
 };
 
@@ -64,7 +61,7 @@ public:
 
   SEIDecodedPictureHash() {}
   virtual ~SEIDecodedPictureHash() {}
-  
+
   enum Method
   {
     MD5,
@@ -201,21 +198,21 @@ public:
  * A structure to collate all SEI messages.  This ought to be replaced
  * with a list of std::list<SEI*>.  However, since there is only one
  * user of the SEI framework, this will do initially */
-type SEImessages struct{
-  /*SEIuserDataUnregistered* user_data_unregistered;
-  SEIActiveParameterSets* active_parameter_sets; 
-  SEIDecodedPictureHash* picture_digest;
-  SEIBufferingPeriod* buffering_period;
-  SEIPictureTiming* picture_timing;
-  TComSPS* m_pSPS;
-  SEIRecoveryPoint* recovery_point;
-#if SEI_DISPLAY_ORIENTATION
-  SEIDisplayOrientation* display_orientation;
-#endif
-#if SEI_TEMPORAL_LEVEL0_INDEX
-  SEITemporalLevel0Index* temporal_level0_index;
-#endif
-*/
+type SEImessages struct {
+    /*SEIuserDataUnregistered* user_data_unregistered;
+      SEIActiveParameterSets* active_parameter_sets; 
+      SEIDecodedPictureHash* picture_digest;
+      SEIBufferingPeriod* buffering_period;
+      SEIPictureTiming* picture_timing;
+      TComSPS* m_pSPS;
+      SEIRecoveryPoint* recovery_point;
+    #if SEI_DISPLAY_ORIENTATION
+      SEIDisplayOrientation* display_orientation;
+    #endif
+    #if SEI_TEMPORAL_LEVEL0_INDEX
+      SEITemporalLevel0Index* temporal_level0_index;
+    #endif
+    */
 }
 
 /*
@@ -251,5 +248,3 @@ public:
 #endif
   }
 */
-
-

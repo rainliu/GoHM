@@ -1,47 +1,45 @@
 package TLibCommon
 
-import (
-
-)
+import ()
 
 // ====================================================================================================================
 // Constants
 // ====================================================================================================================
 
-const QP_BITS =                15
+const QP_BITS = 15
 
 // ====================================================================================================================
 // Type definition
 // ====================================================================================================================
 
-type estBitsSbacStruct struct{
-  significantCoeffGroupBits	[NUM_SIG_CG_FLAG_CTX][2]int;
-  significantBits			[NUM_SIG_FLAG_CTX][2]int;
-  lastXBits	[32]int;
-  lastYBits	[32]int;
-  m_greaterOneBits			[NUM_ONE_FLAG_CTX][2]int;
-  m_levelAbsBits			[NUM_ABS_FLAG_CTX][2]int;
+type estBitsSbacStruct struct {
+    significantCoeffGroupBits [NUM_SIG_CG_FLAG_CTX][2]int
+    significantBits           [NUM_SIG_FLAG_CTX][2]int
+    lastXBits                 [32]int
+    lastYBits                 [32]int
+    m_greaterOneBits          [NUM_ONE_FLAG_CTX][2]int
+    m_levelAbsBits            [NUM_ABS_FLAG_CTX][2]int
 
-  blockCbpBits				[3*NUM_QT_CBF_CTX][2]int;
-  blockRootCbpBits			[4][2]int;
-  scanZigzag				[2]int;            ///< flag for zigzag scan
-  scanNonZigzag				[2]int;         ///< flag for non zigzag scan
-};
+    blockCbpBits     [3 * NUM_QT_CBF_CTX][2]int
+    blockRootCbpBits [4][2]int
+    scanZigzag       [2]int ///< flag for zigzag scan
+    scanNonZigzag    [2]int ///< flag for non zigzag scan
+}
 
 // ====================================================================================================================
 // Class definition
 // ====================================================================================================================
 
 /// QP class
-type QpParam struct{
-  m_iQP		int;
-  m_iPer	int;
-  m_iRem	int;
-  m_iBits	int;
-};
-  
+type QpParam struct {
+    m_iQP   int
+    m_iPer  int
+    m_iRem  int
+    m_iBits int
+}
+
 //public:
-  
+
 /*
   QpParam();  
   Void setQpParam( Int qpScaled )
@@ -51,7 +49,7 @@ type QpParam struct{
     m_iRem  = qpScaled % 6;
     m_iBits = QP_BITS + m_iPer;
   }
-  
+
   Void clear()
   {
     m_iQP   = 0;
@@ -59,52 +57,53 @@ type QpParam struct{
     m_iRem  = 0;
     m_iBits = 0;
   }
-  
-  
+
+
   Int per()   const { return m_iPer; }
   Int rem()   const { return m_iRem; }
   Int bits()  const { return m_iBits; }
-  
+
   Int qp() {return m_iQP;}
 }; // END CLASS DEFINITION QpParam
 */
 /// transform and quantization class
-type TComTrQuant struct{
-//protected:
-//#if ADAPTIVE_QP_SELECTION
-  m_qpDelta				[MAX_QP+1]int; 
-  m_sliceNsamples		[LEVEL_RANGE+1]int;  
-  m_sliceSumC			[LEVEL_RANGE+1]float64;  
-//#endif
-  m_plTempCoeff			*int;
-  
-  m_cQP  QpParam;
-//#if RDOQ_CHROMA_LAMBDA
-  m_dLambdaLuma		float64;
-  m_dLambdaChroma		float64;
-//#endif
-  m_dLambda			float64;
-  m_uiRDOQOffset		uint;
-  m_uiMaxTrSize		uint;
-  m_bEnc				bool;
-  m_useRDOQ			bool;
-//#if RDOQ_TRANSFORMSKIP
-  m_useRDOQTS			bool;
-//#endif
-//#if ADAPTIVE_QP_SELECTION
-  m_bUseAdaptQpSelect	bool;
-//#endif
-  m_useTransformSkipFast	bool;
-  m_scalingListEnabledFlag	bool;
-  m_quantCoef      [SCALING_LIST_SIZE_NUM][SCALING_LIST_NUM][SCALING_LIST_REM_NUM]*int; ///< array of quantization matrix coefficient 4x4
-  m_dequantCoef    [SCALING_LIST_SIZE_NUM][SCALING_LIST_NUM][SCALING_LIST_REM_NUM]*int; ///< array of dequantization matrix coefficient 4x4
-  m_errScale       [SCALING_LIST_SIZE_NUM][SCALING_LIST_NUM][SCALING_LIST_REM_NUM]*float64; ///< array of quantization matrix coefficient 4x4
+type TComTrQuant struct {
+    //protected:
+    //#if ADAPTIVE_QP_SELECTION
+    m_qpDelta       [MAX_QP + 1]int
+    m_sliceNsamples [LEVEL_RANGE + 1]int
+    m_sliceSumC     [LEVEL_RANGE + 1]float64
+    //#endif
+    m_plTempCoeff *int
+
+    m_cQP QpParam
+    //#if RDOQ_CHROMA_LAMBDA
+    m_dLambdaLuma   float64
+    m_dLambdaChroma float64
+    //#endif
+    m_dLambda      float64
+    m_uiRDOQOffset uint
+    m_uiMaxTrSize  uint
+    m_bEnc         bool
+    m_useRDOQ      bool
+    //#if RDOQ_TRANSFORMSKIP
+    m_useRDOQTS bool
+    //#endif
+    //#if ADAPTIVE_QP_SELECTION
+    m_bUseAdaptQpSelect bool
+    //#endif
+    m_useTransformSkipFast   bool
+    m_scalingListEnabledFlag bool
+    m_quantCoef              [SCALING_LIST_SIZE_NUM][SCALING_LIST_NUM][SCALING_LIST_REM_NUM]*int     ///< array of quantization matrix coefficient 4x4
+    m_dequantCoef            [SCALING_LIST_SIZE_NUM][SCALING_LIST_NUM][SCALING_LIST_REM_NUM]*int     ///< array of dequantization matrix coefficient 4x4
+    m_errScale               [SCALING_LIST_SIZE_NUM][SCALING_LIST_NUM][SCALING_LIST_REM_NUM]*float64 ///< array of quantization matrix coefficient 4x4
 }
+
 /*
 public:
   TComTrQuant();
   ~TComTrQuant();
-  
+
   // initialize class
   Void init                 ( UInt uiMaxWidth, UInt uiMaxHeight, UInt uiMaxTrSize, Int iSymbolMode = 0, UInt *aTable4 = NULL, UInt *aTable8 = NULL, UInt *aTableLastPosVlcIndex=NULL, Bool useRDOQ = false,  
 #if RDOQ_TRANSFORMSKIP
@@ -115,7 +114,7 @@ public:
     , Bool bUseAdaptQpSelect = false
 #endif 
     );
-  
+
   // transform & inverse transform functions
   Void transformNxN( TComDataCU* pcCU, 
                      Pel*        pcResidual, 
@@ -134,7 +133,7 @@ public:
   Void invtransformNxN( Bool transQuantBypass, TextType eText, UInt uiMode,Pel* rpcResidual, UInt uiStride, TCoeff*   pcCoeff, UInt uiWidth, UInt uiHeight,  Int scalingListType, Bool useTransformSkip = false );
   Void invRecurTransformNxN ( TComDataCU* pcCU, TComYuv* pcYuvPred, UInt uiAbsPartIdx, TextType eTxt, Pel* rpcResidual, UInt uiAddr,   UInt uiStride, UInt uiWidth, UInt uiHeight,
                              UInt uiMaxTrMode,  UInt uiTrMode, TCoeff* rpcCoeff );
-  
+
   // Misc functions
   Void setQPforQuant( Int qpy, TextType eTxtType, Int qpBdOffset, Int chromaQPOffset);
 
@@ -145,9 +144,9 @@ public:
   Void setLambda(Double dLambda) { m_dLambda = dLambda;}
 #endif
   Void setRDOQOffset( UInt uiRDOQOffset ) { m_uiRDOQOffset = uiRDOQOffset; }
-  
+
   estBitsSbacStruct* m_pcEstBitsSbac;
-  
+
   static Int      calcPatternSigCtx( const UInt* sigCoeffGroupFlag, UInt posXCG, UInt posYCG, Int width, Int height );
 
   static Int      getSigCtxInc     (
@@ -192,7 +191,7 @@ public:
 private:
   // forward Transform
   Void xT   (Int bitDepth, UInt uiMode,Pel* pResidual, UInt uiStride, Int* plCoeff, Int iWidth, Int iHeight );
-  
+
   // skipping Transform
   Void xTransformSkip (Int bitDepth, Pel* piBlkResi, UInt uiStride, Int* psCoeff, Int width, Int height );
 
@@ -212,7 +211,7 @@ private:
                UInt        uiAbsPartIdx );
 
   // RDOQ functions
-  
+
   Void           xRateDistOptQuant ( TComDataCU*                     pcCU,
                                      Int*                            plSrcCoeff,
                                      TCoeff*                         piDstCoeff,
@@ -261,14 +260,14 @@ __inline Int xGetICRate  ( UInt                            uiAbsLevel,
                                      UShort                          ui16CtxNumSig ) const;
   __inline Double xGetICost        ( Double                          dRate         ) const; 
   __inline Double xGetIEPRate      (                                               ) const;
-  
-  
+
+
   // dequantization
   Void xDeQuant(Int bitDepth, const TCoeff* pSrc, Int* pDes, Int iWidth, Int iHeight, Int scalingListType );
-  
+
   // inverse transform
   Void xIT    (Int bitDepth, UInt uiMode, Int* plCoef, Pel* pResidual, UInt uiStride, Int iWidth, Int iHeight );
-  
+
   // inverse skipping transform
   Void xITransformSkip (Int bitDepth, Int* plCoef, Pel* pResidual, UInt uiStride, Int width, Int height );
-  */
+*/

@@ -1,0 +1,14 @@
+---------------------------------------------------------------------------
+      Zeus for Windows Programmers Editor - Version 3.97n
+      Copyright (c) Xidicone P/L 1993-2012.  All rights reserved.
+---------------------------------------------------------------------------
+
+# command-line-arguments
+.\TComPic.go:18: undefined: TComPicSym
+.\TComPic.go:20: undefined: TComPicYuv
+.\TComPic.go:22: undefined: TComPicYuv
+.\TComPic.go:23: undefined: TComPicYuv
+.\TComPic.go:32: undefined: TComPicYuv
+.\TComPic.go:45: undefined: CroppingWindow
+.\TComPic.go:64: undefined: TComPicSym
+.\TComPic.go:68: undefined: TComSlice

@@ -1,14 +1,11 @@
 package TLibDecoder
 
-import (
+import ()
 
-)
-
-
-
-type TDecSeiReader struct{
-	SyntaxElementParser
+type TDecSeiReader struct {
+    SyntaxElementParser
 }
+
 /*
 {
 public:

@@ -1,25 +1,25 @@
 package TLibCommon
 
 import (
-	"io"
-	"os"
-	"log"
+    "io"
+    "log"
+    "os"
 )
 
 /// YUV file I/O class
-type TVideoIOYuv struct{
-//private:
-  m_cHandle			*os.File;                                      ///< file handle
-  m_fileBitDepthY	int; ///< bitdepth of input/output video file luma component
-  m_fileBitDepthC 	int; ///< bitdepth of input/output video file chroma component
-  m_bitDepthShiftY 	int;  ///< number of bits to increase or decrease luma by before/after write/read
-  m_bitDepthShiftC 	int;  ///< number of bits to increase or decrease chroma by before/after write/read
+type TVideoIOYuv struct {
+    //private:
+    m_cHandle        *os.File ///< file handle
+    m_fileBitDepthY  int      ///< bitdepth of input/output video file luma component
+    m_fileBitDepthC  int      ///< bitdepth of input/output video file chroma component
+    m_bitDepthShiftY int      ///< number of bits to increase or decrease luma by before/after write/read
+    m_bitDepthShiftC int      ///< number of bits to increase or decrease chroma by before/after write/read
 }
 
-func NewTVideoIOYuv() (*TVideoIOYuv){
-	return &TVideoIOYuv{};
+func NewTVideoIOYuv() *TVideoIOYuv {
+    return &TVideoIOYuv{}
 }
-  
+
 ///< open or create file 
 /**
  * Open file for reading/writing Y'CbCr frames.
@@ -37,71 +37,70 @@ func NewTVideoIOYuv() (*TVideoIOYuv){
  * \param fileBitDepthC     bit-depth of input/output file data (chroma components).
  * \param internalBitDepthY bit-depth to scale image data to/from when reading/writing (luma component).
  * \param internalBitDepthC bit-depth to scale image data to/from when reading/writing (chroma components).
- */ 
-func (this *TVideoIOYuv) Open(pchFile string, bWriteMode bool, fileBitDepthY, fileBitDepthC, internalBitDepthY, internalBitDepthC int) (err error){ 
-  this.m_bitDepthShiftY = internalBitDepthY - fileBitDepthY;
-  this.m_bitDepthShiftC = internalBitDepthC - fileBitDepthC;
-  this.m_fileBitDepthY = fileBitDepthY;
-  this.m_fileBitDepthC = fileBitDepthC;
+ */
+func (this *TVideoIOYuv) Open(pchFile string, bWriteMode bool, fileBitDepthY, fileBitDepthC, internalBitDepthY, internalBitDepthC int) (err error) {
+    this.m_bitDepthShiftY = internalBitDepthY - fileBitDepthY
+    this.m_bitDepthShiftC = internalBitDepthC - fileBitDepthC
+    this.m_fileBitDepthY = fileBitDepthY
+    this.m_fileBitDepthC = fileBitDepthC
 
-  if bWriteMode {
-    if this.m_cHandle, err = os.Create( pchFile ); err!=nil{
-		log.Fatal(err)
-		return err
-	}
-  }else{
-    if this.m_cHandle, err = os.Open( pchFile ); err!=nil{
-		log.Fatal(err)
-		return err
-	}
-  }
-  
-  return nil;
+    if bWriteMode {
+        if this.m_cHandle, err = os.Create(pchFile); err != nil {
+            log.Fatal(err)
+            return err
+        }
+    } else {
+        if this.m_cHandle, err = os.Open(pchFile); err != nil {
+            log.Fatal(err)
+            return err
+        }
+    }
+
+    return nil
 }
- 
+
 ///< close file 
-func (this *TVideoIOYuv) Close (){                                           
-	this.m_cHandle.Close();
+func (this *TVideoIOYuv) Close() {
+    this.m_cHandle.Close()
 }
- 
 
 /**
  * Skip numFrames in input.
  *
  * This function correctly handles cases where the input file is not
  * seekable, by consuming bytes.
- */ 
-func (this *TVideoIOYuv) SkipFrames(numFrames, width, height uint) (err error){
-  if numFrames==0 {
-    return nil;
-  }
-  
-  var wordsize uint
-  if (this.m_fileBitDepthY > 8 || this.m_fileBitDepthC > 8){
-  	wordsize = 2;
-  }else{
-  	wordsize = 1;
-  }
-  
-  framesize := wordsize * width * height * 3 / 2;
-  offset := framesize * numFrames;
+ */
+func (this *TVideoIOYuv) SkipFrames(numFrames, width, height uint) (err error) {
+    if numFrames == 0 {
+        return nil
+    }
 
-  /* attempt to seek */
-  //if (!!m_cHandle.seekg(offset, ios::cur))
-  //  return; /* success */
-  //m_cHandle.clear();
-  _, err = this.m_cHandle.Seek(int64(offset), 1)
-  return err;
-  
-  /* fall back to consuming the input 
-  buf := make([]byte, 512)
-  offset_mod_bufsize := offset % len(buf);
-  for i := 0; i < offset - offset_mod_bufsize; i += len(buf) {
-    this.m_cHandle.Read(buf);
-  }
-  this.m_cHandle.Read(buf, offset_mod_bufsize);*/
+    var wordsize uint
+    if this.m_fileBitDepthY > 8 || this.m_fileBitDepthC > 8 {
+        wordsize = 2
+    } else {
+        wordsize = 1
+    }
+
+    framesize := wordsize * width * height * 3 / 2
+    offset := framesize * numFrames
+
+    /* attempt to seek */
+    //if (!!m_cHandle.seekg(offset, ios::cur))
+    //  return; /* success */
+    //m_cHandle.clear();
+    _, err = this.m_cHandle.Seek(int64(offset), 1)
+    return err
+
+    /* fall back to consuming the input 
+    buf := make([]byte, 512)
+    offset_mod_bufsize := offset % len(buf);
+    for i := 0; i < offset - offset_mod_bufsize; i += len(buf) {
+      this.m_cHandle.Read(buf);
+    }
+    this.m_cHandle.Read(buf, offset_mod_bufsize);*/
 }
-  
+
 ///< read  one YUV frame with padding parameter  
 /**
  * Read one Y'CbCr frame, performing any required input scaling to change
@@ -116,70 +115,70 @@ func (this *TVideoIOYuv) SkipFrames(numFrames, width, height uint) (err error){
  * @param aiPad        source padding size, aiPad[0] = horizontal, aiPad[1] = vertical
  * @return true for success, false in case of error
  */
-func (this *TVideoIOYuv) Read ( pPicYuv *TComPicYuv, aiPad []int ) bool {   
-  // check end-of-file
-  //if this.IsEof() {
-  //	return false;
-  //}
-  
-  iStride := pPicYuv.GetStride();
-  
-  // compute actual YUV width & height excluding padding size
-  pad_h 		:= aiPad[0];
-  pad_v 		:= aiPad[1];
-  width_full 	:= pPicYuv.GetWidth();
-  height_full 	:= pPicYuv.GetHeight();
-  width  		:= width_full - pad_h;
-  height 		:= height_full - pad_v;
-  is16bit 		:= this.m_fileBitDepthY > 8 || this.m_fileBitDepthC > 8;
+func (this *TVideoIOYuv) Read(pPicYuv *TComPicYuv, aiPad []int) bool {
+    // check end-of-file
+    //if this.IsEof() {
+    //	return false;
+    //}
 
-  desired_bitdepthY := uint(this.m_fileBitDepthY + this.m_bitDepthShiftY);
-  desired_bitdepthC := uint(this.m_fileBitDepthC + this.m_bitDepthShiftC);
-  minvalY := Pel(0);
-  minvalC := Pel(0);
-  maxvalY := Pel((1 << desired_bitdepthY) - 1);
-  maxvalC := Pel((1 << desired_bitdepthC) - 1);
+    iStride := pPicYuv.GetStride()
 
-/*
-#if CLIP_TO_709_RANGE
-  if (m_bitdepthShiftY < 0 && desired_bitdepthY >= 8)
-  {
-    // ITU-R BT.709 compliant clipping for converting say 10b to 8b
-    minvalY = 1 << (desired_bitdepthY - 8);
-    maxvalY = (0xff << (desired_bitdepthY - 8)) -1;
-  }
-  if (m_bitdepthShiftC < 0 && desired_bitdepthC >= 8)
-  {
-    // ITU-R BT.709 compliant clipping for converting say 10b to 8b
-    minvalC = 1 << (desired_bitdepthC - 8);
-    maxvalC = (0xff << (desired_bitdepthC - 8)) -1;
-  }
-#endif
-*/  
-  if !this.readPlane(pPicYuv.GetLumaAddr(), this.m_cHandle, is16bit, iStride, width, height, pad_h, pad_v){
-    return false;   
-  }
-  this.scalePlane(pPicYuv.GetLumaAddr(), iStride, width_full, height_full, this.m_bitDepthShiftY, minvalY, maxvalY);
+    // compute actual YUV width & height excluding padding size
+    pad_h := aiPad[0]
+    pad_v := aiPad[1]
+    width_full := pPicYuv.GetWidth()
+    height_full := pPicYuv.GetHeight()
+    width := width_full - pad_h
+    height := height_full - pad_v
+    is16bit := this.m_fileBitDepthY > 8 || this.m_fileBitDepthC > 8
 
-  iStride >>= 1;
-  width_full >>= 1;
-  height_full >>= 1;
-  width >>= 1;
-  height >>= 1;
-  pad_h >>= 1;
-  pad_v >>= 1;
+    desired_bitdepthY := uint(this.m_fileBitDepthY + this.m_bitDepthShiftY)
+    desired_bitdepthC := uint(this.m_fileBitDepthC + this.m_bitDepthShiftC)
+    minvalY := Pel(0)
+    minvalC := Pel(0)
+    maxvalY := Pel((1 << desired_bitdepthY) - 1)
+    maxvalC := Pel((1 << desired_bitdepthC) - 1)
 
-  if !this.readPlane(pPicYuv.GetCbAddr(), this.m_cHandle, is16bit, iStride, width, height, pad_h, pad_v){
-    return false;
-  }
-  this.scalePlane(pPicYuv.GetCbAddr(), iStride, width_full, height_full, this.m_bitDepthShiftC, minvalC, maxvalC);
+    /*
+    #if CLIP_TO_709_RANGE
+      if (m_bitdepthShiftY < 0 && desired_bitdepthY >= 8)
+      {
+        // ITU-R BT.709 compliant clipping for converting say 10b to 8b
+        minvalY = 1 << (desired_bitdepthY - 8);
+        maxvalY = (0xff << (desired_bitdepthY - 8)) -1;
+      }
+      if (m_bitdepthShiftC < 0 && desired_bitdepthC >= 8)
+      {
+        // ITU-R BT.709 compliant clipping for converting say 10b to 8b
+        minvalC = 1 << (desired_bitdepthC - 8);
+        maxvalC = (0xff << (desired_bitdepthC - 8)) -1;
+      }
+    #endif
+    */
+    if !this.readPlane(pPicYuv.GetLumaAddr(), this.m_cHandle, is16bit, iStride, width, height, pad_h, pad_v) {
+        return false
+    }
+    this.scalePlane(pPicYuv.GetLumaAddr(), iStride, width_full, height_full, this.m_bitDepthShiftY, minvalY, maxvalY)
 
-  if !this.readPlane(pPicYuv.GetCrAddr(), this.m_cHandle, is16bit, iStride, width, height, pad_h, pad_v){
-    return false;
-  }
-  this.scalePlane(pPicYuv.GetCrAddr(), iStride, width_full, height_full, this.m_bitDepthShiftC, minvalC, maxvalC);
+    iStride >>= 1
+    width_full >>= 1
+    height_full >>= 1
+    width >>= 1
+    height >>= 1
+    pad_h >>= 1
+    pad_v >>= 1
 
-  return true;
+    if !this.readPlane(pPicYuv.GetCbAddr(), this.m_cHandle, is16bit, iStride, width, height, pad_h, pad_v) {
+        return false
+    }
+    this.scalePlane(pPicYuv.GetCbAddr(), iStride, width_full, height_full, this.m_bitDepthShiftC, minvalC, maxvalC)
+
+    if !this.readPlane(pPicYuv.GetCrAddr(), this.m_cHandle, is16bit, iStride, width, height, pad_h, pad_v) {
+        return false
+    }
+    this.scalePlane(pPicYuv.GetCrAddr(), iStride, width_full, height_full, this.m_bitDepthShiftC, minvalC, maxvalC)
+
+    return true
 }
 
 /**
@@ -190,78 +189,78 @@ func (this *TVideoIOYuv) Read ( pPicYuv *TComPicYuv, aiPad []int ) bool {
  * @param aiPad       source padding size, aiPad[0] = horizontal, aiPad[1] = vertical
  * @return true for success, false in case of error
  */
-func (this *TVideoIOYuv) Write( pPicYuv *TComPicYuv, cropLeft, cropRight, cropTop, cropBottom int ) bool {
-  // compute actual YUV frame size excluding padding size
-  iStride 	:= pPicYuv.GetStride();
-  width  	:= pPicYuv.GetWidth()  - cropLeft - cropRight;
-  height 	:= pPicYuv.GetHeight() - cropTop  - cropBottom;
-  is16bit 	:= this.m_fileBitDepthY > 8 || this.m_fileBitDepthC > 8;
-  var dstPicYuv *TComPicYuv;
-  retval := true;
+func (this *TVideoIOYuv) Write(pPicYuv *TComPicYuv, cropLeft, cropRight, cropTop, cropBottom int) bool {
+    // compute actual YUV frame size excluding padding size
+    iStride := pPicYuv.GetStride()
+    width := pPicYuv.GetWidth() - cropLeft - cropRight
+    height := pPicYuv.GetHeight() - cropTop - cropBottom
+    is16bit := this.m_fileBitDepthY > 8 || this.m_fileBitDepthC > 8
+    var dstPicYuv *TComPicYuv
+    retval := true
 
-  if this.m_bitDepthShiftY != 0 || this.m_bitDepthShiftC != 0 {
-    dstPicYuv = NewTComPicYuv();
-    dstPicYuv.Create( pPicYuv.GetWidth(), pPicYuv.GetHeight(), 1, 1, 0 );
-    pPicYuv.CopyToPic(dstPicYuv);
+    if this.m_bitDepthShiftY != 0 || this.m_bitDepthShiftC != 0 {
+        dstPicYuv = NewTComPicYuv()
+        dstPicYuv.Create(pPicYuv.GetWidth(), pPicYuv.GetHeight(), 1, 1, 0)
+        pPicYuv.CopyToPic(dstPicYuv)
 
-    minvalY := Pel(0);
-    minvalC := Pel(0);
-    maxvalY := Pel( (1 << uint(this.m_fileBitDepthY)) - 1 );
-    maxvalC := Pel( (1 << uint(this.m_fileBitDepthC)) - 1 );
+        minvalY := Pel(0)
+        minvalC := Pel(0)
+        maxvalY := Pel((1 << uint(this.m_fileBitDepthY)) - 1)
+        maxvalC := Pel((1 << uint(this.m_fileBitDepthC)) - 1)
 
-/*#if CLIP_TO_709_RANGE
-    if (-m_bitDepthShiftY < 0 && m_fileBitDepthY >= 8)
-    {
-      // ITU-R BT.709 compliant clipping for converting say 10b to 8b
-      minvalY = 1 << (m_fileBitDepthY - 8);
-      maxvalY = (0xff << (m_fileBitDepthY - 8)) -1;
+        /*#if CLIP_TO_709_RANGE
+            if (-m_bitDepthShiftY < 0 && m_fileBitDepthY >= 8)
+            {
+              // ITU-R BT.709 compliant clipping for converting say 10b to 8b
+              minvalY = 1 << (m_fileBitDepthY - 8);
+              maxvalY = (0xff << (m_fileBitDepthY - 8)) -1;
+            }
+            if (-m_bitDepthShiftC < 0 && m_fileBitDepthC >= 8)
+            {
+              // ITU-R BT.709 compliant clipping for converting say 10b to 8b
+              minvalC = 1 << (m_fileBitDepthC - 8);
+              maxvalC = (0xff << (m_fileBitDepthC - 8)) -1;
+            }
+        #endif*/
+
+        this.scalePlane(dstPicYuv.GetLumaAddr(), dstPicYuv.GetStride(), dstPicYuv.GetWidth(), dstPicYuv.GetHeight(), -this.m_bitDepthShiftY, minvalY, maxvalY)
+        this.scalePlane(dstPicYuv.GetCbAddr(), dstPicYuv.GetCStride(), dstPicYuv.GetWidth()>>1, dstPicYuv.GetHeight()>>1, -this.m_bitDepthShiftC, minvalC, maxvalC)
+        this.scalePlane(dstPicYuv.GetCrAddr(), dstPicYuv.GetCStride(), dstPicYuv.GetWidth()>>1, dstPicYuv.GetHeight()>>1, -this.m_bitDepthShiftC, minvalC, maxvalC)
+    } else {
+        dstPicYuv = pPicYuv
     }
-    if (-m_bitDepthShiftC < 0 && m_fileBitDepthC >= 8)
-    {
-      // ITU-R BT.709 compliant clipping for converting say 10b to 8b
-      minvalC = 1 << (m_fileBitDepthC - 8);
-      maxvalC = (0xff << (m_fileBitDepthC - 8)) -1;
+    // location of upper left pel in a plane
+    planeOffset := 0 //cropLeft + cropTop * iStride;
+
+    if !this.writePlane(this.m_cHandle, dstPicYuv.GetLumaAddr(), is16bit, iStride, width, height, planeOffset) {
+        retval = false
+        goto exit
     }
-#endif*/
-    
-    this.scalePlane(dstPicYuv.GetLumaAddr(), dstPicYuv.GetStride() , dstPicYuv.GetWidth(),    dstPicYuv.GetHeight(),    -this.m_bitDepthShiftY, minvalY, maxvalY);
-    this.scalePlane(dstPicYuv.GetCbAddr(),   dstPicYuv.GetCStride(), dstPicYuv.GetWidth()>>1, dstPicYuv.GetHeight()>>1, -this.m_bitDepthShiftC, minvalC, maxvalC);
-    this.scalePlane(dstPicYuv.GetCrAddr(),   dstPicYuv.GetCStride(), dstPicYuv.GetWidth()>>1, dstPicYuv.GetHeight()>>1, -this.m_bitDepthShiftC, minvalC, maxvalC);
-  }else{
-    dstPicYuv = pPicYuv;
-  }
-  // location of upper left pel in a plane
-  planeOffset := 0; //cropLeft + cropTop * iStride;
-  
-  if ! this.writePlane(this.m_cHandle, dstPicYuv.GetLumaAddr(), is16bit, iStride, width, height, planeOffset){
-    retval=false; 
-    goto exit;
-  }
 
-  width >>= 1;
-  height >>= 1;
-  iStride >>= 1;
-  cropLeft >>= 1;
-  cropRight >>= 1;
+    width >>= 1
+    height >>= 1
+    iStride >>= 1
+    cropLeft >>= 1
+    cropRight >>= 1
 
-  planeOffset = 0; // cropLeft + cropTop * iStride;
+    planeOffset = 0 // cropLeft + cropTop * iStride;
 
-  if ! this.writePlane(this.m_cHandle, dstPicYuv.GetCbAddr(), is16bit, iStride, width, height, planeOffset){
-    retval=false; 
-    goto exit;
-  }
-  if ! this.writePlane(this.m_cHandle, dstPicYuv.GetCrAddr(), is16bit, iStride, width, height, planeOffset){
-    retval=false; 
-    goto exit;
-  }
-  
+    if !this.writePlane(this.m_cHandle, dstPicYuv.GetCbAddr(), is16bit, iStride, width, height, planeOffset) {
+        retval = false
+        goto exit
+    }
+    if !this.writePlane(this.m_cHandle, dstPicYuv.GetCrAddr(), is16bit, iStride, width, height, planeOffset) {
+        retval = false
+        goto exit
+    }
+
 exit:
-  if this.m_bitDepthShiftY != 0 || this.m_bitDepthShiftC != 0 {
-    dstPicYuv.Destroy();
-  }  
-  return retval;
+    if this.m_bitDepthShiftY != 0 || this.m_bitDepthShiftC != 0 {
+        dstPicYuv.Destroy()
+    }
+    return retval
 }
-  
+
 ///< check for end-of-file  
 //func (this *TVideoIOYuv) IsEof () bool {                                           
 //	this.m_cHandle.
@@ -273,87 +272,87 @@ exit:
 //	return true
 //}
 
-func (this *TVideoIOYuv) readPlane (dst []Pel, fd *os.File, is16bit bool, stride, width, height, pad_x, pad_y int) bool{
-  var read_len, x, y int
-  
-  if is16bit{
-  	read_len = width*2
-  }else{
-  	read_len = width
-  }
-  
-  buf := make([]byte, read_len);
-  for y = 0; y < height; y++ {
-  	n, err := fd.Read(buf)
-    if err == io.EOF || n != read_len {
-      return false;
+func (this *TVideoIOYuv) readPlane(dst []Pel, fd *os.File, is16bit bool, stride, width, height, pad_x, pad_y int) bool {
+    var read_len, x, y int
+
+    if is16bit {
+        read_len = width * 2
+    } else {
+        read_len = width
     }
 
-    if !is16bit {
-      for x = 0; x < width; x++ {
-        dst[y*stride+x] = Pel(buf[x]);
-      }
-    }else{
-      for x = 0; x < width; x++ {
-        dst[y*stride+x] = (Pel(buf[2*x+1]) << 8) | Pel(buf[2*x]);
-      }
+    buf := make([]byte, read_len)
+    for y = 0; y < height; y++ {
+        n, err := fd.Read(buf)
+        if err == io.EOF || n != read_len {
+            return false
+        }
+
+        if !is16bit {
+            for x = 0; x < width; x++ {
+                dst[y*stride+x] = Pel(buf[x])
+            }
+        } else {
+            for x = 0; x < width; x++ {
+                dst[y*stride+x] = (Pel(buf[2*x+1]) << 8) | Pel(buf[2*x])
+            }
+        }
+
+        for x = width; x < width+pad_x; x++ {
+            dst[y*stride+x] = dst[y*stride+width-1]
+        }
     }
 
-    for x = width; x < width + pad_x; x++ {
-      dst[y*stride+x] = dst[y*stride + width - 1];
+    for y = height; y < height+pad_y; y++ {
+        for x = 0; x < width+pad_x; x++ {
+            dst[y*stride+x] = dst[(y-1)*stride+x]
+        }
     }
-  }
-  
-  for y = height; y < height + pad_y; y++ {
-    for x = 0; x < width + pad_x; x++ {
-      dst[y*stride+x] = dst[(y-1)*stride+x];
-    }
-  }
-  
-  return true;
+
+    return true
 }
 
-func (this *TVideoIOYuv) writePlane(fd *os.File, src []Pel, is16bit bool, stride, width, height, planeOffset int) bool{
-  var write_len, x, y int;
-  
-  if is16bit {
-  	write_len = width * 2;
-  }else{
-  	write_len = width;
-  }
-  
-  buf := make([]byte, write_len);
-  for y = 0; y < height; y++ {
-    if !is16bit {
-      for x = 0; x < width; x++ {
-        buf[x] = byte(src[y*stride+x]);
-      }
-    }else{
-      for x = 0; x < width; x++ {
-        buf[2*x  ] = byte( src[y*stride+x]       & 0xff);
-        buf[2*x+1] = byte((src[y*stride+x] >> 8) & 0xff);
-      }
-    }
-	
-	n, err := fd.Write(buf)
-    if err!=nil || n!=write_len {
-      return false;
-    }
-  }
+func (this *TVideoIOYuv) writePlane(fd *os.File, src []Pel, is16bit bool, stride, width, height, planeOffset int) bool {
+    var write_len, x, y int
 
-  return true;
+    if is16bit {
+        write_len = width * 2
+    } else {
+        write_len = width
+    }
+
+    buf := make([]byte, write_len)
+    for y = 0; y < height; y++ {
+        if !is16bit {
+            for x = 0; x < width; x++ {
+                buf[x] = byte(src[y*stride+x])
+            }
+        } else {
+            for x = 0; x < width; x++ {
+                buf[2*x] = byte(src[y*stride+x] & 0xff)
+                buf[2*x+1] = byte((src[y*stride+x] >> 8) & 0xff)
+            }
+        }
+
+        n, err := fd.Write(buf)
+        if err != nil || n != write_len {
+            return false
+        }
+    }
+
+    return true
 }
 
-func (this *TVideoIOYuv) scalePlane(img []Pel, stride, width, height, shiftbits int, minval, maxval Pel){
-  if shiftbits == 0 {
-    return;
-  }
+func (this *TVideoIOYuv) scalePlane(img []Pel, stride, width, height, shiftbits int, minval, maxval Pel) {
+    if shiftbits == 0 {
+        return
+    }
 
-  if shiftbits > 0 {
-    this.fwdScalePlane(img, stride, width, height, shiftbits);
-  }else{
-    this.invScalePlane(img, stride, width, height, -shiftbits, minval, maxval);
-  }
+    if shiftbits > 0 {
+        this.fwdScalePlane(img, stride, width, height, shiftbits)
+    } else {
+        this.invScalePlane(img, stride, width, height, -shiftbits, minval, maxval)
+    }
 }
 
 /**
@@ -366,11 +365,11 @@ func (this *TVideoIOYuv) scalePlane(img []Pel, stride, width, height, shiftbits 
  * @param shiftbits  number of bits to shift
  */
 func (this *TVideoIOYuv) fwdScalePlane(img []Pel, stride, width, height, shiftbits int) {
-  for y := 0; y < height; y++ {
-    for x := 0; x < width; x++ {
-      img[y*stride+x] <<= uint(shiftbits);
+    for y := 0; y < height; y++ {
+        for x := 0; x < width; x++ {
+            img[y*stride+x] <<= uint(shiftbits)
+        }
     }
-  }
 }
 
 /**
@@ -385,13 +384,13 @@ func (this *TVideoIOYuv) fwdScalePlane(img []Pel, stride, width, height, shiftbi
  * @param minval     minimum clipping value
  * @param maxval     maximum clipping value
  */
-func (this *TVideoIOYuv) invScalePlane(img []Pel, stride, width, height, shiftbits int, minval, maxval Pel){
-  offset := Pel(1 << uint(shiftbits-1));
-  
-  for y := 0; y < height; y++ {
-    for x := 0; x < width; x++ {
-      val := (img[y*stride+x] + offset) >> uint(shiftbits);
-      img[y*stride+x] = Clip3(minval, maxval, val);
+func (this *TVideoIOYuv) invScalePlane(img []Pel, stride, width, height, shiftbits int, minval, maxval Pel) {
+    offset := Pel(1 << uint(shiftbits-1))
+
+    for y := 0; y < height; y++ {
+        for x := 0; x < width; x++ {
+            val := (img[y*stride+x] + offset) >> uint(shiftbits)
+            img[y*stride+x] = Clip3(minval, maxval, val)
+        }
     }
-  }
 }

@@ -1,57 +1,54 @@
 package TLibCommon
 
-import (
-
-)
+import ()
 
 // ====================================================================================================================
 // Macros
 // ====================================================================================================================
 
-const     MAX_CU_DEPTH    =        7                           // log2(LCUSize)
-const     MAX_CU_SIZE     =        (1<<(MAX_CU_DEPTH))         // maximum allowable size of CU
-const     MIN_PU_SIZE     =        4
-const     MAX_NUM_SPU_W   =        (MAX_CU_SIZE/MIN_PU_SIZE)   // maximum number of SPU in horizontal line
+const MAX_CU_DEPTH = 7                    // log2(LCUSize)
+const MAX_CU_SIZE = (1 << (MAX_CU_DEPTH)) // maximum allowable size of CU
+const MIN_PU_SIZE = 4
+const MAX_NUM_SPU_W = (MAX_CU_SIZE / MIN_PU_SIZE) // maximum number of SPU in horizontal line
 
 // ====================================================================================================================
 // Initialize / destroy functions
 // ====================================================================================================================
 
-func InitROM(){
+func InitROM() {
 }
-func DestroyROM(){
+func DestroyROM() {
 }
-func InitSigLastScan(pBuffD, pBuffH, pBuffV *uint, iWidth, iHeight, iDepth int){
+func InitSigLastScan(pBuffD, pBuffH, pBuffV *uint, iWidth, iHeight, iDepth int) {
 }
 
+var G_uiMaxCUWidth uint = MAX_CU_SIZE
+var G_uiMaxCUHeight uint = MAX_CU_SIZE
+var G_uiMaxCUDepth uint = MAX_CU_DEPTH
+var G_uiAddCUDepth uint = 0
+var G_auiZscanToRaster [MAX_NUM_SPU_W * MAX_NUM_SPU_W]uint // = { 0, };
+var G_auiRasterToZscan [MAX_NUM_SPU_W * MAX_NUM_SPU_W]uint // = { 0, };
+var G_auiRasterToPelX [MAX_NUM_SPU_W * MAX_NUM_SPU_W]uint  // = { 0, };
+var G_auiRasterToPelY [MAX_NUM_SPU_W * MAX_NUM_SPU_W]uint  // = { 0, };
 
-var G_uiMaxCUWidth  uint = MAX_CU_SIZE;
-var G_uiMaxCUHeight uint = MAX_CU_SIZE;
-var G_uiMaxCUDepth  uint = MAX_CU_DEPTH;
-var G_uiAddCUDepth  uint = 0;
-var G_auiZscanToRaster [ MAX_NUM_SPU_W*MAX_NUM_SPU_W ]uint;// = { 0, };
-var G_auiRasterToZscan [ MAX_NUM_SPU_W*MAX_NUM_SPU_W ]uint;// = { 0, };
-var G_auiRasterToPelX  [ MAX_NUM_SPU_W*MAX_NUM_SPU_W ]uint;// = { 0, };
-var G_auiRasterToPelY  [ MAX_NUM_SPU_W*MAX_NUM_SPU_W ]uint;// = { 0, };
+var G_bitDepthY int = 8
+var G_bitDepthC int = 8
 
-var G_bitDepthY      int = 8;
-var G_bitDepthC 	 int = 8;
-
-
-const SCALING_LIST_NUM 			= 6         ///< list number for quantization matrix
-const SCALING_LIST_NUM_32x32 	= 2   ///< list number for quantization matrix 32x32
-const SCALING_LIST_REM_NUM 		= 6     ///< remainder of QP/6
-const SCALING_LIST_START_VALUE 	= 8 ///< start value for dpcm mode
-const MAX_MATRIX_COEF_NUM 		= 64     ///< max coefficient number for quantization matrix
-const MAX_MATRIX_SIZE_NUM 		= 8      ///< max size number for quantization matrix
-const SCALING_LIST_DC 			= 16         ///< default DC value
-const (//enum ScalingListSize
-  SCALING_LIST_4x4 = iota
-  SCALING_LIST_8x8
-  SCALING_LIST_16x16
-  SCALING_LIST_32x32
-  SCALING_LIST_SIZE_NUM
+const SCALING_LIST_NUM = 6         ///< list number for quantization matrix
+const SCALING_LIST_NUM_32x32 = 2   ///< list number for quantization matrix 32x32
+const SCALING_LIST_REM_NUM = 6     ///< remainder of QP/6
+const SCALING_LIST_START_VALUE = 8 ///< start value for dpcm mode
+const MAX_MATRIX_COEF_NUM = 64     ///< max coefficient number for quantization matrix
+const MAX_MATRIX_SIZE_NUM = 8      ///< max size number for quantization matrix
+const SCALING_LIST_DC = 16         ///< default DC value
+const (                            //enum ScalingListSize
+    SCALING_LIST_4x4 = iota
+    SCALING_LIST_8x8
+    SCALING_LIST_16x16
+    SCALING_LIST_32x32
+    SCALING_LIST_SIZE_NUM
 )
+
 /*
 var MatrixType [4][6]string[20] = {{"INTRA4X4_LUMA",
   "INTRA4X4_CHROMAU",
@@ -102,14 +99,14 @@ static const Char MatrixType_DC[4][12][22] =
 };
 */
 
-var g_quantTSDefault4x4 [16]int;/* = {
+var g_quantTSDefault4x4 [16]int /* = {
   16,16,16,16,
   16,16,16,16,
   16,16,16,16,
   16,16,16,16
 };*/
 
-var g_quantIntraDefault8x8 [64]int;/* ={
+var g_quantIntraDefault8x8 [64]int /* ={
   16,16,16,16,17,18,21,24,
   16,16,16,16,17,19,22,25,
   16,16,17,18,20,22,25,29,
@@ -120,7 +117,7 @@ var g_quantIntraDefault8x8 [64]int;/* ={
   24,25,29,36,47,65,88,115
 };*/
 
-var g_quantInterDefault8x8 [64]int;/* = {
+var g_quantInterDefault8x8 [64]int /* = {
   16,16,16,16,17,18,20,24,
   16,16,16,17,18,20,24,25,
   16,16,17,18,20,24,25,28,
@@ -130,7 +127,7 @@ var g_quantInterDefault8x8 [64]int;/* = {
   20,24,25,28,33,41,54,71,
   24,25,28,33,41,54,71,91
 };*/
-var g_scalingListSize   [4]uint;// = {16,64,256,1024}; 
-var g_scalingListSizeX  [4]uint;// = { 4, 8, 16,  32};
-var g_scalingListNum	[SCALING_LIST_SIZE_NUM]uint;//={6,6,6,2};
-var g_eTTable			[4]int;// = {0,3,1,2};
+var g_scalingListSize [4]uint                    // = {16,64,256,1024}; 
+var g_scalingListSizeX [4]uint                   // = { 4, 8, 16,  32};
+var g_scalingListNum [SCALING_LIST_SIZE_NUM]uint //={6,6,6,2};
+var g_eTTable [4]int                             // = {0,3,1,2};

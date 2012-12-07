@@ -1,0 +1,17 @@
+---------------------------------------------------------------------------
+      Zeus for Windows Programmers Editor - Version 3.97n
+      Copyright (c) Xidicone P/L 1993-2012.  All rights reserved.
+---------------------------------------------------------------------------
+
+# gohm/TAppDecoder
+..\gohm\TAppDecoder\TAppDecTop.go:73: pcPic.GetOutputMark undefined (type *TLibCommon.TComPic has no field or method GetOutputMark)
+..\gohm\TAppDecoder\TAppDecTop.go:73: pcPic.GetPOC undefined (type *TLibCommon.TComPic has no field or method GetPOC)
+..\gohm\TAppDecoder\TAppDecTop.go:80: pcPic.GetOutputMark undefined (type *TLibCommon.TComPic has no field or method GetOutputMark)
+..\gohm\TAppDecoder\TAppDecTop.go:80: pcPic.GetNumReorderPics undefined (type *TLibCommon.TComPic has no field or method GetNumReorderPics)
+..\gohm\TAppDecoder\TAppDecTop.go:80: pcPic.GetPOC undefined (type *TLibCommon.TComPic has no field or method GetPOC)
+..\gohm\TAppDecoder\TAppDecTop.go:84: pcPic.GetCroppingWindow undefined (type *TLibCommon.TComPic has no field or method GetCroppingWindow)
+..\gohm\TAppDecoder\TAppDecTop.go:85: pcPic.GetPicYuvRec undefined (type *TLibCommon.TComPic has no field or method GetPicYuvRec)
+..\gohm\TAppDecoder\TAppDecTop.go:89: pcPic.GetPOC undefined (type *TLibCommon.TComPic has no field or method GetPOC)
+..\gohm\TAppDecoder\TAppDecTop.go:92: pcPic.GetReconMark undefined (type *TLibCommon.TComPic has no field or method GetReconMark)
+..\gohm\TAppDecoder\TAppDecTop.go:94: pcPic.SetReconMark undefined (type *TLibCommon.TComPic has no field or method SetReconMark)
+..\gohm\TAppDecoder\TAppDecTop.go:94: too many errors
