@@ -1,6 +1,7 @@
 package TLibDecoder
 
 import (
+	"container/list"
     "gohm/TLibCommon"
 )
 
@@ -8,16 +9,16 @@ import (
 type TDecSlice struct {
     //private:
     // access channel
-    //TDecEntropy*    m_pcEntropyDecoder;
-    //TDecCu*         m_pcCuDecoder;
+    m_pcEntropyDecoder	*TDecEntropy;
+    m_pcCuDecoder		*TDecCu;
     m_uiCurrSliceIdx uint
 
-    //TDecSbac*       m_pcBufferSbacDecoders;   ///< line to store temporary contexts, one per column of tiles.
-    //TDecBinCABAC*   m_pcBufferBinCABACs;
-    //TDecSbac*       m_pcBufferLowLatSbacDecoders;   ///< dependent tiles: line to store temporary contexts, one per column of tiles.
-    //TDecBinCABAC*   m_pcBufferLowLatBinCABACs;
+    m_pcBufferSbacDecoders		*TDecSbac;   ///< line to store temporary contexts, one per column of tiles.
+    m_pcBufferBinCABACs			*TDecBinCabac;
+    m_pcBufferLowLatSbacDecoders	*TDecSbac;   ///< dependent tiles: line to store temporary contexts, one per column of tiles.
+    m_pcBufferLowLatBinCABACs		*TDecBinCabac;
     //#if DEPENDENT_SLICES
-    //std::vector<TDecSbac*> CTXMem;
+    CTXMem		*list.List;//std::vector<TDecSbac*> 
     //#endif
 }
 
@@ -36,8 +37,11 @@ func (this *TDecSlice) Destroy() {
 //func (this *TDecSlice) DecompressSlice   ( TComInputBitstream* pcBitstream, TComInputBitstream** ppcSubstreams,   TComPic*& rpcPic, TDecSbac* pcSbacDecoder, TDecSbac* pcSbacDecoders );
 
 //#if DEPENDENT_SLICES
-//  Void      initCtxMem(  UInt i );
-//  Void      setCtxMem( TDecSbac* sb, Int b )   { CTXMem[b] = sb; }
+func (this *TDecSlice)  InitCtxMem(  i uint){
+}
+func (this *TDecSlice)  SetCtxMem( sb *TDecSbac, b int )   { 
+	//this.CTXMem[b] = sb; 
+}
 //#endif
 //};
 
@@ -49,16 +53,28 @@ type ParameterSetManagerDecoder struct {
     //  ParameterSetMap<TComPPS> m_ppsBuffer;
 }
 
-/*
-public:
-  ParameterSetManagerDecoder();
-  virtual ~ParameterSetManagerDecoder();
-  Void     storePrefetchedVPS(TComVPS *vps)  { m_vpsBuffer.storePS( vps->getVPSId(), vps); };
-  TComVPS* getPrefetchedVPS  (Int vpsId);
-  Void     storePrefetchedSPS(TComSPS *sps)  { m_spsBuffer.storePS( sps->getSPSId(), sps); };
-  TComSPS* getPrefetchedSPS  (Int spsId);
-  Void     storePrefetchedPPS(TComPPS *pps)  { m_ppsBuffer.storePS( pps->getPPSId(), pps); };
-  TComPPS* getPrefetchedPPS  (Int ppsId);
-*/
-func (this *ParameterSetManagerDecoder) ApplyPrefetchedPS() {
+
+func NewParameterSetManagerDecoder() *ParameterSetManagerDecoder{
+	return &ParameterSetManagerDecoder{};
+}
+
+func (this *ParameterSetManagerDecoder)  SetPrefetchedVPS(vps *TLibCommon.TComVPS)  { 
+	this.SetVPS(vps); 
+}
+func (this *ParameterSetManagerDecoder)  GetPrefetchedVPS  (vpsId int) *TLibCommon.TComVPS {
+	return this.GetVPS(vpsId)
+}
+func (this *ParameterSetManagerDecoder)  SetPrefetchedSPS(sps *TLibCommon.TComSPS)  { 
+	this.SetSPS(sps); 
+};
+func (this *ParameterSetManagerDecoder)  GetPrefetchedSPS  (spsId int) *TLibCommon.TComSPS{
+	return this.GetSPS(spsId)
+}
+func (this *ParameterSetManagerDecoder)  SetPrefetchedPPS(pps *TLibCommon.TComPPS)  { 
+	this.SetPPS(pps); 
+}
+func (this *ParameterSetManagerDecoder)  GetPrefetchedPPS  (ppsId int) *TLibCommon.TComPPS{
+	return this.GetPPS(ppsId)
+}
+func (this *ParameterSetManagerDecoder)  ApplyPrefetchedPS() {
 }

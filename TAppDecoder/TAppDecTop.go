@@ -75,7 +75,7 @@ func (this *TAppDecTop) Decode() (err error){
     bPreviousPictureDecoded := false;
 
     nalUnit	:= list.New(); //vector<uint8_t> 
-    var	nalu TLibCommon.InputNALUnit;
+    var	nalu TLibDecoder.InputNALUnit;
     bytestream.ByteStreamNALUnit(nalUnit, &stats);
 
     // call actual decoding function
@@ -274,7 +274,7 @@ func (this *TAppDecTop) xFlushOutput( pcListPic *list.List ) {
   this.m_iPOCLastDisplay = - TLibCommon.MAX_INT;
 }
 
-func (this *TAppDecTop) IsNaluWithinTargetDecLayerIdSet( nalu *TLibCommon.InputNALUnit ) bool {
+func (this *TAppDecTop) IsNaluWithinTargetDecLayerIdSet( nalu *TLibDecoder.InputNALUnit ) bool {
   if this.m_targetDecLayerIdSet.Len() == 0 { // By default, the set is empty, meaning all LayerIds are allowed
     return true;
   }

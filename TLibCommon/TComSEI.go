@@ -203,8 +203,8 @@ type SEImessages struct {
       SEIActiveParameterSets* active_parameter_sets; 
       SEIDecodedPictureHash* picture_digest;
       SEIBufferingPeriod* buffering_period;
-      SEIPictureTiming* picture_timing;
-      TComSPS* m_pSPS;
+      SEIPictureTiming* picture_timing;*/
+      m_pSPS *TComSPS;/*
       SEIRecoveryPoint* recovery_point;
     #if SEI_DISPLAY_ORIENTATION
       SEIDisplayOrientation* display_orientation;
@@ -215,36 +215,15 @@ type SEImessages struct {
     */
 }
 
-/*
-public:
-  SEImessages()
-    : user_data_unregistered(0)
-    , active_parameter_sets(0)
-    , picture_digest(0)
-    , buffering_period(0)
-    , picture_timing(0)
-    , recovery_point(0)
-#if SEI_DISPLAY_ORIENTATION
-    , display_orientation(0)
-#endif
-#if SEI_TEMPORAL_LEVEL0_INDEX
-    , temporal_level0_index(0)
-#endif
-    {}
 
-  ~SEImessages()
-  {
-    delete user_data_unregistered;
-    delete active_parameter_sets; 
-    delete picture_digest;
-    delete buffering_period;
-    delete picture_timing;
-    delete recovery_point;
-#if SEI_DISPLAY_ORIENTATION
-    delete display_orientation;
-#endif
-#if SEI_TEMPORAL_LEVEL0_INDEX
-    delete temporal_level0_index;
-#endif
-  }
-*/
+func NewSEImessages() *SEImessages{
+    return &SEImessages{};
+}
+
+func (this *SEImessages) GetSPS() *TComSPS{
+	return this.m_pSPS;
+}
+
+func (this *SEImessages) SetSPS(sps *TComSPS){
+	this.m_pSPS = sps;
+}

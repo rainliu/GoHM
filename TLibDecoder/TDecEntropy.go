@@ -10,58 +10,56 @@ import (
 
 /// entropy decoder pure class
 type TDecEntropyIf interface {
-    /*public:
+    //public:
       //  Virtual list for SBAC/CAVLC
-      virtual Void  resetEntropy          ( TComSlice* pcSlice )     = 0;
-      virtual Void  setBitstream          ( TComInputBitstream* p )  = 0;
+    ResetEntropy          ( pcSlice *TLibCommon.TComSlice);
+    SetBitstream          ( p *TLibCommon.TComInputBitstream);
 
-      virtual Void  parseVPS                  ( TComVPS* pcVPS )                       = 0;
-      virtual Void  parseSPS                  ( TComSPS* pcSPS )                                      = 0;
-      virtual Void  parsePPS                  ( TComPPS* pcPPS )                                      = 0;
+    ParseVPS                  ( pcVPS *TLibCommon.TComVPS );
+    ParseSPS                  ( pcSPS *TLibCommon.TComSPS );
+    ParsePPS                  ( pcPPS *TLibCommon.TComPPS );
 
-      virtual Void parseSliceHeader          ( TComSlice*& rpcSlice, ParameterSetManagerDecoder *parameterSetManager)       = 0;
+    ParseSliceHeader          ( rpcSlice *TLibCommon.TComSlice, parameterSetManager *ParameterSetManagerDecoder);
 
-      virtual Void  parseTerminatingBit       ( UInt& ruilsLast )                                     = 0;
+    ParseTerminatingBit       ( ruilsLast *uint );
 
-      virtual Void parseMVPIdx        ( Int& riMVPIdx ) = 0;
+    ParseMVPIdx        ( riMVPIdx *int );
 
-    public:
-      virtual Void parseSkipFlag      ( TComDataCU* pcCU, UInt uiAbsPartIdx, UInt uiDepth ) = 0;
-      virtual Void parseCUTransquantBypassFlag( TComDataCU* pcCU, UInt uiAbsPartIdx, UInt uiDepth ) = 0;
-      virtual Void parseSplitFlag     ( TComDataCU* pcCU, UInt uiAbsPartIdx, UInt uiDepth ) = 0;
-      virtual Void parseMergeFlag     ( TComDataCU* pcCU, UInt uiAbsPartIdx, UInt uiDepth, UInt uiPUIdx ) = 0;
-      virtual Void parseMergeIndex    ( TComDataCU* pcCU, UInt& ruiMergeIndex, UInt uiAbsPartIdx, UInt uiDepth ) = 0;
-      virtual Void parsePartSize      ( TComDataCU* pcCU, UInt uiAbsPartIdx, UInt uiDepth ) = 0;
-      virtual Void parsePredMode      ( TComDataCU* pcCU, UInt uiAbsPartIdx, UInt uiDepth ) = 0;
+    
+    ParseSkipFlag      ( pcCU *TLibCommon.TComDataCU, uiAbsPartIdx, uiDepth uint );
+    ParseCUTransquantBypassFlag( pcCU *TLibCommon.TComDataCU, uiAbsPartIdx, uiDepth uint );
+    ParseSplitFlag     ( pcCU *TLibCommon.TComDataCU, uiAbsPartIdx, uiDepth uint );
+    ParseMergeFlag     ( pcCU *TLibCommon.TComDataCU, uiAbsPartIdx, uiDepth, uiPUIdx uint );
+    ParseMergeIndex    ( pcCU *TLibCommon.TComDataCU, ruiMergeIndex *uint, uiAbsPartIdx, uiDepth uint ); 
+    ParsePartSize      ( pcCU *TLibCommon.TComDataCU, uiAbsPartIdx, uiDepth uint );
+    ParsePredMode      ( pcCU *TLibCommon.TComDataCU, uiAbsPartIdx, uiDepth uint );
 
-      virtual Void parseIntraDirLumaAng( TComDataCU* pcCU, UInt uiAbsPartIdx, UInt uiDepth ) = 0;
+    ParseIntraDirLumaAng( pcCU *TLibCommon.TComDataCU, uiAbsPartIdx, uiDepth uint );
 
-      virtual Void parseIntraDirChroma( TComDataCU* pcCU, UInt uiAbsPartIdx, UInt uiDepth ) = 0;
+    ParseIntraDirChroma( pcCU *TLibCommon.TComDataCU, uiAbsPartIdx, uiDepth uint );
 
-      virtual Void parseInterDir      ( TComDataCU* pcCU, UInt& ruiInterDir, UInt uiAbsPartIdx, UInt uiDepth ) = 0;
-      virtual Void parseRefFrmIdx     ( TComDataCU* pcCU, Int& riRefFrmIdx, UInt uiAbsPartIdx, UInt uiDepth, RefPicList eRefList ) = 0;
-      virtual Void parseMvd           ( TComDataCU* pcCU, UInt uiAbsPartAddr, UInt uiPartIdx, UInt uiDepth, RefPicList eRefList ) = 0;
+    ParseInterDir      ( pcCU *TLibCommon.TComDataCU, ruiInterDir *uint, uiAbsPartIdx, uiDepth uint );
+    ParseRefFrmIdx     ( pcCU *TLibCommon.TComDataCU, riRefFrmIdx *int, uiAbsPartIdx, uiDepth uint, eRefList TLibCommon.RefPicList );
+    ParseMvd           ( pcCU *TLibCommon.TComDataCU, uiAbsPartAddr, uiPartIdx, uiDepth uint, eRefList TLibCommon.RefPicList );
 
-      virtual Void parseTransformSubdivFlag( UInt& ruiSubdivFlag, UInt uiLog2TransformBlockSize ) = 0;
-      virtual Void parseQtCbf         ( TComDataCU* pcCU, UInt uiAbsPartIdx, TextType eType, UInt uiTrDepth, UInt uiDepth ) = 0;
-      virtual Void parseQtRootCbf     ( TComDataCU* pcCU, UInt uiAbsPartIdx, UInt uiDepth, UInt& uiQtRootCbf ) = 0;
+    ParseTransformSubdivFlag( ruiSubdivFlag *uint,  uiLog2TransformBlockSize uint);
+    ParseQtCbf         ( pcCU *TLibCommon.TComDataCU, uiAbsPartIdx uint,  eType TLibCommon.TextType,  uiTrDepth,  uiDepth uint );
+    ParseQtRootCbf     ( pcCU *TLibCommon.TComDataCU, uiAbsPartIdx, uiDepth uint, uiQtRootCbf *uint );
 
-      virtual Void parseDeltaQP       ( TComDataCU* pcCU, UInt uiAbsPartIdx, UInt uiDepth ) = 0;
+    ParseDeltaQP       ( pcCU *TLibCommon.TComDataCU, uiAbsPartIdx, uiDepth uint ) ;
 
-      virtual Void parseIPCMInfo     ( TComDataCU* pcCU, UInt uiAbsPartIdx, UInt uiDepth) = 0;
+    ParseIPCMInfo     ( pcCU *TLibCommon.TComDataCU, uiAbsPartIdx, uiDepth uint);
 
-      virtual Void parseCoeffNxN( TComDataCU* pcCU, TCoeff* pcCoef, UInt uiAbsPartIdx, UInt uiWidth, UInt uiHeight, UInt uiDepth, TextType eTType ) = 0;
-      virtual Void parseTransformSkipFlags ( TComDataCU* pcCU, UInt uiAbsPartIdx, UInt width, UInt height, UInt uiDepth, TextType eTType) = 0;
-      virtual Void updateContextTables( SliceType eSliceType, Int iQp ) = 0;
-
-      virtual ~TDecEntropyIf() {}
-    */
+    ParseCoeffNxN( pcCU *TLibCommon.TComDataCU, pcCoef *TLibCommon.TCoeff, uiAbsPartIdx, uiWidth, uiHeight, uiDepth uint,  eTType TLibCommon.TextType);
+    ParseTransformSkipFlags ( pcCU *TLibCommon.TComDataCU,  uiAbsPartIdx, width,  height, uiDepth uint,  eTType TLibCommon.TextType);
+    UpdateContextTables(  eSliceType TLibCommon.SliceType, iQp int ) ;
 }
+    
 
 /// entropy decoder class
 type TDecEntropy struct {
     //private:
-    //TDecEntropyIf*  m_pcEntropyDecoderIf;
+    m_pcEntropyDecoderIf	TDecEntropyIf;
     m_pcPrediction      *TLibCommon.TComPrediction
     m_uiBakAbsPartIdx   uint
     m_uiBakChromaOffset uint
@@ -73,55 +71,89 @@ func (this *TDecEntropy) Init(p *TLibCommon.TComPrediction) {
     this.m_pcPrediction = p
 }
 
-/*  Void decodePUWise       ( TComDataCU* pcCU, UInt uiAbsPartIdx, UInt uiDepth, TComDataCU* pcSubCU );
-Void decodeInterDirPU   ( TComDataCU* pcCU, UInt uiAbsPartIdx, UInt uiDepth, UInt uiPartIdx );
-Void decodeRefFrmIdxPU  ( TComDataCU* pcCU, UInt uiAbsPartIdx, UInt uiDepth, UInt uiPartIdx, RefPicList eRefList );
-Void decodeMvdPU        ( TComDataCU* pcCU, UInt uiAbsPartIdx, UInt uiDepth, UInt uiPartIdx, RefPicList eRefList );
-Void decodeMVPIdxPU     ( TComDataCU* pcSubCU, UInt uiPartAddr, UInt uiDepth, UInt uiPartIdx, RefPicList eRefList );
-*/
-func (this *TDecEntropy) SetEntropyDecoder(p *TDecEntropyIf) {
+func (this *TDecEntropy) DecodePUWise       ( pcCU *TLibCommon.TComDataCU, uiAbsPartIdx, uiDepth uint, pcSubCU *TLibCommon.TComDataCU){
+}
+func (this *TDecEntropy) DecodeInterDirPU   ( pcCU *TLibCommon.TComDataCU, uiAbsPartIdx, uiDepth, uiPartIdx uint ){
+}
+
+func (this *TDecEntropy) DecodeRefFrmIdxPU  ( pcCU *TLibCommon.TComDataCU, uiAbsPartIdx, uiDepth, uiPartIdx uint,  eRefList TLibCommon.RefPicList){
+}
+func (this *TDecEntropy) DecodeMvdPU        ( pcCU *TLibCommon.TComDataCU, uiAbsPartIdx, uiDepth, uiPartIdx uint,   eRefList TLibCommon.RefPicList){
+}
+func (this *TDecEntropy) DecodeMVPIdxPU     ( pcSubCU *TLibCommon.TComDataCU, uiAbsPartIdx, uiDepth, uiPartIdx uint, eRefList TLibCommon.RefPicList){
+}
+
+func (this *TDecEntropy) SetEntropyDecoder(p TDecEntropyIf) {
+	this.m_pcEntropyDecoderIf = p;
 }
 func (this *TDecEntropy) SetBitstream(p *TLibCommon.TComInputBitstream) {
-    //this.m_pcEntropyDecoderIf.SetBitstream(p);                    
+   this.m_pcEntropyDecoderIf.SetBitstream(p);                    
 }
 
-/* 
-  Void    resetEntropy                ( TComSlice* p)           { m_pcEntropyDecoderIf->resetEntropy(p);                    }
-  Void    decodeVPS                   ( TComVPS* pcVPS ) { m_pcEntropyDecoderIf->parseVPS(pcVPS); }
-  Void    decodeSPS                   ( TComSPS* pcSPS     )    { m_pcEntropyDecoderIf->parseSPS(pcSPS);                    }
-  Void    decodePPS                   ( TComPPS* pcPPS, ParameterSetManagerDecoder *parameterSet    )    { m_pcEntropyDecoderIf->parsePPS(pcPPS);                    }
-  Void    decodeSliceHeader           ( TComSlice*& rpcSlice, ParameterSetManagerDecoder *parameterSetManager)  { m_pcEntropyDecoderIf->parseSliceHeader(rpcSlice, parameterSetManager);         }
 
-  Void    decodeTerminatingBit        ( UInt& ruiIsLast )       { m_pcEntropyDecoderIf->parseTerminatingBit(ruiIsLast);     }
+func (this *TDecEntropy)   ResetEntropy                ( p 		*TLibCommon.TComSlice)           { 
+	this.m_pcEntropyDecoderIf.ResetEntropy(p);                    
+}
+func (this *TDecEntropy)   DecodeVPS                   ( pcVPS 	*TLibCommon.TComVPS) { 
+	this.m_pcEntropyDecoderIf.ParseVPS(pcVPS); 
+}
+func (this *TDecEntropy)   DecodeSPS                   ( pcSPS  *TLibCommon.TComSPS)    { 
+	this.m_pcEntropyDecoderIf.ParseSPS(pcSPS);                    
+}
+func (this *TDecEntropy)   DecodePPS                   ( pcPPS	*TLibCommon.TComPPS, parameterSet *ParameterSetManagerDecoder )    { 
+	this.m_pcEntropyDecoderIf.ParsePPS(pcPPS);                    
+}
+func (this *TDecEntropy)   DecodeSliceHeader           ( rpcSlice	*TLibCommon.TComSlice, parameterSetManager	*ParameterSetManagerDecoder)  { 
+	this.m_pcEntropyDecoderIf.ParseSliceHeader(rpcSlice, parameterSetManager);         
+}
 
-  TDecEntropyIf* getEntropyDecoder() { return m_pcEntropyDecoderIf; }
+func (this *TDecEntropy)   DecodeTerminatingBit        ( ruiIsLast *uint )       { 
+	this.m_pcEntropyDecoderIf.ParseTerminatingBit(ruiIsLast);     
+}
 
-public:
-  Void decodeSplitFlag         ( TComDataCU* pcCU, UInt uiAbsPartIdx, UInt uiDepth );
-  Void decodeSkipFlag          ( TComDataCU* pcCU, UInt uiAbsPartIdx, UInt uiDepth );
-  Void decodeCUTransquantBypassFlag( TComDataCU* pcCU, UInt uiAbsPartIdx, UInt uiDepth );
-  Void decodeMergeFlag         ( TComDataCU* pcCU, UInt uiAbsPartIdx, UInt uiDepth, UInt uiPUIdx );
-  Void decodeMergeIndex        ( TComDataCU* pcSubCU, UInt uiPartIdx, UInt uiPartAddr, PartSize eCUMode, UChar* puhInterDirNeighbours, TComMvField* pcMvFieldNeighbours, UInt uiDepth );
-  Void decodePredMode          ( TComDataCU* pcCU, UInt uiAbsPartIdx, UInt uiDepth );
-  Void decodePartSize          ( TComDataCU* pcCU, UInt uiAbsPartIdx, UInt uiDepth );
+func (this *TDecEntropy)   GetEntropyDecoder() TDecEntropyIf { 	
+	return this.m_pcEntropyDecoderIf; 
+}
 
-  Void decodeIPCMInfo          ( TComDataCU* pcCU, UInt uiAbsPartIdx, UInt uiDepth );
+//public:
+func (this *TDecEntropy)   DecodeSplitFlag         		( pcCU *TLibCommon.TComDataCU, uiAbsPartIdx, uiDepth uint ){
+}
+func (this *TDecEntropy)   DecodeSkipFlag          		( pcCU *TLibCommon.TComDataCU, uiAbsPartIdx, uiDepth uint ){
+}
+func (this *TDecEntropy)   DecodeCUTransquantBypassFlag	( pcCU *TLibCommon.TComDataCU, uiAbsPartIdx, uiDepth uint ){
+}
+func (this *TDecEntropy)   DecodeMergeFlag         		( pcCU *TLibCommon.TComDataCU, uiAbsPartIdx, uiDepth, uiPUIdx uint ){
+}
+func (this *TDecEntropy)   DecodeMergeIndex        ( pcSubCU *TLibCommon.TComDataCU, uiPartIdx, uiPartAddr uint, eCUMode TLibCommon.PartSize, puhInterDirNeighbours *byte, pcMvFieldNeighbours *TLibCommon.TComMvField, uiDepth uint){
+}
+func (this *TDecEntropy)   DecodePredMode          ( pcCU *TLibCommon.TComDataCU, uiAbsPartIdx, uiDepth uint ){
+}
+func (this *TDecEntropy)   DecodePartSize          ( pcCU *TLibCommon.TComDataCU, uiAbsPartIdx, uiDepth uint ){
+}
 
-  Void decodePredInfo          ( TComDataCU* pcCU, UInt uiAbsPartIdx, UInt uiDepth, TComDataCU* pcSubCU );
+func (this *TDecEntropy)   DecodeIPCMInfo          ( pcCU *TLibCommon.TComDataCU, uiAbsPartIdx, uiDepth uint ){
+}
 
-  Void decodeIntraDirModeLuma  ( TComDataCU* pcCU, UInt uiAbsPartIdx, UInt uiDepth );
-  Void decodeIntraDirModeChroma( TComDataCU* pcCU, UInt uiAbsPartIdx, UInt uiDepth );
+func (this *TDecEntropy)   DecodePredInfo          ( pcCU *TLibCommon.TComDataCU, uiAbsPartIdx, uiDepth uint, pcSubCU *TLibCommon.TComDataCU){
+}
 
-  Void decodeQP                ( TComDataCU* pcCU, UInt uiAbsPartIdx );
+func (this *TDecEntropy)   DecodeIntraDirModeLuma  ( pcCU *TLibCommon.TComDataCU, uiAbsPartIdx, uiDepth uint ){
+}
+func (this *TDecEntropy)   DecodeIntraDirModeChroma( pcCU *TLibCommon.TComDataCU, uiAbsPartIdx, uiDepth uint ){
+}
 
-  Void updateContextTables    ( SliceType eSliceType, Int iQp ) { m_pcEntropyDecoderIf->updateContextTables( eSliceType, iQp ); }
+func (this *TDecEntropy)   DecodeQP                ( pcCU *TLibCommon.TComDataCU, uiAbsPartIdx uint){
+}
+
+func (this *TDecEntropy)   UpdateContextTables     ( eSliceType TLibCommon.SliceType, iQp int ) { 
+	this.m_pcEntropyDecoderIf.UpdateContextTables( eSliceType, iQp ); 
+}
+func (this *TDecEntropy)   DecodeCoeff             ( pcCU *TLibCommon.TComDataCU, uiAbsPartIdx, uiDepth, uiWidth, uiHeight uint, bCodeDQP *bool){
+}
 
 
-private:
-  Void xDecodeTransform        ( TComDataCU* pcCU, UInt offsetLuma, UInt offsetChroma, UInt uiAbsPartIdx, UInt absTUPartIdx, UInt uiDepth, UInt width, UInt height, UInt uiTrIdx, UInt uiInnerQuadIdx, Bool& bCodeDQP );
+//private:
+func (this *TDecEntropy)   xDecodeTransform        ( pcCU *TLibCommon.TComDataCU, offsetLuma, offsetChroma, uiAbsPartIdx, absTUPartIdx, uiDepth, width, height, uiTrIdx, uiInnerQuadIdx uint, bCodeDQP *bool ){
+}
 
-public:
-  Void decodeCoeff             ( TComDataCU* pcCU                 , UInt uiAbsPartIdx, UInt uiDepth, UInt uiWidth, UInt uiHeight, Bool& bCodeDQP );
 
-};// END CLASS DEFINITION TDecEntropy
-*/

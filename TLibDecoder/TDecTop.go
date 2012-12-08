@@ -4,6 +4,7 @@ import (
     "container/list"
     "fmt"
     "gohm/TLibCommon"
+    
 )
 
 /// decoder class
@@ -136,9 +137,9 @@ func (this *TDecTop) Init() {
     this.m_cEntropyDecoder.Init(&this.m_cPrediction)
 }
 
-func (this *TDecTop) Decode(nalu *TLibCommon.InputNALUnit, iSkipFrame *int, iPOCLastDisplay *int) bool {
+func (this *TDecTop) Decode(nalu *InputNALUnit, iSkipFrame *int, iPOCLastDisplay *int) bool {
     // Initialize entropy decoder
-    //this.m_cEntropyDecoder.SetEntropyDecoder (&this.m_cCavlcDecoder);
+    this.m_cEntropyDecoder.SetEntropyDecoder (&this.m_cCavlcDecoder);
     this.m_cEntropyDecoder.SetBitstream(nalu.GetBitstream())
 
     switch nalu.GetNalUnitType() {
@@ -201,20 +202,13 @@ func (this *TDecTop) Decode(nalu *TLibCommon.InputNALUnit, iSkipFrame *int, iPOC
 }
 
 func (this *TDecTop) DeletePicBuffer() {
-    /*TComList<TComPic*>::iterator  iterPic   = m_cListPic.begin();
-      Int iSize = Int( m_cListPic.size() );
-
-      for (Int i = 0; i < iSize; i++ )
-      {
-        TComPic* pcPic = *(iterPic++);
-        pcPic->destroy();
-
-        delete pcPic;
-        pcPic = NULL;
-      }*/
+	for e := this.m_pcListPic.Front(); e != nil; e = e.Next() {
+		pcPic := e.Value.(*TLibCommon.TComPic)
+		pcPic.Destroy();	
+		this.m_pcListPic.Remove(e)
+	}
 
     this.m_cSAO.Destroy()
-
     this.m_cLoopFilter.Destroy()
 
     // destroy ROM
@@ -230,11 +224,9 @@ func (this *TDecTop) ExecuteLoopFilters(poc *int, rpcListPic *list.List, iSkipFr
     pcPic := this.m_pcPic
 
     // Execute Deblock + Cleanup
-
     this.m_cGopDecoder.FilterPicture(pcPic)
 
-    //TComSlice::sortPicList( m_cListPic ); // sorting for application output
-    TLibCommon.SortPicList(this.m_pcListPic)
+    TLibCommon.SortPicList(this.m_pcListPic)// sorting for application output
     *poc = pcPic.GetSlice(this.m_uiSliceIdx - 1).GetPOC()
     rpcListPic = this.m_pcListPic
     this.m_cCuDecoder.Destroy()
@@ -267,36 +259,32 @@ func (this *TDecTop) xGetNewPicBuffer(pcSlice *TLibCommon.TComSlice, rpcPic *TLi
         return
     }
 
-    /*bBufferIsAvailable := false;
-
-      TComList<TComPic*>::iterator  iterPic   = m_cListPic.begin();
-      while (iterPic != m_cListPic.end())
-      {
-        rpcPic = *(iterPic++);
-        if ( rpcPic->getReconMark() == false && rpcPic->getOutputMark() == false)
-        {
-          rpcPic->setOutputMark(false);
+    bBufferIsAvailable := false;
+	for e := this.m_pcListPic.Front(); e != nil; e = e.Next() {
+		// do something with e.Value
+		rpcPic := e.Value.(*TLibCommon.TComPic)
+		if rpcPic.GetReconMark() == false && rpcPic.GetOutputMark() == false {
+          rpcPic.SetOutputMark(false);
           bBufferIsAvailable = true;
           break;
         }
 
-        if ( rpcPic->getSlice( 0 )->isReferenced() == false  && rpcPic->getOutputMark() == false)
-        {
-          rpcPic->setOutputMark(false);
-          rpcPic->setReconMark( false );
-          rpcPic->getPicYuvRec()->setBorderExtension( false );
+        if rpcPic.GetSlice( 0 ).IsReferenced() == false  && rpcPic.GetOutputMark() == false{
+          rpcPic.SetOutputMark(false);
+          rpcPic.SetReconMark( false );
+          rpcPic.GetPicYuvRec().SetBorderExtension( false );
           bBufferIsAvailable = true;
           break;
         }
-      }
-
-      if ( !bBufferIsAvailable )
-      {
+	}
+      
+    if !bBufferIsAvailable {
         //There is no room for this picture, either because of faulty encoder or dropped NAL. Extend the buffer.
-        m_iMaxRefPicNum++;
-        rpcPic = new TComPic();
-        m_cListPic.pushBack( rpcPic );
-      }*/
+        this.m_iMaxRefPicNum++;
+        rpcPic := TLibCommon.NewTComPic();
+        this.m_pcListPic.PushBack( rpcPic );
+    }
+      
     rpcPic.Destroy()
     rpcPic.Create(int(pcSlice.GetSPS().GetPicWidthInLumaSamples()), int(pcSlice.GetSPS().GetPicHeightInLumaSamples()),
         TLibCommon.G_uiMaxCUWidth, TLibCommon.G_uiMaxCUHeight, TLibCommon.G_uiMaxCUDepth,
@@ -346,20 +334,75 @@ func (this *TDecTop) xActivateParameterSets() {
     this.m_cSAO.Create(sps.GetPicWidthInLumaSamples(), sps.GetPicHeightInLumaSamples(), TLibCommon.G_uiMaxCUWidth, TLibCommon.G_uiMaxCUHeight)
     this.m_cLoopFilter.Create(TLibCommon.G_uiMaxCUDepth)
 }
-func (this *TDecTop) xDecodeSlice(nalu *TLibCommon.InputNALUnit, iSkipFrame *int, iPOCLastDisplay int) bool {
+func (this *TDecTop) xDecodeSlice(nalu *InputNALUnit, iSkipFrame *int, iPOCLastDisplay int) bool {
     return true
 }
 func (this *TDecTop) xDecodeVPS() {
+  vps := TLibCommon.NewTComVPS();
+  
+  this.m_cEntropyDecoder.DecodeVPS( vps );
+  this.m_parameterSetManagerDecoder.SetPrefetchedVPS(vps); 
 }
 func (this *TDecTop) xDecodeSPS() {
+  sps := TLibCommon.NewTComSPS();
+  this.m_cEntropyDecoder.DecodeSPS( sps );
+  this.m_parameterSetManagerDecoder.SetPrefetchedSPS(sps);
 }
 func (this *TDecTop) xDecodePPS() {
+  pps := TLibCommon.NewTComPPS();
+  this.m_cEntropyDecoder.DecodePPS( pps, &this.m_parameterSetManagerDecoder );
+  this.m_parameterSetManagerDecoder.SetPrefetchedPPS( pps );
+
+//#if DEPENDENT_SLICES
+//#if REMOVE_ENTROPY_SLICES
+  if pps.GetDependentSliceEnabledFlag() {
+//#else
+//  if( pps->getDependentSliceEnabledFlag() && (!pps->getEntropySliceEnabledFlag()) )
+//#endif
+	var NumCtx int;
+	if pps.GetEntropyCodingSyncEnabledFlag(){
+    	NumCtx = 2;
+    }else{
+    	NumCtx = 1;
+    }
+    this.m_cSliceDecoder.InitCtxMem(uint(NumCtx));
+    for st := 0; st < NumCtx; st++ {
+      ctx := NewTDecSbac();
+      ctx.Init( &this.m_cBinCabac );
+      this.m_cSliceDecoder.SetCtxMem( ctx, st );
+    }
+  }
+//#endif
 }
 
 //#if SUFFIX_SEI_NUT_DECODED_HASH_SEI
 func (this *TDecTop) xDecodeSEI(bs *TLibCommon.TComInputBitstream, nalUnitType TLibCommon.NalUnitType) {
+  if this.m_SEIs == nil{
+//#if SUFFIX_SEI_NUT_DECODED_HASH_SEI
+    if (nalUnitType == TLibCommon.NAL_UNIT_SEI_SUFFIX) && (this.m_pcPic.GetSEIs()!=nil) {
+      this.m_SEIs = this.m_pcPic.GetSEIs();          // If suffix SEI and SEI already present, use already existing SEI structure
+    }else{
+      this.m_SEIs = TLibCommon.NewSEImessages();
+    }
+  }else{
+    //assert(nalUnitType != NAL_UNIT_SEI_SUFFIX);   
+  }
+/*#else
+  {
+    m_SEIs = new SEImessages;
+  }
+#endif*/
+  this.m_SEIs.SetSPS(this.m_parameterSetManagerDecoder.GetSPS(0));
+//#if SUFFIX_SEI_NUT_DECODED_HASH_SEI
+  this.m_cSeiReader.ParseSEImessage( bs, this.m_SEIs, nalUnitType );
+  if nalUnitType == TLibCommon.NAL_UNIT_SEI_SUFFIX {
+    if this.m_pcPic.GetSEIs()==nil{
+      this.m_pcPic.SetSEIs(this.m_SEIs); // Only suffix SEI present and new object created; update picture SEI variable
+    }
+    this.m_SEIs = nil;  // SEI structure already updated using this pointer; not required now.
+  }
+//#else
+//  m_seiReader.parseSEImessage( bs, *m_SEIs );
+//#endif
 }
 
-//#else
-//  Void      xDecodeSEI( TComInputBitstream* bs );
-//#endif

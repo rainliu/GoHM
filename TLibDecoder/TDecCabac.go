@@ -81,7 +81,7 @@ public:
 type TDecSbac struct { //: public TDecEntropyIf
     //private:
     m_pcBitstream *TLibCommon.TComInputBitstream
-    //m_pcTDecBinIf		*TDecBinIf;
+    m_pcTDecBinIf		TDecBinIf;
 
     //private:
     m_uiLastDQpNonZero uint
@@ -121,14 +121,18 @@ type TDecSbac struct { //: public TDecEntropyIf
     m_CUTransquantBypassFlagSCModel TLibCommon.ContextModel3DBuffer
 }
 
+
+func NewTDecSbac() *TDecSbac{
+	return &TDecSbac{}
+}
+
+  
+
+func (this *TDecSbac) Init ( p TDecBinIf)    { 
+	this.m_pcTDecBinIf = p; 
+}
+//  Void  uninit                    (              )    { m_pcTDecBinIf = 0; }
 /*
-public:
-  TDecSbac();
-  virtual ~TDecSbac();
-
-  Void  init                      ( TDecBinIf* p )    { m_pcTDecBinIf = p; }
-  Void  uninit                    (              )    { m_pcTDecBinIf = 0; }
-
   Void load                          ( TDecSbac* pScr );
   Void loadContexts                  ( TDecSbac* pScr );
   Void xCopyFrom           ( TDecSbac* pSrc );

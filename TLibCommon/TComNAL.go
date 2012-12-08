@@ -1,7 +1,7 @@
 package TLibCommon
 
 import (
-    "container/list"
+    //"container/list"
 )
 
 /**
@@ -58,26 +58,3 @@ func (this *NALUnit) SetNalUnitType(nalUnitType NalUnitType) {
     this.m_nalUnitType = nalUnitType
 }
 
-/**
- * A convenience wrapper to NALUnit that also provides a
- * bitstream object.
- */
-type InputNALUnit struct {
-    NALUnit
-    m_Bitstream *TComInputBitstream
-}
-
-func NewInputNALUnit() *InputNALUnit {
-    return &InputNALUnit{}
-}
-
-func (this *InputNALUnit) Read(nalUnitBuf *list.List) {
-}
-
-func (this *InputNALUnit) GetBitstream() *TComInputBitstream {
-    return this.m_Bitstream
-}
-
-func (this *InputNALUnit) SetBitstream(bitstream *TComInputBitstream) {
-    this.m_Bitstream = bitstream
-}
