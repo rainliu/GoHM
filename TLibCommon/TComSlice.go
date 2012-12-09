@@ -1,7 +1,7 @@
 package TLibCommon
 
 import (
-	//"fmt"
+	"fmt"
     "container/list"
 )
 
@@ -61,30 +61,35 @@ func (this *TComReferencePictureSet) SetDeltaPocMSBPresentFlag(i int, x bool) {
     this.m_deltaPocMSBPresentFlag[i] = x
 }
 func (this *TComReferencePictureSet) SetUsed(bufferNum int, used bool) {
+	this.m_used[bufferNum] = used;
 }
 func (this *TComReferencePictureSet) SetDeltaPOC(bufferNum, deltaPOC int) {
+	this.m_deltaPOC[bufferNum] = deltaPOC;
 }
-func (this *TComReferencePictureSet) SetPOC(bufferNum, deltaPOC int) {
+func (this *TComReferencePictureSet) SetPOC(bufferNum, POC int) {
+	this.m_POC[bufferNum] = POC;
 }
 func (this *TComReferencePictureSet) SetNumberOfPictures(numberOfPictures int) {
+	this.m_numberOfPictures = numberOfPictures;
 }
-func (this *TComReferencePictureSet) SetCheckLTMSBPresent2(bufferNum int, b int) {
+func (this *TComReferencePictureSet) SetCheckLTMSBPresent(bufferNum int, b bool) {
+  	this.m_bCheckLTMSB[bufferNum] = b;
 }
-func (this *TComReferencePictureSet) SetCheckLTMSBPresent1(bufferNum int) bool {
-    return true
+func (this *TComReferencePictureSet) GetCheckLTMSBPresent(bufferNum int) bool {
+    return this.m_bCheckLTMSB[bufferNum];
 }
 
-func (this *TComReferencePictureSet) GetUsed(bufferNum int) int {
-    return 0
+func (this *TComReferencePictureSet) GetUsed(bufferNum int) bool {
+    return this.m_used[bufferNum];
 }
 func (this *TComReferencePictureSet) GetDeltaPOC(bufferNum int) int {
-    return 0
+    return this.m_deltaPOC[bufferNum];
 }
 func (this *TComReferencePictureSet) GetPOC(bufferNum int) int {
-    return 0
+    return this.m_POC[bufferNum];
 }
 func (this *TComReferencePictureSet) GetNumberOfPictures() int {
-    return 0
+    return this.m_numberOfPictures;
 }
 
 func (this *TComReferencePictureSet) SetNumberOfNegativePictures(number int) {
@@ -139,8 +144,49 @@ func (this *TComReferencePictureSet) GetRefIdc(bufferNum int) int {
 }
 
 func (this *TComReferencePictureSet) SortDeltaPOC() {
+  // sort in increasing order (smallest first)
+  for j:=1; j < this.GetNumberOfPictures(); j++ { 
+    deltaPOC := this.GetDeltaPOC(j);
+    used := this.GetUsed(j);
+    for k:=j-1; k >= 0; k-- {
+      temp := this.GetDeltaPOC(k);
+      if deltaPOC < temp {
+        this.SetDeltaPOC(k+1, temp);
+        this.SetUsed(k+1, this.GetUsed(k));
+        this.SetDeltaPOC(k, deltaPOC);
+        this.SetUsed(k, used);
+      }
+    }
+  }
+  // flip the negative values to largest first
+  numNegPics := this.GetNumberOfNegativePictures();
+  k:=numNegPics-1;
+  for j:=0; j < numNegPics>>1; j++ { 
+    deltaPOC := this.GetDeltaPOC(j);
+    used := this.GetUsed(j);
+    this.SetDeltaPOC(j, this.GetDeltaPOC(k));
+    this.SetUsed(j, this.GetUsed(k));
+    this.SetDeltaPOC(k, deltaPOC);
+    this.SetUsed(k, used);
+    k--;
+  }
 }
 func (this *TComReferencePictureSet) PrintDeltaPOC() {
+  fmt.Printf("DeltaPOC = { ");
+  for j:=0; j < this.GetNumberOfPictures(); j++ {
+  	if this.GetUsed(j) {
+    	fmt.Printf("%d%s ", this.GetDeltaPOC(j), "*");
+  	}else{
+  		fmt.Printf("%d%s ", this.GetDeltaPOC(j), "");
+  	}
+  } 
+  if this.GetInterRPSPrediction() {
+    fmt.Printf("}, RefIdc = { ");
+    for j:=0; j < this.GetNumRefIdc(); j++ {
+      fmt.Printf("%d ", this.GetRefIdc(j));
+    } 
+  }
+  fmt.Printf("}\n");
 }
 
 //};
@@ -1356,6 +1402,8 @@ func (this *TComSPS) GetNumReorderPics(tlayer uint) int {
     return this.m_numReorderPics[tlayer]
 }
 func (this *TComSPS) CreateRPSList(numRPS int) {
+  	this.m_RPSList.Destroy();
+  	this.m_RPSList.Create(numRPS);
 }
 func (this *TComSPS) GetRPSList() *TComRPSList {
     return &this.m_RPSList

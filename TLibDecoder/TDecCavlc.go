@@ -1,7 +1,7 @@
 package TLibDecoder
 
 import (
-	"os"
+	"io"
 	"fmt"
     "gohm/TLibCommon"
 )
@@ -36,7 +36,7 @@ import (
 
 type SyntaxElementParser struct {
     //protected:
-    m_pTraceFile	*os.File;
+    m_pTraceFile	io.Writer;
     m_pcBitstream 	*TLibCommon.TComInputBitstream
 }
 
@@ -44,36 +44,36 @@ func NewSyntaxElementParser() *SyntaxElementParser{
 	return &SyntaxElementParser{};
 }
 
-func (this *SyntaxElementParser)  SetTraceFile (traceFile *os.File){
+func (this *SyntaxElementParser)  SetTraceFile (traceFile io.Writer){
 	this.m_pTraceFile = traceFile;
 }
 
-func (this *SyntaxElementParser)  GetTraceFile () *os.File{
+func (this *SyntaxElementParser)  GetTraceFile () io.Writer{
 	return this.m_pTraceFile;
 }
 
 func (this *SyntaxElementParser)  xTraceVPSHeader (pVPS *TLibCommon.TComVPS){
 	if this.GetTraceFile()!=nil { 
-  		this.GetTraceFile().WriteString(fmt.Sprintf ("========= Video Parameter Set =============================================\n"));//, pVPS->getVPSId() );
+  		io.WriteString(this.m_pTraceFile, fmt.Sprintf ("========= Video Parameter Set =============================================\n"));//, pVPS->getVPSId() );
 	}
 }
 
 func (this *SyntaxElementParser)  xTraceSPSHeader (pSPS *TLibCommon.TComSPS){
 	if this.GetTraceFile()!=nil { 
-  		this.GetTraceFile().WriteString(fmt.Sprintf ("========= Sequence Parameter Set ==========================================\n"));//, pSPS->getSPSId() );
+  		io.WriteString(this.m_pTraceFile, fmt.Sprintf ("========= Sequence Parameter Set ==========================================\n"));//, pSPS->getSPSId() );
 	}
 }
 
 func (this *SyntaxElementParser)  xTracePPSHeader (pPPS *TLibCommon.TComPPS){
 	if this.GetTraceFile()!=nil { 
-  		this.GetTraceFile().WriteString(fmt.Sprintf ("========= Picture Parameter Set ===========================================\n"));//, pPPS->getPPSId() );
+  		io.WriteString(this.m_pTraceFile, fmt.Sprintf ("========= Picture Parameter Set ===========================================\n"));//, pPPS->getPPSId() );
 	}
 }
 
 func (this *SyntaxElementParser)  xTraceSliceHeader (pSlice *TLibCommon.TComSlice){
 	if this.GetTraceFile()!=nil { 
   		//if(g_bSliceTrace)
-  		this.GetTraceFile().WriteString(fmt.Sprintf ("========= Slice Parameter Set =============================================\n"));
+  		io.WriteString(this.m_pTraceFile, fmt.Sprintf ("========= Slice Parameter Set =============================================\n"));
 	}
 }
 /*
@@ -186,9 +186,9 @@ func (this *SyntaxElementParser)  xReadCodeTr  ( length uint, rValue *uint, pSym
   //{
     //fprintf( g_hTrace, "%8lld  ", g_nSymbolCounter++ );
     if length < 10 {
-      this.GetTraceFile().WriteString(fmt.Sprintf ("%-62s u(%d)  : %4d\n", pSymbolName, length, *rValue ));
+      io.WriteString(this.m_pTraceFile, fmt.Sprintf ("%-62s u(%d)  : %4d\n", pSymbolName, length, *rValue ));
     }else{
-      this.GetTraceFile().WriteString(fmt.Sprintf ("%-62s u(%d) : %4d\n", pSymbolName, length, *rValue )); 
+      io.WriteString(this.m_pTraceFile, fmt.Sprintf ("%-62s u(%d) : %4d\n", pSymbolName, length, *rValue )); 
     }
     //fflush ( g_hTrace );
   //}
@@ -198,7 +198,7 @@ func (this *SyntaxElementParser)  xReadUvlcTr  (              rValue *uint, pSym
   //if(g_bSliceTrace)
   //{
     //fprintf( g_hTrace, "%8lld  ", g_nSymbolCounter++ );
-    this.GetTraceFile().WriteString(fmt.Sprintf ("%-62s ue(v) : %4d\n", pSymbolName, *rValue )); 
+    io.WriteString(this.m_pTraceFile, fmt.Sprintf ("%-62s ue(v) : %4d\n", pSymbolName, *rValue )); 
     //fflush ( g_hTrace );
   //}
 }
@@ -207,7 +207,7 @@ func (this *SyntaxElementParser)  xReadSvlcTr  (              rValue *int,  pSym
   //if(g_bSliceTrace)
   //{
     //fprintf( g_hTrace, "%8lld  ", g_nSymbolCounter++ );
-    this.GetTraceFile().WriteString(fmt.Sprintf ("%-62s se(v) : %4d\n", pSymbolName, *rValue )); 
+    io.WriteString(this.m_pTraceFile, fmt.Sprintf ("%-62s se(v) : %4d\n", pSymbolName, *rValue )); 
     //fflush ( g_hTrace );
   //}
 }
@@ -216,7 +216,7 @@ func (this *SyntaxElementParser)  xReadFlagTr  (              rValue *uint, pSym
   //if(g_bSliceTrace)
   //{
     //fprintf( g_hTrace, "%8lld  ", g_nSymbolCounter++ );
-    this.GetTraceFile().WriteString(fmt.Sprintf ("%-62s u(1)  : %4d\n", pSymbolName, *rValue )); 
+    io.WriteString(this.m_pTraceFile, fmt.Sprintf ("%-62s u(1)  : %4d\n", pSymbolName, *rValue )); 
     //fflush ( g_hTrace );
   //}
 }
@@ -392,7 +392,7 @@ func (this *TDecCavlc)  ParseVPS            ( pcVPS *TLibCommon.TComVPS){
   this.READ_CODE( 4,  &uiCode,  "video_parameter_set_id" );             
   pcVPS.SetVPSId( int(uiCode) );
   this.READ_FLAG(     &uiCode,  "vps_temporal_id_nesting_flag" );       
-  pcVPS.SetTemporalNestingFlag( TLibCommon.U2B(uint8(uiCode)) );
+  pcVPS.SetTemporalNestingFlag( uiCode!=0);
 //#if VPS_REARRANGE
   this.READ_CODE( 2,  &uiCode,  "vps_reserved_three_2bits" );           //assert(uiCode == 3);
 //#else
@@ -447,7 +447,7 @@ func (this *TDecCavlc)  ParseVPS            ( pcVPS *TLibCommon.TComVPS){
       // operation_point_layer_id_flag( opIdx )
       for i := uint(0); i <= pcVPS.GetMaxNuhReservedZeroLayerId(); i++ {
         this.READ_FLAG( &uiCode, "op_layer_id_included_flag[opIdx][i]" ); 
-        pcVPS.SetOpLayerIdIncludedFlag( TLibCommon.U2B(uint8(uiCode)), opIdx, i );
+        pcVPS.SetOpLayerIdIncludedFlag( uiCode!=0, opIdx, i );
       }
     }
     // TODO: add hrd_parameters()
@@ -615,18 +615,11 @@ func (this *TDecCavlc)  ParseSPS            ( pcSPS *TLibCommon.TComSPS){
   this.READ_FLAG( &uiCode, "asymmetric_motion_partitions_enabled_flag" ); 
   pcSPS.SetUseAMP( uiCode==1 );
   this.READ_FLAG( &uiCode, "sample_adaptive_offset_enabled_flag" );       
-  if uiCode!=0 {
-  	pcSPS.SetUseSAO ( true );
-  }else{
-    pcSPS.SetUseSAO ( false );
-  }
+  pcSPS.SetUseSAO ( uiCode!=0 );
+  
 //#if HLS_GROUP_SPS_PCM_FLAGS
   this.READ_FLAG( &uiCode, "pcm_enabled_flag" ); 
-  if uiCode!=0 {
-  	pcSPS.SetUsePCM( true );
-  }else{
-    pcSPS.SetUsePCM( false );
-  }
+  pcSPS.SetUsePCM( uiCode!=0 );
 //#endif /* HLS_GROUP_SPS_PCM_FLAGS */
   if pcSPS.GetUsePCM() {
 //#if !HLS_GROUP_SPS_PCM_FLAGS
@@ -641,11 +634,7 @@ func (this *TDecCavlc)  ParseSPS            ( pcSPS *TLibCommon.TComSPS){
     this.READ_UVLC( &uiCode, "log2_diff_max_min_pcm_luma_coding_block_size" ); 
     pcSPS.SetPCMLog2MaxSize ( uiCode+pcSPS.GetPCMLog2MinSize() );
     this.READ_FLAG( &uiCode, "pcm_loop_filter_disable_flag" );  
-    if uiCode!=0 {               
-    	pcSPS.SetPCMFilterDisableFlag ( true );
-    }else{
-    	pcSPS.SetPCMFilterDisableFlag ( false );
-    }
+    pcSPS.SetPCMFilterDisableFlag ( uiCode!=0 );
 //#endif /* HLS_GROUP_SPS_PCM_FLAGS */
   }
 
@@ -724,13 +713,13 @@ func (this *TDecCavlc)  ParsePTL            ( rpcPTL *TLibCommon.TComPTL, profil
 //#if CONDITION_SUBLAYERPROFILEPRESENTFLAG
     if profilePresentFlag {
       this.READ_FLAG( &uiCode, "sub_layer_profile_present_flag[i]" ); 
-      rpcPTL.SetSubLayerProfilePresentFlag(i, TLibCommon.U2B(uint8(uiCode)));
+      rpcPTL.SetSubLayerProfilePresentFlag(i, uiCode!=0);
     }
 //#else
 //    READ_FLAG( uiCode, "sub_layer_profile_present_flag[i]" ); rpcPTL.SetSubLayerProfilePresentFlag(i, uiCode);
 //#endif
     this.READ_FLAG( &uiCode, "sub_layer_level_present_flag[i]"   ); 
-    rpcPTL.SetSubLayerLevelPresentFlag  (i, TLibCommon.U2B(uint8(uiCode)));
+    rpcPTL.SetSubLayerLevelPresentFlag  (i, uiCode!=0);
     if profilePresentFlag && rpcPTL.GetSubLayerProfilePresentFlag(i) {
       this.ParseProfileTier(rpcPTL.GetSubLayerPTL(i));
     }
@@ -745,20 +734,12 @@ func (this *TDecCavlc)  ParseProfileTier    ( ptl	*TLibCommon.ProfileTierLevel){
   this.READ_CODE(2 , &uiCode, "XXX_profile_space[]");   
   ptl.SetProfileSpace(int(uiCode));
   this.READ_FLAG(    &uiCode, "XXX_tier_flag[]"    ); 
-  if uiCode!=0 {  
-  	ptl.SetTierFlag    (true);
-  }else{
-  	ptl.SetTierFlag    (false);
-  }
+  ptl.SetTierFlag    (uiCode!=0);
   this.READ_CODE(5 , &uiCode, "XXX_profile_idc[]"  );   
   ptl.SetProfileIdc  (int(uiCode));
   for j := 0; j < 32; j++ {
     this.READ_FLAG(  &uiCode, "XXX_profile_compatibility_flag[][j]"); 
-    if uiCode!=0 {    
-    	ptl.SetProfileCompatibilityFlag(j, true);
-    }else{
-    	ptl.SetProfileCompatibilityFlag(j, false);
-    }
+    ptl.SetProfileCompatibilityFlag(j, uiCode!=0);
   }
   this.READ_CODE(16, &uiCode, "XXX_reserved_zero_16bits[]");  //assert( uiCode == 0 );  
 	

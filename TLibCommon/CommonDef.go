@@ -223,9 +223,10 @@ func B2U(b bool) uint8 {
     }
     return 0
 }
+/*
 func U2B(u uint8) bool {
     if u != 0 {
         return true
     }
     return false
-}
+}*/
