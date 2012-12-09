@@ -9,6 +9,7 @@ import (
 type TAppDecCfg struct{
   m_pchBitstreamFile	string;                ///< input bitstream file name
   m_pchReconFile		string;                ///< output reconstruction file name
+  m_pchTraceFile		string;				   ///< trace file name
   m_iFrameNum			int;				   ///< output frame number
   m_iSkipFrame			int;                   ///< counter for frames prior to the random access point to skip
   m_outputBitDepthY		int;                   ///< bit depth used for writing output (luma)
@@ -46,6 +47,10 @@ func (this *TAppDecCfg) ParseCfg(argc int, argv []string) (err error){   ///< in
 		if err!=nil{
 			return err
 		}
+	}
+	
+	if argc >=5 {
+		this.m_pchTraceFile = argv[4]
 	}
 	
 	return nil

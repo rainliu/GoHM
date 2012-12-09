@@ -1,6 +1,7 @@
 package TLibDecoder
 
 import (
+	"os"
     "gohm/TLibCommon"
 )
 
@@ -14,6 +15,7 @@ type TDecEntropyIf interface {
       //  Virtual list for SBAC/CAVLC
     ResetEntropy          ( pcSlice *TLibCommon.TComSlice);
     SetBitstream          ( p *TLibCommon.TComInputBitstream);
+    SetTraceFile 		  ( traceFile *os.File);
 
     ParseVPS                  ( pcVPS *TLibCommon.TComVPS );
     ParseSPS                  ( pcSPS *TLibCommon.TComSPS );
@@ -89,7 +91,9 @@ func (this *TDecEntropy) SetEntropyDecoder(p TDecEntropyIf) {
 func (this *TDecEntropy) SetBitstream(p *TLibCommon.TComInputBitstream) {
    this.m_pcEntropyDecoderIf.SetBitstream(p);                    
 }
-
+func (this *TDecEntropy) SetTraceFile( traceFile *os.File){
+   this.m_pcEntropyDecoderIf.SetTraceFile(traceFile);
+}
 
 func (this *TDecEntropy)   ResetEntropy                ( p 		*TLibCommon.TComSlice)           { 
 	this.m_pcEntropyDecoderIf.ResetEntropy(p);                    

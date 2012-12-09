@@ -440,6 +440,63 @@ func (this *TComPTL) GetSubLayerPTL(i int) *ProfileTierLevel {
 
 /// VPS class
 
+//#if SIGNAL_BITRATE_PICRATE_IN_VPS
+type TComBitRatePicRateInfo struct{
+  m_bitRateInfoPresentFlag	[MAX_TLAYER]bool;
+  m_picRateInfoPresentFlag	[MAX_TLAYER]bool;
+  m_avgBitRate				[MAX_TLAYER]int;
+  m_maxBitRate				[MAX_TLAYER]int;
+  m_constantPicRateIdc		[MAX_TLAYER]int;
+  m_avgPicRate				[MAX_TLAYER]int;
+}
+
+func NewTComBitRatePicRateInfo() *TComBitRatePicRateInfo{
+	return &TComBitRatePicRateInfo{}
+}
+
+func (this *TComBitRatePicRateInfo)  GetBitRateInfoPresentFlag(i int)   bool  {
+	return this.m_bitRateInfoPresentFlag[i];
+}
+func (this *TComBitRatePicRateInfo)  SetBitRateInfoPresentFlag(i int, x bool) {
+	this.m_bitRateInfoPresentFlag[i] = x;
+}
+
+func (this *TComBitRatePicRateInfo)  GetPicRateInfoPresentFlag(i int) 	bool  {
+	return this.m_picRateInfoPresentFlag[i];
+}
+func (this *TComBitRatePicRateInfo)  SetPicRateInfoPresentFlag(i int, x bool) {
+	this.m_picRateInfoPresentFlag[i] = x;
+}
+
+func (this *TComBitRatePicRateInfo)  GetAvgBitRate(i int) int {
+	return this.m_avgBitRate[i];
+}
+func (this *TComBitRatePicRateInfo)  SetAvgBitRate(i, x int)  {
+	this.m_avgBitRate[i] = x;
+}
+
+func (this *TComBitRatePicRateInfo)  GetMaxBitRate(i int) int {
+	return this.m_maxBitRate[i];
+}
+func (this *TComBitRatePicRateInfo)  SetMaxBitRate(i, x int)  {
+	this.m_maxBitRate[i] = x;
+}
+
+func (this *TComBitRatePicRateInfo)  GetConstantPicRateIdc(i int) int {
+	return this.m_constantPicRateIdc[i];
+}
+func (this *TComBitRatePicRateInfo)  SetConstantPicRateIdc(i, x int)  {
+	this.m_constantPicRateIdc[i] = x;
+}
+
+func (this *TComBitRatePicRateInfo)  GetAvgPicRate(i int) int {
+	return this.m_avgPicRate[i];
+}
+func (this *TComBitRatePicRateInfo)  SetAvgPicRate(i, x int)  {
+	this.m_avgPicRate[i] = x;
+}
+
+
 type TComVPS struct {
     //private:
     m_VPSId                  int
@@ -450,7 +507,19 @@ type TComVPS struct {
     m_numReorderPics       [MAX_TLAYER]uint
     m_uiMaxDecPicBuffering [MAX_TLAYER]uint
     m_uiMaxLatencyIncrease [MAX_TLAYER]uint
+   
+
+//#if VPS_OPERATING_POINT
+  	m_numHrdParameters	uint;
+  	m_maxNuhReservedZeroLayerId	uint;
+  	m_opLayerIdIncludedFlag	[MAX_VPS_NUM_HRD_PARAMETERS_ALLOWED_PLUS1][MAX_VPS_NUH_RESERVED_ZERO_LAYER_ID_PLUS1]bool;
+//#endif    
+    
     m_pcPTL                TComPTL
+    
+//#if SIGNAL_BITRATE_PICRATE_IN_VPS
+  	m_bitRatePicRateInfo	TComBitRatePicRateInfo;
+//#endif    
 }
 
 //public:
@@ -507,9 +576,36 @@ func (this *TComVPS) SetMaxLatencyIncrease(v, tLayer uint) {
 func (this *TComVPS) GetMaxLatencyIncrease(tLayer uint) uint {
     return this.m_uiMaxLatencyIncrease[tLayer]
 }
+//#if VPS_OPERATING_POINT
+func (this *TComVPS)  GetNumHrdParameters()  uint                               { 
+	return this.m_numHrdParameters; 
+}
+func (this *TComVPS)  SetNumHrdParameters(v uint)                           { 
+	this.m_numHrdParameters = v;    
+}
+
+func (this *TComVPS)  GetMaxNuhReservedZeroLayerId() uint                       { 
+	return this.m_maxNuhReservedZeroLayerId; 
+}
+func (this *TComVPS)  SetMaxNuhReservedZeroLayerId(v uint)                  { 
+	this.m_maxNuhReservedZeroLayerId = v;    
+}
+
+func (this *TComVPS)  GetOpLayerIdIncludedFlag( opIdx, id uint)  bool       { 
+	return this.m_opLayerIdIncludedFlag[opIdx][id]; 
+}
+func (this *TComVPS)  SetOpLayerIdIncludedFlag( v bool,  opIdx,  id uint) { 
+	this.m_opLayerIdIncludedFlag[opIdx][id] = v;    
+}
+//#endif
 func (this *TComVPS) GetPTL() *TComPTL {
     return &this.m_pcPTL
 }
+//#if SIGNAL_BITRATE_PICRATE_IN_VPS
+func (this *TComVPS)  GetBitratePicrateInfo() *TComBitRatePicRateInfo{ 
+	return &this.m_bitRatePicRateInfo; 
+}
+//#endif
 
 type HrdSubLayerInfo struct {
     fixedPicRateFlag      bool

@@ -160,8 +160,8 @@ func (this *TAppDecTop) Decode() (err error){
 }
 
 func (this *TAppDecTop) xCreateDecLib() {
-    //create decoder class
-    this.m_cTDecTop.Create()
+	//create decoder class
+    this.m_cTDecTop.Create(this.m_pchTraceFile)
 }
 
 func (this *TAppDecTop) xDestroyDecLib() {

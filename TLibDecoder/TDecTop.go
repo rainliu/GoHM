@@ -1,6 +1,7 @@
 package TLibDecoder
 
 import (
+	"os"
     "container/list"
     "fmt"
     "gohm/TLibCommon"
@@ -48,6 +49,7 @@ type TDecTop struct {
 
     //static
     warningMessage bool
+    m_pTraceFile	*os.File
 }
 
 //public:
@@ -73,12 +75,22 @@ func NewTDecTop() *TDecTop {
         warningMessage:          false}
 }
 
-func (this *TDecTop) Create() {
+func (this *TDecTop) Create(pchTraceFile string) {
     this.m_cGopDecoder.Create()
     this.m_apcSlicePilot = TLibCommon.NewTComSlice()
     this.m_uiSliceIdx = 0
+    
+    if pchTraceFile!=""{
+    	this.m_pTraceFile, _ = os.Create(pchTraceFile)
+    }else{
+    	this.m_pTraceFile = nil
+    }
 }
 func (this *TDecTop) Destroy() {
+	if this.m_pTraceFile!=nil{
+		this.m_pTraceFile.Close();
+	}
+	
     this.m_cGopDecoder.Destroy()
     this.m_apcSlicePilot = nil
     this.m_cSliceDecoder.Destroy()
@@ -139,7 +151,8 @@ func (this *TDecTop) Init() {
 func (this *TDecTop) Decode(nalu *InputNALUnit, iSkipFrame *int, iPOCLastDisplay *int) bool {
     // Initialize entropy decoder
     this.m_cEntropyDecoder.SetEntropyDecoder (&this.m_cCavlcDecoder);
-    this.m_cEntropyDecoder.SetBitstream(nalu.GetBitstream())
+    this.m_cEntropyDecoder.SetBitstream(nalu.GetBitstream());
+    this.m_cEntropyDecoder.SetTraceFile(this.m_pTraceFile);
 
     switch nalu.GetNalUnitType() {
     case TLibCommon.NAL_UNIT_VPS:

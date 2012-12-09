@@ -140,6 +140,7 @@ func (this *TDecSbac) Init ( p TDecBinIf)    {
 
   Void  resetEntropy (TComSlice* pSlice );
   Void  setBitstream              ( TComInputBitstream* p  ) { m_pcBitstream = p; m_pcTDecBinIf->init( p ); }
+  SetTraceFile 		  ( traceFile *os.File);
   Void  parseVPS                  ( TComVPS* pcVPS )  {}
   Void  parseSPS                  ( TComSPS* pcSPS         ) {}
   Void  parsePPS                  ( TComPPS* pcPPS         ) {}
