@@ -271,7 +271,99 @@ func (this *TDecCavlc)  xGetBit             () uint{
 	return 0;
 }
 
-func (this *TDecCavlc)  ParseShortTermRefPicSet            (pcSPS *TLibCommon.TComSPS, pcRPS *TLibCommon.TComReferencePictureSet, idx int){
+func (this *TDecCavlc)  ParseShortTermRefPicSet            (sps *TLibCommon.TComSPS, rps *TLibCommon.TComReferencePictureSet, idx int){
+  var code, interRPSPred uint;
+  
+//#if SPS_INTER_REF_SET_PRED
+  if idx > 0{
+//#endif 
+  	this.READ_FLAG(&interRPSPred, "inter_ref_pic_set_prediction_flag");  
+  	rps.SetInterRPSPrediction(interRPSPred!=0);
+//#if SPS_INTER_REF_SET_PRED
+  }else{
+    interRPSPred = 0;
+    rps.SetInterRPSPrediction(false);
+  }
+//#endif
+
+  if interRPSPred!=0 {
+    var bit uint;
+    if idx == sps.GetRPSList().GetNumberOfReferencePictureSets(){
+      this.READ_UVLC(&code, "delta_idx_minus1" ); // delta index of the Reference Picture Set used for prediction minus 1
+    }else{
+      code = 0;
+    }
+    //assert(code <= idx-1); // delta_idx_minus1 shall not be larger than idx-1, otherwise we will predict from a negative row position that does not exist. When idx equals 0 there is no legal value and interRPSPred must be zero. See J0185-r2
+    rIdx :=  idx - 1 - int(code);
+    //assert (rIdx <= idx-1 && rIdx >= 0); // Made assert tighter; if rIdx = idx then prediction is done from itself. rIdx must belong to range 0, idx-1, inclusive, see J0185-r2
+    rpsRef := sps.GetRPSList().GetReferencePictureSet(rIdx);
+    k := 0;
+    k0 := 0;
+    k1 := 0;
+    this.READ_CODE(1, &bit, "delta_rps_sign"); // delta_RPS_sign
+    this.READ_UVLC(&code, "abs_delta_rps_minus1");  // absolute delta RPS minus 1
+    deltaRPS := (1 - (bit<<1)) * (code + 1); // delta_RPS
+    for j:=0 ; j <= rpsRef.GetNumberOfPictures(); j++ {
+      this.READ_CODE(1, &bit, "used_by_curr_pic_flag" ); //first bit is "1" if Idc is 1 
+      refIdc := bit;
+      if refIdc == 0 {
+        this.READ_CODE(1, &bit, "use_delta_flag" ); //second bit is "1" if Idc is 2, "0" otherwise.
+        refIdc = bit<<1; //second bit is "1" if refIdc is 2, "0" if refIdc = 0.
+      }
+      
+      if refIdc == 1 || refIdc == 2 {
+      	var deltaPOC int
+     	if j < rpsRef.GetNumberOfPictures(){
+        	deltaPOC = int(deltaRPS) + rpsRef.GetDeltaPOC(j);
+        }else{
+        	deltaPOC = int(deltaRPS);
+        }
+        rps.SetDeltaPOC(k, deltaPOC);
+        rps.SetUsed(k, (refIdc == 1));
+
+        if deltaPOC < 0 {
+          k0++;
+        }else{
+          k1++;
+        }
+        k++;
+      }  
+      rps.SetRefIdc(j, int(refIdc));  
+    }
+    rps.SetNumRefIdc(rpsRef.GetNumberOfPictures()+1);  
+    rps.SetNumberOfPictures(k);
+    rps.SetNumberOfNegativePictures(k0);
+    rps.SetNumberOfPositivePictures(k1);
+    rps.SortDeltaPOC();
+  }else{
+    this.READ_UVLC(&code, "num_negative_pics");           
+    rps.SetNumberOfNegativePictures(int(code));
+    this.READ_UVLC(&code, "num_positive_pics");           
+    rps.SetNumberOfPositivePictures(int(code));
+    prev := 0;
+    var poc int;
+    for j:=0 ; j < rps.GetNumberOfNegativePictures(); j++ {
+      this.READ_UVLC(&code, "delta_poc_s0_minus1");
+      poc = prev-int(code)-1;
+      prev = poc;
+      rps.SetDeltaPOC(j,poc);
+      this.READ_FLAG(&code, "used_by_curr_pic_s0_flag");  
+      rps.SetUsed(j,code!=0);
+    }
+    prev = 0;
+    for j:=rps.GetNumberOfNegativePictures(); j < rps.GetNumberOfNegativePictures()+rps.GetNumberOfPositivePictures(); j++ {
+      this.READ_UVLC(&code, "delta_poc_s1_minus1");
+      poc = prev+int(code)+1;
+      prev = poc;
+      rps.SetDeltaPOC(j,poc);
+      this.READ_FLAG(&code, "used_by_curr_pic_s1_flag");  
+      rps.SetUsed(j,code!=0);
+    }
+    rps.SetNumberOfPictures(rps.GetNumberOfNegativePictures()+rps.GetNumberOfPositivePictures());
+  }
+//#if PRINT_RPS_INFO
+//  rps->printDeltaPOC();
+//#endif
 }
 
 
@@ -368,6 +460,251 @@ func (this *TDecCavlc)  ParseVPS            ( pcVPS *TLibCommon.TComVPS){
   //future extensions go here..
 }
 func (this *TDecCavlc)  ParseSPS            ( pcSPS *TLibCommon.TComSPS){
+//#if ENC_DEC_TRACE  
+  this.xTraceSPSHeader (pcSPS);
+//#endif
+
+  var uiCode uint;
+  this.READ_CODE( 4,  &uiCode, "video_parameter_set_id");              
+  pcSPS.SetVPSId        ( int(uiCode) );
+  this.READ_CODE( 3,  &uiCode, "sps_max_sub_layers_minus1" );          
+  pcSPS.SetMaxTLayers   ( uiCode+1 );
+//#if MOVE_SPS_TEMPORAL_ID_NESTING_FLAG
+  this.READ_FLAG( &uiCode, "sps_temporal_id_nesting_flag" );  
+  if uiCode > 0 {             
+  	pcSPS.SetTemporalIdNestingFlag ( true );
+  }else{
+  	pcSPS.SetTemporalIdNestingFlag ( false );
+  }
+//#else
+//  READ_FLAG(     &uiCode, "sps_reserved_zero_bit");               assert(uiCode == 0);
+//#endif
+  this.ParsePTL(pcSPS.GetPTL(), true, int(pcSPS.GetMaxTLayers()) - 1);
+  this.READ_UVLC(     &uiCode, "seq_parameter_set_id" );               
+  pcSPS.SetSPSId( int(uiCode) );
+  this.READ_UVLC(     &uiCode, "chroma_format_idc" );                  
+  pcSPS.SetChromaFormatIdc( int(uiCode) );
+  // in the first version we only support chroma_format_idc equal to 1 (4:2:0), so separate_colour_plane_flag cannot appear in the bitstream
+  //assert (uiCode == 1);
+  if uiCode == 3 {
+    this.READ_FLAG(     &uiCode, "separate_colour_plane_flag");        //assert(uiCode == 0);
+  }
+
+  this.READ_UVLC (    &uiCode, "pic_width_in_luma_samples" );          
+  pcSPS.SetPicWidthInLumaSamples ( uiCode    );
+  this.READ_UVLC (    &uiCode, "pic_height_in_luma_samples" );         
+  pcSPS.SetPicHeightInLumaSamples( uiCode    );
+  this.READ_FLAG(     &uiCode, "pic_cropping_flag");
+  if uiCode != 0 {
+    crop := pcSPS.GetPicCroppingWindow();
+    this.READ_UVLC(   &uiCode, "pic_crop_left_offset" );               
+    crop.SetPicCropLeftOffset  ( int(uiCode) * pcSPS.GetCropUnitX( pcSPS.GetChromaFormatIdc() ) );
+    this.READ_UVLC(   &uiCode, "pic_crop_right_offset" );              
+    crop.SetPicCropRightOffset ( int(uiCode) * pcSPS.GetCropUnitX( pcSPS.GetChromaFormatIdc() ) );
+    this.READ_UVLC(   &uiCode, "pic_crop_top_offset" );                
+    crop.SetPicCropTopOffset   ( int(uiCode) * pcSPS.GetCropUnitY( pcSPS.GetChromaFormatIdc() ) );
+    this.READ_UVLC(   &uiCode, "pic_crop_bottom_offset" );             
+    crop.SetPicCropBottomOffset( int(uiCode) * pcSPS.GetCropUnitY( pcSPS.GetChromaFormatIdc() ) );
+  }
+
+  this.READ_UVLC(     &uiCode, "bit_depth_luma_minus8" );
+  TLibCommon.G_bitDepthY = 8 + int(uiCode);
+  pcSPS.SetBitDepthY(TLibCommon.G_bitDepthY);
+  pcSPS.SetQpBDOffsetY( int(6*uiCode) );
+
+  this.READ_UVLC( &uiCode,    "bit_depth_chroma_minus8" );
+  TLibCommon.G_bitDepthC = 8 + int(uiCode);
+  pcSPS.SetBitDepthC(TLibCommon.G_bitDepthC);
+  pcSPS.SetQpBDOffsetC( int(6*uiCode) );
+/*
+#if !HLS_GROUP_SPS_PCM_FLAGS
+  this.READ_FLAG( &uiCode, "pcm_enabled_flag" ); pcSPS.SetUsePCM( uiCode ? true : false );
+
+  if( pcSPS->getUsePCM() )
+  {
+    this.READ_CODE( 4, &uiCode, "pcm_bit_depth_luma_minus1" );           pcSPS.SetPCMBitDepthLuma   ( 1 + uiCode );
+    this.READ_CODE( 4, &uiCode, "pcm_bit_depth_chroma_minus1" );         pcSPS.SetPCMBitDepthChroma ( 1 + uiCode );
+  }
+
+#endif // !HLS_GROUP_SPS_PCM_FLAGS 
+*/
+  this.READ_UVLC( &uiCode,    "log2_max_pic_order_cnt_lsb_minus4" );   pcSPS.SetBitsForPOC( 4 + uiCode );
+
+//#if HLS_ADD_SUBLAYER_ORDERING_INFO_PRESENT_FLAG
+  var subLayerOrderingInfoPresentFlag uint;
+  this.READ_FLAG(&subLayerOrderingInfoPresentFlag, "sps_sub_layer_ordering_info_present_flag");
+//#endif // HLS_ADD_SUBLAYER_ORDERING_INFO_PRESENT_FLAG
+  for i:=uint(0); i <= pcSPS.GetMaxTLayers()-1; i++ {
+    this.READ_UVLC ( &uiCode, "max_dec_pic_buffering");
+    pcSPS.SetMaxDecPicBuffering( uiCode, i);
+    this.READ_UVLC ( &uiCode, "num_reorder_pics" );
+    pcSPS.SetNumReorderPics(int(uiCode), i);
+    this.READ_UVLC ( &uiCode, "max_latency_increase");
+    pcSPS.SetMaxLatencyIncrease( uiCode, i );
+
+//#if HLS_ADD_SUBLAYER_ORDERING_INFO_PRESENT_FLAG
+    if subLayerOrderingInfoPresentFlag==0{
+      for i++; i <= pcSPS.GetMaxTLayers()-1; i++ {
+        pcSPS.SetMaxDecPicBuffering(pcSPS.GetMaxDecPicBuffering(0), i);
+        pcSPS.SetNumReorderPics(pcSPS.GetNumReorderPics(0), i);
+        pcSPS.SetMaxLatencyIncrease(pcSPS.GetMaxLatencyIncrease(0), i);
+      }
+      break;
+    }
+//#endif // HLS_ADD_SUBLAYER_ORDERING_INFO_PRESENT_FLAG 
+  }
+/*
+#if !HLS_MOVE_SPS_PICLIST_FLAGS
+  this.READ_FLAG( &uiCode, "restricted_ref_pic_lists_flag" );
+  pcSPS.SetRestrictedRefPicListsFlag( uiCode );
+  if( pcSPS->getRestrictedRefPicListsFlag() )
+  {
+    this.READ_FLAG( &uiCode, "lists_modification_present_flag" );
+    pcSPS.SetListsModificationPresentFlag(uiCode);
+  }
+  else 
+  {
+    pcSPS.SetListsModificationPresentFlag(true);
+  }
+#endif // !HLS_MOVE_SPS_PICLIST_FLAGS
+*/ 
+  this.READ_UVLC( &uiCode, "log2_min_coding_block_size_minus3" );
+  log2MinCUSize := uiCode + 3;
+  this.READ_UVLC( &uiCode, "log2_diff_max_min_coding_block_size" );
+  uiMaxCUDepthCorrect := uiCode;
+  pcSPS.SetMaxCUWidth  ( 1<<(log2MinCUSize + uiMaxCUDepthCorrect) ); 
+  TLibCommon.G_uiMaxCUWidth  = 1<<(log2MinCUSize + uiMaxCUDepthCorrect);
+  pcSPS.SetMaxCUHeight ( 1<<(log2MinCUSize + uiMaxCUDepthCorrect) ); 
+  TLibCommon.G_uiMaxCUHeight = 1<<(log2MinCUSize + uiMaxCUDepthCorrect);
+  this.READ_UVLC( &uiCode, "log2_min_transform_block_size_minus2" );   
+  pcSPS.SetQuadtreeTULog2MinSize( uiCode + 2 );
+
+  this.READ_UVLC( &uiCode, "log2_diff_max_min_transform_block_size" ); 
+  pcSPS.SetQuadtreeTULog2MaxSize( uiCode + pcSPS.GetQuadtreeTULog2MinSize() );
+  pcSPS.SetMaxTrSize( 1<<(uiCode + pcSPS.GetQuadtreeTULog2MinSize()) );
+/*#if !HLS_GROUP_SPS_PCM_FLAGS
+  if( pcSPS->getUsePCM() )
+  {
+    this.READ_UVLC( &uiCode, "log2_min_pcm_coding_block_size_minus3" );  pcSPS.SetPCMLog2MinSize (uiCode+3); 
+    this.READ_UVLC( &uiCode, "log2_diff_max_min_pcm_coding_block_size" ); pcSPS.SetPCMLog2MaxSize ( uiCode+pcSPS->getPCMLog2MinSize() );
+  }
+#endif*/ /* !HLS_GROUP_SPS_PCM_FLAGS */
+
+  this.READ_UVLC( &uiCode, "max_transform_hierarchy_depth_inter" );    
+  pcSPS.SetQuadtreeTUMaxDepthInter( uiCode+1 );
+  this.READ_UVLC( &uiCode, "max_transform_hierarchy_depth_intra" );    
+  pcSPS.SetQuadtreeTUMaxDepthIntra( uiCode+1 );
+  TLibCommon.G_uiAddCUDepth = 0;
+  for ( pcSPS.GetMaxCUWidth() >> uiMaxCUDepthCorrect ) > ( 1 << ( pcSPS.GetQuadtreeTULog2MinSize() + TLibCommon.G_uiAddCUDepth )  ) {
+    TLibCommon.G_uiAddCUDepth++;
+  }
+  pcSPS.SetMaxCUDepth( uiMaxCUDepthCorrect+TLibCommon.G_uiAddCUDepth  ); 
+  TLibCommon.G_uiMaxCUDepth  = uiMaxCUDepthCorrect+TLibCommon.G_uiAddCUDepth;
+  // BB: these parameters may be removed completly and replaced by the fixed values
+  pcSPS.SetMinTrDepth( 0 );
+  pcSPS.SetMaxTrDepth( 1 );
+  this.READ_FLAG( &uiCode, "scaling_list_enabled_flag" );                 
+  pcSPS.SetScalingListFlag ( uiCode==1 );
+  if pcSPS.GetScalingListFlag() {
+    this.READ_FLAG( &uiCode, "sps_scaling_list_data_present_flag" );                 
+    pcSPS.SetScalingListPresentFlag ( uiCode==1 );
+    if pcSPS.GetScalingListPresentFlag () {
+      this.ParseScalingList( pcSPS.GetScalingList() );
+    }
+  }
+  this.READ_FLAG( &uiCode, "asymmetric_motion_partitions_enabled_flag" ); 
+  pcSPS.SetUseAMP( uiCode==1 );
+  this.READ_FLAG( &uiCode, "sample_adaptive_offset_enabled_flag" );       
+  if uiCode!=0 {
+  	pcSPS.SetUseSAO ( true );
+  }else{
+    pcSPS.SetUseSAO ( false );
+  }
+//#if HLS_GROUP_SPS_PCM_FLAGS
+  this.READ_FLAG( &uiCode, "pcm_enabled_flag" ); 
+  if uiCode!=0 {
+  	pcSPS.SetUsePCM( true );
+  }else{
+    pcSPS.SetUsePCM( false );
+  }
+//#endif /* HLS_GROUP_SPS_PCM_FLAGS */
+  if pcSPS.GetUsePCM() {
+//#if !HLS_GROUP_SPS_PCM_FLAGS
+//    this.READ_FLAG( &uiCode, "pcm_loop_filter_disable_flag" );           pcSPS.SetPCMFilterDisableFlag ( uiCode ? true : false );
+//#else /* HLS_GROUP_SPS_PCM_FLAGS */
+    this.READ_CODE( 4, &uiCode, "pcm_sample_bit_depth_luma_minus1" );          
+    pcSPS.SetPCMBitDepthLuma   ( 1 + uiCode );
+    this.READ_CODE( 4, &uiCode, "pcm_sample_bit_depth_chroma_minus1" );        
+    pcSPS.SetPCMBitDepthChroma ( 1 + uiCode );
+    this.READ_UVLC( &uiCode, "log2_min_pcm_luma_coding_block_size_minus3" );   
+    pcSPS.SetPCMLog2MinSize (uiCode+3);
+    this.READ_UVLC( &uiCode, "log2_diff_max_min_pcm_luma_coding_block_size" ); 
+    pcSPS.SetPCMLog2MaxSize ( uiCode+pcSPS.GetPCMLog2MinSize() );
+    this.READ_FLAG( &uiCode, "pcm_loop_filter_disable_flag" );  
+    if uiCode!=0 {               
+    	pcSPS.SetPCMFilterDisableFlag ( true );
+    }else{
+    	pcSPS.SetPCMFilterDisableFlag ( false );
+    }
+//#endif /* HLS_GROUP_SPS_PCM_FLAGS */
+  }
+
+/*#if !MOVE_SPS_TEMPORAL_ID_NESTING_FLAG
+  this.READ_FLAG( &uiCode, "temporal_id_nesting_flag" );    
+  if uiCode > 0 {            
+  	pcSPS.SetTemporalIdNestingFlag (true );
+  }else{
+  	pcSPS.SetTemporalIdNestingFlag (false );
+  }
+#endif*/
+
+  this.READ_UVLC( &uiCode, "num_short_term_ref_pic_sets" );
+  pcSPS.CreateRPSList(int(uiCode));
+
+  rpsList := pcSPS.GetRPSList();
+  //var rps *TComReferencePictureSet;
+
+  for i:=0; i< rpsList.GetNumberOfReferencePictureSets(); i++ {
+    rps := rpsList.GetReferencePictureSet(i);
+    this.ParseShortTermRefPicSet(pcSPS,rps,i);
+  }
+  this.READ_FLAG( &uiCode, "long_term_ref_pics_present_flag" );          
+  pcSPS.SetLongTermRefsPresent(uiCode!=0);
+  if pcSPS.GetLongTermRefsPresent() {
+    this.READ_UVLC( &uiCode, "num_long_term_ref_pic_sps" );
+    pcSPS.SetNumLongTermRefPicSPS(uiCode);
+    for k := 0; k < int(pcSPS.GetNumLongTermRefPicSPS()); k++ {
+      this.READ_CODE( pcSPS.GetBitsForPOC(), &uiCode, "lt_ref_pic_poc_lsb_sps" );
+      pcSPS.SetLtRefPicPocLsbSps(uint(k), uiCode);
+      this.READ_FLAG( &uiCode,  "used_by_curr_pic_lt_sps_flag[i]");
+      if uiCode !=0 {
+      	pcSPS.SetUsedByCurrPicLtSPSFlag(k, true);
+      }else{
+        pcSPS.SetUsedByCurrPicLtSPSFlag(k, false);
+      }
+    }
+  }
+  this.READ_FLAG( &uiCode, "sps_temporal_mvp_enable_flag" );            
+  pcSPS.SetTMVPFlagsPresent(uiCode!=0);
+
+//#if STRONG_INTRA_SMOOTHING
+  this.READ_FLAG( &uiCode, "sps_strong_intra_smoothing_enable_flag" );  
+  pcSPS.SetUseStrongIntraSmoothing(uiCode!=0);
+//#endif
+
+  this.READ_FLAG( &uiCode, "vui_parameters_present_flag" );             
+  pcSPS.SetVuiParametersPresentFlag(uiCode!=0);
+
+  if pcSPS.GetVuiParametersPresentFlag() {
+    this.ParseVUI(pcSPS.GetVuiParameters(), pcSPS);
+  }
+
+  this.READ_FLAG( &uiCode, "sps_extension_flag");
+  if uiCode!=0 {
+    for this.xMoreRbspData() {
+      this.READ_FLAG( &uiCode, "sps_extension_data_flag");
+    }
+  }
 }
 func (this *TDecCavlc)  ParsePPS            ( pcPPS	*TLibCommon.TComPPS){
 }
@@ -390,7 +727,7 @@ func (this *TDecCavlc)  ParsePTL            ( rpcPTL *TLibCommon.TComPTL, profil
       rpcPTL.SetSubLayerProfilePresentFlag(i, TLibCommon.U2B(uint8(uiCode)));
     }
 //#else
-//    READ_FLAG( uiCode, "sub_layer_profile_present_flag[i]" ); rpcPTL->setSubLayerProfilePresentFlag(i, uiCode);
+//    READ_FLAG( uiCode, "sub_layer_profile_present_flag[i]" ); rpcPTL.SetSubLayerProfilePresentFlag(i, uiCode);
 //#endif
     this.READ_FLAG( &uiCode, "sub_layer_level_present_flag[i]"   ); 
     rpcPTL.SetSubLayerLevelPresentFlag  (i, TLibCommon.U2B(uint8(uiCode)));
@@ -515,6 +852,28 @@ func (this *TDecCavlc)  xDecodeScalingList    ( scalingList *TLibCommon.TComScal
 }
 //protected:
 func (this *TDecCavlc)  xMoreRbspData() bool{
-	return true;
+  bitsLeft := this.m_pcBitstream.GetNumBitsLeft();
+
+  // if there are more than 8 bits, it cannot be rbsp_trailing_bits
+  if bitsLeft > 8{
+    return true;
+  }
+
+  lastByte := this.m_pcBitstream.PeekBits(bitsLeft);
+  cnt := bitsLeft;
+
+  // remove trailing bits equal to zero
+  for (cnt>0) && ((lastByte & 1) == 0) {
+    lastByte >>= 1;
+    cnt--;
+  }
+  // remove bit equal to one
+  cnt--;
+
+  // we should not have a negative number of bits
+  //assert (cnt>=0);
+
+  // we have more data, if cnt is not zero
+  return cnt>0;
 }
   

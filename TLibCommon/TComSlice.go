@@ -1045,16 +1045,10 @@ type CroppingWindow struct {
     m_picCropBottomOffset int
 }
 
-/*  
-public:
-  CroppingWindow()
-  : m_picCroppingFlag     (false)
-  , m_picCropLeftOffset   (0)
-  , m_picCropRightOffset  (0)
-  , m_picCropTopOffset    (0)
-  , m_picCropBottomOffset (0)
-  { }
-*/
+func NewCroppingWindow() *CroppingWindow{
+	return &CroppingWindow{}
+}
+
 func (this *CroppingWindow) GetPicCroppingFlag() bool {
     return this.m_picCroppingFlag
 }
@@ -1101,6 +1095,7 @@ func (this *CroppingWindow) SetPicCropping(cropLeft, cropRight, cropTop, cropBot
     this.m_picCropTopOffset = cropTop
     this.m_picCropBottomOffset = cropBottom
 }
+
 
 /// SPS class
 type TComSPS struct {
@@ -1187,7 +1182,18 @@ type TComSPS struct {
 
 //public:
 func NewTComSPS() *TComSPS {
-    return &TComSPS{}
+	sps := &TComSPS{};
+	sps.m_picCroppingWindow = NewCroppingWindow();
+	sps.m_cropUnitX[0]=1;
+	sps.m_cropUnitX[1]=2;
+	sps.m_cropUnitX[2]=2;
+	sps.m_cropUnitX[3]=1;
+	sps.m_cropUnitY[0]=1;
+	sps.m_cropUnitY[1]=2;
+	sps.m_cropUnitY[2]=1;
+	sps.m_cropUnitY[3]=1;
+	
+    return sps
 }
 
 func (this *TComSPS) GetVPSId() int {
