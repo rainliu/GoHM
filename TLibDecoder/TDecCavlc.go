@@ -54,19 +54,19 @@ func (this *SyntaxElementParser)  GetTraceFile () io.Writer{
 
 func (this *SyntaxElementParser)  xTraceVPSHeader (pVPS *TLibCommon.TComVPS){
 	if this.GetTraceFile()!=nil { 
-  		io.WriteString(this.m_pTraceFile, fmt.Sprintf ("========= Video Parameter Set =============================================\n"));//, pVPS->getVPSId() );
+  		io.WriteString(this.m_pTraceFile, fmt.Sprintf ("========= Video Parameter Set =============================================\n"));//, pVPS.GetVPSId() );
 	}
 }
 
 func (this *SyntaxElementParser)  xTraceSPSHeader (pSPS *TLibCommon.TComSPS){
 	if this.GetTraceFile()!=nil { 
-  		io.WriteString(this.m_pTraceFile, fmt.Sprintf ("========= Sequence Parameter Set ==========================================\n"));//, pSPS->getSPSId() );
+  		io.WriteString(this.m_pTraceFile, fmt.Sprintf ("========= Sequence Parameter Set ==========================================\n"));//, pSPS.GetSPSId() );
 	}
 }
 
 func (this *SyntaxElementParser)  xTracePPSHeader (pPPS *TLibCommon.TComPPS){
 	if this.GetTraceFile()!=nil { 
-  		io.WriteString(this.m_pTraceFile, fmt.Sprintf ("========= Picture Parameter Set ===========================================\n"));//, pPPS->getPPSId() );
+  		io.WriteString(this.m_pTraceFile, fmt.Sprintf ("========= Picture Parameter Set ===========================================\n"));//, pPPS.GetPPSId() );
 	}
 }
 
@@ -80,49 +80,49 @@ func (this *SyntaxElementParser)  xTraceSliceHeader (pSlice *TLibCommon.TComSlic
 func (this *SyntaxElementParser)  xTraceLCUHeader (pLCU *TComDataCU, traceLevel uint)
 {
   if(traceLevel & TRACE_LEVEL)
-  fprintf( g_hTrace, "========= LCU Parameter Set ===============================================\n");//, pLCU->getAddr());
+  fprintf( g_hTrace, "========= LCU Parameter Set ===============================================\n");//, pLCU.GetAddr());
 }
 
 func (this *SyntaxElementParser)  xTraceCUHeader (pLCU *TComDataCU, traceLevel uint)
 {
   if(traceLevel & TRACE_LEVEL)
-  fprintf( g_hTrace, "========= CU Parameter Set ================================================\n");//, pCU->getCUPelX(), pCU->getCUPelY());
+  fprintf( g_hTrace, "========= CU Parameter Set ================================================\n");//, pCU.GetCUPelX(), pCU.GetCUPelY());
 }
 
 func (this *SyntaxElementParser)  xTracePUHeader (traceLevel uint)
 {
   if(traceLevel & TRACE_LEVEL)
-    fprintf( g_hTrace, "========= PU Parameter Set ================================================\n");//, pCU->getCUPelX(), pCU->getCUPelY());
+    fprintf( g_hTrace, "========= PU Parameter Set ================================================\n");//, pCU.GetCUPelX(), pCU.GetCUPelY());
 }
 
 func (this *SyntaxElementParser)  xTraceTUHeader (traceLevel uint)
 {
   if(traceLevel & TRACE_LEVEL)
-    fprintf( g_hTrace, "========= TU Parameter Set ================================================\n");//, pCU->getCUPelX(), pCU->getCUPelY());
+    fprintf( g_hTrace, "========= TU Parameter Set ================================================\n");//, pCU.GetCUPelX(), pCU.GetCUPelY());
 }
 
 func (this *SyntaxElementParser)  xTraceCoefHeader (traceLevel uint)
 {
   if(traceLevel & TRACE_LEVEL)
-    fprintf( g_hTrace, "========= Coefficient Parameter Set =======================================\n");//, pCU->getCUPelX(), pCU->getCUPelY());
+    fprintf( g_hTrace, "========= Coefficient Parameter Set =======================================\n");//, pCU.GetCUPelX(), pCU.GetCUPelY());
 }
 
 func (this *SyntaxElementParser)  xTraceResiHeader (traceLevel uint)
 {
   if(traceLevel & TRACE_LEVEL)
-    fprintf( g_hTrace, "========= Residual Parameter Set ==========================================\n");//, pCU->getCUPelX(), pCU->getCUPelY());
+    fprintf( g_hTrace, "========= Residual Parameter Set ==========================================\n");//, pCU.GetCUPelX(), pCU.GetCUPelY());
 }
 
 func (this *SyntaxElementParser)  xTracePredHeader (traceLevel uint)
 {
   if(traceLevel & TRACE_LEVEL)
-    fprintf( g_hTrace, "========= Prediction Parameter Set ========================================\n");//, pCU->getCUPelX(), pCU->getCUPelY());
+    fprintf( g_hTrace, "========= Prediction Parameter Set ========================================\n");//, pCU.GetCUPelX(), pCU.GetCUPelY());
 }
 
 func (this *SyntaxElementParser)  xTraceRecoHeader (traceLevel uint)
 {
   if(traceLevel & TRACE_LEVEL)
-    fprintf( g_hTrace, "========= Reconstruction Parameter Set ====================================\n");//, pCU->getCUPelX(), pCU->getCUPelY());
+    fprintf( g_hTrace, "========= Reconstruction Parameter Set ====================================\n");//, pCU.GetCUPelX(), pCU.GetCUPelY());
 }
 */
 
@@ -405,7 +405,7 @@ func (this *TDecCavlc)  ParseVPS            ( pcVPS *TLibCommon.TComVPS){
   this.READ_CODE( 16, &uiCode,  "vps_reserved_ffff_16bits" );           //assert(uiCode == 0xffff);
   this.ParsePTL ( pcVPS.GetPTL(), true, int(pcVPS.GetMaxTLayers())-1);
 //#else
-//  parsePTL ( pcVPS->getPTL(), true, pcVPS->getMaxTLayers()-1);
+//  parsePTL ( pcVPS.GetPTL(), true, pcVPS.GetMaxTLayers()-1);
 //  READ_CODE( 12, uiCode,  "vps_reserved_zero_12bits" );           assert(uiCode == 0);
 //#endif
 //#if SIGNAL_BITRATE_PICRATE_IN_VPS
@@ -440,8 +440,8 @@ func (this *TDecCavlc)  ParseVPS            ( pcVPS *TLibCommon.TComVPS){
   pcVPS.SetNumHrdParameters( uiCode );
   this.READ_CODE( 6, &uiCode, "vps_max_nuh_reserved_zero_layer_id" );   
   pcVPS.SetMaxNuhReservedZeroLayerId( uiCode );
-  //assert( pcVPS->getNumHrdParameters() < MAX_VPS_NUM_HRD_PARAMETERS_ALLOWED_PLUS1 );
-  //assert( pcVPS->getMaxNuhReservedZeroLayerId() < MAX_VPS_NUH_RESERVED_ZERO_LAYER_ID_PLUS1 );
+  //assert( pcVPS.GetNumHrdParameters() < MAX_VPS_NUM_HRD_PARAMETERS_ALLOWED_PLUS1 );
+  //assert( pcVPS.GetMaxNuhReservedZeroLayerId() < MAX_VPS_NUH_RESERVED_ZERO_LAYER_ID_PLUS1 );
   for opIdx := uint(0); opIdx < pcVPS.GetNumHrdParameters(); opIdx++ {
     if opIdx > 0 {
       // operation_point_layer_id_flag( opIdx )
@@ -520,7 +520,7 @@ func (this *TDecCavlc)  ParseSPS            ( pcSPS *TLibCommon.TComSPS){
 #if !HLS_GROUP_SPS_PCM_FLAGS
   this.READ_FLAG( &uiCode, "pcm_enabled_flag" ); pcSPS.SetUsePCM( uiCode ? true : false );
 
-  if( pcSPS->getUsePCM() )
+  if( pcSPS.GetUsePCM() )
   {
     this.READ_CODE( 4, &uiCode, "pcm_bit_depth_luma_minus1" );           pcSPS.SetPCMBitDepthLuma   ( 1 + uiCode );
     this.READ_CODE( 4, &uiCode, "pcm_bit_depth_chroma_minus1" );         pcSPS.SetPCMBitDepthChroma ( 1 + uiCode );
@@ -557,7 +557,7 @@ func (this *TDecCavlc)  ParseSPS            ( pcSPS *TLibCommon.TComSPS){
 #if !HLS_MOVE_SPS_PICLIST_FLAGS
   this.READ_FLAG( &uiCode, "restricted_ref_pic_lists_flag" );
   pcSPS.SetRestrictedRefPicListsFlag( uiCode );
-  if( pcSPS->getRestrictedRefPicListsFlag() )
+  if( pcSPS.GetRestrictedRefPicListsFlag() )
   {
     this.READ_FLAG( &uiCode, "lists_modification_present_flag" );
     pcSPS.SetListsModificationPresentFlag(uiCode);
@@ -583,10 +583,10 @@ func (this *TDecCavlc)  ParseSPS            ( pcSPS *TLibCommon.TComSPS){
   pcSPS.SetQuadtreeTULog2MaxSize( uiCode + pcSPS.GetQuadtreeTULog2MinSize() );
   pcSPS.SetMaxTrSize( 1<<(uiCode + pcSPS.GetQuadtreeTULog2MinSize()) );
 /*#if !HLS_GROUP_SPS_PCM_FLAGS
-  if( pcSPS->getUsePCM() )
+  if( pcSPS.GetUsePCM() )
   {
     this.READ_UVLC( &uiCode, "log2_min_pcm_coding_block_size_minus3" );  pcSPS.SetPCMLog2MinSize (uiCode+3); 
-    this.READ_UVLC( &uiCode, "log2_diff_max_min_pcm_coding_block_size" ); pcSPS.SetPCMLog2MaxSize ( uiCode+pcSPS->getPCMLog2MinSize() );
+    this.READ_UVLC( &uiCode, "log2_diff_max_min_pcm_coding_block_size" ); pcSPS.SetPCMLog2MaxSize ( uiCode+pcSPS.GetPCMLog2MinSize() );
   }
 #endif*/ /* !HLS_GROUP_SPS_PCM_FLAGS */
 
@@ -695,7 +695,162 @@ func (this *TDecCavlc)  ParseSPS            ( pcSPS *TLibCommon.TComSPS){
     }
   }
 }
+
 func (this *TDecCavlc)  ParsePPS            ( pcPPS	*TLibCommon.TComPPS){
+//#if ENC_DEC_TRACE  
+  this.xTracePPSHeader (pcPPS);
+//#endif
+  var  uiCode uint;
+  var   iCode  int;
+
+  this.READ_UVLC( &uiCode, "pic_parameter_set_id");                      
+  pcPPS.SetPPSId (int(uiCode));
+  this.READ_UVLC( &uiCode, "seq_parameter_set_id");                      
+  pcPPS.SetSPSId (int(uiCode));
+//#if DEPENDENT_SLICE_SEGMENT_FLAGS
+//#if DEPENDENT_SLICES
+  this.READ_FLAG( &uiCode, "dependent_slices_enabled_flag"    );    
+  pcPPS.SetDependentSliceEnabledFlag   ( uiCode == 1 );
+//#endif
+//#endif
+  this.READ_FLAG ( &uiCode, "sign_data_hiding_flag" ); 
+  pcPPS.SetSignHideFlag( uiCode!=0 );
+
+  this.READ_FLAG( &uiCode,   "cabac_init_present_flag" );            
+  pcPPS.SetCabacInitPresentFlag( uiCode!=0 );
+
+  this.READ_UVLC(&uiCode, "num_ref_idx_l0_default_active_minus1");       
+  pcPPS.SetNumRefIdxL0DefaultActive(uiCode+1);
+  this.READ_UVLC(&uiCode, "num_ref_idx_l1_default_active_minus1");       
+  pcPPS.SetNumRefIdxL1DefaultActive(uiCode+1);
+
+  this.READ_SVLC(&iCode, "pic_init_qp_minus26" );                        
+  pcPPS.SetPicInitQPMinus26(iCode);
+  this.READ_FLAG( &uiCode, "constrained_intra_pred_flag" );              
+  pcPPS.SetConstrainedIntraPred( uiCode!=0 );
+  this.READ_FLAG( &uiCode, "transform_skip_enabled_flag" );               
+  pcPPS.SetUseTransformSkip ( uiCode!=0 ); 
+
+  this.READ_FLAG( &uiCode, "cu_qp_delta_enabled_flag" );            
+  pcPPS.SetUseDQP(  uiCode!=0  );
+  if pcPPS.GetUseDQP() {
+    this.READ_UVLC( &uiCode, "diff_cu_qp_delta_depth" );
+    pcPPS.SetMaxCuDQPDepth( uiCode );
+  }else{
+    pcPPS.SetMaxCuDQPDepth( 0 );
+  }
+  this.READ_SVLC( &iCode, "cb_qp_offset");
+  pcPPS.SetChromaCbQpOffset(iCode);
+  //assert( pcPPS.GetChromaCbQpOffset() >= -12 );
+  //assert( pcPPS.GetChromaCbQpOffset() <=  12 );
+
+  this.READ_SVLC( &iCode, "cr_qp_offset");
+  pcPPS.SetChromaCrQpOffset(iCode);
+  //assert( pcPPS.GetChromaCrQpOffset() >= -12 );
+  //assert( pcPPS.GetChromaCrQpOffset() <=  12 );
+
+  this.READ_FLAG( &uiCode, "slicelevel_chroma_qp_flag" );
+  pcPPS.SetSliceChromaQpFlag( uiCode!=0 );
+
+  this.READ_FLAG( &uiCode, "weighted_pred_flag" );          // Use of Weighting Prediction (P_SLICE)
+  pcPPS.SetUseWP( uiCode==1 );
+  this.READ_FLAG( &uiCode, "weighted_bipred_flag" );         // Use of Bi-Directional Weighting Prediction (B_SLICE)
+  pcPPS.SetWPBiPred( uiCode==1 );
+  //printf("TDecCavlc::parsePPS():\tm_bUseWeightPred=%d\tm_uiBiPredIdc=%d\n", pcPPS.GetUseWP(), pcPPS->getWPBiPred());
+
+  this.READ_FLAG( &uiCode, "output_flag_present_flag" );
+  pcPPS.SetOutputFlagPresentFlag( uiCode!=0 );
+
+  this.READ_FLAG( &uiCode, "transquant_bypass_enable_flag");
+  pcPPS.SetTransquantBypassEnableFlag(uiCode!=0);
+//#if !DEPENDENT_SLICE_SEGMENT_FLAGS
+//#if DEPENDENT_SLICES
+//  this.READ_FLAG( &uiCode, "dependent_slices_enabled_flag"    );    pcPPS.SetDependentSliceEnabledFlag   ( uiCode == 1 );
+//#endif
+//#endif
+  this.READ_FLAG( &uiCode, "tiles_enabled_flag"               );    
+  pcPPS.SetTilesEnabledFlag            ( uiCode == 1 );
+  this.READ_FLAG( &uiCode, "entropy_coding_sync_enabled_flag" );    
+  pcPPS.SetEntropyCodingSyncEnabledFlag( uiCode == 1 );
+//#if !REMOVE_ENTROPY_SLICES
+//  this.READ_FLAG( &uiCode, "entropy_slice_enabled_flag"       );    pcPPS.SetEntropySliceEnabledFlag     ( uiCode == 1 );
+//#endif
+  
+  if pcPPS.GetTilesEnabledFlag() {
+    this.READ_UVLC ( &uiCode, "num_tile_columns_minus1" );                
+    pcPPS.SetNumColumnsMinus1( int(uiCode) );  
+    this.READ_UVLC ( &uiCode, "num_tile_rows_minus1" );                   
+    pcPPS.SetNumRowsMinus1( int(uiCode) );  
+    this.READ_FLAG ( &uiCode, "uniform_spacing_flag" );                   
+    pcPPS.SetUniformSpacingFlag( uiCode!=0 );
+
+    if !pcPPS.GetUniformSpacingFlag() {
+      columnWidth := make([]uint, pcPPS.GetNumColumnsMinus1());//UInt* columnWidth = (UInt*)malloc(pcPPS.GetNumColumnsMinus1()*sizeof(UInt));
+      for i:=0; i<pcPPS.GetNumColumnsMinus1(); i++ { 
+        this.READ_UVLC( &uiCode, "column_width_minus1" );  
+        columnWidth[i] = uiCode+1;
+      }
+      pcPPS.SetColumnWidth(columnWidth);
+      //free(columnWidth);
+
+      rowHeight := make([]uint, pcPPS.GetNumRowsMinus1());//UInt* rowHeight = (UInt*)malloc(pcPPS.GetNumRowsMinus1()*sizeof(UInt));
+      for i:=0; i<pcPPS.GetNumRowsMinus1(); i++ {
+        this.READ_UVLC( &uiCode, "row_height_minus1" );
+        rowHeight[i] = uiCode + 1;
+      }
+      pcPPS.SetRowHeight(rowHeight);
+      //free(rowHeight);  
+    }
+
+    if pcPPS.GetNumColumnsMinus1() !=0 || pcPPS.GetNumRowsMinus1() !=0 {
+      this.READ_FLAG ( &uiCode, "loop_filter_across_tiles_enabled_flag" );   
+      pcPPS.SetLoopFilterAcrossTilesEnabledFlag( uiCode!=0 );
+    }
+  }
+  this.READ_FLAG( &uiCode, "loop_filter_across_slices_enabled_flag" );       
+  pcPPS.SetLoopFilterAcrossSlicesEnabledFlag( uiCode!=0 );
+  this.READ_FLAG( &uiCode, "deblocking_filter_control_present_flag" );       
+  pcPPS.SetDeblockingFilterControlPresentFlag( uiCode!=0 );
+  if pcPPS.GetDeblockingFilterControlPresentFlag() {
+    this.READ_FLAG( &uiCode, "deblocking_filter_override_enabled_flag" );    
+    pcPPS.SetDeblockingFilterOverrideEnabledFlag( uiCode!=0 );
+    this.READ_FLAG( &uiCode, "pic_disable_deblocking_filter_flag" );         
+    pcPPS.SetPicDisableDeblockingFilterFlag( uiCode!=0 );
+    if !pcPPS.GetPicDisableDeblockingFilterFlag(){
+      this.READ_SVLC ( &iCode, "pps_beta_offset_div2" );                     
+      pcPPS.SetDeblockingFilterBetaOffsetDiv2( iCode );
+      this.READ_SVLC ( &iCode, "pps_tc_offset_div2" );                       
+      pcPPS.SetDeblockingFilterTcOffsetDiv2( iCode );
+    }
+  }
+  this.READ_FLAG( &uiCode, "pps_scaling_list_data_present_flag" );           
+  pcPPS.SetScalingListPresentFlag( uiCode!=0 );
+  if pcPPS.GetScalingListPresentFlag () {
+    this.ParseScalingList( pcPPS.GetScalingList() );
+  }
+
+//#if HLS_MOVE_SPS_PICLIST_FLAGS
+  this.READ_FLAG( &uiCode, "lists_modification_present_flag");
+  pcPPS.SetListsModificationPresentFlag(uiCode!=0);
+//#endif /* HLS_MOVE_SPS_PICLIST_FLAGS */
+
+  this.READ_UVLC( &uiCode, "log2_parallel_merge_level_minus2");
+  pcPPS.SetLog2ParallelMergeLevelMinus2 (uiCode);
+
+//#if HLS_EXTRA_SLICE_HEADER_BITS
+  this.READ_CODE(3, &uiCode, "num_extra_slice_header_bits");
+  pcPPS.SetNumExtraSliceHeaderBits(int(uiCode));
+//#endif /* HLS_EXTRA_SLICE_HEADER_BITS */
+
+  this.READ_FLAG( &uiCode, "slice_header_extension_present_flag");
+  pcPPS.SetSliceHeaderExtensionPresentFlag(uiCode!=0);
+
+  this.READ_FLAG( &uiCode, "pps_extension_flag");
+  if  uiCode!=0 {
+    for this.xMoreRbspData() {
+      this.READ_FLAG( &uiCode, "pps_extension_data_flag");
+    }
+  }
 }
 func (this *TDecCavlc)  ParseVUI            ( pcVUI *TLibCommon.TComVUI, pcSPS *TLibCommon.TComSPS){
 }
@@ -828,6 +983,29 @@ func (this *TDecCavlc)  UpdateContextTables  (  eSliceType TLibCommon.SliceType,
 func (this *TDecCavlc)  xParsePredWeightTable ( pcSlice *TLibCommon.TComSlice){
 }
 func (this *TDecCavlc)  ParseScalingList               ( scalingList *TLibCommon.TComScalingList){
+  var  code, sizeId, listId uint;
+  var scalingListPredModeFlag bool;
+  //for each size
+  for sizeId = 0; sizeId < TLibCommon.SCALING_LIST_SIZE_NUM; sizeId++ {
+    for listId = 0; listId <  TLibCommon.G_scalingListNum[sizeId]; listId++ {
+      this.READ_FLAG( &code, "scaling_list_pred_mode_flag");
+      scalingListPredModeFlag = code!=0;
+      if !scalingListPredModeFlag{ //Copy Mode
+        this.READ_UVLC( &code, "scaling_list_pred_matrix_id_delta");
+        scalingList.SetRefMatrixId (sizeId,listId, listId-code);
+        if sizeId > TLibCommon.SCALING_LIST_8x8 {
+          if listId == scalingList.GetRefMatrixId (sizeId,listId) {
+          	scalingList.SetScalingListDC(sizeId,listId,16);
+          }else{
+            scalingList.SetScalingListDC(sizeId,listId, uint(scalingList.GetScalingListDC(sizeId, scalingList.GetRefMatrixId (sizeId,listId))));
+          }
+        }
+        scalingList.ProcessRefMatrix( sizeId, listId, scalingList.GetRefMatrixId (sizeId,listId));
+      }else{ //DPCM Mode      
+        this.xDecodeScalingList(scalingList, sizeId, listId);
+      }
+    }
+  }
 }
 func (this *TDecCavlc)  xDecodeScalingList    ( scalingList *TLibCommon.TComScalingList,  sizeId,  listId uint){
 }

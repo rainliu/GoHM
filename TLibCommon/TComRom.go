@@ -99,14 +99,14 @@ static const Char MatrixType_DC[4][12][22] =
 };
 */
 
-var g_quantTSDefault4x4 [16]int /* = {
+var G_quantTSDefault4x4 [16]int /* = {
   16,16,16,16,
   16,16,16,16,
   16,16,16,16,
   16,16,16,16
 };*/
 
-var g_quantIntraDefault8x8 [64]int /* ={
+var G_quantIntraDefault8x8 [64]int /* ={
   16,16,16,16,17,18,21,24,
   16,16,16,16,17,19,22,25,
   16,16,17,18,20,22,25,29,
@@ -117,7 +117,7 @@ var g_quantIntraDefault8x8 [64]int /* ={
   24,25,29,36,47,65,88,115
 };*/
 
-var g_quantInterDefault8x8 [64]int /* = {
+var G_quantInterDefault8x8 [64]int /* = {
   16,16,16,16,17,18,20,24,
   16,16,16,17,18,20,24,25,
   16,16,17,18,20,24,25,28,
@@ -127,7 +127,7 @@ var g_quantInterDefault8x8 [64]int /* = {
   20,24,25,28,33,41,54,71,
   24,25,28,33,41,54,71,91
 };*/
-var g_scalingListSize [4]uint                    // = {16,64,256,1024}; 
-var g_scalingListSizeX [4]uint                   // = { 4, 8, 16,  32};
-var g_scalingListNum [SCALING_LIST_SIZE_NUM]uint //={6,6,6,2};
-var g_eTTable [4]int                             // = {0,3,1,2};
+var G_scalingListSize [4]uint                    // = {16,64,256,1024}; 
+var G_scalingListSizeX [4]uint                   // = { 4, 8, 16,  32};
+var G_scalingListNum [SCALING_LIST_SIZE_NUM]uint // = {6,6,6,2};
+var G_eTTable [4]int                             // = {0,3,1,2};

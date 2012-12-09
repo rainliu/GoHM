@@ -265,7 +265,7 @@ func (this *TComScalingList) GetScalingListDefaultAddress(sizeId, listId uint) [
     switch sizeId {
     case SCALING_LIST_4x4:
         //#if FLAT_4x4_DSL
-        src = g_quantTSDefault4x4[:]
+        src = G_quantTSDefault4x4[:]
         /*#else
               if( m_useTransformSkip )
               {
@@ -279,25 +279,25 @@ func (this *TComScalingList) GetScalingListDefaultAddress(sizeId, listId uint) [
         //break;
     case SCALING_LIST_8x8:
         if listId < 3 {
-            src = g_quantIntraDefault8x8[:]
+            src = G_quantIntraDefault8x8[:]
         } else {
-            src = g_quantInterDefault8x8[:]
+            src = G_quantInterDefault8x8[:]
         }
         //src = (listId<3) ? g_quantIntraDefault8x8 : g_quantInterDefault8x8;
         //break;
     case SCALING_LIST_16x16:
         if listId < 3 {
-            src = g_quantIntraDefault8x8[:]
+            src = G_quantIntraDefault8x8[:]
         } else {
-            src = g_quantInterDefault8x8[:]
+            src = G_quantInterDefault8x8[:]
         }
         //src = (listId<3) ? g_quantIntraDefault8x8 : g_quantInterDefault8x8;
         //break;
     case SCALING_LIST_32x32:
         if listId < 1 {
-            src = g_quantIntraDefault8x8[:]
+            src = G_quantIntraDefault8x8[:]
         } else {
-            src = g_quantInterDefault8x8[:]
+            src = G_quantInterDefault8x8[:]
         }
         //src = (listId<1) ? g_quantIntraDefault8x8 : g_quantInterDefault8x8;
         //break;
@@ -1677,7 +1677,7 @@ type TComPPS struct {
 
     m_iNumSubstreams int
 
-    m_signHideFlag int
+    m_signHideFlag bool
 
     m_cabacInitPresentFlag bool
     m_encCABACTableIdx     uint // Used to transmit table selection across slices
@@ -1691,7 +1691,14 @@ type TComPPS struct {
     m_deblockingFilterTcOffsetDiv2        int //< tc offset for deblocking filter
     m_scalingListPresentFlag              bool
     m_scalingList                         *TComScalingList //!< ScalingList class pointer
-    m_log2ParallelMergeLevelMinus2        uint
+    
+//#if HLS_MOVE_SPS_PICLIST_FLAGS
+  	m_listsModificationPresentFlag		 bool;
+//#endif /* HLS_MOVE_SPS_PICLIST_FLAGS */
+  	m_log2ParallelMergeLevelMinus2        uint
+//#if HLS_EXTRA_SLICE_HEADER_BITS
+  	m_numExtraSliceHeaderBits			int;
+//#endif /* HLS_EXTRA_SLICE_HEADER_BITS */    
 }
 
 //public:
@@ -1890,10 +1897,10 @@ func (this *TComPPS) GetNumSubstreams() int {
     return this.m_iNumSubstreams
 }
 
-func (this *TComPPS) SetSignHideFlag(signHideFlag int) {
+func (this *TComPPS) SetSignHideFlag(signHideFlag bool) {
     this.m_signHideFlag = signHideFlag
 }
-func (this *TComPPS) GetSignHideFlag() int {
+func (this *TComPPS) GetSignHideFlag() bool {
     return this.m_signHideFlag
 }
 
@@ -1952,12 +1959,29 @@ func (this *TComPPS) SetScalingList(scalingList *TComScalingList) {
 func (this *TComPPS) GetScalingList() *TComScalingList {
     return this.m_scalingList
 }   //!< Get ScalingList class pointer in PPS
+//#if HLS_MOVE_SPS_PICLIST_FLAGS
+func (this *TComPPS)  GetListsModificationPresentFlag ()  bool   { 
+	return this.m_listsModificationPresentFlag; 
+}
+func (this *TComPPS)  SetListsModificationPresentFlag ( b bool)  { 
+	this.m_listsModificationPresentFlag = b;    
+}
+//#endif /* HLS_MOVE_SPS_PICLIST_FLAGS */
 func (this *TComPPS) GetLog2ParallelMergeLevelMinus2() uint {
     return this.m_log2ParallelMergeLevelMinus2
 }
 func (this *TComPPS) SetLog2ParallelMergeLevelMinus2(mrgLevel uint) {
     this.m_log2ParallelMergeLevelMinus2 = mrgLevel
 }
+//#if HLS_EXTRA_SLICE_HEADER_BITS
+func (this *TComPPS)  GetNumExtraSliceHeaderBits()  int  { 
+	return this.m_numExtraSliceHeaderBits; 
+}
+func (this *TComPPS)  SetNumExtraSliceHeaderBits(i int) { 
+	this.m_numExtraSliceHeaderBits = i; 
+}
+//#endif /* HLS_EXTRA_SLICE_HEADER_BITS */
+
 func (this *TComPPS) SetLoopFilterAcrossSlicesEnabledFlag(bValue bool) {
     this.m_loopFilterAcrossSlicesEnabledFlag = bValue
 }
