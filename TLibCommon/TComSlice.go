@@ -1,6 +1,7 @@
 package TLibCommon
 
 import (
+	//"fmt"
     "container/list"
 )
 
@@ -2576,12 +2577,12 @@ type ParameterSetManager struct {
 
 //public:
 func NewParameterSetManager() *ParameterSetManager {
-    return &ParameterSetManager{}
+    return &ParameterSetManager{make(map[int]*TComVPS), make(map[int]*TComSPS), make(map[int]*TComPPS)}
 }
 
 //! store sequence parameter set and take ownership of it 
 func (this *ParameterSetManager) SetVPS(vps *TComVPS) {
-    this.m_vpsMap[vps.GetVPSId()] = vps
+	this.m_vpsMap[vps.GetVPSId()] = vps
 }
 
 //! get pointer to existing video parameter set  
@@ -2613,4 +2614,6 @@ func (this *ParameterSetManager) GetPPS(ppsId int) *TComPPS {
     return this.m_ppsMap[ppsId]
 }
 
+func (this *ParameterSetManager) ApplyPS() {
+}
 //func (this *ParameterSetManager)  TComPPS* getFirstPPS()      { return m_ppsMap.getFirstPS(); };

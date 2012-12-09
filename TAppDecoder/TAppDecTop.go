@@ -12,8 +12,8 @@ import (
 type TAppDecTop struct {
     TAppDecCfg
 
-    m_cTDecTop              TLibDecoder.TDecTop
-    m_cTVideoIOYuvReconFile TLibCommon.TVideoIOYuv
+    m_cTDecTop              *TLibDecoder.TDecTop
+    m_cTVideoIOYuvReconFile *TLibCommon.TVideoIOYuv
 
     m_abDecFlag       [TLibCommon.MAX_GOP]bool
     m_iPOCLastDisplay int
@@ -23,6 +23,9 @@ func NewTAppDecTop() *TAppDecTop {
     pAppDecTop := &TAppDecTop{}
     //::memset (m_abDecFlag, 0, sizeof (m_abDecFlag));//memset 0 by Go
     pAppDecTop.m_iPOCLastDisplay = -TLibCommon.MAX_GOP
+    pAppDecTop.TAppDecCfg.m_targetDecLayerIdSet = list.New()
+    pAppDecTop.m_cTDecTop = TLibDecoder.NewTDecTop()
+    pAppDecTop.m_cTVideoIOYuvReconFile = TLibCommon.NewTVideoIOYuv()
 
     return pAppDecTop
 }
@@ -32,16 +35,7 @@ func (this *TAppDecTop) Create() {
 }
 
 func (this *TAppDecTop) Destroy(){
-  /*if this.m_pchBitstreamFile !=
-  {
-    free (m_pchBitstreamFile);
-    m_pchBitstreamFile = NULL;
-  }
-  if (m_pchReconFile)
-  {
-    free (m_pchReconFile);
-    m_pchReconFile = NULL;
-  }*/
+  //do nothing
 }
 
 func (this *TAppDecTop) Decode() (err error){
@@ -64,8 +58,8 @@ func (this *TAppDecTop) Decode() (err error){
 
   // main decoder loop
   recon_opened := false; // reconstruction file not yet opened. (must be performed after SPS is seen)
-
-  for {// (!!bitstreamFile)
+  eof := false
+  for !eof {// (!!bitstreamFile)
     /* location serves to work around a design fault in the decoder, whereby
      * the process of reading a new slice that is the first slice of a new frame
      * requires the TDecTop::decode() method to be called again with the same
@@ -76,8 +70,8 @@ func (this *TAppDecTop) Decode() (err error){
 
     nalUnit	:= list.New(); //vector<uint8_t> 
     var	nalu TLibDecoder.InputNALUnit;
-    bytestream.ByteStreamNALUnit(nalUnit, &stats);
-
+    eof = bytestream.ByteStreamNALUnit(nalUnit, &stats);
+	
     // call actual decoding function
     bNewPicture := false;
     if nalUnit.Len()==0 {
@@ -87,8 +81,12 @@ func (this *TAppDecTop) Decode() (err error){
        *  - start_code_prefix immediately followed by EOF
        */
       fmt.Printf("Warning: Attempt to decode an empty NAL unit\n");
+      break;
     }else{
+      fmt.Printf("NalUnit Len=%d ", nalUnit.Len())
       nalu.Read(nalUnit);
+      fmt.Printf("Type=%d\n", nalu.GetNalUnitType())
+      
       if (this.m_iMaxTemporalLayer >= 0 && int(nalu.GetTemporalId()) > this.m_iMaxTemporalLayer) || 
       	 !this.IsNaluWithinTargetDecLayerIdSet(&nalu) {
         if bPreviousPictureDecoded {

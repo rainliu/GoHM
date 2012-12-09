@@ -2,7 +2,7 @@ package TLibDecoder
 
 import (
 	"container/list"
-    "gohm/TLibCommon"
+    //"gohm/TLibCommon"
 )
 
 /// slice decoder class
@@ -44,7 +44,7 @@ func (this *TDecSlice)  SetCtxMem( sb *TDecSbac, b int )   {
 }
 //#endif
 //};
-
+/*
 type ParameterSetManagerDecoder struct {
     TLibCommon.ParameterSetManager
     //private:
@@ -55,7 +55,9 @@ type ParameterSetManagerDecoder struct {
 
 
 func NewParameterSetManagerDecoder() *ParameterSetManagerDecoder{
-	return &ParameterSetManagerDecoder{};
+	return ParameterSetManagerDecoder{TLibCommon.ParameterSetManager{make(map[int]*TLibCommon.TComVPS), 
+																	 make(map[int]*TLibCommon.TComSPS), 
+																	 make(map[int]*TLibCommon.TComPPS)}}
 }
 
 func (this *ParameterSetManagerDecoder)  SetPrefetchedVPS(vps *TLibCommon.TComVPS)  { 
@@ -77,4 +79,4 @@ func (this *ParameterSetManagerDecoder)  GetPrefetchedPPS  (ppsId int) *TLibComm
 	return this.GetPPS(ppsId)
 }
 func (this *ParameterSetManagerDecoder)  ApplyPrefetchedPS() {
-}
+}*/

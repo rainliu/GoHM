@@ -19,7 +19,7 @@ type TDecEntropyIf interface {
     ParseSPS                  ( pcSPS *TLibCommon.TComSPS );
     ParsePPS                  ( pcPPS *TLibCommon.TComPPS );
 
-    ParseSliceHeader          ( rpcSlice *TLibCommon.TComSlice, parameterSetManager *ParameterSetManagerDecoder);
+    ParseSliceHeader          ( rpcSlice *TLibCommon.TComSlice, parameterSetManager *TLibCommon.ParameterSetManager);
 
     ParseTerminatingBit       ( ruilsLast *uint );
 
@@ -100,10 +100,10 @@ func (this *TDecEntropy)   DecodeVPS                   ( pcVPS 	*TLibCommon.TCom
 func (this *TDecEntropy)   DecodeSPS                   ( pcSPS  *TLibCommon.TComSPS)    { 
 	this.m_pcEntropyDecoderIf.ParseSPS(pcSPS);                    
 }
-func (this *TDecEntropy)   DecodePPS                   ( pcPPS	*TLibCommon.TComPPS, parameterSet *ParameterSetManagerDecoder )    { 
+func (this *TDecEntropy)   DecodePPS                   ( pcPPS	*TLibCommon.TComPPS, parameterSet *TLibCommon.ParameterSetManager )    { 
 	this.m_pcEntropyDecoderIf.ParsePPS(pcPPS);                    
 }
-func (this *TDecEntropy)   DecodeSliceHeader           ( rpcSlice	*TLibCommon.TComSlice, parameterSetManager	*ParameterSetManagerDecoder)  { 
+func (this *TDecEntropy)   DecodeSliceHeader           ( rpcSlice	*TLibCommon.TComSlice, parameterSetManager	*TLibCommon.ParameterSetManager)  { 
 	this.m_pcEntropyDecoderIf.ParseSliceHeader(rpcSlice, parameterSetManager);         
 }
 

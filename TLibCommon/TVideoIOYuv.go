@@ -61,7 +61,9 @@ func (this *TVideoIOYuv) Open(pchFile string, bWriteMode bool, fileBitDepthY, fi
 
 ///< close file 
 func (this *TVideoIOYuv) Close() {
-    this.m_cHandle.Close()
+	if this.m_cHandle!=nil{
+    	this.m_cHandle.Close()
+    }
 }
 
 /**

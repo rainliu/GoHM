@@ -20,7 +20,7 @@ type TDecTop struct {
     m_pocRandomAccess int  ///< POC number of the random access point (the first IDR or CRA picture)
 
     m_pcListPic                  *list.List                 //  Dynamic buffer
-    m_parameterSetManagerDecoder ParameterSetManagerDecoder // storage for parameter sets 
+    m_parameterSetManagerDecoder *TLibCommon.ParameterSetManager // storage for parameter sets 
     m_apcSlicePilot              *TLibCommon.TComSlice
 
     m_SEIs *TLibCommon.SEImessages ///< "all" SEI messages.  If not NULL, we own the object.
@@ -52,8 +52,6 @@ type TDecTop struct {
 
 //public:
 func NewTDecTop() *TDecTop {
-    pcListPic := list.New()
-
     return &TDecTop{m_pcPic: nil,
         m_iGopSize:      0,
         m_bGopSizeSet:   false,
@@ -70,7 +68,8 @@ func NewTDecTop() *TDecTop {
         m_prevPOC:               TLibCommon.MAX_INT,
         m_bFirstSliceInPicture:  true,
         m_bFirstSliceInSequence: true,
-        m_pcListPic:             pcListPic,
+        m_pcListPic:             list.New(),
+        m_parameterSetManagerDecoder: TLibCommon.NewParameterSetManager(),
         warningMessage:          false}
 }
 
@@ -261,7 +260,6 @@ func (this *TDecTop) xGetNewPicBuffer(pcSlice *TLibCommon.TComSlice, rpcPic *TLi
 
     bBufferIsAvailable := false;
 	for e := this.m_pcListPic.Front(); e != nil; e = e.Next() {
-		// do something with e.Value
 		rpcPic := e.Value.(*TLibCommon.TComPic)
 		if rpcPic.GetReconMark() == false && rpcPic.GetOutputMark() == false {
           rpcPic.SetOutputMark(false);
@@ -302,7 +300,7 @@ func (this *TDecTop) xCreateLostPicture(iLostPOC int) {
 }
 
 func (this *TDecTop) xActivateParameterSets() {
-    this.m_parameterSetManagerDecoder.ApplyPrefetchedPS()
+    this.m_parameterSetManagerDecoder.ApplyPS()
 
     pps := this.m_parameterSetManagerDecoder.GetPPS(this.m_apcSlicePilot.GetPPSId())
     //assert (pps != 0);
@@ -341,17 +339,17 @@ func (this *TDecTop) xDecodeVPS() {
   vps := TLibCommon.NewTComVPS();
   
   this.m_cEntropyDecoder.DecodeVPS( vps );
-  this.m_parameterSetManagerDecoder.SetPrefetchedVPS(vps); 
+  this.m_parameterSetManagerDecoder.SetVPS(vps); 
 }
 func (this *TDecTop) xDecodeSPS() {
   sps := TLibCommon.NewTComSPS();
   this.m_cEntropyDecoder.DecodeSPS( sps );
-  this.m_parameterSetManagerDecoder.SetPrefetchedSPS(sps);
+  this.m_parameterSetManagerDecoder.SetSPS(sps);
 }
 func (this *TDecTop) xDecodePPS() {
   pps := TLibCommon.NewTComPPS();
-  this.m_cEntropyDecoder.DecodePPS( pps, &this.m_parameterSetManagerDecoder );
-  this.m_parameterSetManagerDecoder.SetPrefetchedPPS( pps );
+  this.m_cEntropyDecoder.DecodePPS( pps, this.m_parameterSetManagerDecoder );
+  this.m_parameterSetManagerDecoder.SetPPS( pps );
 
 //#if DEPENDENT_SLICES
 //#if REMOVE_ENTROPY_SLICES
