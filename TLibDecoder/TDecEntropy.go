@@ -68,7 +68,10 @@ type TDecEntropy struct {
     m_bakAbsPartIdxCU   uint
 }
 
-//public:
+func NewTDecEntropy() *TDecEntropy{
+	return &TDecEntropy{};
+}
+
 func (this *TDecEntropy) Init(p *TLibCommon.TComPrediction) {
     this.m_pcPrediction = p
 }

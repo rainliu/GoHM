@@ -28,18 +28,18 @@ type TDecTop struct {
 
     // functional classes
 
-    m_cPrediction     TLibCommon.TComPrediction
-    m_cTrQuant        TLibCommon.TComTrQuant
-    m_cGopDecoder     TDecGop
-    m_cSliceDecoder   TDecSlice
-    m_cCuDecoder      TDecCu
-    m_cEntropyDecoder TDecEntropy
-    m_cCavlcDecoder   TDecCavlc
-    m_cSbacDecoder    TDecSbac
-    m_cBinCabac       TDecBinCabac
-    m_cSeiReader      TDecSeiReader
-    m_cLoopFilter     TLibCommon.TComLoopFilter
-    m_cSAO            TLibCommon.TComSampleAdaptiveOffset
+    m_cPrediction     *TLibCommon.TComPrediction
+    m_cTrQuant        *TLibCommon.TComTrQuant
+    m_cGopDecoder     *TDecGop
+    m_cSliceDecoder   *TDecSlice
+    m_cCuDecoder      *TDecCu
+    m_cEntropyDecoder *TDecEntropy
+    m_cCavlcDecoder   *TDecCavlc
+    m_cSbacDecoder    *TDecSbac
+    m_cBinCabac       *TDecBinCabac
+    m_cSeiReader      *TDecSeiReader
+    m_cLoopFilter     *TLibCommon.TComLoopFilter
+    m_cSAO            *TLibCommon.TComSampleAdaptiveOffset
 
     m_pcPic                 *TLibCommon.TComPic
     m_uiSliceIdx            uint
@@ -58,11 +58,6 @@ func NewTDecTop() *TDecTop {
         m_iGopSize:      0,
         m_bGopSizeSet:   false,
         m_iMaxRefPicNum: 0,
-        //#if ENC_DEC_TRACE
-        //  g_hTrace = fopen( "TraceDec.txt", "wb" );
-        //  g_bJustDoIt = g_bEncDecTraceDisable;
-        //  g_nSymbolCounter = 0;
-        //#endif
         m_bRefreshPending:       false,
         m_pocCRA:                0,
         m_prevRAPisBLA:          false,
@@ -72,7 +67,19 @@ func NewTDecTop() *TDecTop {
         m_bFirstSliceInSequence: true,
         m_pcListPic:             list.New(),
         m_parameterSetManagerDecoder: TLibCommon.NewParameterSetManager(),
-        warningMessage:          false}
+        warningMessage:          false,
+        m_cPrediction     :TLibCommon.NewTComPrediction(),
+    	m_cTrQuant        :TLibCommon.NewTComTrQuant(),
+    	m_cGopDecoder     :NewTDecGop(),
+    	m_cSliceDecoder   :NewTDecSlice(),
+    	m_cCuDecoder      :NewTDecCu(),
+    	m_cEntropyDecoder :NewTDecEntropy(),
+    	m_cCavlcDecoder   :NewTDecCavlc(),
+    	m_cSbacDecoder    :NewTDecSbac(),
+    	m_cBinCabac       :NewTDecBinCabac(),
+    	m_cSeiReader      :NewTDecSeiReader(),
+    	m_cLoopFilter     :nil,//TLibCommon.NewTComLoopFilter(),
+    	m_cSAO            :nil}//TLibCommon.NewTComSampleAdaptiveOffset()}
 }
 
 func (this *TDecTop) Create(pchTraceFile string) {
@@ -143,14 +150,14 @@ func (this *TDecTop) SetDecodedPictureHashSEIEnabled(enabled int) {
 func (this *TDecTop) Init() {
     // initialize ROM
     TLibCommon.InitROM()
-    this.m_cGopDecoder.Init(&this.m_cEntropyDecoder, &this.m_cSbacDecoder, &this.m_cBinCabac, &this.m_cCavlcDecoder, &this.m_cSliceDecoder, &this.m_cLoopFilter, &this.m_cSAO)
-    this.m_cSliceDecoder.Init(&this.m_cEntropyDecoder, &this.m_cCuDecoder)
-    this.m_cEntropyDecoder.Init(&this.m_cPrediction)
+    this.m_cGopDecoder.Init(this.m_cEntropyDecoder, this.m_cSbacDecoder, this.m_cBinCabac, this.m_cCavlcDecoder, this.m_cSliceDecoder, this.m_cLoopFilter, this.m_cSAO)
+    this.m_cSliceDecoder.Init(this.m_cEntropyDecoder, this.m_cCuDecoder)
+    this.m_cEntropyDecoder.Init(this.m_cPrediction)
 }
 
 func (this *TDecTop) Decode(nalu *InputNALUnit, iSkipFrame *int, iPOCLastDisplay *int) bool {
     // Initialize entropy decoder
-    this.m_cEntropyDecoder.SetEntropyDecoder (&this.m_cCavlcDecoder);
+    this.m_cEntropyDecoder.SetEntropyDecoder (this.m_cCavlcDecoder);
     this.m_cEntropyDecoder.SetBitstream(nalu.GetBitstream());
     this.m_cEntropyDecoder.SetTraceFile(this.m_pTraceFile);
 
@@ -265,7 +272,7 @@ func (this *TDecTop) xGetNewPicBuffer(pcSlice *TLibCommon.TComSlice) (rpcPic *TL
         rpcPic.Create(int(pcSlice.GetSPS().GetPicWidthInLumaSamples()), int(pcSlice.GetSPS().GetPicHeightInLumaSamples()),
             TLibCommon.G_uiMaxCUWidth, TLibCommon.G_uiMaxCUHeight, TLibCommon.G_uiMaxCUDepth,
             picCroppingWindow, numReorderPics[:], true)
-        rpcPic.GetPicSym().AllocSaoParam(&this.m_cSAO)
+        rpcPic.GetPicSym().AllocSaoParam(this.m_cSAO)
         this.m_pcListPic.PushBack(rpcPic)
 
         return rpcPic
@@ -300,7 +307,7 @@ func (this *TDecTop) xGetNewPicBuffer(pcSlice *TLibCommon.TComSlice) (rpcPic *TL
     rpcPic.Create(int(pcSlice.GetSPS().GetPicWidthInLumaSamples()), int(pcSlice.GetSPS().GetPicHeightInLumaSamples()),
         TLibCommon.G_uiMaxCUWidth, TLibCommon.G_uiMaxCUHeight, TLibCommon.G_uiMaxCUDepth,
         picCroppingWindow, numReorderPics[:], true)
-    rpcPic.GetPicSym().AllocSaoParam(&this.m_cSAO)
+    rpcPic.GetPicSym().AllocSaoParam(this.m_cSAO)
     
     return rpcPic;
 }
@@ -349,7 +356,6 @@ func (this *TDecTop) xActivateParameterSets() {
 }
 
 func (this *TDecTop) xDecodeSlice(nalu *InputNALUnit, iSkipFrame *int, iPOCLastDisplay int) bool {
-  //pcPic := this.m_pcPic;
   this.m_apcSlicePilot.InitSlice();
 
   if this.m_bFirstSliceInPicture {
@@ -370,6 +376,7 @@ func (this *TDecTop) xDecodeSlice(nalu *InputNALUnit, iSkipFrame *int, iPOCLastD
   this.m_apcSlicePilot.SetTLayerInfo(nalu.GetTemporalId());
 
   this.m_cEntropyDecoder.DecodeSliceHeader (this.m_apcSlicePilot, this.m_parameterSetManagerDecoder);
+/*
   // exit when a new picture is found
   if this.m_apcSlicePilot.IsNextSlice() && this.m_apcSlicePilot.GetPOC()!=this.m_prevPOC && !this.m_bFirstSliceInSequence {
     if this.m_prevPOC >= this.m_pocRandomAccess {
@@ -378,6 +385,7 @@ func (this *TDecTop) xDecodeSlice(nalu *InputNALUnit, iSkipFrame *int, iPOCLastD
     }
     this.m_prevPOC = this.m_apcSlicePilot.GetPOC();
   }
+   
   // actual decoding starts here
   this.xActivateParameterSets();
 
@@ -408,13 +416,13 @@ func (this *TDecTop) xDecodeSlice(nalu *InputNALUnit, iSkipFrame *int, iPOCLastD
     //  Get a new picture buffer
     this.m_pcPic = this.xGetNewPicBuffer (this.m_apcSlicePilot);
 
-    /* transfer any SEI messages that have been received to the picture */
+    // transfer any SEI messages that have been received to the picture 
     this.m_pcPic.SetSEIs(this.m_SEIs);
     this.m_SEIs = nil;
 
     // Recursive structure
     this.m_cCuDecoder.Create ( TLibCommon.G_uiMaxCUDepth, TLibCommon.G_uiMaxCUWidth, TLibCommon.G_uiMaxCUHeight );
-    this.m_cCuDecoder.Init   ( &this.m_cEntropyDecoder, &this.m_cTrQuant, &this.m_cPrediction );
+    this.m_cCuDecoder.Init   ( this.m_cEntropyDecoder, this.m_cTrQuant, this.m_cPrediction );
     this.m_cTrQuant.Init     ( TLibCommon.G_uiMaxCUWidth, TLibCommon.G_uiMaxCUHeight, this.m_apcSlicePilot.GetSPS().GetMaxTrSize(), 
     						   0, nil, nil, nil, false, false, false, false, false);
 
@@ -506,6 +514,9 @@ func (this *TDecTop) xDecodeSlice(nalu *InputNALUnit, iSkipFrame *int, iPOCLastD
   }
   //assert(pcPic.GetNumAllocatedSlice() == (this.m_uiSliceIdx + 1));
   this.m_apcSlicePilot = this.m_pcPic.GetPicSym().GetSlice(this.m_uiSliceIdx); 
+  if(this.m_apcSlicePilot==nil){
+  	fmt.Printf("middle m_apcSlicePilot==nil")
+  }
   this.m_pcPic.GetPicSym().SetSlice(pcSlice, this.m_uiSliceIdx);
 
   this.m_pcPic.SetTLayer(nalu.GetTemporalId());
@@ -580,11 +591,15 @@ func (this *TDecTop) xDecodeSlice(nalu *InputNALUnit, iSkipFrame *int, iPOCLastD
   }
 
   //  Decode a picture
-  //this.m_cGopDecoder.DecompressSlice(nalu.m_Bitstream, this.m_pcPic);
+  this.m_cGopDecoder.DecompressSlice(nalu.m_Bitstream, this.m_pcPic);
 
   this.m_bFirstSliceInPicture = false;
   this.m_uiSliceIdx++;
 
+  if  this.m_apcSlicePilot==nil{
+  	fmt.Printf("end m_apcSlicePilot==nil")
+  } 
+  */
   return false;
 }
 func (this *TDecTop) xDecodeVPS() {
@@ -618,7 +633,7 @@ func (this *TDecTop) xDecodePPS() {
     this.m_cSliceDecoder.InitCtxMem(uint(NumCtx));
     for st := 0; st < NumCtx; st++ {
       ctx := NewTDecSbac();
-      ctx.Init( &this.m_cBinCabac );
+      ctx.Init( this.m_cBinCabac );
       this.m_cSliceDecoder.SetCtxMem( ctx, st );
     }
   }

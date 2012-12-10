@@ -1417,10 +1417,9 @@ func (this *TDecCavlc)  ParseSliceHeader    ( rpcSlice *TLibCommon.TComSlice, pa
       }
 
       if pps.GetTilesEnabledFlag() {
-        rpcSlice.SetTileLocationCount( numEntryPointOffsets );
-
+        //rpcSlice.SetTileLocationCount( numEntryPointOffsets );
         prevPos := uint(0);
-        for idx:=uint(0); idx<rpcSlice.GetTileLocationCount(); idx++ {
+        for idx:=uint(0); idx<numEntryPointOffsets/*rpcSlice.GetTileLocationCount()*/; idx++ {
           rpcSlice.SetTileLocation( int(idx), prevPos + entryPointOffset [ idx ] );
           prevPos += entryPointOffset[ idx ];
         }

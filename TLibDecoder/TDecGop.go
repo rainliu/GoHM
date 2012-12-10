@@ -1,6 +1,7 @@
 package TLibDecoder
 
 import (
+	"fmt"
     "container/list"
     "gohm/TLibCommon"
 )
@@ -70,6 +71,9 @@ func (this *TDecGop) DecompressSlice(pcBitstream *TLibCommon.TComInputBitstream,
 
   uiSliceStartCuAddr := pcSlice.GetSliceCurStartCUAddr();
   if uiSliceStartCuAddr == uiStartCUAddr {
+  	if this.m_sliceStartCUAddress==nil{
+  		fmt.Printf("m_sliceStartCUAddress==nil\n");
+  	}
     this.m_sliceStartCUAddress.PushBack(uiSliceStartCuAddr);
   }
 
