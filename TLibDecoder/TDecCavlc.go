@@ -756,7 +756,7 @@ func (this *TDecCavlc)  ParsePPS            ( pcPPS	*TLibCommon.TComPPS){
   pcPPS.SetUseWP( uiCode==1 );
   this.READ_FLAG( &uiCode, "weighted_bipred_flag" );         // Use of Bi-Directional Weighting Prediction (B_SLICE)
   pcPPS.SetWPBiPred( uiCode==1 );
-  //printf("TDecCavlc::parsePPS():\tm_bUseWeightPred=%d\tm_uiBiPredIdc=%d\n", pcPPS.GetUseWP(), pcPPS->getWPBiPred());
+  //printf("TDecCavlc::parsePPS():\tm_bUseWeightPred=%d\tm_uiBiPredIdc=%d\n", pcPPS.GetUseWP(), pcPPS.GetWPBiPred());
 
   this.READ_FLAG( &uiCode, "output_flag_present_flag" );
   pcPPS.SetOutputFlagPresentFlag( uiCode!=0 );
@@ -931,6 +931,528 @@ func (this *TDecCavlc)  ParseBitratePicRateInfo(info *TLibCommon.TComBitRatePicR
 }
 //#endif
 func (this *TDecCavlc)  ParseSliceHeader    ( rpcSlice *TLibCommon.TComSlice, parameterSetManager *TLibCommon.ParameterSetManager){//Decoder
+  var uiCode uint;
+  var  iCode  int;
+
+//#if ENC_DEC_TRACE
+  this.xTraceSliceHeader(rpcSlice);
+//#endif
+  //TComPPS* pps = NULL;
+  //TComSPS* sps = NULL;
+
+  var firstSliceInPic uint;
+  this.READ_FLAG( &firstSliceInPic, "first_slice_in_pic_flag" );
+  if rpcSlice.GetRapPicFlag() { 
+    this.READ_FLAG( &uiCode, "no_output_of_prior_pics_flag" );  //ignored
+  }
+  this.READ_UVLC (    &uiCode, "pic_parameter_set_id" );  
+  rpcSlice.SetPPSId(int(uiCode));
+  pps := parameterSetManager.GetPPS(int(uiCode));
+  //!KS: need to add error handling code here, if PPS is not available
+  //assert(pps!=0);
+  sps := parameterSetManager.GetSPS(pps.GetSPSId());
+  //!KS: need to add error handling code here, if SPS is not available
+  //assert(sps!=0);
+  rpcSlice.SetSPS(sps);
+  rpcSlice.SetPPS(pps);
+//#if DEPENDENT_SLICE_SEGMENT_FLAGS
+  if pps.GetDependentSliceEnabledFlag() && firstSliceInPic==0  {
+    this.READ_FLAG( &uiCode, "dependent_slice_flag" );       
+    rpcSlice.SetDependentSliceFlag(uiCode!=0);
+  }else{
+    rpcSlice.SetDependentSliceFlag(false);
+  }
+//#endif
+  numCUs := ((sps.GetPicWidthInLumaSamples()+sps.GetMaxCUWidth()-1)/sps.GetMaxCUWidth())*((sps.GetPicHeightInLumaSamples()+sps.GetMaxCUHeight()-1)/sps.GetMaxCUHeight());
+  maxParts := uint(1<<(sps.GetMaxCUDepth()<<1));
+  numParts := 0;
+  lCUAddress := uint(0);
+  reqBitsOuter := 0;
+  for numCUs>(1<<uint(reqBitsOuter)) {
+    reqBitsOuter++;
+  }
+  reqBitsInner := 0;
+  for numParts>(1<<uint(reqBitsInner)) {
+    reqBitsInner++;
+  }
+
+  innerAddress := uint(0);
+  sliceAddress := uint(0);
+  if firstSliceInPic==0 {
+    var address uint;
+    this.READ_CODE( uint(reqBitsOuter+reqBitsInner), &address, "slice_address" );
+    lCUAddress = address >> uint(reqBitsInner);
+    innerAddress = address - (lCUAddress<<uint(reqBitsInner));
+  }
+  //set uiCode to equal slice start address (or dependent slice start address)
+  sliceAddress=(maxParts*lCUAddress)+(innerAddress);
+  rpcSlice.SetDependentSliceCurStartCUAddr( sliceAddress );
+  rpcSlice.SetDependentSliceCurEndCUAddr(numCUs*maxParts);
+/*#if !DEPENDENT_SLICE_SEGMENT_FLAGS
+  if( pps.GetDependentSliceEnabledFlag() && (sliceAddress !=0 ))
+  {
+    this.READ_FLAG( &uiCode, "dependent_slice_flag" );       rpcSlice.SetDependentSliceFlag(uiCode ? true : false);
+  }
+  else
+  {
+    rpcSlice.SetDependentSliceFlag(false);
+  }
+#endif*/
+
+  if rpcSlice.GetDependentSliceFlag() {
+    rpcSlice.SetNextSlice          ( false );
+    rpcSlice.SetNextDependentSlice ( true  );
+  }else{
+    rpcSlice.SetNextSlice          ( true  );
+    rpcSlice.SetNextDependentSlice ( false );
+
+    rpcSlice.SetSliceCurStartCUAddr(sliceAddress);
+    rpcSlice.SetSliceCurEndCUAddr(numCUs*maxParts);
+  }
+  
+  if !rpcSlice.GetDependentSliceFlag() {
+//#if HLS_EXTRA_SLICE_HEADER_BITS
+    for i := 0; i < rpcSlice.GetPPS().GetNumExtraSliceHeaderBits(); i++ {
+      this.READ_FLAG(&uiCode, "slice_reserved_undetermined_flag[]"); // ignored
+    }
+//#endif /* HLS_EXTRA_SLICE_HEADER_BITS */
+
+    this.READ_UVLC (    &uiCode, "slice_type" );            
+    rpcSlice.SetSliceType(TLibCommon.SliceType(uiCode));
+    if pps.GetOutputFlagPresentFlag() {
+      this.READ_FLAG( &uiCode, "pic_output_flag" );    
+      rpcSlice.SetPicOutputFlag( uiCode!=0 );
+    }else{
+      rpcSlice.SetPicOutputFlag( true );
+    }
+    // in the first version chroma_format_idc is equal to one, thus colour_plane_id will not be present
+    //assert (sps.GetChromaFormatIdc() == 1 );
+    // if( separate_colour_plane_flag  ==  1 )
+    //   colour_plane_id                                      u(2)
+
+    if rpcSlice.GetIdrPicFlag() {
+      rpcSlice.SetPOC(0);
+      rps := rpcSlice.GetLocalRPS();
+      rps.SetNumberOfNegativePictures(0);
+      rps.SetNumberOfPositivePictures(0);
+      rps.SetNumberOfLongtermPictures(0);
+      rps.SetNumberOfPictures(0);
+      rpcSlice.SetRPS(rps);
+    }else{
+      this.READ_CODE(sps.GetBitsForPOC(), &uiCode, "pic_order_cnt_lsb");  
+      iPOClsb := int(uiCode);
+      iPrevPOC := int(rpcSlice.GetPrevPOC());
+      iMaxPOClsb := int(1<< sps.GetBitsForPOC());
+      iPrevPOClsb := int(iPrevPOC%iMaxPOClsb);
+      iPrevPOCmsb := int(iPrevPOC-iPrevPOClsb);
+      var iPOCmsb int;
+      if ( iPOClsb  <  iPrevPOClsb ) && ( ( iPrevPOClsb - iPOClsb )  >=  ( iMaxPOClsb / 2 ) ) {
+        iPOCmsb = iPrevPOCmsb + iMaxPOClsb;
+      }else if (iPOClsb  >  iPrevPOClsb )  && ( (iPOClsb - iPrevPOClsb )  >  ( iMaxPOClsb / 2 ) ) {
+        iPOCmsb = iPrevPOCmsb - iMaxPOClsb;
+      }else{
+        iPOCmsb = iPrevPOCmsb;
+      }
+      if rpcSlice.GetNalUnitType() == TLibCommon.NAL_UNIT_CODED_SLICE_BLA	    ||
+         rpcSlice.GetNalUnitType() == TLibCommon.NAL_UNIT_CODED_SLICE_BLANT		||
+         rpcSlice.GetNalUnitType() == TLibCommon.NAL_UNIT_CODED_SLICE_BLA_N_LP {
+        // For BLA picture types, POCmsb is set to 0.
+        iPOCmsb = 0;
+      }
+      rpcSlice.SetPOC              (iPOCmsb+iPOClsb);
+
+      var rps *TLibCommon.TComReferencePictureSet;
+      this.READ_FLAG( &uiCode, "short_term_ref_pic_set_sps_flag" );
+      if uiCode == 0 { // use short-term reference picture set explicitly signalled in slice header
+        rps = rpcSlice.GetLocalRPS();
+        this.ParseShortTermRefPicSet(sps,rps, sps.GetRPSList().GetNumberOfReferencePictureSets());
+        rpcSlice.SetRPS(rps);
+      }else{ // use reference to short-term reference picture set in PPS
+        numBits := uint(0);
+        for (1 << numBits) < rpcSlice.GetSPS().GetRPSList().GetNumberOfReferencePictureSets() {
+          numBits++;
+        }
+        if numBits > 0 {
+          this.READ_CODE( numBits, &uiCode, "short_term_ref_pic_set_idx");        
+        }else{
+          uiCode = 0;
+        }
+        rpcSlice.SetRPS(sps.GetRPSList().GetReferencePictureSet(int(uiCode)));
+
+        rps = rpcSlice.GetRPS();
+      }
+      if sps.GetLongTermRefsPresent() {
+        offset := rps.GetNumberOfNegativePictures()+rps.GetNumberOfPositivePictures();
+        numOfLtrp := uint(0);
+        numLtrpInSPS := uint(0);
+        if rpcSlice.GetSPS().GetNumLongTermRefPicSPS() > 0 {
+          this.READ_UVLC( &uiCode, "num_long_term_sps");
+          numLtrpInSPS = uiCode;
+          numOfLtrp += numLtrpInSPS;
+          rps.SetNumberOfLongtermPictures(int(numOfLtrp));
+        }
+        bitsForLtrpInSPS := uint(1);
+        for rpcSlice.GetSPS().GetNumLongTermRefPicSPS() > (1 << bitsForLtrpInSPS) {
+          bitsForLtrpInSPS++;
+        }
+        this.READ_UVLC( &uiCode, "num_long_term_pics");             
+        rps.SetNumberOfLongtermPictures(int(uiCode));
+        numOfLtrp += uiCode;
+        rps.SetNumberOfLongtermPictures(int(numOfLtrp));
+        maxPicOrderCntLSB := 1 << rpcSlice.GetSPS().GetBitsForPOC();
+        prevLSB := 0;
+        prevDeltaMSB := 0;
+        deltaPocMSBCycleLT := 0;
+        j:=offset+rps.GetNumberOfLongtermPictures()-1;
+        for k := uint(0); k < numOfLtrp; k++ {
+          var pocLsbLt int;
+          if k < numLtrpInSPS  {
+            this.READ_CODE(bitsForLtrpInSPS, &uiCode, "lt_idx_sps[i]");
+            usedByCurrFromSPS := rpcSlice.GetSPS().GetUsedByCurrPicLtSPSFlag(int(uiCode));
+
+            pocLsbLt = int(rpcSlice.GetSPS().GetLtRefPicPocLsbSps(uiCode));
+            rps.SetUsed(j,usedByCurrFromSPS);
+          }else{
+            this.READ_CODE(rpcSlice.GetSPS().GetBitsForPOC(), &uiCode, "poc_lsb_lt"); 
+            pocLsbLt = int(uiCode);
+            this.READ_FLAG( &uiCode, "used_by_curr_pic_lt_flag");     
+            rps.SetUsed(j,uiCode!=0);
+          }
+          this.READ_FLAG(&uiCode,"delta_poc_msb_present_flag");
+          mSBPresentFlag := uiCode!=0;
+          if mSBPresentFlag {
+            this.READ_UVLC( &uiCode, "delta_poc_msb_cycle_lt[i]" );
+            deltaFlag := false;
+            //            First LTRP                               || First LTRP from SH           || curr LSB    != prev LSB
+            if (j == offset+rps.GetNumberOfLongtermPictures()-1) || (j == offset+int(numOfLtrp-numLtrpInSPS)-1) || (pocLsbLt != prevLSB) {
+              deltaFlag = true;
+            }
+            if deltaFlag {
+              deltaPocMSBCycleLT = int(uiCode);
+            }else{
+              deltaPocMSBCycleLT = int(uiCode) + prevDeltaMSB;              
+            }
+
+            pocLTCurr := rpcSlice.GetPOC() - deltaPocMSBCycleLT * maxPicOrderCntLSB - iPOClsb + pocLsbLt;
+            rps.SetPOC     (j, pocLTCurr); 
+            rps.SetDeltaPOC(j, - rpcSlice.GetPOC() + pocLTCurr);
+            rps.SetCheckLTMSBPresent(j,true);  
+          }else{
+            rps.SetPOC     (j, pocLsbLt);
+            rps.SetDeltaPOC(j, - rpcSlice.GetPOC() + pocLsbLt);
+            rps.SetCheckLTMSBPresent(j,false);  
+          }
+          prevLSB = pocLsbLt;
+          prevDeltaMSB = deltaPocMSBCycleLT;
+          j--;
+        }
+        offset += rps.GetNumberOfLongtermPictures();
+        rps.SetNumberOfPictures(offset);        
+      }  
+      if rpcSlice.GetNalUnitType() == TLibCommon.NAL_UNIT_CODED_SLICE_BLA		||
+         rpcSlice.GetNalUnitType() == TLibCommon.NAL_UNIT_CODED_SLICE_BLANT	||
+         rpcSlice.GetNalUnitType() == TLibCommon.NAL_UNIT_CODED_SLICE_BLA_N_LP {
+        // In the case of BLA picture types, rps data is read from slice header but ignored
+        rps = rpcSlice.GetLocalRPS();
+        rps.SetNumberOfNegativePictures(0);
+        rps.SetNumberOfPositivePictures(0);
+        rps.SetNumberOfLongtermPictures(0);
+        rps.SetNumberOfPictures(0);
+        rpcSlice.SetRPS(rps);
+      }
+    }
+    if sps.GetUseSAO() {
+      if sps.GetUseSAO() {
+        this.READ_FLAG(&uiCode, "slice_sao_luma_flag");  
+        rpcSlice.SetSaoEnabledFlag(uiCode!=0);
+        this.READ_FLAG(&uiCode, "slice_sao_chroma_flag");  
+        rpcSlice.SetSaoEnabledFlagChroma(uiCode!=0);
+      }
+    }
+
+//#if K0251
+    if  !rpcSlice.GetIdrPicFlag() {
+//#else
+//    if (!rpcSlice->isIntra())
+//#endif
+      if rpcSlice.GetSPS().GetTMVPFlagsPresent() {
+        this.READ_FLAG( &uiCode, "enable_temporal_mvp_flag" );
+        rpcSlice.SetEnableTMVPFlag(uiCode!=0); 
+      }else{
+        rpcSlice.SetEnableTMVPFlag(false);
+      }
+//#if K0251
+    }else{
+        rpcSlice.SetEnableTMVPFlag(false);
+    }
+
+    if !rpcSlice.IsIntra() {
+//#endif
+      this.READ_FLAG( &uiCode, "num_ref_idx_active_override_flag");
+      if uiCode!=0 {
+        this.READ_UVLC (&uiCode, "num_ref_idx_l0_active_minus1" );  
+        rpcSlice.SetNumRefIdx( TLibCommon.REF_PIC_LIST_0, int(uiCode) + 1 );
+        if rpcSlice.IsInterB() {
+          this.READ_UVLC (&uiCode, "num_ref_idx_l1_active_minus1" );  
+          rpcSlice.SetNumRefIdx( TLibCommon.REF_PIC_LIST_1, int(uiCode) + 1 );
+        }else{
+          rpcSlice.SetNumRefIdx(TLibCommon.REF_PIC_LIST_1, 0);
+        }
+      }else{
+        rpcSlice.SetNumRefIdx(TLibCommon.REF_PIC_LIST_0, int(rpcSlice.GetPPS().GetNumRefIdxL0DefaultActive()));
+        if rpcSlice.IsInterB() {
+          rpcSlice.SetNumRefIdx(TLibCommon.REF_PIC_LIST_1, int(rpcSlice.GetPPS().GetNumRefIdxL1DefaultActive()));
+        }else{
+          rpcSlice.SetNumRefIdx(TLibCommon.REF_PIC_LIST_1,0);
+        }
+      }
+    }
+    // }
+    refPicListModification := rpcSlice.GetRefPicListModification();
+    if !rpcSlice.IsIntra(){
+//#if SAVE_BITS_REFPICLIST_MOD_FLAG
+//#if !HLS_MOVE_SPS_PICLIST_FLAGS
+//      if( !rpcSlice.GetSPS().GetListsModificationPresentFlag() || rpcSlice.GetNumRpsCurrTempList() <= 1 )
+//#else /* HLS_MOVE_SPS_PICLIST_FLAGS */
+      if !rpcSlice.GetPPS().GetListsModificationPresentFlag() || rpcSlice.GetNumRpsCurrTempList() <= 1 {
+//#endif /* HLS_MOVE_SPS_PICLIST_FLAGS */
+//#else
+//#if !HLS_MOVE_SPS_PICLIST_FLAGS
+//      if( !rpcSlice.GetSPS().GetListsModificationPresentFlag() )
+//#else /* HLS_MOVE_SPS_PICLIST_FLAGS */
+//      if( !rpcSlice.GetPPS().GetListsModificationPresentFlag() )
+//#endif /* HLS_MOVE_SPS_PICLIST_FLAGS */
+//#endif
+        refPicListModification.SetRefPicListModificationFlagL0( false );
+      }else{
+        this.READ_FLAG( &uiCode, "ref_pic_list_modification_flag_l0" ); 
+        refPicListModification.SetRefPicListModificationFlagL0( uiCode!=0 );
+      }
+
+      if refPicListModification.GetRefPicListModificationFlagL0() {
+        uiCode = 0;
+        i := 0;
+        numRpsCurrTempList0 := rpcSlice.GetNumRpsCurrTempList();
+        if numRpsCurrTempList0 > 1  {
+          length := 1;
+          numRpsCurrTempList0 --;
+          numRpsCurrTempList0 >>= 1
+          for numRpsCurrTempList0!=0 {
+            length ++;
+            numRpsCurrTempList0 >>= 1
+          }
+          for i = 0; i < rpcSlice.GetNumRefIdx(TLibCommon.REF_PIC_LIST_0); i++ {
+            this.READ_CODE( uint(length), &uiCode, "list_entry_l0" );
+            refPicListModification.SetRefPicSetIdxL0(uint(i), uiCode );
+          }
+        }else{
+          for i = 0; i < rpcSlice.GetNumRefIdx(TLibCommon.REF_PIC_LIST_0); i++ {
+            refPicListModification.SetRefPicSetIdxL0(uint(i), 0 );
+          }
+        }
+      }
+    }else{
+      refPicListModification.SetRefPicListModificationFlagL0(false);
+    }
+    if rpcSlice.IsInterB() {
+//#if SAVE_BITS_REFPICLIST_MOD_FLAG
+//#if !HLS_MOVE_SPS_PICLIST_FLAGS
+//      if( !rpcSlice.GetSPS().GetListsModificationPresentFlag() || rpcSlice.GetNumRpsCurrTempList() <= 1 )
+//#else /* HLS_MOVE_SPS_PICLIST_FLAGS */
+      if !rpcSlice.GetPPS().GetListsModificationPresentFlag() || rpcSlice.GetNumRpsCurrTempList() <= 1 {
+//#endif /* HLS_MOVE_SPS_PICLIST_FLAGS */
+//#else
+//#if !HLS_MOVE_SPS_PICLIST_FLAGS
+//      if( !rpcSlice.GetSPS().GetListsModificationPresentFlag() )
+//#else /* HLS_MOVE_SPS_PICLIST_FLAGS */
+//      if( !rpcSlice.GetPPS().GetListsModificationPresentFlag() )
+//#endif /* HLS_MOVE_SPS_PICLIST_FLAGS */
+//#endif
+        refPicListModification.SetRefPicListModificationFlagL1( false );
+      }else{
+        this.READ_FLAG( &uiCode, "ref_pic_list_modification_flag_l1" ); 
+        refPicListModification.SetRefPicListModificationFlagL1( uiCode!=0 );
+      }
+      if refPicListModification.GetRefPicListModificationFlagL1() {
+        uiCode = 0;
+        i := 0;
+        numRpsCurrTempList1 := rpcSlice.GetNumRpsCurrTempList();
+        if numRpsCurrTempList1 > 1 {
+          length := 1;
+          numRpsCurrTempList1 --;
+          numRpsCurrTempList1 >>= 1;
+          for numRpsCurrTempList1!=0 {
+            length ++;
+            numRpsCurrTempList1 >>= 1
+          }
+          for i = 0; i < rpcSlice.GetNumRefIdx(TLibCommon.REF_PIC_LIST_1); i++ {
+            this.READ_CODE( uint(length), &uiCode, "list_entry_l1" );
+            refPicListModification.SetRefPicSetIdxL1(uint(i), uiCode );
+          }
+        }else{
+          for i = 0; i < rpcSlice.GetNumRefIdx(TLibCommon.REF_PIC_LIST_1); i++ {
+            refPicListModification.SetRefPicSetIdxL1(uint(i), 0 );
+          }
+        }
+      }
+    }else{
+      refPicListModification.SetRefPicListModificationFlagL1(false);
+    }
+    if rpcSlice.IsInterB() {
+      this.READ_FLAG( &uiCode, "mvd_l1_zero_flag" );       
+      rpcSlice.SetMvdL1ZeroFlag( uiCode!=0);
+    }
+
+    rpcSlice.SetCabacInitFlag( false ); // default
+    if pps.GetCabacInitPresentFlag() && !rpcSlice.IsIntra() {
+      this.READ_FLAG(&uiCode, "cabac_init_flag");
+      rpcSlice.SetCabacInitFlag( uiCode!=0 );
+    }
+
+    if rpcSlice.GetEnableTMVPFlag() {
+      if rpcSlice.GetSliceType() == TLibCommon.B_SLICE {
+        this.READ_FLAG( &uiCode, "collocated_from_l0_flag" );
+        rpcSlice.SetColFromL0Flag(uiCode);
+      }else{
+        rpcSlice.SetColFromL0Flag( 1 );
+      }
+
+      if  rpcSlice.GetSliceType() != TLibCommon.I_SLICE &&
+        ((rpcSlice.GetColFromL0Flag()==1 && rpcSlice.GetNumRefIdx(TLibCommon.REF_PIC_LIST_0)>1)||
+        (rpcSlice.GetColFromL0Flag() ==0 && rpcSlice.GetNumRefIdx(TLibCommon.REF_PIC_LIST_1)>1))  {
+        this.READ_UVLC( &uiCode, "collocated_ref_idx" );
+        rpcSlice.SetColRefIdx(uiCode);
+      }else{
+        rpcSlice.SetColRefIdx(0);
+      }
+    }
+    if (pps.GetUseWP() && rpcSlice.GetSliceType()==TLibCommon.P_SLICE) || 
+       (pps.GetWPBiPred() && rpcSlice.GetSliceType()==TLibCommon.B_SLICE) {
+      this.xParsePredWeightTable(rpcSlice);
+      rpcSlice.InitWpScaling();
+    }
+    if !rpcSlice.IsIntra() {
+      this.READ_UVLC( &uiCode, "five_minus_max_num_merge_cand");
+      rpcSlice.SetMaxNumMergeCand(TLibCommon.MRG_MAX_NUM_CANDS - uiCode);
+    }
+
+    this.READ_SVLC( &iCode, "slice_qp_delta" );
+    rpcSlice.SetSliceQp (26 + pps.GetPicInitQPMinus26() + iCode);
+
+    //assert( rpcSlice.GetSliceQp() >= -sps.GetQpBDOffsetY() );
+    //assert( rpcSlice.GetSliceQp() <=  51 );
+
+    if rpcSlice.GetPPS().GetSliceChromaQpFlag() {
+      this.READ_SVLC( &iCode, "slice_qp_delta_cb" );
+      rpcSlice.SetSliceQpDeltaCb( iCode );
+      //assert( rpcSlice.GetSliceQpDeltaCb() >= -12 );
+      //assert( rpcSlice.GetSliceQpDeltaCb() <=  12 );
+      //assert( (rpcSlice.GetPPS().GetChromaCbQpOffset() + rpcSlice.GetSliceQpDeltaCb()) >= -12 );
+      //assert( (rpcSlice.GetPPS().GetChromaCbQpOffset() + rpcSlice.GetSliceQpDeltaCb()) <=  12 );
+
+      this.READ_SVLC( &iCode, "slice_qp_delta_cr" );
+      rpcSlice.SetSliceQpDeltaCr( iCode );
+      //assert( rpcSlice.GetSliceQpDeltaCr() >= -12 );
+      //assert( rpcSlice.GetSliceQpDeltaCr() <=  12 );
+      //assert( (rpcSlice.GetPPS().GetChromaCrQpOffset() + rpcSlice.GetSliceQpDeltaCr()) >= -12 );
+      //assert( (rpcSlice.GetPPS().GetChromaCrQpOffset() + rpcSlice.GetSliceQpDeltaCr()) <=  12 );
+    }
+
+    if rpcSlice.GetPPS().GetDeblockingFilterControlPresentFlag() {
+      if rpcSlice.GetPPS().GetDeblockingFilterOverrideEnabledFlag() {
+        this.READ_FLAG ( &uiCode, "deblocking_filter_override_flag" );        
+        rpcSlice.SetDeblockingFilterOverrideFlag(uiCode!=0);
+      }else{  
+        rpcSlice.SetDeblockingFilterOverrideFlag(false);
+      }
+      if rpcSlice.GetDeblockingFilterOverrideFlag() {
+        this.READ_FLAG ( &uiCode, "slice_disable_deblocking_filter_flag" );   
+        rpcSlice.SetDeblockingFilterDisable(uiCode!=0);
+        if !rpcSlice.GetDeblockingFilterDisable() {
+          this.READ_SVLC( &iCode, "beta_offset_div2" );                       
+          rpcSlice.SetDeblockingFilterBetaOffsetDiv2(iCode);
+          this.READ_SVLC( &iCode, "tc_offset_div2" );                         
+          rpcSlice.SetDeblockingFilterTcOffsetDiv2(iCode);
+        }
+      }else{
+        rpcSlice.SetDeblockingFilterDisable   	  ( rpcSlice.GetPPS().GetPicDisableDeblockingFilterFlag() );
+        rpcSlice.SetDeblockingFilterBetaOffsetDiv2( rpcSlice.GetPPS().GetDeblockingFilterBetaOffsetDiv2() );
+        rpcSlice.SetDeblockingFilterTcOffsetDiv2  ( rpcSlice.GetPPS().GetDeblockingFilterTcOffsetDiv2() );
+      }
+    }else{  
+      rpcSlice.SetDeblockingFilterDisable       ( false );
+      rpcSlice.SetDeblockingFilterBetaOffsetDiv2( 0 );
+      rpcSlice.SetDeblockingFilterTcOffsetDiv2  ( 0 );
+    }
+	
+	var isSAOEnabled bool
+	if !rpcSlice.GetSPS().GetUseSAO() {
+    	isSAOEnabled = false;
+    }else{
+    	isSAOEnabled = rpcSlice.GetSaoEnabledFlag()||rpcSlice.GetSaoEnabledFlagChroma();
+    }
+    isDBFEnabled := (!rpcSlice.GetDeblockingFilterDisable());
+
+    if rpcSlice.GetPPS().GetLoopFilterAcrossSlicesEnabledFlag() && ( isSAOEnabled || isDBFEnabled ) {
+      this.READ_FLAG( &uiCode, "slice_loop_filter_across_slices_enabled_flag");
+    }else{
+      uiCode = uint(TLibCommon.B2U(rpcSlice.GetPPS().GetLoopFilterAcrossSlicesEnabledFlag()));
+    }
+    rpcSlice.SetLFCrossSliceBoundaryFlag(uiCode!=0);
+  }
+  
+    if pps.GetTilesEnabledFlag() || pps.GetEntropyCodingSyncEnabledFlag() {
+      //var entryPointOffset *uint;
+      var numEntryPointOffsets, offsetLenMinus1 uint;
+
+      this.READ_UVLC(&numEntryPointOffsets, "num_entry_point_offsets"); 
+      rpcSlice.SetNumEntryPointOffsets ( int(numEntryPointOffsets) );
+      if numEntryPointOffsets>0 {
+        this.READ_UVLC(&offsetLenMinus1, "offset_len_minus1");
+      }
+      entryPointOffset := make([]uint, numEntryPointOffsets);
+      for idx:=uint(0); idx<numEntryPointOffsets; idx++ {
+        this.READ_CODE(offsetLenMinus1+1, &uiCode, "entry_point_offset");
+        entryPointOffset[ idx ] = uiCode;
+      }
+
+      if pps.GetTilesEnabledFlag() {
+        rpcSlice.SetTileLocationCount( numEntryPointOffsets );
+
+        prevPos := uint(0);
+        for idx:=uint(0); idx<rpcSlice.GetTileLocationCount(); idx++ {
+          rpcSlice.SetTileLocation( int(idx), prevPos + entryPointOffset [ idx ] );
+          prevPos += entryPointOffset[ idx ];
+        }
+      }else if pps.GetEntropyCodingSyncEnabledFlag() {
+      	numSubstreams := rpcSlice.GetNumEntryPointOffsets()+1;
+        rpcSlice.AllocSubstreamSizes(uint(numSubstreams));
+        pSubstreamSizes := rpcSlice.GetSubstreamSizes();
+        for idx:=0; idx<numSubstreams-1; idx++ {
+          if idx < int(numEntryPointOffsets) {
+            pSubstreamSizes[ idx ] = ( entryPointOffset[ idx ] << 3 ) ;
+          }else{
+            pSubstreamSizes[ idx ] = 0;
+          }
+        }
+      }
+
+      /*if entryPointOffset
+      {
+        delete [] entryPointOffset;
+      }*/
+    }else{
+      rpcSlice.SetNumEntryPointOffsets ( 0 );
+    }
+
+  if pps.GetSliceHeaderExtensionPresentFlag() {
+    this.READ_UVLC(&uiCode,"slice_header_extension_length");
+    for i:=uint(0); i<uiCode; i++ {
+      var ignore uint;
+      this.READ_CODE(8,&ignore,"slice_header_extension_data_byte");
+    }
+  }
+  this.m_pcBitstream.ReadByteAlignment();	
 }
 func (this *TDecCavlc)  ParseTerminatingBit ( ruiBit *uint){
 }

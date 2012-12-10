@@ -24,17 +24,18 @@ type TDecCu struct {
     m_bDecodeDQP bool
 }
 
-/*
-public:
-  TDecCu();
-  virtual ~TDecCu();
+func NewTDecCu() *TDecCu{
+	return &TDecCu{};
+}
 
   /// initialize access channels
-  Void  init                    ( TDecEntropy* pcEntropyDecoder, TComTrQuant* pcTrQuant, TComPrediction* pcPrediction );
+func (this *TDecCu) Init  ( pcEntropyDecoder *TDecEntropy, pcTrQuant *TLibCommon.TComTrQuant, pcPrediction *TLibCommon.TComPrediction){
+}
 
   /// create internal buffers
-  Void  create                  ( UInt uiMaxDepth, UInt uiMaxWidth, UInt uiMaxHeight );
-*/
+func (this *TDecCu) Create  (  uiMaxDepth,  uiMaxWidth,  uiMaxHeight uint){
+}
+
 /// destroy internal buffers
 func (this *TDecCu) Destroy() {
 }

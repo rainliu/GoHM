@@ -173,20 +173,24 @@ protected:
   Bool xGetCenterCol( UInt uiPartIdx, RefPicList eRefPicList, Int iRefIdx, TComMv *pcMv );
 
 public:
-  TComDataCU();
-  virtual ~TComDataCU();
-  
+*/
+func NewTComDataCU() *TComDataCU{
+	return &TComDataCU{}
+}
+ 
   // -------------------------------------------------------------------------------------------------------------------
   // create / destroy / initialize / copy
   // -------------------------------------------------------------------------------------------------------------------
   
-  Void          create                ( UInt uiNumPartition, UInt uiWidth, UInt uiHeight, Bool bDecSubCu, Int unitSize
-#if ADAPTIVE_QP_SELECTION
-    , Bool bGlobalRMARLBuffer = false
-#endif  
-    );
-  Void          destroy               ();
-  
+func (this *TComDataCU) Create(  uiNumPartition,  uiWidth,  uiHeight uint, bDecSubCu bool,  unitSize int,
+//#if ADAPTIVE_QP_SELECTION
+    bGlobalRMARLBuffer bool){
+//#endif  
+	
+}
+func (this *TComDataCU) destroy(){
+}
+/*  
   Void          initCU                ( TComPic* pcPic, UInt uiCUAddr );
   Void          initEstData           ( UInt uiDepth, Int qp );
   Void          initSubCU             ( TComDataCU* pcCU, UInt uiPartUnitIdx, UInt uiDepth, Int qp );

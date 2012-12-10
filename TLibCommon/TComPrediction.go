@@ -40,13 +40,14 @@ type TComPrediction struct {
 
   Void xDCPredFiltering( Int* pSrc, Int iSrcStride, Pel*& rpDst, Int iDstStride, Int iWidth, Int iHeight );
   Bool xCheckIdenticalMotion    ( TComDataCU* pcCU, UInt PartAddr);
+*/
+func NewTComPrediction() *TComPrediction{
+	return &TComPrediction{};
+}
 
-public:
-  TComPrediction();
-  virtual ~TComPrediction();
-
-  Void    initTempBuff();
-
+func (this *TComPrediction) InitTempBuff(){
+}
+/*
   // inter
   Void motionCompensation         ( TComDataCU*  pcCU, TComYuv* pcYuvPred, RefPicList eRefPicList = REF_PIC_LIST_X, Int iPartIdx = -1 );
 

@@ -85,12 +85,71 @@ type TComPicSym struct {
     m_saoParam	*SAOParam;
 }
 
-/*
-public:
-  Void        create  ( Int iPicWidth, Int iPicHeight, UInt uiMaxWidth, UInt uiMaxHeight, UInt uiMaxDepth );
-  Void        destroy ();
+func NewTComPicSym() *TComPicSym{
+	return &TComPicSym{};
+}
 
-  TComPicSym  ();*/
+func (this *TComPicSym) Create  (  iPicWidth,  iPicHeight int,  uiMaxWidth,  uiMaxHeight,  uiMaxDepth uint){
+  this.m_uhTotalDepth      = byte(uiMaxDepth);
+  this.m_uiNumPartitions   = 1<<(this.m_uhTotalDepth<<1);
+  
+  this.m_uiMaxCUWidth      = uiMaxWidth;
+  this.m_uiMaxCUHeight     = uiMaxHeight;
+  
+  this.m_uiMinCUWidth      = uiMaxWidth  >> this.m_uhTotalDepth;
+  this.m_uiMinCUHeight     = uiMaxHeight >> this.m_uhTotalDepth;
+  
+  this.m_uiNumPartInWidth  = this.m_uiMaxCUWidth  / this.m_uiMinCUWidth;
+  this.m_uiNumPartInHeight = this.m_uiMaxCUHeight / this.m_uiMinCUHeight;
+  
+  if uint(iPicWidth) % this.m_uiMaxCUWidth !=0 {
+  	this.m_uiWidthInCU       = uint(iPicWidth) /this.m_uiMaxCUWidth  + 1;
+  }else{
+  	this.m_uiWidthInCU       = uint(iPicWidth) /this.m_uiMaxCUWidth;
+  }
+  
+  if uint(iPicHeight) % this.m_uiMaxCUHeight !=0 {
+  	this.m_uiHeightInCU      = uint(iPicHeight)/this.m_uiMaxCUHeight + 1;
+  }else{
+  	this.m_uiHeightInCU      = uint(iPicHeight)/this.m_uiMaxCUHeight;
+  }
+  
+  this.m_uiNumCUsInFrame   = this.m_uiWidthInCU * this.m_uiHeightInCU;
+  this.m_apcTComDataCU     = make([]*TComDataCU,  this.m_uiNumCUsInFrame);
+  
+  /*if this.m_uiNumAllocatedSlice>0 {
+    for i:=0; i<m_uiNumAllocatedSlice ; i++ )
+    {
+      delete m_apcTComSlice[i];
+    }
+    delete [] m_apcTComSlice;
+  }*/
+  this.m_apcTComSlice      = make([]*TComSlice, this.m_uiNumCUsInFrame*this.m_uiNumPartitions);  
+  this.m_apcTComSlice[0]   = NewTComSlice();
+  this.m_uiNumAllocatedSlice = 1;
+  for i:=uint(0); i<this.m_uiNumCUsInFrame ; i++ {
+    this.m_apcTComDataCU[i] = NewTComDataCU();
+    this.m_apcTComDataCU[i].Create( this.m_uiNumPartitions, this.m_uiMaxCUWidth, this.m_uiMaxCUHeight, 
+    false, int(this.m_uiMaxCUWidth >> this.m_uhTotalDepth), 
+//#if ADAPTIVE_QP_SELECTION
+      true);
+//#endif     
+      
+  }
+
+  this.m_puiCUOrderMap = make([]uint, this.m_uiNumCUsInFrame+1);
+  this.m_puiTileIdxMap = make([]uint, this.m_uiNumCUsInFrame);
+  this.m_puiInverseCUOrderMap = make([]uint, this.m_uiNumCUsInFrame+1);
+
+  for i:=uint(0); i<this.m_uiNumCUsInFrame; i++ {
+    this.m_puiCUOrderMap[i] = i;
+    this.m_puiInverseCUOrderMap[i] = i;
+  }
+  this.m_saoParam = nil;
+}
+func (this *TComPicSym) Destroy (){
+}
+  
 func (this *TComPicSym) GetSlice(i uint) *TComSlice {
     return this.m_apcTComSlice[i]
 }
@@ -181,16 +240,61 @@ func (this *TComPicSym)  GetPicSCUEncOrder( SCUAddr uint )   uint{
 func (this *TComPicSym)  GetPicSCUAddr( SCUEncOrder uint )  uint{
   return this.GetCUOrderMap(int(SCUEncOrder/this.m_uiNumPartitions))*this.m_uiNumPartitions + SCUEncOrder%this.m_uiNumPartitions;
 }
-func (this *TComPicSym)  xCreateTComTileArray(){
-  /*this.m_apcTComTile = NewTComTile*[(m_iNumColumnsMinus1+1)*(m_iNumRowsMinus1+1)];
-  for( UInt i=0; i<(m_iNumColumnsMinus1+1)*(m_iNumRowsMinus1+1); i++ )
-  {
-    m_apcTComTile[i] = new TComTile;
-  }*/
+func (this *TComPicSym)  XCreateTComTileArray(){
+  this.m_apcTComTile = make([]*TComTile, (this.m_iNumColumnsMinus1+1)*(this.m_iNumRowsMinus1+1));
+  for i:=0; i<(this.m_iNumColumnsMinus1+1)*(this.m_iNumRowsMinus1+1); i++ {
+    this.m_apcTComTile[i] = NewTComTile();
+  }
 }
-func (this *TComPicSym)  xInitTiles(){
+
+func (this *TComPicSym)  XInitTiles(){
+  var  uiTileIdx, uiColumnIdx, uiRowIdx, uiRightEdgePosInCU, uiBottomEdgePosInCU uint;
+  var  i, j int;
+
+  //initialize each tile of the current picture
+  for uiRowIdx=0; uiRowIdx < uint(this.m_iNumRowsMinus1)+1; uiRowIdx++ {
+    for uiColumnIdx=0; uiColumnIdx < uint(this.m_iNumColumnsMinus1)+1; uiColumnIdx++ {
+      uiTileIdx = uiRowIdx * uint(this.m_iNumColumnsMinus1+1) + uiColumnIdx;
+
+      //initialize the RightEdgePosInCU for each tile
+      uiRightEdgePosInCU = 0;
+      for i=0; i <= int(uiColumnIdx); i++ {
+        uiRightEdgePosInCU += this.GetTComTile(uiRowIdx * uint(this.m_iNumColumnsMinus1+1) + uint(i)).GetTileWidth();
+      }
+      this.GetTComTile(uiTileIdx).SetRightEdgePosInCU(uiRightEdgePosInCU-1);
+
+      //initialize the BottomEdgePosInCU for each tile
+      uiBottomEdgePosInCU = 0;
+      for i=0; i <= int(uiRowIdx); i++ {
+        uiBottomEdgePosInCU += this.GetTComTile(uint(i) * uint(this.m_iNumColumnsMinus1+1) + uiColumnIdx).GetTileHeight();
+      }
+      this.GetTComTile(uiTileIdx).SetBottomEdgePosInCU(uiBottomEdgePosInCU-1);
+
+      //initialize the FirstCUAddr for each tile
+      this.GetTComTile(uiTileIdx).SetFirstCUAddr( (this.GetTComTile(uiTileIdx).GetBottomEdgePosInCU() - this.GetTComTile(uiTileIdx).GetTileHeight() +1)*this.m_uiWidthInCU + 
+        this.GetTComTile(uiTileIdx).GetRightEdgePosInCU() - this.GetTComTile(uiTileIdx).GetTileWidth() + 1);
+    }
+  }
+
+  //initialize the TileIdxMap
+  for i=0; i<int(this.m_uiNumCUsInFrame); i++ {
+    for j=0; j < int(this.m_iNumColumnsMinus1+1); j++ {
+      if uint(i) % this.m_uiWidthInCU <= this.GetTComTile(uint(j)).GetRightEdgePosInCU() {
+        uiColumnIdx = uint(j);
+        j = this.m_iNumColumnsMinus1+1;
+      }
+    }
+    for j=0; j < this.m_iNumRowsMinus1+1; j++ {
+      if uint(i)/this.m_uiWidthInCU <= this.GetTComTile(uint(j*(this.m_iNumColumnsMinus1 + 1))).GetBottomEdgePosInCU() {
+        uiRowIdx = uint(j);
+        j = this.m_iNumRowsMinus1 + 1;
+      }
+    }
+    this.m_puiTileIdxMap[i] = uiRowIdx * uint(this.m_iNumColumnsMinus1 + 1) + uiColumnIdx;
+  }
 }
-func (this *TComPicSym)  xCalculateNxtCUAddr( uiCurrCUAddr uint ) uint{
+
+func (this *TComPicSym)  XCalculateNxtCUAddr( uiCurrCUAddr uint ) uint{
   var  uiNxtCUAddr, uiTileIdx uint;
   
   //get the tile index for the current LCU

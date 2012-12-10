@@ -1,6 +1,8 @@
 package TLibCommon
 
-import ()
+import (
+	"math"
+)
 
 // ====================================================================================================================
 // Constants
@@ -94,27 +96,27 @@ type TComTrQuant struct {
     //#endif
     m_useTransformSkipFast   bool
     m_scalingListEnabledFlag bool
-    m_quantCoef              [SCALING_LIST_SIZE_NUM][SCALING_LIST_NUM][SCALING_LIST_REM_NUM]*int     ///< array of quantization matrix coefficient 4x4
-    m_dequantCoef            [SCALING_LIST_SIZE_NUM][SCALING_LIST_NUM][SCALING_LIST_REM_NUM]*int     ///< array of dequantization matrix coefficient 4x4
-    m_errScale               [SCALING_LIST_SIZE_NUM][SCALING_LIST_NUM][SCALING_LIST_REM_NUM]*float64 ///< array of quantization matrix coefficient 4x4
+    m_quantCoef              [SCALING_LIST_SIZE_NUM][SCALING_LIST_NUM][SCALING_LIST_REM_NUM][]int     ///< array of quantization matrix coefficient 4x4
+    m_dequantCoef            [SCALING_LIST_SIZE_NUM][SCALING_LIST_NUM][SCALING_LIST_REM_NUM][]int     ///< array of dequantization matrix coefficient 4x4
+    m_errScale               [SCALING_LIST_SIZE_NUM][SCALING_LIST_NUM][SCALING_LIST_REM_NUM][]float64 ///< array of quantization matrix coefficient 4x4
 }
 
-/*
-public:
-  TComTrQuant();
-  ~TComTrQuant();
+func NewTComTrQuant() *TComTrQuant{
+	return &TComTrQuant{}
+}
 
   // initialize class
-  Void init                 ( UInt uiMaxWidth, UInt uiMaxHeight, UInt uiMaxTrSize, Int iSymbolMode = 0, UInt *aTable4 = NULL, UInt *aTable8 = NULL, UInt *aTableLastPosVlcIndex=NULL, Bool useRDOQ = false,  
-#if RDOQ_TRANSFORMSKIP
-    Bool useRDOQTS = false,  
-#endif
-    Bool bEnc = false, Bool useTransformSkipFast = false
-#if ADAPTIVE_QP_SELECTION
-    , Bool bUseAdaptQpSelect = false
-#endif 
-    );
-
+func (this *TComTrQuant) Init ( uiMaxWidth, uiMaxHeight, uiMaxTrSize uint, iSymbolMode int, 
+	aTable4 []uint, aTable8 []uint, aTableLastPosVlcIndex []uint, useRDOQ bool,  
+//#if RDOQ_TRANSFORMSKIP
+    useRDOQTS bool,  
+//#endif
+    bEnc bool, useTransformSkipFast bool,
+//#if ADAPTIVE_QP_SELECTION
+    bUseAdaptQpSelect bool ){
+//#endif 
+}
+/*
   // transform & inverse transform functions
   Void transformNxN( TComDataCU* pcCU, 
                      Pel*        pcResidual, 
@@ -166,18 +168,78 @@ public:
                                        Int width, Int height);
   Void initScalingList                      ();
   Void destroyScalingList                   ();
-  Void setErrScaleCoeff    ( UInt list, UInt size, UInt qp);
-  Double* getErrScaleCoeff ( UInt list, UInt size, UInt qp) {return m_errScale[size][list][qp];};    //!< get Error Scale Coefficent
-  Int* getQuantCoeff       ( UInt list, UInt qp, UInt size) {return m_quantCoef[size][list][qp];};   //!< get Quant Coefficent
-  Int* getDequantCoeff     ( UInt list, UInt qp, UInt size) {return m_dequantCoef[size][list][qp];}; //!< get DeQuant Coefficent
-  Void setUseScalingList   ( Bool bUseScalingList){ m_scalingListEnabledFlag = bUseScalingList; };
-  Bool getUseScalingList   (){ return m_scalingListEnabledFlag; };
-  Void setFlatScalingList  ();
-  Void xsetFlatScalingList ( UInt list, UInt size, UInt qp);
-  Void xSetScalingListEnc  ( TComScalingList *scalingList, UInt list, UInt size, UInt qp);
-  Void xSetScalingListDec  ( TComScalingList *scalingList, UInt list, UInt size, UInt qp);
-  Void setScalingList      ( TComScalingList *scalingList);
-  Void setScalingListDec   ( TComScalingList *scalingList);
+*/
+func (this *TComTrQuant)  SetErrScaleCoeff    	   ( list, size, qp uint ){
+  uiLog2TrSize := int(G_aucConvertToBit[ G_scalingListSizeX[size] ]) + 2;
+  var bitDepth int;
+  if size < SCALING_LIST_32x32 && list != 0 && list != 3 {
+  	bitDepth =  G_bitDepthC;
+  }else{
+  	bitDepth =  G_bitDepthY;
+  }
+  iTransformShift := MAX_TR_DYNAMIC_RANGE - bitDepth - uiLog2TrSize;  // Represents scaling through forward transform
+
+  uiMaxNumCoeff  := G_scalingListSize[size];
+  piQuantcoeff   := this.GetQuantCoeff(list, qp,size);
+  pdErrScale     := this.GetErrScaleCoeff(list, size, qp);
+
+  dErrScale := float64(1<<SCALE_BITS);                              // Compensate for scaling of bitcount in Lagrange cost function
+  dErrScale = dErrScale*math.Pow(2.0,-2.0*float64(iTransformShift));                     // Compensate for scaling through forward transform
+  for i:=uint(0);i<uiMaxNumCoeff;i++ {
+  	a := 1<<uint(2*(bitDepth-8))
+    pdErrScale[i] = dErrScale / float64(piQuantcoeff[i]) / float64(piQuantcoeff[i]) / float64(a);//DISTORTION_PRECISION_ADJUSTMENT
+  }
+}
+func (this *TComTrQuant)  GetErrScaleCoeff ( list, size, qp uint) []float64{
+	return this.m_errScale[size][list][qp];
+}    //!< get Error Scale Coefficent
+func (this *TComTrQuant)  GetQuantCoeff       ( list, qp, size uint) []int{
+	return this.m_quantCoef[size][list][qp];
+}   //!< get Quant Coefficent
+func (this *TComTrQuant)  GetDequantCoeff     ( list, qp, size uint) []int{
+	return this.m_dequantCoef[size][list][qp];
+} //!< get DeQuant Coefficent
+func (this *TComTrQuant)  SetUseScalingList   ( bUseScalingList bool){ 
+	this.m_scalingListEnabledFlag = bUseScalingList; 
+}
+func (this *TComTrQuant)  GetUseScalingList   () bool{ 
+	return this.m_scalingListEnabledFlag; 
+}
+func (this *TComTrQuant)  SetFlatScalingList  (){
+}
+func (this *TComTrQuant)  xSetFlatScalingList ( list, size, qp uint){
+}
+
+func (this *TComTrQuant) xSetScalingListEnc  ( scalingList *TComScalingList, list, size, qp uint){
+}
+func (this *TComTrQuant) xSetScalingListDec  ( scalingList *TComScalingList, list, size, qp uint){
+}
+
+func (this *TComTrQuant) SetScalingList      ( scalingList *TComScalingList){
+  var size,list,qp uint;
+
+  for size=0;size<SCALING_LIST_SIZE_NUM;size++ {
+    for list = 0; list < G_scalingListNum[size]; list++ {
+      for qp=0;qp<SCALING_LIST_REM_NUM;qp++ {
+        this.xSetScalingListEnc(scalingList,list,size,qp);
+        this.xSetScalingListDec(scalingList,list,size,qp);
+        this.SetErrScaleCoeff(list,size,qp);
+      }
+    }
+  }
+}
+func (this *TComTrQuant) SetScalingListDec   ( scalingList *TComScalingList){
+  var size,list,qp uint;
+
+  for size=0;size<SCALING_LIST_SIZE_NUM;size++ {
+    for list = 0; list < G_scalingListNum[size]; list++ {
+      for qp=0;qp<SCALING_LIST_REM_NUM;qp++ {
+        this.xSetScalingListDec(scalingList,list,size,qp);
+      }
+    }
+  }
+}
+/*
   Void processScalingListEnc( Int *coeff, Int *quantcoeff, Int quantScales, UInt height, UInt width, UInt ratio, Int sizuNum, UInt dc);
   Void processScalingListDec( Int *coeff, Int *dequantcoeff, Int invQuantScales, UInt height, UInt width, UInt ratio, Int sizuNum, UInt dc);
 #if ADAPTIVE_QP_SELECTION

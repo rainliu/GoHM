@@ -1,6 +1,7 @@
 package TLibDecoder
 
 import (
+	"io"
     "gohm/TLibCommon"
 )
 
@@ -9,11 +10,9 @@ import (
 // ====================================================================================================================
 
 type TDecBinIf interface {
+    Init              (pcTComBitstream * TLibCommon.TComInputBitstream );
+    Uninit            ();
     /*
-    public:
-      virtual Void  init              ( TComInputBitstream* pcTComBitstream )     = 0;
-      virtual Void  uninit            ()                                          = 0;
-
       virtual Void  start             ()                                          = 0;
       virtual Void  finish            ()                                          = 0;
       virtual Void  flush            ()                                           = 0;
@@ -45,14 +44,15 @@ type TDecBinCabac struct { //: public TDecBinIf
     m_bitsNeeded      int
 }
 
+func NewTDecBinCabac () *TDecBinCabac{
+	return &TDecBinCabac{}
+}
+
+func (this *TDecBinCabac)  Init              ( pcTComBitstream *TLibCommon.TComInputBitstream){
+}
+func (this *TDecBinCabac)  Uninit            (){
+}
 /*
-public:
-  TDecBinCABAC ();
-  virtual ~TDecBinCABAC();
-
-  Void  init              ( TComInputBitstream* pcTComBitstream );
-  Void  uninit            ();
-
   Void  start             ();
   Void  finish            ();
   Void  flush             ();
@@ -131,68 +131,115 @@ func NewTDecSbac() *TDecSbac{
 func (this *TDecSbac) Init ( p TDecBinIf)    { 
 	this.m_pcTDecBinIf = p; 
 }
-//  Void  uninit                    (              )    { m_pcTDecBinIf = 0; }
-/*
-  Void load                          ( TDecSbac* pScr );
-  Void loadContexts                  ( TDecSbac* pScr );
-  Void xCopyFrom           ( TDecSbac* pSrc );
-  Void xCopyContextsFrom       ( TDecSbac* pSrc );
 
-  Void  resetEntropy (TComSlice* pSlice );
-  Void  setBitstream              ( TComInputBitstream* p  ) { m_pcBitstream = p; m_pcTDecBinIf->init( p ); }
-  SetTraceFile 		  ( traceFile *os.File);
-  Void  parseVPS                  ( TComVPS* pcVPS )  {}
-  Void  parseSPS                  ( TComSPS* pcSPS         ) {}
-  Void  parsePPS                  ( TComPPS* pcPPS         ) {}
+func (this *TDecSbac)   Uninit                  ( )    { 
+	this.m_pcTDecBinIf = nil; 
+}
 
-  Void  parseSliceHeader          ( TComSlice*& rpcSlice, ParameterSetManagerDecoder *parameterSetManager) {}
-  Void  parseTerminatingBit       ( UInt& ruiBit );
-  Void  parseMVPIdx               ( Int& riMVPIdx          );
-  Void  parseSaoMaxUvlc           ( UInt& val, UInt maxSymbol );
-  Void  parseSaoMerge         ( UInt&  ruiVal   );
-  Void  parseSaoTypeIdx           ( UInt&  ruiVal  );
-  Void  parseSaoUflc              ( UInt uiLength, UInt& ruiVal     );
-  Void  parseSaoOneLcuInterleaving(Int rx, Int ry, SAOParam* pSaoParam, TComDataCU* pcCU, Int iCUAddrInSlice, Int iCUAddrUpInSlice, Int allowMergeLeft, Int allowMergeUp);
-  Void  parseSaoOffset            (SaoLcuParam* psSaoLcuParam, UInt compIdx);
-private:
-  Void  xReadUnarySymbol    ( UInt& ruiSymbol, ContextModel* pcSCModel, Int iOffset );
-  Void  xReadUnaryMaxSymbol ( UInt& ruiSymbol, ContextModel* pcSCModel, Int iOffset, UInt uiMaxSymbol );
-  Void  xReadEpExGolomb     ( UInt& ruiSymbol, UInt uiCount );
-  Void  xReadCoefRemainExGolomb ( UInt &rSymbol, UInt &rParam );
+func (this *TDecSbac)   Load                    ( pScr *TDecSbac){
+}
+func (this *TDecSbac)   LoadContexts            ( pScr *TDecSbac){
+}
+func (this *TDecSbac)   xCopyFrom           	( pSrc *TDecSbac){
+}
+func (this *TDecSbac)   xCopyContextsFrom       ( pSrc *TDecSbac){
+}
 
+func (this *TDecSbac)   ResetEntropy 			( pSlice *TLibCommon.TComSlice){
+}
+func (this *TDecSbac)   SetBitstream            ( p  *TLibCommon.TComInputBitstream) { 
+	this.m_pcBitstream = p; 
+	this.m_pcTDecBinIf.Init( p ); 
+}
+func (this *TDecSbac)   SetTraceFile 		      ( traceFile io.Writer){
+}
+func (this *TDecSbac)   ParseVPS                  ( pcVPS *TLibCommon.TComVPS )  {
+}
+func (this *TDecSbac)   ParseSPS                  ( pcSPS *TLibCommon.TComSPS         ) {
+}
+func (this *TDecSbac)   ParsePPS                  ( pcPPS *TLibCommon.TComPPS        ) {
+}
 
-public:
+func (this *TDecSbac)   ParseSliceHeader          ( rpcSlice *TLibCommon.TComSlice, parameterSetManager *TLibCommon.ParameterSetManager) {
+}
+func (this *TDecSbac)   ParseTerminatingBit       ( ruiBit *uint){
+}
+func (this *TDecSbac)   ParseMVPIdx               ( riMVPIdx  *int ){
+}
+func (this *TDecSbac)   ParseSaoMaxUvlc           ( val *uint,  maxSymbol uint){
+}
+func (this *TDecSbac)   ParseSaoMerge         	  ( ruiVal *uint  ){
+}
+func (this *TDecSbac)   ParseSaoTypeIdx           ( ruiVal *uint ){
+}
+func (this *TDecSbac)   ParseSaoUflc              ( uiLength uint, ruiVal *uint    ){
+}
+func (this *TDecSbac)   ParseSaoOneLcuInterleaving( rx,  ry int, pSaoParam *TLibCommon.SAOParam, pcCU *TLibCommon.TComDataCU,  iCUAddrInSlice,  iCUAddrUpInSlice,  allowMergeLeft,  allowMergeUp int){
+}
+func (this *TDecSbac)   ParseSaoOffset            (psSaoLcuParam *TLibCommon.SaoLcuParam,  compIdx uint){
+}
+//private:
+func (this *TDecSbac)   xReadUnarySymbol    ( ruiSymbol *uint, pcSCModel *TLibCommon.ContextModel,  iOffset int){
+}
+func (this *TDecSbac)   xReadUnaryMaxSymbol ( ruiSymbol *uint, pcSCModel *TLibCommon.ContextModel,  iOffset,  uiMaxSymbol uint ){
+}
+func (this *TDecSbac)   xReadEpExGolomb     ( ruiSymbol *uint,  uiCount uint){
+}
+func (this *TDecSbac)   xReadCoefRemainExGolomb ( ruiSymbol *uint, rParam *uint){
+}
 
-  Void parseSkipFlag      ( TComDataCU* pcCU, UInt uiAbsPartIdx, UInt uiDepth );
-  Void parseCUTransquantBypassFlag( TComDataCU* pcCU, UInt uiAbsPartIdx, UInt uiDepth );
-  Void parseSplitFlag     ( TComDataCU* pcCU, UInt uiAbsPartIdx, UInt uiDepth );
-  Void parseMergeFlag     ( TComDataCU* pcCU, UInt uiAbsPartIdx, UInt uiDepth, UInt uiPUIdx );
-  Void parseMergeIndex    ( TComDataCU* pcCU, UInt& ruiMergeIndex, UInt uiAbsPartIdx, UInt uiDepth );
-  Void parsePartSize      ( TComDataCU* pcCU, UInt uiAbsPartIdx, UInt uiDepth );
-  Void parsePredMode      ( TComDataCU* pcCU, UInt uiAbsPartIdx, UInt uiDepth );
+//public:
+func (this *TDecSbac)  ParseSkipFlag      		  ( pcCU *TLibCommon.TComDataCU,  uiAbsPartIdx,  uiDepth uint){
+}
+func (this *TDecSbac)  ParseCUTransquantBypassFlag( pcCU *TLibCommon.TComDataCU,  uiAbsPartIdx,  uiDepth uint ){
+}
+func (this *TDecSbac)  ParseSplitFlag     ( pcCU *TLibCommon.TComDataCU,  uiAbsPartIdx,  uiDepth uint ){
+}
+func (this *TDecSbac)  ParseMergeFlag     ( pcCU *TLibCommon.TComDataCU,  uiAbsPartIdx,  uiDepth, uiPUIdx uint  ){
+}
+func (this *TDecSbac)  ParseMergeIndex    ( pcCU *TLibCommon.TComDataCU, ruiMergeIndex *uint,  uiAbsPartIdx,  uiDepth uint){
+}
+func (this *TDecSbac)  ParsePartSize      ( pcCU *TLibCommon.TComDataCU, uiAbsPartIdx,  uiDepth uint ){
+}
+func (this *TDecSbac)  ParsePredMode      ( pcCU *TLibCommon.TComDataCU, uiAbsPartIdx,  uiDepth uint ){
+}
 
-  Void parseIntraDirLumaAng( TComDataCU* pcCU, UInt uiAbsPartIdx, UInt uiDepth );
+func (this *TDecSbac)  ParseIntraDirLumaAng( pcCU *TLibCommon.TComDataCU, uiAbsPartIdx,  uiDepth uint ){
+}
 
-  Void parseIntraDirChroma( TComDataCU* pcCU, UInt uiAbsPartIdx, UInt uiDepth );
+func (this *TDecSbac)  ParseIntraDirChroma( pcCU *TLibCommon.TComDataCU, uiAbsPartIdx,  uiDepth uint ){
+}
 
-  Void parseInterDir      ( TComDataCU* pcCU, UInt& ruiInterDir, UInt uiAbsPartIdx, UInt uiDepth );
-  Void parseRefFrmIdx     ( TComDataCU* pcCU, Int& riRefFrmIdx, UInt uiAbsPartIdx, UInt uiDepth, RefPicList eRefList );
-  Void parseMvd           ( TComDataCU* pcCU, UInt uiAbsPartIdx, UInt uiPartIdx, UInt uiDepth, RefPicList eRefList );
+func (this *TDecSbac)  ParseInterDir      ( pcCU *TLibCommon.TComDataCU, ruiInterDir *uint, uiAbsPartIdx,  uiDepth uint ){
+}
+func (this *TDecSbac)  ParseRefFrmIdx     ( pcCU *TLibCommon.TComDataCU, riRefFrmIdx *int, uiAbsPartIdx,  uiDepth uint,  eRefList TLibCommon.RefPicList){
+}
+func (this *TDecSbac)  ParseMvd           ( pcCU *TLibCommon.TComDataCU,  uiAbsPartIdx,  uiPartIdx,  uiDepth uint, eRefList TLibCommon.RefPicList){
+}
 
-  Void parseTransformSubdivFlag( UInt& ruiSubdivFlag, UInt uiLog2TransformBlockSize );
-  Void parseQtCbf         ( TComDataCU* pcCU, UInt uiAbsPartIdx, TextType eType, UInt uiTrDepth, UInt uiDepth );
-  Void parseQtRootCbf     ( TComDataCU* pcCU, UInt uiAbsPartIdx, UInt uiDepth, UInt& uiQtRootCbf );
+func (this *TDecSbac)  ParseTransformSubdivFlag(  ruiSubdivFlag *uint,  uiLog2TransformBlockSize uint){
+}
+func (this *TDecSbac)  ParseQtCbf         ( pcCU *TLibCommon.TComDataCU,  uiAbsPartIdx uint,  eType TLibCommon.TextType,  uiTrDepth, uiDepth uint  ){
+}
+func (this *TDecSbac)  ParseQtRootCbf     ( pcCU *TLibCommon.TComDataCU,  uiAbsPartIdx,  uiDepth uint, uiQtRootCbf *uint ){
+}
 
-  Void parseDeltaQP       ( TComDataCU* pcCU, UInt uiAbsPartIdx, UInt uiDepth );
+func (this *TDecSbac)  ParseDeltaQP       ( pcCU *TLibCommon.TComDataCU,  uiAbsPartIdx,  uiDepth uint){
+}
 
-  Void parseIPCMInfo      ( TComDataCU* pcCU, UInt uiAbsPartIdx, UInt uiDepth);
+func (this *TDecSbac)  ParseIPCMInfo      ( pcCU *TLibCommon.TComDataCU, uiAbsPartIdx,  uiDepth uint){
+}
 
-  Void parseLastSignificantXY( UInt& uiPosLastX, UInt& uiPosLastY, Int width, Int height, TextType eTType, UInt uiScanIdx );
-  Void parseCoeffNxN      ( TComDataCU* pcCU, TCoeff* pcCoef, UInt uiAbsPartIdx, UInt uiWidth, UInt uiHeight, UInt uiDepth, TextType eTType );
-  Void parseTransformSkipFlags ( TComDataCU* pcCU, UInt uiAbsPartIdx, UInt width, UInt height, UInt uiDepth, TextType eTType);
+func (this *TDecSbac)  ParseLastSignificantXY( uiPosLastX *uint, uiPosLastY *uint,  width,  height int,  eTType TLibCommon.TextType,  uiScanIdx uint){
+}
+func (this *TDecSbac)  ParseCoeffNxN      ( pcCU *TLibCommon.TComDataCU, pcCoef *TLibCommon.TCoeff,  uiAbsPartIdx,  uiWidth,  uiHeight,  uiDepth uint,  eTType TLibCommon.TextType){
+}
+func (this *TDecSbac)  ParseTransformSkipFlags ( pcCU *TLibCommon.TComDataCU,  uiAbsPartIdx,  width,  height,  uiDepth uint,  eTType TLibCommon.TextType){
+}
 
-  Void updateContextTables( SliceType eSliceType, Int iQp );
+func (this *TDecSbac)  UpdateContextTables(  eSliceType TLibCommon.SliceType,  iQp int ){
+}
 
-  Void  parseScalingList ( TComScalingList* scalingList ) {}
+func (this *TDecSbac)  ParseScalingList ( scalingList *TLibCommon.TComScalingList) {
+}
 
-};*/

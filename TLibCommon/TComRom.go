@@ -26,6 +26,19 @@ var G_uiMaxCUWidth uint = MAX_CU_SIZE
 var G_uiMaxCUHeight uint = MAX_CU_SIZE
 var G_uiMaxCUDepth uint = MAX_CU_DEPTH
 var G_uiAddCUDepth uint = 0
+
+const MAX_TS_WIDTH  = 4
+const MAX_TS_HEIGHT = 4
+
+const QUANT_IQUANT_SHIFT    = 20 // Q(QP%6) * IQ(QP%6) = 2^20
+const QUANT_SHIFT           = 14 // Q(4) = 2^14
+const SCALE_BITS            = 15 // Inherited from TMuC, pressumably for fractional bit estimates in RDOQ
+const MAX_TR_DYNAMIC_RANGE  = 15 // Maximum transform dynamic range (excluding sign bit)
+
+const SHIFT_INV_1ST         =  7 // Shift after first inverse transform stage
+const SHIFT_INV_2ND         = 12 // Shift after second inverse transform stage
+
+
 var G_auiZscanToRaster [MAX_NUM_SPU_W * MAX_NUM_SPU_W]uint // = { 0, };
 var G_auiRasterToZscan [MAX_NUM_SPU_W * MAX_NUM_SPU_W]uint // = { 0, };
 var G_auiRasterToPelX [MAX_NUM_SPU_W * MAX_NUM_SPU_W]uint  // = { 0, };
@@ -49,64 +62,51 @@ const (                            //enum ScalingListSize
     SCALING_LIST_SIZE_NUM
 )
 
-/*
-var MatrixType [4][6]string[20] = {{"INTRA4X4_LUMA",
+
+var MatrixType =[4][6]string{
+ {"INTRA4X4_LUMA",
   "INTRA4X4_CHROMAU",
   "INTRA4X4_CHROMAV",
   "INTER4X4_LUMA",
   "INTER4X4_CHROMAU",
-  "INTER4X4_CHROMAV"
-  },
-  {
-  "INTRA8X8_LUMA",
+  "INTER4X4_CHROMAV"},
+ {"INTRA8X8_LUMA",
   "INTRA8X8_CHROMAU", 
   "INTRA8X8_CHROMAV", 
   "INTER8X8_LUMA",
   "INTER8X8_CHROMAU", 
-  "INTER8X8_CHROMAV"  
-  },
-  {
-  "INTRA16X16_LUMA",
+  "INTER8X8_CHROMAV"},
+ {"INTRA16X16_LUMA",
   "INTRA16X16_CHROMAU", 
   "INTRA16X16_CHROMAV", 
   "INTER16X16_LUMA",
   "INTER16X16_CHROMAU", 
-  "INTER16X16_CHROMAV"  
-  },
-  {
-  "INTRA32X32_LUMA",
-  "INTER32X32_LUMA",
-  },
-};
-static const Char MatrixType_DC[4][12][22] =
-{
+  "INTER16X16_CHROMAV"},
+ {"INTRA32X32_LUMA",
+  "INTER32X32_LUMA"}};
+var MatrixType_DC	=[4][12]string{
   {
   },
   {
   },
-  {
-  "INTRA16X16_LUMA_DC",
+ {"INTRA16X16_LUMA_DC",
   "INTRA16X16_CHROMAU_DC", 
   "INTRA16X16_CHROMAV_DC", 
   "INTER16X16_LUMA_DC",
   "INTER16X16_CHROMAU_DC", 
-  "INTER16X16_CHROMAV_DC"  
-  },
-  {
-  "INTRA32X32_LUMA_DC",
-  "INTER32X32_LUMA_DC",
-  },
+  "INTER16X16_CHROMAV_DC"},
+ {"INTRA32X32_LUMA_DC",
+  "INTER32X32_LUMA_DC"},
 };
-*/
 
-var G_quantTSDefault4x4 [16]int /* = {
-  16,16,16,16,
-  16,16,16,16,
-  16,16,16,16,
-  16,16,16,16
-};*/
 
-var G_quantIntraDefault8x8 [64]int /* ={
+var G_quantTSDefault4x4 =[16]int{
+  16,16,16,16,
+  16,16,16,16,
+  16,16,16,16,
+  16,16,16,16};
+
+var G_quantIntraDefault8x8 =[64]int{
   16,16,16,16,17,18,21,24,
   16,16,16,16,17,19,22,25,
   16,16,17,18,20,22,25,29,
@@ -114,10 +114,9 @@ var G_quantIntraDefault8x8 [64]int /* ={
   17,17,20,24,30,35,41,47,
   18,19,22,27,35,44,54,65,
   21,22,25,31,41,54,70,88,
-  24,25,29,36,47,65,88,115
-};*/
+  24,25,29,36,47,65,88,115};
 
-var G_quantInterDefault8x8 [64]int /* = {
+var G_quantInterDefault8x8 =[64]int{
   16,16,16,16,17,18,20,24,
   16,16,16,17,18,20,24,25,
   16,16,17,18,20,24,25,28,
@@ -125,9 +124,11 @@ var G_quantInterDefault8x8 [64]int /* = {
   17,18,20,24,25,28,33,41,
   18,20,24,25,28,33,41,54,
   20,24,25,28,33,41,54,71,
-  24,25,28,33,41,54,71,91
-};*/
-var G_scalingListSize [4]uint                    // = {16,64,256,1024}; 
-var G_scalingListSizeX [4]uint                   // = { 4, 8, 16,  32};
-var G_scalingListNum [SCALING_LIST_SIZE_NUM]uint // = {6,6,6,2};
-var G_eTTable [4]int                             // = {0,3,1,2};
+  24,25,28,33,41,54,71,91};
+
+var G_scalingListSize  = [4]uint{16,64,256,1024}; 
+var G_scalingListSizeX = [4]uint{ 4, 8, 16,  32};
+var G_scalingListNum   = [SCALING_LIST_SIZE_NUM]uint{6,6,6,2};
+var G_eTTable 		   = [4]int{0,3,1,2};
+
+var G_aucConvertToBit  [ MAX_CU_SIZE+1 ]int8;

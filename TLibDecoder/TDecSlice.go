@@ -2,7 +2,7 @@ package TLibDecoder
 
 import (
 	"container/list"
-    //"gohm/TLibCommon"
+    "gohm/TLibCommon"
 )
 
 /// slice decoder class
@@ -30,11 +30,14 @@ func NewTDecSlice() *TDecSlice {
 func (this *TDecSlice) Init(pcEntropyDecoder *TDecEntropy, pcMbDecoder *TDecCu) {
 }
 
-//func (this *TDecSlice) Create            ( TComSlice* pcSlice, Int iWidth, Int iHeight, UInt uiMaxWidth, UInt uiMaxHeight, UInt uiMaxDepth );
+func (this *TDecSlice) Create( pcSlice *TLibCommon.TComSlice, iWidth, iHeight int, uiMaxWidth, uiMaxHeight, uiMaxDepth uint){
+}
 func (this *TDecSlice) Destroy() {
 }
 
-//func (this *TDecSlice) DecompressSlice   ( TComInputBitstream* pcBitstream, TComInputBitstream** ppcSubstreams,   TComPic*& rpcPic, TDecSbac* pcSbacDecoder, TDecSbac* pcSbacDecoders );
+func (this *TDecSlice) DecompressSlice   ( pcBitstream *TLibCommon.TComInputBitstream, ppcSubstreams []*TLibCommon.TComInputBitstream,   
+										   rpcPic *TLibCommon.TComPic, pcSbacDecoder *TDecSbac, pcSbacDecoders []TDecSbac){
+}
 
 //#if DEPENDENT_SLICES
 func (this *TDecSlice)  InitCtxMem(  i uint){

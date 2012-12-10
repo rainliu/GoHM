@@ -46,6 +46,26 @@ func NewTComPic() *TComPic {
 
 func (this *TComPic) Create(iWidth, iHeight int, uiMaxWidth, uiMaxHeight, uiMaxDepth uint,
     croppingWindow *CroppingWindow, numReorderPics []int, bIsVirtual bool) {
+  this.m_apcPicSym = NewTComPicSym();  
+  this.m_apcPicSym.Create( iWidth, iHeight, uiMaxWidth, uiMaxHeight, uiMaxDepth );
+  if !bIsVirtual {
+    this.m_apcPicYuv[0] = NewTComPicYuv();  
+    this.m_apcPicYuv[0].Create( iWidth, iHeight, uiMaxWidth, uiMaxHeight, uiMaxDepth );
+  }
+  this.m_apcPicYuv[1] = NewTComPicYuv();  
+  this.m_apcPicYuv[1].Create( iWidth, iHeight, uiMaxWidth, uiMaxHeight, uiMaxDepth );
+  
+  /* there are no SEI messages associated with this picture initially */
+  this.m_SEIs = nil;
+  this.m_bUsedByCurr = false;
+
+  /* store cropping parameters with picture */
+  this.m_croppingWindow = croppingWindow;
+
+  /* store number of reorder pics with picture */
+  //memcpy(m_numReorderPics, numReorderPics, MAX_TLAYER*sizeof(Int));
+
+  return;
 }
 func (this *TComPic) Destroy() {
 }

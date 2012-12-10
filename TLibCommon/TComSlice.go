@@ -2111,7 +2111,7 @@ type TComSlice struct {
     m_tileByteLocation     *list.List
     m_uiTileOffstForMultES uint
 
-    m_puiSubstreamSizes *uint
+    m_puiSubstreamSizes []uint
     m_scalingList       *TComScalingList //!< pointer of quantization matrix
     m_cabacInitFlag     bool
 
@@ -2650,7 +2650,7 @@ func (this *TComSlice) GetTileOffstForMultES() uint {
 }
 func (this *TComSlice) AllocSubstreamSizes(uiNumSubstreams uint) {
 }
-func (this *TComSlice) GetSubstreamSizes() *uint {
+func (this *TComSlice) GetSubstreamSizes() []uint {
     return this.m_puiSubstreamSizes
 }
 func (this *TComSlice) SetScalingList(scalingList *TComScalingList) {
