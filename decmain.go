@@ -32,7 +32,7 @@ func main() {
     // ending time
     lAfter := time.Now()
 
-    fmt.Printf("Total Decoding Time: %v.\n", lAfter.Sub(lBefore))
+    fmt.Printf("\n\nTotal Decoding Time: %v.\n", lAfter.Sub(lBefore))
 
     // destroy application decoder class
     cTAppDecTop.Destroy()

@@ -68,48 +68,77 @@ type TComSampleAdaptiveOffset struct {
     m_saoLcuBasedOptimization bool
 }
 
-func NewTComSampleAdaptiveOffset() *TComSampleAdaptiveOffset{
-    return &TComSampleAdaptiveOffset{};
+
+func (this *TComSampleAdaptiveOffset) xPCMRestoration        (pcPic *TComPic){
 }
-/*
-  Void xPCMRestoration        (TComPic* pcPic);
-  Void xPCMCURestoration      (TComDataCU* pcCU, UInt uiAbsZorderIdx, UInt uiDepth);
-  Void xPCMSampleRestoration  (TComDataCU* pcCU, UInt uiAbsZorderIdx, UInt uiDepth, TextType ttText);
-public:
-  TComSampleAdaptiveOffset         ();
-  virtual ~TComSampleAdaptiveOffset();
-*/
+func (this *TComSampleAdaptiveOffset) xPCMCURestoration      (pcCU *TComDataCU,  uiAbsZorderIdx,  uiDepth uint){
+}
+func (this *TComSampleAdaptiveOffset) xPCMSampleRestoration  (pcCU *TComDataCU,  uiAbsZorderIdx,  uiDepth uint,  ttText TextType){
+}
+//public:
+func NewTComSampleAdaptiveOffset() *TComSampleAdaptiveOffset{
+	return &TComSampleAdaptiveOffset{}
+}
+
 func (this *TComSampleAdaptiveOffset) Create(uiSourceWidth, uiSourceHeight, uiMaxCUWidth, uiMaxCUHeight uint) {
 }
 func (this *TComSampleAdaptiveOffset) Destroy() {
 }
 
-/*
-  Int  convertLevelRowCol2Idx(Int level, Int row, Int col);
 
-  Void initSAOParam   (SAOParam *pcSaoParam, Int iPartLevel, Int iPartRow, Int iPartCol, Int iParentPartIdx, Int StartCUX, Int EndCUX, Int StartCUY, Int EndCUY, Int iYCbCr);
-  Void allocSaoParam  (SAOParam* pcSaoParam);
-  Void resetSAOParam  (SAOParam *pcSaoParam);
-  static Void freeSaoParam   (SAOParam *pcSaoParam);
+func (this *TComSampleAdaptiveOffset) ConvertLevelRowCol2Idx( level,  row,  col int) int{
+	return 0;
+}
 
-  Void SAOProcess(SAOParam* pcSaoParam);
-  Void processSaoCu(Int iAddr, Int iSaoType, Int iYCbCr);
-  Pel* getPicYuvAddr(TComPicYuv* pcPicYuv, Int iYCbCr,Int iAddr = 0);
+func (this *TComSampleAdaptiveOffset) InitSAOParam   (pcSaoParam *SAOParam,  iPartLevel,  iPartRow,  iPartCol,  iParentPartIdx,  StartCUX,  EndCUX,  StartCUY,  EndCUY,  iYCbCr int){
+}
+func (this *TComSampleAdaptiveOffset) AllocSaoParam  (pcSaoParam *SAOParam){
+}
+func (this *TComSampleAdaptiveOffset) ResetSAOParam  (pcSaoParam *SAOParam){
+}
+func (this *TComSampleAdaptiveOffset) FreeSaoParam   (pcSaoParam *SAOParam){
+}
 
-  Void processSaoCuOrg(Int iAddr, Int iPartIdx, Int iYCbCr);  //!< LCU-basd SAO process without slice granularity
-  Void createPicSaoInfo(TComPic* pcPic, Int numSlicesInPic = 1);
-  Void destroyPicSaoInfo();
-  Void processSaoBlock(Pel* pDec, Pel* pRest, Int stride, Int iSaoType, UInt width, UInt height, Bool* pbBorderAvail, Int iYCbCr);
+func (this *TComSampleAdaptiveOffset) SAOProcess(pcSaoParam *SAOParam){
+}
+func (this *TComSampleAdaptiveOffset) ProcessSaoCu( iAddr,  iSaoType,  iYCbCr int){
+}
+func (this *TComSampleAdaptiveOffset) GetPicYuvAddr(pcPicYuv *TComPicYuv,  iYCbCr, iAddr int) *Pel{
+	return nil
+}
 
-  Void resetLcuPart(SaoLcuParam* saoLcuParam);
-  Void convertQT2SaoUnit(SAOParam* saoParam, UInt partIdx, Int yCbCr);
-  Void convertOnePart2SaoUnit(SAOParam *saoParam, UInt partIdx, Int yCbCr);
-  Void processSaoUnitAll(SaoLcuParam* saoLcuParam, Bool oneUnitFlag, Int yCbCr);
-  Void setSaoLcuBoundary (Bool bVal)  {m_saoLcuBoundary = bVal;}
-  Bool getSaoLcuBoundary ()           {return m_saoLcuBoundary;}
-  Void setSaoLcuBasedOptimization (Bool bVal)  {m_saoLcuBasedOptimization = bVal;}
-  Bool getSaoLcuBasedOptimization ()           {return m_saoLcuBasedOptimization;}
-  Void resetSaoUnit(SaoLcuParam* saoUnit);
-  Void copySaoUnit(SaoLcuParam* saoUnitDst, SaoLcuParam* saoUnitSrc );
-  Void PCMLFDisableProcess    ( TComPic* pcPic);                        ///< interface function for ALF process
-};*/
+func (this *TComSampleAdaptiveOffset) ProcessSaoCuOrg( iAddr,  iPartIdx,  iYCbCr int){  //!< LCU-basd SAO process without slice granularity
+}
+func (this *TComSampleAdaptiveOffset) CreatePicSaoInfo(pcPic *TComPic,  numSlicesInPic int){
+}
+func (this *TComSampleAdaptiveOffset) DestroyPicSaoInfo(){
+}
+func (this *TComSampleAdaptiveOffset) ProcessSaoBlock(pDec *Pel, pRest *Pel,  stride,  iSaoType int,  width,  height uint, pbBorderAvail *bool,  iYCbCr int){
+}
+
+func (this *TComSampleAdaptiveOffset) ResetLcuPart(saoLcuParam *SaoLcuParam){
+}
+func (this *TComSampleAdaptiveOffset) ConvertQT2SaoUnit(saoParam *SAOParam,  partIdx uint, yCbCr int){
+}
+func (this *TComSampleAdaptiveOffset) ConvertOnePart2SaoUnit(saoParam *SAOParam,  partIdx uint,  yCbCr int){
+}
+func (this *TComSampleAdaptiveOffset) ProcessSaoUnitAll(saoLcuParam *SaoLcuParam, oneUnitFlag bool,  yCbCr int){
+}
+func (this *TComSampleAdaptiveOffset) SetSaoLcuBoundary ( bVal bool)  {
+	this.m_saoLcuBoundary = bVal;
+}
+func (this *TComSampleAdaptiveOffset) GetSaoLcuBoundary ()    bool       {
+	return this.m_saoLcuBoundary;
+}
+func (this *TComSampleAdaptiveOffset) SetSaoLcuBasedOptimization ( bVal bool)  {
+	this.m_saoLcuBasedOptimization = bVal;
+}
+func (this *TComSampleAdaptiveOffset) GetSaoLcuBasedOptimization ()  bool         {
+	return this.m_saoLcuBasedOptimization;
+}
+func (this *TComSampleAdaptiveOffset) ResetSaoUnit(saoUnit *SaoLcuParam){
+}
+func (this *TComSampleAdaptiveOffset) CopySaoUnit(saoUnitDst *SaoLcuParam, saoUnitSrc *SaoLcuParam){
+}
+func (this *TComSampleAdaptiveOffset) PCMLFDisableProcess    ( pcPic *TComPic ){                       ///< interface function for ALF process
+}

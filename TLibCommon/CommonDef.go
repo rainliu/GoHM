@@ -160,6 +160,10 @@ func MAX(a, b interface{}) interface{} {
         if a.(TCoeff) < b.(TCoeff) {
             return b
         }
+    case int:
+    	if a.(int) < b.(int) {
+            return b
+        }    
     }
 
     return a
@@ -179,7 +183,20 @@ func MIN(a, b interface{}) interface{} {
         if a.(TCoeff) > b.(TCoeff) {
             return b
         }
+    case int:
+        if a.(int) > b.(int) {
+            return b
+        }
     }
+
+    return a
+}
+
+
+func ABS(a Pel) Pel {
+	if a < 0 {
+		return -a;
+	}
 
     return a
 }

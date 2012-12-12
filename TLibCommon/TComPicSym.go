@@ -335,6 +335,6 @@ func (this *TComPicSym) AllocSaoParam(sao *TComSampleAdaptiveOffset) {
   //sao.AllocSaoParam(this.m_saoParam);
 }
 
-func (this *TComPicSym) SetSaoParam() *SAOParam {
+func (this *TComPicSym) GetSaoParam() *SAOParam {
 	return this.m_saoParam;
 }

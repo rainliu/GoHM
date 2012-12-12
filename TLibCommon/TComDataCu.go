@@ -206,8 +206,11 @@ func (this *TComDataCU) destroy(){
   // -------------------------------------------------------------------------------------------------------------------
   // member functions for CU description
   // -------------------------------------------------------------------------------------------------------------------
-  
-  TComPic*      getPic                ()                        { return m_pcPic;           }
+*/  
+func (this *TComDataCU) GetPic                ()             *TComPic                  { 
+	return this.m_pcPic;           
+}
+ /* 
   TComSlice*    getSlice              ()                        { return m_pcSlice;         }
   UInt&         getAddr               ()                        { return m_uiCUAddr;        }
   UInt&         getZorderIdxInCU      ()                        { return m_uiAbsIdxInLCU; }

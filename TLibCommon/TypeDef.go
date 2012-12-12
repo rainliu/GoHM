@@ -293,21 +293,21 @@ type SaoLcuParam struct{
   mergeUpFlag		bool;
   mergeLeftFlag		bool;
   typeIdx			int;
-  subTypeIdx			int;                  ///< indicates EO class or BO band position
+  subTypeIdx		int;                  ///< indicates EO class or BO band position
   offset			[4]int;
   partIdx			int;
-  partIdxTmp			int;
-  length				int;
+  partIdxTmp		int;
+  length			int;
 };
 
 type SAOParam struct{
-  bSaoFlag			[2]bool;
-  psSaoPart			[3]*SAOQTPart;
-  iMaxSplitLevel		int;
-  oneUnitFlag		[3]bool;
-  saoLcuParam		[3]*SaoLcuParam;
-  numCuInHeight	int;
-  numCuInWidth		int;
+  SaoFlag			[2]bool;
+  SaoPart			[3]*SAOQTPart;
+  MaxSplitLevel		int;
+  OneUnitFlag		[3]bool;
+  SaoLcuParam		[3]*SaoLcuParam;
+  NumCuInHeight		int;
+  NumCuInWidth		int;
 };
 
 /// parameters for deblocking filter

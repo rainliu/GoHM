@@ -23,57 +23,77 @@ type TComLoopFilter struct {
     m_bLFCrossTileBoundary bool
 }
 
-/*
-protected:
   /// CU-level deblocking function
-  Void xDeblockCU                 ( TComDataCU* pcCU, UInt uiAbsZorderIdx, UInt uiDepth, Int Edge );
+func (this *TComLoopFilter) xDeblockCU                 ( pcCU *TComDataCU,  uiAbsZorderIdx,  uiDepth uint,  iEdge int ){
+}
 
   // set / get functions
-  Void xSetLoopfilterParam        ( TComDataCU* pcCU, UInt uiAbsZorderIdx );
+func (this *TComLoopFilter) xSetLoopfilterParam        ( pcCU *TComDataCU,  uiAbsZorderIdx uint ){
+}
   // filtering functions
-  Void xSetEdgefilterTU           ( TComDataCU* pcCU, UInt absTUPartIdx, UInt uiAbsZorderIdx, UInt uiDepth );
-  Void xSetEdgefilterPU           ( TComDataCU* pcCU, UInt uiAbsZorderIdx );
-  Void xGetBoundaryStrengthSingle ( TComDataCU* pcCU, UInt uiAbsZorderIdx, Int iDir, UInt uiPartIdx );
-  UInt xCalcBsIdx                 ( TComDataCU* pcCU, UInt uiAbsZorderIdx, Int iDir, Int iEdgeIdx, Int iBaseUnitIdx )
-  {
-    TComPic* const pcPic = pcCU->getPic();
-    const UInt uiLCUWidthInBaseUnits = pcPic->getNumPartInWidth();
-    if( iDir == 0 )
-    {
-      return g_auiRasterToZscan[g_auiZscanToRaster[uiAbsZorderIdx] + iBaseUnitIdx * uiLCUWidthInBaseUnits + iEdgeIdx ];
+func (this *TComLoopFilter) xSetEdgefilterTU           ( pcCU *TComDataCU,  absTUPartIdx,  uiAbsZorderIdx,  uiDepth uint){
+}
+func (this *TComLoopFilter) xSetEdgefilterPU           ( pcCU *TComDataCU,  uiAbsZorderIdx uint){
+}
+func (this *TComLoopFilter) xGetBoundaryStrengthSingle ( pcCU *TComDataCU,  uiAbsZorderIdx uint,  iDir int,  uiPartIdx uint){
+}
+  
+func (this *TComLoopFilter)   xCalcBsIdx           ( pcCU *TComDataCU,  uiAbsZorderIdx uint,  iDir,  iEdgeIdx,  iBaseUnitIdx int) uint{
+    pcPic := pcCU.GetPic();
+    uiLCUWidthInBaseUnits := pcPic.GetNumPartInWidth();
+    if iDir == 0 {
+      return G_auiRasterToZscan[G_auiZscanToRaster[uiAbsZorderIdx] + uint(iBaseUnitIdx) * uiLCUWidthInBaseUnits + uint(iEdgeIdx) ];
     }
-    else
-    {
-      return g_auiRasterToZscan[g_auiZscanToRaster[uiAbsZorderIdx] + iEdgeIdx * uiLCUWidthInBaseUnits + iBaseUnitIdx ];
-    }
-  }
 
-  Void xSetEdgefilterMultiple( TComDataCU* pcCU, UInt uiAbsZorderIdx, UInt uiDepth, Int iDir, Int iEdgeIdx, Bool bValue ,UInt uiWidthInBaseUnits = 0, UInt uiHeightInBaseUnits = 0 );
+	return G_auiRasterToZscan[G_auiZscanToRaster[uiAbsZorderIdx] + uint(iEdgeIdx) * uiLCUWidthInBaseUnits + uint(iBaseUnitIdx) ];
+}
 
-  Void xEdgeFilterLuma            ( TComDataCU* pcCU, UInt uiAbsZorderIdx, UInt uiDepth, Int iDir, Int iEdge );
-  Void xEdgeFilterChroma          ( TComDataCU* pcCU, UInt uiAbsZorderIdx, UInt uiDepth, Int iDir, Int iEdge );
+func (this *TComLoopFilter) xSetEdgefilterMultiple( pcCU *TComDataCU,  uiAbsZorderIdx,  uiDepth uint,  iDir,  iEdge int,  bValue bool, uiWidthInBaseUnits,  uiHeightInBaseUnits uint ){
+}
 
-  __inline Void xPelFilterLuma( Pel* piSrc, Int iOffset, Int d, Int beta, Int tc, Bool sw, Bool bPartPNoFilter, Bool bPartQNoFilter, Int iThrCut, Bool bFilterSecondP, Bool bFilterSecondQ);
-  __inline Void xPelFilterChroma( Pel* piSrc, Int iOffset, Int tc, Bool bPartPNoFilter, Bool bPartQNoFilter);
+func (this *TComLoopFilter) xEdgeFilterLuma            ( pcCU *TComDataCU,  uiAbsZorderIdx,  uiDepth uint,  iDir,  iEdge int){
+}
+func (this *TComLoopFilter) xEdgeFilterChroma          ( pcCU *TComDataCU,  uiAbsZorderIdx,  uiDepth uint,  iDir,  iEdge int){
+}
+
+func (this *TComLoopFilter) xPelFilterLuma( piSrc *Pel,  iOffset,  d,  beta,  tc int,  sw,  bPartPNoFilter,  bPartQNoFilter bool,  iThrCut int,  bFilterSecondP,  bFilterSecondQ bool){
+}
+func (this *TComLoopFilter) xPelFilterChroma( piSrc *Pel,  iOffset,  tc int,  bPartPNoFilter,  bPartQNoFilter bool){
+}
+
+func (this *TComLoopFilter) xUseStrongFiltering(  offset,  d,  beta,  tc int, piSrc []Pel) bool {
+  m4  := piSrc[0];
+  m3  := piSrc[-offset];
+  m7  := piSrc[ offset*3];
+  m0  := piSrc[-offset*4];
+
+  d_strong := int(ABS(m0-m3) + ABS(m7-m4));
+
+  return  (d_strong < (beta>>3)) && (d<(beta>>2)) && ( int(ABS(m3-m4)) < ((tc*5+1)>>1)) ;
+	
+}
+func (this *TComLoopFilter) xCalcDP( piSrc []Pel, iOffset int) Pel{
+	return ABS( piSrc[-iOffset*3] - 2*piSrc[-iOffset*2] + piSrc[-iOffset] ) ;
+}
+func (this *TComLoopFilter) xCalcDQ( piSrc []Pel, iOffset int) Pel{
+	return ABS( piSrc[0] - 2*piSrc[iOffset] + piSrc[iOffset*2] );
+}
 
 
-  __inline Bool xUseStrongFiltering( Int offset, Int d, Int beta, Int tc, Pel* piSrc);
-  __inline Int xCalcDP( Pel* piSrc, Int iOffset);
-  __inline Int xCalcDQ( Pel* piSrc, Int iOffset);
+func NewTComLoopFilter() *TComLoopFilter{
+	return &TComLoopFilter{};
+}
 
-public:
-  TComLoopFilter();
-  virtual ~TComLoopFilter();
-*/
 func (this *TComLoopFilter) Create(uiMaxCUDepth uint) {
 }
 func (this *TComLoopFilter) Destroy() {
 }
 
-/*
-  /// set configuration
-  Void setCfg( Bool bLFCrossTileBoundary );
 
+  /// set configuration
+func (this *TComLoopFilter) SetCfg(  bLFCrossTileBoundary bool){
+}
   /// picture-level deblocking filter
-  Void loopFilterPic( TComPic* pcPic );
-};*/
+func (this *TComLoopFilter) LoopFilterPic( pcPic *TComPic){
+}
+

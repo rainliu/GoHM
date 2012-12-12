@@ -591,7 +591,7 @@ func (this *TDecTop) xDecodeSlice(nalu *InputNALUnit, iSkipFrame *int, iPOCLastD
   }
 
   //  Decode a picture
-  //this.m_cGopDecoder.DecompressSlice(nalu.m_Bitstream, this.m_pcPic);
+  this.m_cGopDecoder.DecompressSlice(nalu.m_Bitstream, this.m_pcPic);
 
   this.m_bFirstSliceInPicture = false;
   this.m_uiSliceIdx++;
