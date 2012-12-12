@@ -98,9 +98,13 @@
         <File>TLibCommon\ContextModel3DBuffer.go</File>
         <File>TLibCommon\ContextTables.go</File>
         <File>TLibCommon\TComBitstream.go</File>
+        <File>TLibCommon\TComDataCu.go</File>
         <File>TLibCommon\TComInterpolationFilter.go</File>
         <File>TLibCommon\TComLoopFilter.go</File>
+        <File>TLibCommon\TComMotionInfo.go</File>
+        <File>TLibCommon\TComMv.go</File>
         <File>TLibCommon\TComNAL.go</File>
+        <File>TLibCommon\TComPattern.go</File>
         <File>TLibCommon\TComPic.go</File>
         <File>TLibCommon\TComPicSym.go</File>
         <File>TLibCommon\TComPicYuv.go</File>
@@ -115,11 +119,13 @@
         <File>TLibCommon\TypeDef.go</File>
     </Folder>
     <Folder name="TLibDecoder" sorted="Yes">
+        <File>TLibDecoder\TDecAnnexB.go</File>
         <File>TLibDecoder\TDecCabac.go</File>
         <File>TLibDecoder\TDecCavlc.go</File>
         <File>TLibDecoder\TDecCu.go</File>
         <File>TLibDecoder\TDecEntropy.go</File>
         <File>TLibDecoder\TDecGop.go</File>
+        <File>TLibDecoder\TDecNAL.go</File>
         <File>TLibDecoder\TDecSEI.go</File>
         <File>TLibDecoder\TDecSlice.go</File>
         <File>TLibDecoder\TDecTop.go</File>

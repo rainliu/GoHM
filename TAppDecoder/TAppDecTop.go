@@ -39,8 +39,10 @@ func (this *TAppDecTop) Destroy(){
 }
 
 func (this *TAppDecTop) Decode() (err error){
-  //var poc int;
+  var poc int;
   var pcListPic *list.List;// = NULL;
+  var nalUnit   *list.List; //vector<uint8_t>
+  var nalu TLibDecoder.InputNALUnit;
 
   bitstreamFile, err := os.Open(this.m_pchBitstreamFile);
   if err != nil{
@@ -59,6 +61,7 @@ func (this *TAppDecTop) Decode() (err error){
   // main decoder loop
   recon_opened := false; // reconstruction file not yet opened. (must be performed after SPS is seen)
   eof := false
+  bNewPicture := false;
   for !eof {// (!!bitstreamFile)
     /* location serves to work around a design fault in the decoder, whereby
      * the process of reading a new slice that is the first slice of a new frame
@@ -68,12 +71,12 @@ func (this *TAppDecTop) Decode() (err error){
     var stats TLibDecoder.AnnexBStats;// stats = AnnexBStats();
     bPreviousPictureDecoded := false;
 
-    nalUnit	:= list.New(); //vector<uint8_t> 
-    var	nalu TLibDecoder.InputNALUnit;
-    eof = bytestream.ByteStreamNALUnit(nalUnit, &stats);
-	
+    if !bNewPicture {
+        nalUnit	= list.New(); //vector<uint8_t>
+        eof = bytestream.ByteStreamNALUnit(nalUnit, &stats);
+    }
+
     // call actual decoding function
-    bNewPicture := false;
     if nalUnit.Len()==0 {
       /* this can happen if the following occur:
        *  - empty input file
@@ -86,8 +89,8 @@ func (this *TAppDecTop) Decode() (err error){
       fmt.Printf("NalUnit Len=%d ", nalUnit.Len())
       nalu.Read(nalUnit);
       fmt.Printf("Type=%d\n", nalu.GetNalUnitType())
-      
-      if (this.m_iMaxTemporalLayer >= 0 && int(nalu.GetTemporalId()) > this.m_iMaxTemporalLayer) || 
+
+      if (this.m_iMaxTemporalLayer >= 0 && int(nalu.GetTemporalId()) > this.m_iMaxTemporalLayer) ||
       	 !this.IsNaluWithinTargetDecLayerIdSet(&nalu) {
         if bPreviousPictureDecoded {
           bNewPicture = true;
@@ -96,45 +99,27 @@ func (this *TAppDecTop) Decode() (err error){
           bNewPicture = false;
         }
       }else{
-        bNewPicture = this.m_cTDecTop.Decode(&nalu, &this.m_iSkipFrame, &this.m_iPOCLastDisplay);
-        if bNewPicture {
-          //bitstreamFile.clear();
-          /* location points to the current nalunit payload[1] due to the
-           * need for the annexB parser to read three extra bytes.
-           * [1] except for the first NAL unit in the file
-           *     (but bNewPicture doesn't happen then) */
-          //bitstreamFile.seekg(location-streamoff(3));
-          //bytestream.reset();
-/*#if ENC_DEC_TRACE
-          g_bSliceTrace = false;
-#endif*/
-        }
-/*#if ENC_DEC_TRACE
-        else
-        {
-          g_bSliceTrace = true;
-        }
-#endif*/
-        bPreviousPictureDecoded = true; 
+        bNewPicture = this.m_cTDecTop.Decode(&nalu, &this.m_iSkipFrame, &this.m_iPOCLastDisplay, !bNewPicture);
+        bPreviousPictureDecoded = true;
       }
     }
-    //if bNewPicture || !bitstreamFile {
-    //  this.m_cTDecTop.executeLoopFilters(poc, pcListPic, m_iSkipFrame, m_iPOCLastDisplay);
-    //}
+    if bNewPicture || eof {
+      pcListPic = this.m_cTDecTop.ExecuteLoopFilters(&poc, &this.m_iSkipFrame, &this.m_iPOCLastDisplay);
+    }
 
     if pcListPic != nil {
       if this.m_pchReconFile!="" && !recon_opened {
-        if  this.m_outputBitDepthY==0 { 
-        	this.m_outputBitDepthY = TLibCommon.G_bitDepthY; 
+        if  this.m_outputBitDepthY==0 {
+        	this.m_outputBitDepthY = TLibCommon.G_bitDepthY;
         }
-        if this.m_outputBitDepthC==0 { 
-        	this.m_outputBitDepthC = TLibCommon.G_bitDepthC; 
+        if this.m_outputBitDepthC==0 {
+        	this.m_outputBitDepthC = TLibCommon.G_bitDepthC;
         }
 
         this.m_cTVideoIOYuvReconFile.Open( this.m_pchReconFile, true, this.m_outputBitDepthY, this.m_outputBitDepthC, TLibCommon.G_bitDepthY, TLibCommon.G_bitDepthC ); // write mode
         recon_opened = true;
       }
-      if  bNewPicture && 
+      if  bNewPicture &&
          ( nalu.GetNalUnitType() == TLibCommon.NAL_UNIT_CODED_SLICE_IDR		||
            nalu.GetNalUnitType() == TLibCommon.NAL_UNIT_CODED_SLICE_IDR_N_LP	||
            nalu.GetNalUnitType() == TLibCommon.NAL_UNIT_CODED_SLICE_BLA_N_LP	||
@@ -148,14 +133,14 @@ func (this *TAppDecTop) Decode() (err error){
       }
     }
   }
-  
+
   this.xFlushOutput( pcListPic );
   // delete buffers
   this.m_cTDecTop.DeletePicBuffer();
-  
+
   // destroy internal classes
   this.xDestroyDecLib();
-  
+
   return nil
 }
 
@@ -227,8 +212,8 @@ func (this *TAppDecTop) xWriteOutput(pcListPic *list.List, tId uint) {
 func (this *TAppDecTop) xFlushOutput( pcListPic *list.List ) {
   if pcListPic==nil {
     return;
-  } 
-  
+  }
+
   for e := pcListPic.Front(); e != nil; e = e.Next() {
 	pcPic := e.Value.(*TLibCommon.TComPic)
 	if pcPic.GetOutputMark() {
@@ -237,18 +222,18 @@ func (this *TAppDecTop) xFlushOutput( pcListPic *list.List ) {
         crop := pcPic.GetCroppingWindow();
         this.m_cTVideoIOYuvReconFile.Write( pcPic.GetPicYuvRec(), crop.GetPicCropLeftOffset(), crop.GetPicCropRightOffset(), crop.GetPicCropTopOffset(), crop.GetPicCropBottomOffset() );
       }
-      
+
       // update POC of display order
       this.m_iPOCLastDisplay = int(pcPic.GetPOC());
-      
+
       // erase non-referenced picture in the reference picture list after display
       if !pcPic.GetSlice(0).IsReferenced() && pcPic.GetReconMark() == true {
 //#if !DYN_REF_FREE
         pcPic.SetReconMark(false);
-        
+
         // mark it should be extended later
         pcPic.GetPicYuvRec().SetBorderExtension( false );
-        
+
 //#else
 //        pcPic->destroy();
 //        pcListPic->erase( iterPic );
@@ -265,9 +250,9 @@ func (this *TAppDecTop) xFlushOutput( pcListPic *list.List ) {
       pcPic = nil;
     }
 //#endif
-	pcListPic.Remove(e)    
+	pcListPic.Remove(e)
   }
-  
+
   //pcListPic.Clear();
   this.m_iPOCLastDisplay = - TLibCommon.MAX_INT;
 }

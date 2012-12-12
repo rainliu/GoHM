@@ -16,6 +16,7 @@ type TDecEntropyIf interface {
     ResetEntropy          ( pcSlice *TLibCommon.TComSlice);
     SetBitstream          ( p *TLibCommon.TComInputBitstream);
     SetTraceFile 		  ( traceFile io.Writer);
+    SetSliceTrace 		  ( bSliceTrace bool);
 
     ParseVPS                  ( pcVPS *TLibCommon.TComVPS );
     ParseSPS                  ( pcSPS *TLibCommon.TComSPS );
@@ -27,12 +28,12 @@ type TDecEntropyIf interface {
 
     ParseMVPIdx        ( riMVPIdx *int );
 
-    
+
     ParseSkipFlag      ( pcCU *TLibCommon.TComDataCU, uiAbsPartIdx, uiDepth uint );
     ParseCUTransquantBypassFlag( pcCU *TLibCommon.TComDataCU, uiAbsPartIdx, uiDepth uint );
     ParseSplitFlag     ( pcCU *TLibCommon.TComDataCU, uiAbsPartIdx, uiDepth uint );
     ParseMergeFlag     ( pcCU *TLibCommon.TComDataCU, uiAbsPartIdx, uiDepth, uiPUIdx uint );
-    ParseMergeIndex    ( pcCU *TLibCommon.TComDataCU, ruiMergeIndex *uint, uiAbsPartIdx, uiDepth uint ); 
+    ParseMergeIndex    ( pcCU *TLibCommon.TComDataCU, ruiMergeIndex *uint, uiAbsPartIdx, uiDepth uint );
     ParsePartSize      ( pcCU *TLibCommon.TComDataCU, uiAbsPartIdx, uiDepth uint );
     ParsePredMode      ( pcCU *TLibCommon.TComDataCU, uiAbsPartIdx, uiDepth uint );
 
@@ -56,7 +57,7 @@ type TDecEntropyIf interface {
     ParseTransformSkipFlags ( pcCU *TLibCommon.TComDataCU,  uiAbsPartIdx, width,  height, uiDepth uint,  eTType TLibCommon.TextType);
     UpdateContextTables(  eSliceType TLibCommon.SliceType, iQp int ) ;
 }
-    
+
 
 /// entropy decoder class
 type TDecEntropy struct {
@@ -92,34 +93,36 @@ func (this *TDecEntropy) SetEntropyDecoder(p TDecEntropyIf) {
 	this.m_pcEntropyDecoderIf = p;
 }
 func (this *TDecEntropy) SetBitstream(p *TLibCommon.TComInputBitstream) {
-   this.m_pcEntropyDecoderIf.SetBitstream(p);                    
+   this.m_pcEntropyDecoderIf.SetBitstream(p);
 }
 func (this *TDecEntropy) SetTraceFile( traceFile io.Writer){
    this.m_pcEntropyDecoderIf.SetTraceFile(traceFile);
 }
-
-func (this *TDecEntropy)   ResetEntropy                ( p 		*TLibCommon.TComSlice)           { 
-	this.m_pcEntropyDecoderIf.ResetEntropy(p);                    
+func (this *TDecEntropy) SetSliceTrace( bSliceTrace bool){
+   this.m_pcEntropyDecoderIf.SetSliceTrace(bSliceTrace);
 }
-func (this *TDecEntropy)   DecodeVPS                   ( pcVPS 	*TLibCommon.TComVPS) { 
-	this.m_pcEntropyDecoderIf.ParseVPS(pcVPS); 
+func (this *TDecEntropy)   ResetEntropy                ( p 		*TLibCommon.TComSlice)           {
+	this.m_pcEntropyDecoderIf.ResetEntropy(p);
 }
-func (this *TDecEntropy)   DecodeSPS                   ( pcSPS  *TLibCommon.TComSPS)    { 
-	this.m_pcEntropyDecoderIf.ParseSPS(pcSPS);                    
+func (this *TDecEntropy)   DecodeVPS                   ( pcVPS 	*TLibCommon.TComVPS) {
+	this.m_pcEntropyDecoderIf.ParseVPS(pcVPS);
 }
-func (this *TDecEntropy)   DecodePPS                   ( pcPPS	*TLibCommon.TComPPS, parameterSet *TLibCommon.ParameterSetManager )    { 
-	this.m_pcEntropyDecoderIf.ParsePPS(pcPPS);                    
+func (this *TDecEntropy)   DecodeSPS                   ( pcSPS  *TLibCommon.TComSPS)    {
+	this.m_pcEntropyDecoderIf.ParseSPS(pcSPS);
 }
-func (this *TDecEntropy)   DecodeSliceHeader           ( rpcSlice	*TLibCommon.TComSlice, parameterSetManager	*TLibCommon.ParameterSetManager)  { 
-	this.m_pcEntropyDecoderIf.ParseSliceHeader(rpcSlice, parameterSetManager);         
+func (this *TDecEntropy)   DecodePPS                   ( pcPPS	*TLibCommon.TComPPS, parameterSet *TLibCommon.ParameterSetManager )    {
+	this.m_pcEntropyDecoderIf.ParsePPS(pcPPS);
 }
-
-func (this *TDecEntropy)   DecodeTerminatingBit        ( ruiIsLast *uint )       { 
-	this.m_pcEntropyDecoderIf.ParseTerminatingBit(ruiIsLast);     
+func (this *TDecEntropy)   DecodeSliceHeader           ( rpcSlice	*TLibCommon.TComSlice, parameterSetManager	*TLibCommon.ParameterSetManager)  {
+	this.m_pcEntropyDecoderIf.ParseSliceHeader(rpcSlice, parameterSetManager);
 }
 
-func (this *TDecEntropy)   GetEntropyDecoder() TDecEntropyIf { 	
-	return this.m_pcEntropyDecoderIf; 
+func (this *TDecEntropy)   DecodeTerminatingBit        ( ruiIsLast *uint )       {
+	this.m_pcEntropyDecoderIf.ParseTerminatingBit(ruiIsLast);
+}
+
+func (this *TDecEntropy)   GetEntropyDecoder() TDecEntropyIf {
+	return this.m_pcEntropyDecoderIf;
 }
 
 //public:
@@ -152,8 +155,8 @@ func (this *TDecEntropy)   DecodeIntraDirModeChroma( pcCU *TLibCommon.TComDataCU
 func (this *TDecEntropy)   DecodeQP                ( pcCU *TLibCommon.TComDataCU, uiAbsPartIdx uint){
 }
 
-func (this *TDecEntropy)   UpdateContextTables     ( eSliceType TLibCommon.SliceType, iQp int ) { 
-	this.m_pcEntropyDecoderIf.UpdateContextTables( eSliceType, iQp ); 
+func (this *TDecEntropy)   UpdateContextTables     ( eSliceType TLibCommon.SliceType, iQp int ) {
+	this.m_pcEntropyDecoderIf.UpdateContextTables( eSliceType, iQp );
 }
 func (this *TDecEntropy)   DecodeCoeff             ( pcCU *TLibCommon.TComDataCU, uiAbsPartIdx, uiDepth, uiWidth, uiHeight uint, bCodeDQP *bool){
 }
@@ -162,5 +165,4 @@ func (this *TDecEntropy)   DecodeCoeff             ( pcCU *TLibCommon.TComDataCU
 //private:
 func (this *TDecEntropy)   xDecodeTransform        ( pcCU *TLibCommon.TComDataCU, offsetLuma, offsetChroma, uiAbsPartIdx, absTUPartIdx, uiDepth, width, height, uiTrIdx, uiInnerQuadIdx uint, bCodeDQP *bool ){
 }
-
 

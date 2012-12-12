@@ -126,14 +126,14 @@ func NewTDecSbac() *TDecSbac{
 	return &TDecSbac{}
 }
 
-  
 
-func (this *TDecSbac) Init ( p TDecBinIf)    { 
-	this.m_pcTDecBinIf = p; 
+
+func (this *TDecSbac) Init ( p TDecBinIf)    {
+	this.m_pcTDecBinIf = p;
 }
 
-func (this *TDecSbac)   Uninit                  ( )    { 
-	this.m_pcTDecBinIf = nil; 
+func (this *TDecSbac)   Uninit                  ( )    {
+	this.m_pcTDecBinIf = nil;
 }
 
 func (this *TDecSbac)   Load                    ( pScr *TDecSbac){
@@ -147,11 +147,13 @@ func (this *TDecSbac)   xCopyContextsFrom       ( pSrc *TDecSbac){
 
 func (this *TDecSbac)   ResetEntropy 			( pSlice *TLibCommon.TComSlice){
 }
-func (this *TDecSbac)   SetBitstream            ( p  *TLibCommon.TComInputBitstream) { 
-	this.m_pcBitstream = p; 
-	this.m_pcTDecBinIf.Init( p ); 
+func (this *TDecSbac)   SetBitstream            ( p  *TLibCommon.TComInputBitstream) {
+	this.m_pcBitstream = p;
+	this.m_pcTDecBinIf.Init( p );
 }
 func (this *TDecSbac)   SetTraceFile 		      ( traceFile io.Writer){
+}
+func (this *TDecSbac)   SetSliceTrace 		  ( bSliceTrace bool){
 }
 func (this *TDecSbac)   ParseVPS                  ( pcVPS *TLibCommon.TComVPS )  {
 }
@@ -242,4 +244,3 @@ func (this *TDecSbac)  UpdateContextTables(  eSliceType TLibCommon.SliceType,  i
 
 func (this *TDecSbac)  ParseScalingList ( scalingList *TLibCommon.TComScalingList) {
 }
-

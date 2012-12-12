@@ -145,7 +145,7 @@ func (this *TComReferencePictureSet) GetRefIdc(bufferNum int) int {
 
 func (this *TComReferencePictureSet) SortDeltaPOC() {
   // sort in increasing order (smallest first)
-  for j:=1; j < this.GetNumberOfPictures(); j++ { 
+  for j:=1; j < this.GetNumberOfPictures(); j++ {
     deltaPOC := this.GetDeltaPOC(j);
     used := this.GetUsed(j);
     for k:=j-1; k >= 0; k-- {
@@ -161,7 +161,7 @@ func (this *TComReferencePictureSet) SortDeltaPOC() {
   // flip the negative values to largest first
   numNegPics := this.GetNumberOfNegativePictures();
   k:=numNegPics-1;
-  for j:=0; j < numNegPics>>1; j++ { 
+  for j:=0; j < numNegPics>>1; j++ {
     deltaPOC := this.GetDeltaPOC(j);
     used := this.GetUsed(j);
     this.SetDeltaPOC(j, this.GetDeltaPOC(k));
@@ -179,12 +179,12 @@ func (this *TComReferencePictureSet) PrintDeltaPOC() {
   	}else{
   		fmt.Printf("%d%s ", this.GetDeltaPOC(j), "");
   	}
-  } 
+  }
   if this.GetInterRPSPrediction() {
     fmt.Printf("}, RefIdc = { ");
     for j:=0; j < this.GetNumRefIdc(); j++ {
       fmt.Printf("%d ", this.GetRefIdc(j));
-    } 
+    }
   }
   fmt.Printf("}\n");
 }
@@ -344,7 +344,7 @@ func (this *TComScalingList) XParseScalingList(pchFile string) bool {
           src = getScalingListAddress(sizeIdc, listIdc);
 
           fseek(fp,0,0);
-          do 
+          do
           {
             ret = fgets(line, 1024, fp);
             if ((ret==NULL)||(strstr(line, MatrixType[sizeIdc][listIdc])==NULL && feof(fp)))
@@ -370,7 +370,7 @@ func (this *TComScalingList) XParseScalingList(pchFile string) bool {
           if(sizeIdc > SCALING_LIST_8x8)
           {
             fseek(fp,0,0);
-            do 
+            do
             {
               ret = fgets(line, 1024, fp);
               if ((ret==NULL)||(strstr(line, MatrixType_DC[sizeIdc][listIdc])==NULL && feof(fp)))
@@ -570,19 +570,19 @@ type TComVPS struct {
     m_numReorderPics       [MAX_TLAYER]uint
     m_uiMaxDecPicBuffering [MAX_TLAYER]uint
     m_uiMaxLatencyIncrease [MAX_TLAYER]uint
-   
+
 
 //#if VPS_OPERATING_POINT
   	m_numHrdParameters	uint;
   	m_maxNuhReservedZeroLayerId	uint;
   	m_opLayerIdIncludedFlag	[MAX_VPS_NUM_HRD_PARAMETERS_ALLOWED_PLUS1][MAX_VPS_NUH_RESERVED_ZERO_LAYER_ID_PLUS1]bool;
-//#endif    
-    
+//#endif
+
     m_pcPTL                TComPTL
-    
+
 //#if SIGNAL_BITRATE_PICRATE_IN_VPS
   	m_bitRatePicRateInfo	TComBitRatePicRateInfo;
-//#endif    
+//#endif
 }
 
 //public:
@@ -640,33 +640,33 @@ func (this *TComVPS) GetMaxLatencyIncrease(tLayer uint) uint {
     return this.m_uiMaxLatencyIncrease[tLayer]
 }
 //#if VPS_OPERATING_POINT
-func (this *TComVPS)  GetNumHrdParameters()  uint                               { 
-	return this.m_numHrdParameters; 
+func (this *TComVPS)  GetNumHrdParameters()  uint                               {
+	return this.m_numHrdParameters;
 }
-func (this *TComVPS)  SetNumHrdParameters(v uint)                           { 
-	this.m_numHrdParameters = v;    
-}
-
-func (this *TComVPS)  GetMaxNuhReservedZeroLayerId() uint                       { 
-	return this.m_maxNuhReservedZeroLayerId; 
-}
-func (this *TComVPS)  SetMaxNuhReservedZeroLayerId(v uint)                  { 
-	this.m_maxNuhReservedZeroLayerId = v;    
+func (this *TComVPS)  SetNumHrdParameters(v uint)                           {
+	this.m_numHrdParameters = v;
 }
 
-func (this *TComVPS)  GetOpLayerIdIncludedFlag( opIdx, id uint)  bool       { 
-	return this.m_opLayerIdIncludedFlag[opIdx][id]; 
+func (this *TComVPS)  GetMaxNuhReservedZeroLayerId() uint                       {
+	return this.m_maxNuhReservedZeroLayerId;
 }
-func (this *TComVPS)  SetOpLayerIdIncludedFlag( v bool,  opIdx,  id uint) { 
-	this.m_opLayerIdIncludedFlag[opIdx][id] = v;    
+func (this *TComVPS)  SetMaxNuhReservedZeroLayerId(v uint)                  {
+	this.m_maxNuhReservedZeroLayerId = v;
+}
+
+func (this *TComVPS)  GetOpLayerIdIncludedFlag( opIdx, id uint)  bool       {
+	return this.m_opLayerIdIncludedFlag[opIdx][id];
+}
+func (this *TComVPS)  SetOpLayerIdIncludedFlag( v bool,  opIdx,  id uint) {
+	this.m_opLayerIdIncludedFlag[opIdx][id] = v;
 }
 //#endif
 func (this *TComVPS) GetPTL() *TComPTL {
     return &this.m_pcPTL
 }
 //#if SIGNAL_BITRATE_PICRATE_IN_VPS
-func (this *TComVPS)  GetBitratePicrateInfo() *TComBitRatePicRateInfo{ 
-	return &this.m_bitRatePicRateInfo; 
+func (this *TComVPS)  GetBitratePicrateInfo() *TComBitRatePicRateInfo{
+	return &this.m_bitRatePicRateInfo;
 }
 //#endif
 
@@ -1255,7 +1255,7 @@ func NewTComSPS() *TComSPS {
 	sps.m_cropUnitY[1]=2;
 	sps.m_cropUnitY[2]=1;
 	sps.m_cropUnitY[3]=1;
-	
+
     return sps
 }
 
@@ -1279,11 +1279,11 @@ func (this *TComSPS) SetChromaFormatIdc(i int) {
 }
 
 func (this *TComSPS) GetCropUnitX(chromaFormatIdc int) int {
-    //assert (chromaFormatIdc > 0 && chromaFormatIdc <= MAX_CHROMA_FORMAT_IDC); 
+    //assert (chromaFormatIdc > 0 && chromaFormatIdc <= MAX_CHROMA_FORMAT_IDC);
     return this.m_cropUnitX[chromaFormatIdc]
 }
 func (this *TComSPS) GetCropUnitY(chromaFormatIdc int) int {
-    //assert (chromaFormatIdc > 0 && chromaFormatIdc <= MAX_CHROMA_FORMAT_IDC); 
+    //assert (chromaFormatIdc > 0 && chromaFormatIdc <= MAX_CHROMA_FORMAT_IDC);
     return this.m_cropUnitY[chromaFormatIdc]
 }
 
@@ -1479,7 +1479,7 @@ func (this *TComSPS) GetAMPAcc(uiDepth uint) int {
     return this.m_iAMPAcc[uiDepth]
 }
 func (this *TComSPS) SetAMPAcc(uiDepth uint, iAccu int) {
-    //assert( uiDepth < g_uiMaxCUDepth);  
+    //assert( uiDepth < g_uiMaxCUDepth);
     this.m_iAMPAcc[uiDepth] = iAccu
 }
 
@@ -1519,7 +1519,7 @@ func (this *TComSPS) GetMaxTLayers() uint {
     return this.m_uiMaxTLayers
 }
 func (this *TComSPS) SetMaxTLayers(uiMaxTLayers uint) {
-    //assert( uiMaxTLayers <= MAX_TLAYER ); 
+    //assert( uiMaxTLayers <= MAX_TLAYER );
     this.m_uiMaxTLayers = uiMaxTLayers
 }
 
@@ -1709,14 +1709,14 @@ type TComPPS struct {
     m_deblockingFilterTcOffsetDiv2        int //< tc offset for deblocking filter
     m_scalingListPresentFlag              bool
     m_scalingList                         *TComScalingList //!< ScalingList class pointer
-    
+
 //#if HLS_MOVE_SPS_PICLIST_FLAGS
   	m_listsModificationPresentFlag		 bool;
 //#endif /* HLS_MOVE_SPS_PICLIST_FLAGS */
   	m_log2ParallelMergeLevelMinus2        uint
 //#if HLS_EXTRA_SLICE_HEADER_BITS
   	m_numExtraSliceHeaderBits			int;
-//#endif /* HLS_EXTRA_SLICE_HEADER_BITS */    
+//#endif /* HLS_EXTRA_SLICE_HEADER_BITS */
 }
 
 //public:
@@ -1978,11 +1978,11 @@ func (this *TComPPS) GetScalingList() *TComScalingList {
     return this.m_scalingList
 }   //!< Get ScalingList class pointer in PPS
 //#if HLS_MOVE_SPS_PICLIST_FLAGS
-func (this *TComPPS)  GetListsModificationPresentFlag ()  bool   { 
-	return this.m_listsModificationPresentFlag; 
+func (this *TComPPS)  GetListsModificationPresentFlag ()  bool   {
+	return this.m_listsModificationPresentFlag;
 }
-func (this *TComPPS)  SetListsModificationPresentFlag ( b bool)  { 
-	this.m_listsModificationPresentFlag = b;    
+func (this *TComPPS)  SetListsModificationPresentFlag ( b bool)  {
+	this.m_listsModificationPresentFlag = b;
 }
 //#endif /* HLS_MOVE_SPS_PICLIST_FLAGS */
 func (this *TComPPS) GetLog2ParallelMergeLevelMinus2() uint {
@@ -1992,11 +1992,11 @@ func (this *TComPPS) SetLog2ParallelMergeLevelMinus2(mrgLevel uint) {
     this.m_log2ParallelMergeLevelMinus2 = mrgLevel
 }
 //#if HLS_EXTRA_SLICE_HEADER_BITS
-func (this *TComPPS)  GetNumExtraSliceHeaderBits()  int  { 
-	return this.m_numExtraSliceHeaderBits; 
+func (this *TComPPS)  GetNumExtraSliceHeaderBits()  int  {
+	return this.m_numExtraSliceHeaderBits;
 }
-func (this *TComPPS)  SetNumExtraSliceHeaderBits(i int) { 
-	this.m_numExtraSliceHeaderBits = i; 
+func (this *TComPPS)  SetNumExtraSliceHeaderBits(i int) {
+	this.m_numExtraSliceHeaderBits = i;
 }
 //#endif /* HLS_EXTRA_SLICE_HEADER_BITS */
 
@@ -2037,7 +2037,7 @@ type TComSlice struct {
     m_saoEnabledFlag            bool
     m_saoEnabledFlagChroma      bool ///< SAO Cb&Cr enabled flag
     m_iPPSId                    int  ///< picture parameter set ID
-    m_PicOutputFlag             bool ///< pic_output_flag 
+    m_PicOutputFlag             bool ///< pic_output_flag
     m_iPOC                      int
     m_iLastIDR                  int
     m_prevPOC                   int
@@ -2089,7 +2089,7 @@ type TComSlice struct {
     m_pcPic *TComPic
     //#if ADAPTIVE_QP_SELECTION
     m_pcTrQuant *TComTrQuant
-    //#endif  
+    //#endif
     m_colFromL0Flag uint // collocated picture from List0 flag
 
     m_colRefIdx       uint
@@ -2143,15 +2143,98 @@ type TComSlice struct {
 
 //public:
 func NewTComSlice() *TComSlice {
-    return &TComSlice{}
+    pSlice := &TComSlice{ m_iPPSId: -1,
+        m_iPOC                          : 0 ,
+        m_iLastIDR                      : 0 ,
+        m_eNalUnitType                  : NAL_UNIT_CODED_SLICE_IDR ,
+        m_eSliceType                    : I_SLICE ,
+        m_iSliceQp                      : 0 ,
+        m_dependentSliceFlag            : false ,
+        //#if ADAPTIVE_QP_SELECTION
+        m_iSliceQpBase                  : 0 ,
+        //#endif
+        m_deblockingFilterDisable        : false ,
+        m_deblockingFilterOverrideFlag   : false ,
+        m_deblockingFilterBetaOffsetDiv2 : 0 ,
+        m_deblockingFilterTcOffsetDiv2   : 0 ,
+        m_bRefPicListModificationFlagLC : false ,
+        m_bRefPicListCombinationFlag    : false ,
+        m_bCheckLDC                     : false ,
+        m_iSliceQpDelta                 : 0 ,
+        m_iSliceQpDeltaCb               : 0 ,
+        m_iSliceQpDeltaCr               : 0 ,
+        m_iDepth                        : 0 ,
+        m_bRefenced                     : false ,
+        m_pcSPS                         : nil ,
+        m_pcPPS                         : nil ,
+        m_pcPic                         : nil ,
+        m_colFromL0Flag                 : 1 ,
+        m_colRefIdx                     : 0 ,
+        //#if SAO_CHROMA_LAMBDA
+        m_dLambdaLuma                   : 0.0 ,
+        m_dLambdaChroma                 : 0.0 ,
+        //#else
+        //, m_dLambda                       ( 0.0 )
+        //#endif
+        m_bNoBackPredFlag               : false ,
+        m_uiTLayer                      : 0 ,
+        m_bTLayerSwitchingFlag          : false ,
+        m_uiSliceMode                   : 0 ,
+        m_uiSliceArgument               : 0 ,
+        m_uiSliceCurStartCUAddr         : 0 ,
+        m_uiSliceCurEndCUAddr           : 0 ,
+        m_uiSliceIdx                    : 0 ,
+        m_uiDependentSliceMode            : 0 ,
+        m_uiDependentSliceArgument        : 0 ,
+        m_uiDependentSliceCurStartCUAddr  : 0 ,
+        m_uiDependentSliceCurEndCUAddr    : 0 ,
+        m_bNextSlice                    : false ,
+        m_bNextDependentSlice           : false ,
+        m_uiSliceBits                   : 0 ,
+        m_uiDependentSliceCounter       : 0 ,
+        m_bFinalized                    : false ,
+        m_uiTileOffstForMultES          : 0 ,
+        //m_puiSubstreamSizes             : NULL ,
+        m_cabacInitFlag                 : false ,
+        m_bLMvdL1Zero                   : false ,
+        m_numEntryPointOffsets          : 0 ,
+        m_temporalLayerNonReferenceFlag : false ,
+        m_enableTMVPFlag                : true}
+
+    pSlice.m_aiNumRefIdx[0] = 0;
+    pSlice.m_aiNumRefIdx[1] = 0;
+    pSlice.m_aiNumRefIdx[2] = 0;
+
+    pSlice.InitEqualRef();
+
+    for iNumCount := 0; iNumCount < MAX_NUM_REF_LC; iNumCount++{
+      pSlice.m_iRefIdxOfLC[REF_PIC_LIST_0][iNumCount]=-1;
+      pSlice.m_iRefIdxOfLC[REF_PIC_LIST_1][iNumCount]=-1;
+      pSlice.m_eListIdFromIdxOfLC[iNumCount]=0;
+      pSlice.m_iRefIdxFromIdxOfLC[iNumCount]=0;
+      pSlice.m_iRefIdxOfL0FromRefIdxOfL1[iNumCount] = -1;
+      pSlice.m_iRefIdxOfL1FromRefIdxOfL0[iNumCount] = -1;
+    }
+    for iNumCount := 0; iNumCount < MAX_NUM_REF; iNumCount++{
+      pSlice.m_apcRefPicList [0][iNumCount] = nil;
+      pSlice.m_apcRefPicList [1][iNumCount] = nil;
+      pSlice.m_aiRefPOCList  [0][iNumCount] = 0;
+      pSlice.m_aiRefPOCList  [1][iNumCount] = 0;
+    }
+    pSlice.m_bCombineWithReferenceFlag = false;
+    pSlice.ResetWpScaling(pSlice.m_weightPredTable);
+    pSlice.InitWpAcDcParam();
+    pSlice.m_saoEnabledFlag = false;
+
+    return pSlice;
 }
 
 func (this *TComSlice) InitSlice() {
   this.m_aiNumRefIdx[0]      = 0;
   this.m_aiNumRefIdx[1]      = 0;
-  
+
   this.m_colFromL0Flag = 1;
-  
+
   this.m_colRefIdx = 0;
   this.InitEqualRef();
   this.m_bNoBackPredFlag = false;
@@ -2187,7 +2270,7 @@ func (this *TComSlice) GetSPS() *TComSPS {
 }
 
 func (this *TComSlice) SetPPS(pcPPS *TComPPS) {
-    //assert(pcPPS!=NULL); 
+    //assert(pcPPS!=NULL);
     this.m_pcPPS = pcPPS
     this.m_iPPSId = pcPPS.GetPPSId()
 }
@@ -2473,7 +2556,7 @@ func (this *TComSlice) SetRefPicList(rcListPic *list.List) {
     //::memset( m_aiNumRefIdx,   0, sizeof ( m_aiNumRefIdx ));
     return;
   }
-  
+
   this.m_aiNumRefIdx[0] = this.GetNumRefIdx(REF_PIC_LIST_0);
   this.m_aiNumRefIdx[1] = this.GetNumRefIdx(REF_PIC_LIST_1);
 
@@ -2484,7 +2567,7 @@ func (this *TComSlice) SetRefPicList(rcListPic *list.List) {
   NumPocStCurr0 := 0;
   NumPocStCurr1 := 0;
   NumPocLtCurr  := 0;
-  
+
   var i int;
   for i=0; i < this.m_pcRPS.GetNumberOfNegativePictures(); i++ {
     if this.m_pcRPS.GetUsed(i) {
@@ -2494,7 +2577,7 @@ func (this *TComSlice) SetRefPicList(rcListPic *list.List) {
       pcRefPic.GetPicYuvRec().ExtendPicBorder();
       RefPicSetStCurr0[NumPocStCurr0] = pcRefPic;
       NumPocStCurr0++;
-      pcRefPic.SetCheckLTMSBPresent(false);  
+      pcRefPic.SetCheckLTMSBPresent(false);
     }
   }
   for ; i < this.m_pcRPS.GetNumberOfNegativePictures()+this.m_pcRPS.GetNumberOfPositivePictures(); i++ {
@@ -2505,7 +2588,7 @@ func (this *TComSlice) SetRefPicList(rcListPic *list.List) {
       pcRefPic.GetPicYuvRec().ExtendPicBorder();
       RefPicSetStCurr1[NumPocStCurr1] = pcRefPic;
       NumPocStCurr1++;
-      pcRefPic.SetCheckLTMSBPresent(false);  
+      pcRefPic.SetCheckLTMSBPresent(false);
     }
   }
   for i = this.m_pcRPS.GetNumberOfNegativePictures()+this.m_pcRPS.GetNumberOfPositivePictures()+this.m_pcRPS.GetNumberOfLongtermPictures()-1; i > this.m_pcRPS.GetNumberOfNegativePictures()+this.m_pcRPS.GetNumberOfPositivePictures()-1 ; i-- {
@@ -2520,7 +2603,7 @@ func (this *TComSlice) SetRefPicList(rcListPic *list.List) {
     if pcRefPic==nil {
       pcRefPic = this.xGetLongTermRefPic(rcListPic, this.m_pcRPS.GetPOC(i));
     }
-    pcRefPic.SetCheckLTMSBPresent(this.m_pcRPS.GetCheckLTMSBPresent(i));  
+    pcRefPic.SetCheckLTMSBPresent(this.m_pcRPS.GetCheckLTMSBPresent(i));
   }
 
   // ref_pic_list_init
@@ -2587,7 +2670,7 @@ func (this *TComSlice) SetRefPicList(rcListPic *list.List) {
   TComPic*  refPicListTemp0[MAX_NUM_REF+1];
   TComPic*  refPicListTemp1[MAX_NUM_REF+1];
   Int  numRpsCurrTempList0, numRpsCurrTempList1;
-  
+
   numRpsCurrTempList0 = numRpsCurrTempList1 = NumPocStCurr0 + NumPocStCurr1 + NumPocLtCurr;
   if (numRpsCurrTempList0 <= num_ref_idx_l0_active_minus1)
   {
@@ -2647,7 +2730,7 @@ func (this *TComSlice) SetRefPicList(rcListPic *list.List) {
       m_apcRefPicList[1][cIdx] = m_RefPicListModification.getRefPicListModificationFlagL1() ? refPicListTemp1[ m_RefPicListModification.getRefPicSetIdxL1(cIdx) ] : refPicListTemp1[cIdx];
     }
   }
-#endif*/	
+#endif*/
 }
 func (this *TComSlice) SetRefPOCList() {
   for iDir := 0; iDir < 2; iDir++ {
@@ -2679,7 +2762,7 @@ func (this *TComSlice) IsInterP() bool {
     return this.m_eSliceType == P_SLICE
 }
 
-//#if SAO_CHROMA_LAMBDA  
+//#if SAO_CHROMA_LAMBDA
 func (this *TComSlice) SetLambda(d, e float64) {
     this.m_dLambdaLuma = d
     this.m_dLambdaChroma = e
@@ -2714,7 +2797,7 @@ func (this *TComSlice) SetEqualRef(e RefPicList, iRefIdx1 int, iRefIdx2 int, b b
 func /*(this *TComSlice)*/ SortPicList(rcListPic *list.List) {
   var pcPicExtract *TComPic;
   var pcPicInsert *TComPic;
-  
+
   for i := 1; i < rcListPic.Len(); i++{
   	iterPicExtract := rcListPic.Front();
   	for j := 0; j < i; j++ {
@@ -2722,7 +2805,7 @@ func /*(this *TComSlice)*/ SortPicList(rcListPic *list.List) {
   	}
   	pcPicExtract = iterPicExtract.Value.(*TComPic);
     pcPicExtract.SetCurrSliceIdx(0);
-    
+
     iterPicInsert := rcListPic.Front();
     for iterPicInsert != iterPicExtract {
       pcPicInsert = iterPicInsert.Value.(*TComPic);
@@ -2730,10 +2813,10 @@ func /*(this *TComSlice)*/ SortPicList(rcListPic *list.List) {
       if pcPicInsert.GetPOC() >= pcPicExtract.GetPOC() {
         break;
       }
-      
+
       iterPicInsert = iterPicInsert.Next();
     }
-    
+
     //  swap iterPicExtract and iterPicInsert, iterPicExtract = curr. / iterPicInsert = insertion position
     rcListPic.InsertBefore(pcPicExtract, iterPicInsert);// (, iterPicExtract, iterPicExtract_1);
     rcListPic.Remove (iterPicExtract);
@@ -2800,8 +2883,8 @@ func (this *TComSlice) ApplyReferencePictureSet(rcListPic *list.List, pReference
     }
     // mark the picture as "unused for reference" if it is not in
     // the Reference Picture Set
-    if rpcPic.GetPicSym().GetSlice(0).GetPOC() != this.GetPOC() && isReference == 0 {            
-      rpcPic.GetSlice( 0 ).SetReferenced( false );   
+    if rpcPic.GetPicSym().GetSlice(0).GetPOC() != this.GetPOC() && isReference == 0 {
+      rpcPic.GetSlice( 0 ).SetReferenced( false );
       rpcPic.SetIsLongTerm(false);
     }
     //check that pictures of higher temporal layers are not used
@@ -2833,7 +2916,7 @@ func (this *TComSlice) IsTemporalLayerSwitchingPoint(rcListPic *list.List, RPSLi
 }
 func (this *TComSlice) IsStepwiseTemporalLayerSwitchingPointCandidate(rcListPic *list.List, RPSList *TComReferencePictureSet) bool {
     var rpcPic *TComPic;
-    
+
     iterPic := rcListPic.Front();
     for iterPic != nil {
         rpcPic = iterPic.Value.(*TComPic);
@@ -2869,8 +2952,8 @@ func (this *TComSlice) CheckThatAllRefPicsAreAvailable(rcListPic *list.List, pRe
           isAvailable = 1;
         }
       }else{
-        if rpcPic.GetIsLongTerm() && 
-          (rpcPic.GetPicSym().GetSlice(0).GetPOC()%(1<<rpcPic.GetPicSym().GetSlice(0).GetSPS().GetBitsForPOC())) == pReferencePictureSet.GetPOC(i)%(1<<rpcPic.GetPicSym().GetSlice(0).GetSPS().GetBitsForPOC()) && 
+        if rpcPic.GetIsLongTerm() &&
+          (rpcPic.GetPicSym().GetSlice(0).GetPOC()%(1<<rpcPic.GetPicSym().GetSlice(0).GetSPS().GetBitsForPOC())) == pReferencePictureSet.GetPOC(i)%(1<<rpcPic.GetPicSym().GetSlice(0).GetSPS().GetBitsForPOC()) &&
            rpcPic.GetSlice(0).IsReferenced(){
           isAvailable = 1;
         }
@@ -2893,7 +2976,7 @@ func (this *TComSlice) CheckThatAllRefPicsAreAvailable(rcListPic *list.List, pRe
     }
     // report that a picture is lost if it is in the Reference Picture Set
     // but not available as reference picture
-    if isAvailable == 0 {            
+    if isAvailable == 0 {
       if this.GetPOC() + pReferencePictureSet.GetDeltaPOC(i) >= pocRandomAccess {
         if !pReferencePictureSet.GetUsed(i) {
           if printErrors {
@@ -2909,7 +2992,7 @@ func (this *TComSlice) CheckThatAllRefPicsAreAvailable(rcListPic *list.List, pRe
         }
       }
     }
-  }  
+  }
   // loop through all short-term pictures in the Reference Picture Set
   // to see if the picture should be kept as reference picture
   for i=0;i<pReferencePictureSet.GetNumberOfNegativePictures()+pReferencePictureSet.GetNumberOfPositivePictures();i++ {
@@ -2927,7 +3010,7 @@ func (this *TComSlice) CheckThatAllRefPicsAreAvailable(rcListPic *list.List, pRe
     }
     // report that a picture is lost if it is in the Reference Picture Set
     // but not available as reference picture
-    if isAvailable == 0 {            
+    if isAvailable == 0 {
       if this.GetPOC() + pReferencePictureSet.GetDeltaPOC(i) >= pocRandomAccess {
         if !pReferencePictureSet.GetUsed(i)  {
           if(printErrors){
@@ -2943,14 +3026,14 @@ func (this *TComSlice) CheckThatAllRefPicsAreAvailable(rcListPic *list.List, pRe
         }
       }
     }
-  }    
+  }
   if atLeastOneLost!=0 {
     return iPocLost+1;
   }
   if atLeastOneRemoved!=0 {
     return -2;
   }
-  
+
   return 0;
 }
 func (this *TComSlice) CreateExplicitReferencePictureSetFromReference(rcListPic *list.List, pReferencePictureSet *TComReferencePictureSet) {
@@ -2988,7 +3071,7 @@ func (this *TComSlice) CreateExplicitReferencePictureSetFromReference(rcListPic 
   pcRPS.SetNumberOfNegativePictures(nrOfNegativePictures);
   pcRPS.SetNumberOfPositivePictures(nrOfPositivePictures);
   pcRPS.SetNumberOfPictures(nrOfNegativePictures+nrOfPositivePictures);
-  // This is a simplistic inter rps example. A smarter encoder will look for a better reference RPS to do the 
+  // This is a simplistic inter rps example. A smarter encoder will look for a better reference RPS to do the
   // inter RPS prediction with.  Here we just use the reference used by pReferencePictureSet.
   // If pReferencePictureSet is not inter_RPS_predicted, then inter_RPS_prediction is for the current RPS also disabled.
   if !pReferencePictureSet.GetInterRPSPrediction() {
@@ -3022,7 +3105,7 @@ func (this *TComSlice) CreateExplicitReferencePictureSetFromReference(rcListPic 
     }
     pcRPS.SetInterRPSPrediction(true);
     pcRPS.SetNumRefIdc(iNewIdc);
-    pcRPS.SetDeltaRPS(deltaRPS); 
+    pcRPS.SetDeltaRPS(deltaRPS);
     pcRPS.SetDeltaRIdxMinus1(pReferencePictureSet.GetDeltaRIdxMinus1() + this.GetSPS().GetRPSList().GetNumberOfReferencePictureSets() - this.GetRPSidx());
   }
 
@@ -3083,7 +3166,7 @@ func (this *TComSlice) CopySliceInfo(pSrc *TComSlice) {
   this.m_deblockingFilterOverrideFlag = pSrc.m_deblockingFilterOverrideFlag;
   this.m_deblockingFilterBetaOffsetDiv2 = pSrc.m_deblockingFilterBetaOffsetDiv2;
   this.m_deblockingFilterTcOffsetDiv2 = pSrc.m_deblockingFilterTcOffsetDiv2;
-  
+
   for i = 0; i < 3; i++ {
     this.m_aiNumRefIdx[i]     = pSrc.m_aiNumRefIdx[i];
   }
@@ -3110,7 +3193,7 @@ func (this *TComSlice) CopySliceInfo(pSrc *TComSlice) {
       this.m_apcRefPicList[i][j]  = pSrc.m_apcRefPicList[i][j];
       this.m_aiRefPOCList[i][j]   = pSrc.m_aiRefPOCList[i][j];
     }
-  }  
+  }
   this.m_iDepth               = pSrc.m_iDepth;
 
   // referenced slice
@@ -3126,7 +3209,7 @@ func (this *TComSlice) CopySliceInfo(pSrc *TComSlice) {
 
   this.m_colFromL0Flag        = pSrc.m_colFromL0Flag;
   this.m_colRefIdx            = pSrc.m_colRefIdx;
-//#if SAO_CHROMA_LAMBDA 
+//#if SAO_CHROMA_LAMBDA
   this.m_dLambdaLuma          = pSrc.m_dLambdaLuma;
   this.m_dLambdaChroma        = pSrc.m_dLambdaChroma;
 //#else
@@ -3150,7 +3233,7 @@ func (this *TComSlice) CopySliceInfo(pSrc *TComSlice) {
   this.m_uiSliceCurEndCUAddr           = pSrc.m_uiSliceCurEndCUAddr;
   this.m_uiSliceIdx                    = pSrc.m_uiSliceIdx;
   this.m_uiDependentSliceMode            = pSrc.m_uiDependentSliceMode;
-  this.m_uiDependentSliceArgument        = pSrc.m_uiDependentSliceArgument; 
+  this.m_uiDependentSliceArgument        = pSrc.m_uiDependentSliceArgument;
   this.m_uiDependentSliceCurStartCUAddr  = pSrc.m_uiDependentSliceCurStartCUAddr;
   this.m_uiDependentSliceCurEndCUAddr    = pSrc.m_uiDependentSliceCurEndCUAddr;
   this.m_bNextSlice                    = pSrc.m_bNextSlice;
@@ -3163,7 +3246,7 @@ func (this *TComSlice) CopySliceInfo(pSrc *TComSlice) {
       //memcpy(this.m_weightPredTable[e][n], pSrc.m_weightPredTable[e][n], sizeof(wpScalingParam)*3 );
     }
   }
-  this.m_saoEnabledFlag = pSrc.m_saoEnabledFlag; 
+  this.m_saoEnabledFlag = pSrc.m_saoEnabledFlag;
   this.m_saoEnabledFlagChroma = pSrc.m_saoEnabledFlagChroma;
   this.m_cabacInitFlag                = pSrc.m_cabacInitFlag;
   this.m_numEntryPointOffsets  = pSrc.m_numEntryPointOffsets;
@@ -3228,7 +3311,7 @@ func (this *TComSlice) GetFinalized() bool {
     return this.m_bFinalized
 }
 func (this *TComSlice) SetWpScaling(wp [2][MAX_NUM_REF][3]wpScalingParam) {
-    //memcpy(this.m_weightPredTable, wp, sizeof(wpScalingParam)*2*MAX_NUM_REF*3); 
+    //memcpy(this.m_weightPredTable, wp, sizeof(wpScalingParam)*2*MAX_NUM_REF*3);
     this.m_weightPredTable = wp
 }
 func (this *TComSlice) GetWpScaling(e RefPicList, iRefIdx int) [3]wpScalingParam {
@@ -3284,7 +3367,7 @@ func (this *TComSlice) ApplyWP() bool {
 }
 
 func (this *TComSlice) SetWpAcDcParam(wp [3]wpACDCParam) {
-    //memcpy(this.m_weightACDCParam, wp, sizeof(wpACDCParam)*3); 
+    //memcpy(this.m_weightACDCParam, wp, sizeof(wpACDCParam)*3);
     this.m_weightACDCParam = wp
 }
 func (this *TComSlice) GetWpAcDcParam() [3]wpACDCParam{
@@ -3298,20 +3381,20 @@ func (this *TComSlice) InitWpAcDcParam() {
 }
 
 //func (this *TComSlice) SetTileLocationCount(cnt uint) {
-    //	return this.m_tileByteLocation.Resize(cnt);    
+    //	return this.m_tileByteLocation.Resize(cnt);
 //}
 func (this *TComSlice) GetTileLocationCount() uint {
     return uint(len(this.m_tileByteLocation))
 }
 func (this *TComSlice) SetTileLocation(idx int, location uint) {
     //assert (idx<this.m_tileByteLocation.size());
-    this.m_tileByteLocation[idx] = location;       
+    this.m_tileByteLocation[idx] = location;
 }
 func (this *TComSlice) AddTileLocation(location uint) {
     this.m_tileByteLocation[len(this.m_tileByteLocation)+1] = location;
 }
 func (this *TComSlice) GetTileLocation(idx int) uint {
-    return this.m_tileByteLocation[idx];          
+    return this.m_tileByteLocation[idx];
 }
 
 func (this *TComSlice) SetTileOffstForMultES(uiOffset uint) {
@@ -3352,7 +3435,7 @@ func (this *TComSlice) CheckDefaultScalingList() bool {
     for listId:= uint(0);listId<G_scalingListNum[sizeId];listId++ {
     	slDstAddr := this.GetScalingList().GetScalingListAddress(sizeId,listId);
     	slSrcAddr := this.GetScalingList().GetScalingListDefaultAddress(sizeId, listId);
-    	
+
 		sizeof(Int)*min(MAX_MATRIX_COEF_NUM,G_scalingListSize[sizeId])
       if( !memcmp() // check value of matrix
      && ((sizeId < SCALING_LIST_16x16) || (getScalingList()->getScalingListDC(sizeId,listId) == 16))) // check DC value
@@ -3367,10 +3450,10 @@ func (this *TComSlice) CheckDefaultScalingList() bool {
 }
 func (this *TComSlice) SetCabacInitFlag(val bool) {
     this.m_cabacInitFlag = val
-}   //!< Set CABAC initial flag 
+}   //!< Set CABAC initial flag
 func (this *TComSlice) GetCabacInitFlag() bool {
     return this.m_cabacInitFlag
-}   //!< Get CABAC initial flag 
+}   //!< Get CABAC initial flag
 func (this *TComSlice) SetNumEntryPointOffsets(val int) {
     this.m_numEntryPointOffsets = val
 }
@@ -3400,24 +3483,24 @@ func (this *TComSlice) GetEnableTMVPFlag() bool {
 //protected:
 func (this *TComSlice) xGetRefPic(rcListPic *list.List, poc int) *TComPic {
   var pcPic *TComPic;
-  
+
   for e:=rcListPic.Front(); e!=nil; e=e.Next() {
   	pcPic = e.Value.(*TComPic);
   	if pcPic.GetPOC() == uint(poc) {
       break;
     }
   }
-  
+
   return pcPic;
 }
 
 func (this *TComSlice) xGetLongTermRefPic(rcListPic *list.List, poc int) *TComPic {
   var pcPic *TComPic;
   var pcStPic *TComPic;
-  
+
   for e:=rcListPic.Front(); e!=nil; e=e.Next() {
   	pcPic = e.Value.(*TComPic);
-  	if pcPic!=nil && 
+  	if pcPic!=nil &&
   	   pcPic.GetPOC()%(1<<this.GetSPS().GetBitsForPOC()) == (uint(poc)%(1<<this.GetSPS().GetBitsForPOC())) {
       if pcPic.GetIsLongTerm() {
         return pcPic;
@@ -3427,7 +3510,7 @@ func (this *TComSlice) xGetLongTermRefPic(rcListPic *list.List, poc int) *TComPi
       break;
     }
   }
-  
+
   return pcStPic;
 }
 
@@ -3447,7 +3530,7 @@ func NewParameterSetMap(maxId int) *ParameterSetMap{
 
 func (this *ParameterSetMap) StorePS(psId int, ps interface{}){
     //assert ( psId < m_maxId );
-    m_paramsetMap[psId] = ps; 
+    m_paramsetMap[psId] = ps;
 }
 func (this *ParameterSetMap) MergePSList(rPsList *ParameterSetMap){
     for id, ps := this.m_paramsetMap {
@@ -3481,36 +3564,36 @@ func NewParameterSetManager() *ParameterSetManager {
     return &ParameterSetManager{make(map[int]*TComVPS), make(map[int]*TComSPS), make(map[int]*TComPPS)}
 }
 
-//! store sequence parameter set and take ownership of it 
+//! store sequence parameter set and take ownership of it
 func (this *ParameterSetManager) SetVPS(vps *TComVPS) {
 	this.m_vpsMap[vps.GetVPSId()] = vps
 }
 
-//! get pointer to existing video parameter set  
+//! get pointer to existing video parameter set
 func (this *ParameterSetManager) GetVPS(vpsId int) *TComVPS {
     return this.m_vpsMap[vpsId]
 }
 
 //func (this *ParameterSetManager)  TComVPS* getFirstVPS()      { return m_vpsMap.getFirstPS(); };
 
-//! store sequence parameter set and take ownership of it 
+//! store sequence parameter set and take ownership of it
 func (this *ParameterSetManager) SetSPS(sps *TComSPS) {
     this.m_spsMap[sps.GetSPSId()] = sps
 }
 
-//! get pointer to existing sequence parameter set  
+//! get pointer to existing sequence parameter set
 func (this *ParameterSetManager) GetSPS(spsId int) *TComSPS {
     return this.m_spsMap[spsId]
 }
 
 //func (this *ParameterSetManager)  TComSPS* getFirstSPS()      { return m_spsMap.getFirstPS(); };
 
-//! store picture parameter set and take ownership of it 
+//! store picture parameter set and take ownership of it
 func (this *ParameterSetManager) SetPPS(pps *TComPPS) {
     this.m_ppsMap[pps.GetPPSId()] = pps
 }
 
-//! get pointer to existing picture parameter set  
+//! get pointer to existing picture parameter set
 func (this *ParameterSetManager) GetPPS(ppsId int) *TComPPS {
     return this.m_ppsMap[ppsId]
 }

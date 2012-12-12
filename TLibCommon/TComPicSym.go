@@ -16,40 +16,40 @@ type TComTile struct {
 }
 
 
-//public:  
+//public:
 func NewTComTile() *TComTile{
 	return &TComTile{}
 }
- 
-func (this *TComTile)  SetTileWidth         ( i uint )            { 
-	this.m_uiTileWidth = i; 
+
+func (this *TComTile)  SetTileWidth         ( i uint )            {
+	this.m_uiTileWidth = i;
 }
-func (this *TComTile)  GetTileWidth         ()  uint              { 
-	return this.m_uiTileWidth; 
+func (this *TComTile)  GetTileWidth         ()  uint              {
+	return this.m_uiTileWidth;
 }
-func (this *TComTile)  SetTileHeight        ( i uint )            { 
-	this.m_uiTileHeight = i; 
+func (this *TComTile)  SetTileHeight        ( i uint )            {
+	this.m_uiTileHeight = i;
 }
-func (this *TComTile)  GetTileHeight        ()  uint              { 
-	return this.m_uiTileHeight; 
+func (this *TComTile)  GetTileHeight        ()  uint              {
+	return this.m_uiTileHeight;
 }
-func (this *TComTile)  SetRightEdgePosInCU  ( i uint )            { 
-	this.m_uiRightEdgePosInCU = i; 
+func (this *TComTile)  SetRightEdgePosInCU  ( i uint )            {
+	this.m_uiRightEdgePosInCU = i;
 }
-func (this *TComTile)  GetRightEdgePosInCU  ()  uint              { 
-	return this.m_uiRightEdgePosInCU; 
+func (this *TComTile)  GetRightEdgePosInCU  ()  uint              {
+	return this.m_uiRightEdgePosInCU;
 }
-func (this *TComTile)  SetBottomEdgePosInCU ( i uint )            { 
-	this.m_uiBottomEdgePosInCU = i; 
+func (this *TComTile)  SetBottomEdgePosInCU ( i uint )            {
+	this.m_uiBottomEdgePosInCU = i;
 }
-func (this *TComTile)  GetBottomEdgePosInCU ()  uint              { 
-	return this.m_uiBottomEdgePosInCU; 
+func (this *TComTile)  GetBottomEdgePosInCU ()  uint              {
+	return this.m_uiBottomEdgePosInCU;
 }
-func (this *TComTile)  SetFirstCUAddr       ( i uint )            { 
-	this.m_uiFirstCUAddr = i; 
+func (this *TComTile)  SetFirstCUAddr       ( i uint )            {
+	this.m_uiFirstCUAddr = i;
 }
-func (this *TComTile)  GetFirstCUAddr       ()  uint              { 
-	return this.m_uiFirstCUAddr; 
+func (this *TComTile)  GetFirstCUAddr       ()  uint              {
+	return this.m_uiFirstCUAddr;
 }
 
 
@@ -78,8 +78,8 @@ type TComPicSym struct {
     m_iNumColumnsMinus1            int
     m_iNumRowsMinus1               int
     m_apcTComTile                  []*TComTile
-    m_puiCUOrderMap                []uint //the map of LCU raster scan address relative to LCU encoding order 
-    m_puiTileIdxMap                []uint //the map of the tile index relative to LCU raster scan address 
+    m_puiCUOrderMap                []uint //the map of LCU raster scan address relative to LCU encoding order
+    m_puiTileIdxMap                []uint //the map of the tile index relative to LCU raster scan address
     m_puiInverseCUOrderMap         []uint
 
     m_saoParam	*SAOParam;
@@ -92,31 +92,31 @@ func NewTComPicSym() *TComPicSym{
 func (this *TComPicSym) Create  (  iPicWidth,  iPicHeight int,  uiMaxWidth,  uiMaxHeight,  uiMaxDepth uint){
   this.m_uhTotalDepth      = byte(uiMaxDepth);
   this.m_uiNumPartitions   = 1<<(this.m_uhTotalDepth<<1);
-  
+
   this.m_uiMaxCUWidth      = uiMaxWidth;
   this.m_uiMaxCUHeight     = uiMaxHeight;
-  
+
   this.m_uiMinCUWidth      = uiMaxWidth  >> this.m_uhTotalDepth;
   this.m_uiMinCUHeight     = uiMaxHeight >> this.m_uhTotalDepth;
-  
+
   this.m_uiNumPartInWidth  = this.m_uiMaxCUWidth  / this.m_uiMinCUWidth;
   this.m_uiNumPartInHeight = this.m_uiMaxCUHeight / this.m_uiMinCUHeight;
-  
+
   if uint(iPicWidth) % this.m_uiMaxCUWidth !=0 {
   	this.m_uiWidthInCU       = uint(iPicWidth) /this.m_uiMaxCUWidth  + 1;
   }else{
   	this.m_uiWidthInCU       = uint(iPicWidth) /this.m_uiMaxCUWidth;
   }
-  
+
   if uint(iPicHeight) % this.m_uiMaxCUHeight !=0 {
   	this.m_uiHeightInCU      = uint(iPicHeight)/this.m_uiMaxCUHeight + 1;
   }else{
   	this.m_uiHeightInCU      = uint(iPicHeight)/this.m_uiMaxCUHeight;
   }
-  
+
   this.m_uiNumCUsInFrame   = this.m_uiWidthInCU * this.m_uiHeightInCU;
   this.m_apcTComDataCU     = make([]*TComDataCU,  this.m_uiNumCUsInFrame);
-  
+
   /*if this.m_uiNumAllocatedSlice>0 {
     for i:=0; i<m_uiNumAllocatedSlice ; i++ )
     {
@@ -124,17 +124,17 @@ func (this *TComPicSym) Create  (  iPicWidth,  iPicHeight int,  uiMaxWidth,  uiM
     }
     delete [] m_apcTComSlice;
   }*/
-  this.m_apcTComSlice      = make([]*TComSlice, this.m_uiNumCUsInFrame*this.m_uiNumPartitions);  
+  this.m_apcTComSlice      = make([]*TComSlice, this.m_uiNumCUsInFrame*this.m_uiNumPartitions);
   this.m_apcTComSlice[0]   = NewTComSlice();
   this.m_uiNumAllocatedSlice = 1;
   for i:=uint(0); i<this.m_uiNumCUsInFrame ; i++ {
     this.m_apcTComDataCU[i] = NewTComDataCU();
-    this.m_apcTComDataCU[i].Create( this.m_uiNumPartitions, this.m_uiMaxCUWidth, this.m_uiMaxCUHeight, 
-    false, int(this.m_uiMaxCUWidth >> this.m_uhTotalDepth), 
+    this.m_apcTComDataCU[i].Create( this.m_uiNumPartitions, this.m_uiMaxCUWidth, this.m_uiMaxCUHeight,
+    false, int(this.m_uiMaxCUWidth >> this.m_uhTotalDepth),
 //#if ADAPTIVE_QP_SELECTION
       true);
-//#endif     
-      
+//#endif
+
   }
 
   this.m_puiCUOrderMap = make([]uint, this.m_uiNumCUsInFrame+1);
@@ -149,93 +149,103 @@ func (this *TComPicSym) Create  (  iPicWidth,  iPicHeight int,  uiMaxWidth,  uiM
 }
 func (this *TComPicSym) Destroy (){
 }
-  
+
 func (this *TComPicSym) GetSlice(i uint) *TComSlice {
     return this.m_apcTComSlice[i]
 }
 
 
-func (this *TComPicSym)  GetFrameWidthInCU()       uint{ 
-	return this.m_uiWidthInCU;                 
+func (this *TComPicSym)  GetFrameWidthInCU()       uint{
+	return this.m_uiWidthInCU;
 }
-func (this *TComPicSym)  GetFrameHeightInCU()      uint{ 
-	return this.m_uiHeightInCU;                
+func (this *TComPicSym)  GetFrameHeightInCU()      uint{
+	return this.m_uiHeightInCU;
 }
-func (this *TComPicSym)  GetMinCUWidth()           uint{ 
-	return this.m_uiMinCUWidth;                
+func (this *TComPicSym)  GetMinCUWidth()           uint{
+	return this.m_uiMinCUWidth;
 }
-func (this *TComPicSym)  GetMinCUHeight()          uint{ 
-	return this.m_uiMinCUHeight;               
+func (this *TComPicSym)  GetMinCUHeight()          uint{
+	return this.m_uiMinCUHeight;
 }
-func (this *TComPicSym)  GetNumberOfCUsInFrame()   uint{ 
-	return this.m_uiNumCUsInFrame;  
+func (this *TComPicSym)  GetNumberOfCUsInFrame()   uint{
+	return this.m_uiNumCUsInFrame;
 }
-func (this *TComPicSym)  GetCU( uiCUAddr uint )  *TComDataCU{ 
-	return this.m_apcTComDataCU[uiCUAddr];     
+func (this *TComPicSym)  GetCU( uiCUAddr uint )  *TComDataCU{
+	return this.m_apcTComDataCU[uiCUAddr];
 }
 
-func (this *TComPicSym)  SetSlice(p *TComSlice, i uint) { 
-	this.m_apcTComSlice[i] = p;           
+func (this *TComPicSym)  SetSlice(p *TComSlice, i uint) {
+	this.m_apcTComSlice[i] = p;
 }
-func (this *TComPicSym)  GetNumAllocatedSlice()    uint{ 
-	return this.m_uiNumAllocatedSlice;         
+func (this *TComPicSym)  GetNumAllocatedSlice()    uint{
+	return this.m_uiNumAllocatedSlice;
 }
 func (this *TComPicSym)  AllocateNewSlice(){
+    this.m_apcTComSlice[this.m_uiNumAllocatedSlice] = NewTComSlice();
+    this.m_uiNumAllocatedSlice++;
+    if this.m_uiNumAllocatedSlice>=2 {
+      this.m_apcTComSlice[this.m_uiNumAllocatedSlice-1].CopySliceInfo( this.m_apcTComSlice[this.m_uiNumAllocatedSlice-2] );
+      this.m_apcTComSlice[this.m_uiNumAllocatedSlice-1].InitSlice();
+    }
 }
 func (this *TComPicSym)  ClearSliceBuffer(){
+    for i := uint(1); i < this.m_uiNumAllocatedSlice; i++{
+      this.m_apcTComSlice[i]=nil;
+    }
+    this.m_uiNumAllocatedSlice = 1;
 }
-func (this *TComPicSym)  GetNumPartition()         uint{ 
-	return this.m_uiNumPartitions;             
+func (this *TComPicSym)  GetNumPartition()         uint{
+	return this.m_uiNumPartitions;
 }
-func (this *TComPicSym)  GetNumPartInWidth()       uint{ 
-	return this.m_uiNumPartInWidth;            
+func (this *TComPicSym)  GetNumPartInWidth()       uint{
+	return this.m_uiNumPartInWidth;
 }
-func (this *TComPicSym)  GetNumPartInHeight()      uint{ 
-	return this.m_uiNumPartInHeight;           
+func (this *TComPicSym)  GetNumPartInHeight()      uint{
+	return this.m_uiNumPartInHeight;
 }
-func (this *TComPicSym)  SetNumColumnsMinus1( i int )                          { 
-	this.m_iNumColumnsMinus1 = i; 
+func (this *TComPicSym)  SetNumColumnsMinus1( i int )                          {
+	this.m_iNumColumnsMinus1 = i;
 }
-func (this *TComPicSym)  GetNumColumnsMinus1()     int                            { 
-	return this.m_iNumColumnsMinus1; 
-}  
-func (this *TComPicSym)  SetNumRowsMinus1( i int )                             { 
-	this.m_iNumRowsMinus1 = i; 
+func (this *TComPicSym)  GetNumColumnsMinus1()     int                            {
+	return this.m_iNumColumnsMinus1;
 }
-func (this *TComPicSym)  GetNumRowsMinus1()        int                            { 
-	return this.m_iNumRowsMinus1; 
+func (this *TComPicSym)  SetNumRowsMinus1( i int )                             {
+	this.m_iNumRowsMinus1 = i;
 }
-func (this *TComPicSym)  GetNumTiles()             int                            { 
-	return (this.m_iNumRowsMinus1+1)*(this.m_iNumColumnsMinus1+1); 
+func (this *TComPicSym)  GetNumRowsMinus1()        int                            {
+	return this.m_iNumRowsMinus1;
 }
-func (this *TComPicSym)  GetTComTile  ( tileIdx uint ) *TComTile                         { 
-	return this.m_apcTComTile[tileIdx]; 
+func (this *TComPicSym)  GetNumTiles()             int                            {
+	return (this.m_iNumRowsMinus1+1)*(this.m_iNumColumnsMinus1+1);
 }
-func (this *TComPicSym)  SetCUOrderMap( encCUOrder, cuAddr int )           { 
-	this.m_puiCUOrderMap[encCUOrder] = uint(cuAddr); 
+func (this *TComPicSym)  GetTComTile  ( tileIdx uint ) *TComTile                         {
+	return this.m_apcTComTile[tileIdx];
 }
-func (this *TComPicSym)  GetCUOrderMap( encCUOrder int )     uint                  { 
+func (this *TComPicSym)  SetCUOrderMap( encCUOrder, cuAddr int )           {
+	this.m_puiCUOrderMap[encCUOrder] = uint(cuAddr);
+}
+func (this *TComPicSym)  GetCUOrderMap( encCUOrder int )     uint                  {
 	if encCUOrder>=int(this.m_uiNumCUsInFrame) {
 		return this.m_puiCUOrderMap[this.m_uiNumCUsInFrame];
 	}
-	
-	return this.m_puiCUOrderMap[encCUOrder]; 
+
+	return this.m_puiCUOrderMap[encCUOrder];
 }
-func (this *TComPicSym)  GetTileIdxMap( i int )              uint                  { 
-	return this.m_puiTileIdxMap[i]; 
+func (this *TComPicSym)  GetTileIdxMap( i int )              uint                  {
+	return this.m_puiTileIdxMap[i];
 }
-func (this *TComPicSym)  SetInverseCUOrderMap( cuAddr, encCUOrder int )    { 
-	this.m_puiInverseCUOrderMap[cuAddr] = uint(encCUOrder); 
+func (this *TComPicSym)  SetInverseCUOrderMap( cuAddr, encCUOrder int )    {
+	this.m_puiInverseCUOrderMap[cuAddr] = uint(encCUOrder);
 }
-func (this *TComPicSym)  GetInverseCUOrderMap( cuAddr int )  uint                   { 
+func (this *TComPicSym)  GetInverseCUOrderMap( cuAddr int )  uint                   {
 	if cuAddr>=int(this.m_uiNumCUsInFrame) {
 		return this.m_puiInverseCUOrderMap[this.m_uiNumCUsInFrame]
 	}
-	
-	return this.m_puiInverseCUOrderMap [cuAddr]; 
+
+	return this.m_puiInverseCUOrderMap [cuAddr];
 }
 func (this *TComPicSym)  GetPicSCUEncOrder( SCUAddr uint )   uint{
-	return this.GetInverseCUOrderMap(int(SCUAddr/this.m_uiNumPartitions))*this.m_uiNumPartitions + SCUAddr%this.m_uiNumPartitions; 
+	return this.GetInverseCUOrderMap(int(SCUAddr/this.m_uiNumPartitions))*this.m_uiNumPartitions + SCUAddr%this.m_uiNumPartitions;
 }
 func (this *TComPicSym)  GetPicSCUAddr( SCUEncOrder uint )  uint{
   return this.GetCUOrderMap(int(SCUEncOrder/this.m_uiNumPartitions))*this.m_uiNumPartitions + SCUEncOrder%this.m_uiNumPartitions;
@@ -271,7 +281,7 @@ func (this *TComPicSym)  XInitTiles(){
       this.GetTComTile(uiTileIdx).SetBottomEdgePosInCU(uiBottomEdgePosInCU-1);
 
       //initialize the FirstCUAddr for each tile
-      this.GetTComTile(uiTileIdx).SetFirstCUAddr( (this.GetTComTile(uiTileIdx).GetBottomEdgePosInCU() - this.GetTComTile(uiTileIdx).GetTileHeight() +1)*this.m_uiWidthInCU + 
+      this.GetTComTile(uiTileIdx).SetFirstCUAddr( (this.GetTComTile(uiTileIdx).GetBottomEdgePosInCU() - this.GetTComTile(uiTileIdx).GetTileHeight() +1)*this.m_uiWidthInCU +
         this.GetTComTile(uiTileIdx).GetRightEdgePosInCU() - this.GetTComTile(uiTileIdx).GetTileWidth() + 1);
     }
   }
@@ -296,12 +306,12 @@ func (this *TComPicSym)  XInitTiles(){
 
 func (this *TComPicSym)  XCalculateNxtCUAddr( uiCurrCUAddr uint ) uint{
   var  uiNxtCUAddr, uiTileIdx uint;
-  
+
   //get the tile index for the current LCU
   uiTileIdx = this.GetTileIdxMap(int(uiCurrCUAddr));
 
   //get the raster scan address for the next LCU
-  if uiCurrCUAddr % this.m_uiWidthInCU == this.GetTComTile(uiTileIdx).GetRightEdgePosInCU() && 
+  if uiCurrCUAddr % this.m_uiWidthInCU == this.GetTComTile(uiTileIdx).GetRightEdgePosInCU() &&
      uiCurrCUAddr / this.m_uiWidthInCU == this.GetTComTile(uiTileIdx).GetBottomEdgePosInCU()  {
   //the current LCU is the last LCU of the tile
     if int(uiTileIdx) == (this.m_iNumColumnsMinus1+1)*(this.m_iNumRowsMinus1+1)-1 {
@@ -321,8 +331,10 @@ func (this *TComPicSym)  XCalculateNxtCUAddr( uiCurrCUAddr uint ) uint{
 }
 
 func (this *TComPicSym) AllocSaoParam(sao *TComSampleAdaptiveOffset) {
+  //this.m_saoParam = new(SAOParam);
+  //sao.AllocSaoParam(this.m_saoParam);
 }
-  
-func (this *TComPicSym) SetSaoParam() *SAOParam { 
-	return this.m_saoParam; 
+
+func (this *TComPicSym) SetSaoParam() *SAOParam {
+	return this.m_saoParam;
 }

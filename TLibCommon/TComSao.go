@@ -68,6 +68,9 @@ type TComSampleAdaptiveOffset struct {
     m_saoLcuBasedOptimization bool
 }
 
+func NewTComSampleAdaptiveOffset() *TComSampleAdaptiveOffset{
+    return &TComSampleAdaptiveOffset{};
+}
 /*
   Void xPCMRestoration        (TComPic* pcPic);
   Void xPCMCURestoration      (TComDataCU* pcCU, UInt uiAbsZorderIdx, UInt uiDepth);
@@ -93,7 +96,7 @@ func (this *TComSampleAdaptiveOffset) Destroy() {
   Void processSaoCu(Int iAddr, Int iSaoType, Int iYCbCr);
   Pel* getPicYuvAddr(TComPicYuv* pcPicYuv, Int iYCbCr,Int iAddr = 0);
 
-  Void processSaoCuOrg(Int iAddr, Int iPartIdx, Int iYCbCr);  //!< LCU-basd SAO process without slice granularity 
+  Void processSaoCuOrg(Int iAddr, Int iPartIdx, Int iYCbCr);  //!< LCU-basd SAO process without slice granularity
   Void createPicSaoInfo(TComPic* pcPic, Int numSlicesInPic = 1);
   Void destroyPicSaoInfo();
   Void processSaoBlock(Pel* pDec, Pel* pRest, Int stride, Int iSaoType, UInt width, UInt height, Bool* pbBorderAvail, Int iYCbCr);
@@ -108,5 +111,5 @@ func (this *TComSampleAdaptiveOffset) Destroy() {
   Bool getSaoLcuBasedOptimization ()           {return m_saoLcuBasedOptimization;}
   Void resetSaoUnit(SaoLcuParam* saoUnit);
   Void copySaoUnit(SaoLcuParam* saoUnitDst, SaoLcuParam* saoUnitSrc );
-  Void PCMLFDisableProcess    ( TComPic* pcPic);                        ///< interface function for ALF process 
+  Void PCMLFDisableProcess    ( TComPic* pcPic);                        ///< interface function for ALF process
 };*/

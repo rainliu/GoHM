@@ -52,7 +52,7 @@ const HM9_NALU_TYPES 						      =1
 
 const STRONG_INTRA_SMOOTHING          			  =1  ///< Enables Bilinear interploation of reference samples instead of 121 filter in intra prediction when reference samples are flat.
 
-const RESTRICT_INTRA_BOUNDARY_SMOOTHING    		  =1  ///< K0380, K0186 
+const RESTRICT_INTRA_BOUNDARY_SMOOTHING    		  =1  ///< K0380, K0186
 const LINEBUF_CLEANUP               			  =1 ///< K0101
 const MERGE_CLEANUP_AND_K0197     				  =1  //<Code cleanup and K0197: removal of indirect use of A1 and B1 in merging candidate list construction.
 const RPL_INIT_FIX 								  =1 ///< K0255 2nd part (editorial)
@@ -64,20 +64,20 @@ const FLAT_4x4_DSL 								  =1 ///< Use flat 4x4 default scaling list (see note
 
 const RDOQ_TRANSFORMSKIP          				  =1   // Enable RDOQ for transform skip (see noted on K0245)
 
-const COEF_REMAIN_BIN_REDUCTION        =3 ///< indicates the level at which the VLC 
+const COEF_REMAIN_BIN_REDUCTION        =3 ///< indicates the level at which the VLC
                                            ///< transitions from Golomb-Rice to TU+EG(k)
 
 const CU_DQP_TU_CMAX =5                   ///< max number bins for truncated unary
 const CU_DQP_EG_k =0                      ///< expgolomb order
 
 const SBH_THRESHOLD                    =4  ///< I0156: value of the fixed SBH controlling threshold
-  
+
 const SEQUENCE_LEVEL_LOSSLESS           =0  ///< H0530: used only for sequence or frame-level lossless coding
 
 const DISABLING_CLIP_FOR_BIPREDME         =1  ///< Ticket #175
-  
+
 const C1FLAG_NUMBER               =8 // maximum number of largerThan1 flag coded in one chunk :  16 in HM5
-const C2FLAG_NUMBER               =1 // maximum number of largerThan2 flag coded in one chunk:  16 in HM5 
+const C2FLAG_NUMBER               =1 // maximum number of largerThan2 flag coded in one chunk:  16 in HM5
 
 const REMOVE_SAO_LCU_ENC_CONSTRAINTS_3 =1  ///< disable the encoder constraint that conditionally disable SAO for chroma for entire slice in interleaved mode
 
@@ -132,7 +132,7 @@ const AMVP_DECIMATION_FACTOR = 4
 const SCAN_SET_SIZE = 16
 const LOG2_SCAN_SET_SIZE = 4
 
-const FAST_UDI_MAX_RDMODE_NUM = 35 ///< maximum number of RD comparison in fast-UDI estimation loop 
+const FAST_UDI_MAX_RDMODE_NUM = 35 ///< maximum number of RD comparison in fast-UDI estimation loop
 
 const ZERO_MVD_EST = 0 ///< Zero Mvd Estimation in normal mode
 
@@ -466,10 +466,9 @@ const ( //enum MVP_DIR
 type COEFF_SCAN_TYPE uint8
 
 const ( //enum COEFF_SCAN_TYPE
-    SCAN_ZIGZAG = iota ///< typical zigzag scan
-    SCAN_HOR           ///< horizontal first scan
-    SCAN_VER           ///< vertical first scan
-    SCAN_DIAG          ///< up-right diagonal scan
+  SCAN_DIAG = iota         ///< up-right diagonal scan
+  SCAN_HOR              ///< horizontal first scan
+  SCAN_VER               ///< vertical first scan
 )
 
 //namespace Profile

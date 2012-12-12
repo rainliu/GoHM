@@ -37,6 +37,7 @@ import (
 type SyntaxElementParser struct {
     //protected:
     m_pTraceFile	io.Writer;
+    m_bSliceTrace   bool
     m_pcBitstream 	*TLibCommon.TComInputBitstream
 }
 
@@ -52,28 +53,37 @@ func (this *SyntaxElementParser)  GetTraceFile () io.Writer{
 	return this.m_pTraceFile;
 }
 
+func (this *SyntaxElementParser)  SetSliceTrace( bSliceTrace bool) {
+	this.m_bSliceTrace = bSliceTrace;
+}
+
+func (this *SyntaxElementParser)  GetSliceTrace( ) bool {
+	return this.m_bSliceTrace;
+}
+
 func (this *SyntaxElementParser)  xTraceVPSHeader (pVPS *TLibCommon.TComVPS){
-	if this.GetTraceFile()!=nil { 
+	if this.GetTraceFile()!=nil {
   		io.WriteString(this.m_pTraceFile, fmt.Sprintf ("========= Video Parameter Set =============================================\n"));//, pVPS.GetVPSId() );
 	}
 }
 
 func (this *SyntaxElementParser)  xTraceSPSHeader (pSPS *TLibCommon.TComSPS){
-	if this.GetTraceFile()!=nil { 
+	if this.GetTraceFile()!=nil {
   		io.WriteString(this.m_pTraceFile, fmt.Sprintf ("========= Sequence Parameter Set ==========================================\n"));//, pSPS.GetSPSId() );
 	}
 }
 
 func (this *SyntaxElementParser)  xTracePPSHeader (pPPS *TLibCommon.TComPPS){
-	if this.GetTraceFile()!=nil { 
+	if this.GetTraceFile()!=nil {
   		io.WriteString(this.m_pTraceFile, fmt.Sprintf ("========= Picture Parameter Set ===========================================\n"));//, pPPS.GetPPSId() );
 	}
 }
 
 func (this *SyntaxElementParser)  xTraceSliceHeader (pSlice *TLibCommon.TComSlice){
-	if this.GetTraceFile()!=nil { 
-  		//if(g_bSliceTrace)
-  		io.WriteString(this.m_pTraceFile, fmt.Sprintf ("========= Slice Parameter Set =============================================\n"));
+	if this.GetTraceFile()!=nil {
+  		if this.GetSliceTrace(){
+  		    io.WriteString(this.m_pTraceFile, fmt.Sprintf ("========= Slice Parameter Set =============================================\n"));
+  		}
 	}
 }
 /*
@@ -134,7 +144,7 @@ func (this *SyntaxElementParser)  xReadUvlc    ( val *uint ){
   uiVal := uint(0);
   uiCode := uint(0);
   uiLength := uint(0);
-  
+
   this.m_pcBitstream.Read( 1, &uiCode );
 
   if 0 == uiCode {
@@ -166,9 +176,9 @@ func (this *SyntaxElementParser)  xReadSvlc    ( val *int ){
     this.m_pcBitstream.Read( uiLength, &uiBits );
 
     uiBits += (1 << uiLength);
-    
+
     if ( uiBits & 1)==1{
-    	*val =-int(uiBits>>1); 
+    	*val =-int(uiBits>>1);
     }else{
     	*val = int(uiBits>>1);
     }
@@ -182,51 +192,47 @@ func (this *SyntaxElementParser)  xReadFlag    ( val *uint ){
 //#if ENC_DEC_TRACE
 func (this *SyntaxElementParser)  xReadCodeTr  ( length uint, rValue *uint, pSymbolName string){
   this.xReadCode (length, rValue);
-  //if(g_bSliceTrace)
-  //{
+  if this.GetSliceTrace(){
     //fprintf( g_hTrace, "%8lld  ", g_nSymbolCounter++ );
     if length < 10 {
       io.WriteString(this.m_pTraceFile, fmt.Sprintf ("%-62s u(%d)  : %4d\n", pSymbolName, length, *rValue ));
     }else{
-      io.WriteString(this.m_pTraceFile, fmt.Sprintf ("%-62s u(%d) : %4d\n", pSymbolName, length, *rValue )); 
+      io.WriteString(this.m_pTraceFile, fmt.Sprintf ("%-62s u(%d) : %4d\n", pSymbolName, length, *rValue ));
     }
     //fflush ( g_hTrace );
-  //}
+  }
 }
 func (this *SyntaxElementParser)  xReadUvlcTr  (              rValue *uint, pSymbolName string){
   this.xReadUvlc (rValue);
-  //if(g_bSliceTrace)
-  //{
+  if this.GetSliceTrace(){
     //fprintf( g_hTrace, "%8lld  ", g_nSymbolCounter++ );
-    io.WriteString(this.m_pTraceFile, fmt.Sprintf ("%-62s ue(v) : %4d\n", pSymbolName, *rValue )); 
+    io.WriteString(this.m_pTraceFile, fmt.Sprintf ("%-62s ue(v) : %4d\n", pSymbolName, *rValue ));
     //fflush ( g_hTrace );
-  //}
+  }
 }
 func (this *SyntaxElementParser)  xReadSvlcTr  (              rValue *int,  pSymbolName string){
   this.xReadSvlc(rValue);
-  //if(g_bSliceTrace)
-  //{
+  if this.GetSliceTrace(){
     //fprintf( g_hTrace, "%8lld  ", g_nSymbolCounter++ );
-    io.WriteString(this.m_pTraceFile, fmt.Sprintf ("%-62s se(v) : %4d\n", pSymbolName, *rValue )); 
+    io.WriteString(this.m_pTraceFile, fmt.Sprintf ("%-62s se(v) : %4d\n", pSymbolName, *rValue ));
     //fflush ( g_hTrace );
-  //}
+  }
 }
 func (this *SyntaxElementParser)  xReadFlagTr  (              rValue *uint, pSymbolName string){
   this.xReadFlag(rValue);
-  //if(g_bSliceTrace)
-  //{
+  if this.GetSliceTrace(){
     //fprintf( g_hTrace, "%8lld  ", g_nSymbolCounter++ );
-    io.WriteString(this.m_pTraceFile, fmt.Sprintf ("%-62s u(1)  : %4d\n", pSymbolName, *rValue )); 
+    io.WriteString(this.m_pTraceFile, fmt.Sprintf ("%-62s u(1)  : %4d\n", pSymbolName, *rValue ));
     //fflush ( g_hTrace );
-  //}
+  }
 }
 //#endif
 //public:
-func (this *SyntaxElementParser)  SetBitstream ( p *TLibCommon.TComInputBitstream)   { 
-	this.m_pcBitstream = p; 
+func (this *SyntaxElementParser)  SetBitstream ( p *TLibCommon.TComInputBitstream)   {
+	this.m_pcBitstream = p;
 }
-func (this *SyntaxElementParser)  GetBitstream() *TLibCommon.TComInputBitstream{ 
-	return this.m_pcBitstream; 
+func (this *SyntaxElementParser)  GetBitstream() *TLibCommon.TComInputBitstream{
+	return this.m_pcBitstream;
 }
 //};
 
@@ -242,7 +248,7 @@ func NewTDecCavlc() *TDecCavlc{
 	return &TDecCavlc{}
 }
 
-func (this *TDecCavlc)  READ_CODE(length uint, rValue *uint, pSymbolName string){   
+func (this *TDecCavlc)  READ_CODE(length uint, rValue *uint, pSymbolName string){
 	this.xReadCodeTr ( length, rValue, pSymbolName );
 }
 
@@ -273,11 +279,11 @@ func (this *TDecCavlc)  xGetBit             () uint{
 
 func (this *TDecCavlc)  ParseShortTermRefPicSet            (sps *TLibCommon.TComSPS, rps *TLibCommon.TComReferencePictureSet, idx int){
   var code, interRPSPred uint;
-  
+
 //#if SPS_INTER_REF_SET_PRED
   if idx > 0{
-//#endif 
-  	this.READ_FLAG(&interRPSPred, "inter_ref_pic_set_prediction_flag");  
+//#endif
+  	this.READ_FLAG(&interRPSPred, "inter_ref_pic_set_prediction_flag");
   	rps.SetInterRPSPrediction(interRPSPred!=0);
 //#if SPS_INTER_REF_SET_PRED
   }else{
@@ -304,13 +310,13 @@ func (this *TDecCavlc)  ParseShortTermRefPicSet            (sps *TLibCommon.TCom
     this.READ_UVLC(&code, "abs_delta_rps_minus1");  // absolute delta RPS minus 1
     deltaRPS := (1 - (bit<<1)) * (code + 1); // delta_RPS
     for j:=0 ; j <= rpsRef.GetNumberOfPictures(); j++ {
-      this.READ_CODE(1, &bit, "used_by_curr_pic_flag" ); //first bit is "1" if Idc is 1 
+      this.READ_CODE(1, &bit, "used_by_curr_pic_flag" ); //first bit is "1" if Idc is 1
       refIdc := bit;
       if refIdc == 0 {
         this.READ_CODE(1, &bit, "use_delta_flag" ); //second bit is "1" if Idc is 2, "0" otherwise.
         refIdc = bit<<1; //second bit is "1" if refIdc is 2, "0" if refIdc = 0.
       }
-      
+
       if refIdc == 1 || refIdc == 2 {
       	var deltaPOC int
      	if j < rpsRef.GetNumberOfPictures(){
@@ -327,18 +333,18 @@ func (this *TDecCavlc)  ParseShortTermRefPicSet            (sps *TLibCommon.TCom
           k1++;
         }
         k++;
-      }  
-      rps.SetRefIdc(j, int(refIdc));  
+      }
+      rps.SetRefIdc(j, int(refIdc));
     }
-    rps.SetNumRefIdc(rpsRef.GetNumberOfPictures()+1);  
+    rps.SetNumRefIdc(rpsRef.GetNumberOfPictures()+1);
     rps.SetNumberOfPictures(k);
     rps.SetNumberOfNegativePictures(k0);
     rps.SetNumberOfPositivePictures(k1);
     rps.SortDeltaPOC();
   }else{
-    this.READ_UVLC(&code, "num_negative_pics");           
+    this.READ_UVLC(&code, "num_negative_pics");
     rps.SetNumberOfNegativePictures(int(code));
-    this.READ_UVLC(&code, "num_positive_pics");           
+    this.READ_UVLC(&code, "num_positive_pics");
     rps.SetNumberOfPositivePictures(int(code));
     prev := 0;
     var poc int;
@@ -347,7 +353,7 @@ func (this *TDecCavlc)  ParseShortTermRefPicSet            (sps *TLibCommon.TCom
       poc = prev-int(code)-1;
       prev = poc;
       rps.SetDeltaPOC(j,poc);
-      this.READ_FLAG(&code, "used_by_curr_pic_s0_flag");  
+      this.READ_FLAG(&code, "used_by_curr_pic_s0_flag");
       rps.SetUsed(j,code!=0);
     }
     prev = 0;
@@ -356,7 +362,7 @@ func (this *TDecCavlc)  ParseShortTermRefPicSet            (sps *TLibCommon.TCom
       poc = prev+int(code)+1;
       prev = poc;
       rps.SetDeltaPOC(j,poc);
-      this.READ_FLAG(&code, "used_by_curr_pic_s1_flag");  
+      this.READ_FLAG(&code, "used_by_curr_pic_s1_flag");
       rps.SetUsed(j,code!=0);
     }
     rps.SetNumberOfPictures(rps.GetNumberOfNegativePictures()+rps.GetNumberOfPositivePictures());
@@ -370,11 +376,11 @@ func (this *TDecCavlc)  ParseShortTermRefPicSet            (sps *TLibCommon.TCom
 //public:
 
   /// rest entropy coder by intial QP and IDC in CABAC
-func (this *TDecCavlc)  ResetEntropy        ( pcSlice *TLibCommon.TComSlice )     { 
-	//assert(0); 
+func (this *TDecCavlc)  ResetEntropy        ( pcSlice *TLibCommon.TComSlice )     {
+	//assert(0);
 };
-func (this *TDecCavlc)  SetBitstream        ( p *TLibCommon.TComInputBitstream)   { 
-	this.m_pcBitstream = p; 
+func (this *TDecCavlc)  SetBitstream        ( p *TLibCommon.TComInputBitstream)   {
+	this.m_pcBitstream = p;
 }
 func (this *TDecCavlc)  ParseTransformSubdivFlag( ruiSubdivFlag *uint, uiLog2TransformBlockSize uint ){
 }
@@ -385,13 +391,13 @@ func (this *TDecCavlc)  ParseQtRootCbf      ( pcCU *TLibCommon.TComDataCU,  uiAb
 func (this *TDecCavlc)  ParseVPS            ( pcVPS *TLibCommon.TComVPS){
 
   var	uiCode uint;
-//#if ENC_DEC_TRACE  
+//#if ENC_DEC_TRACE
   this.xTraceVPSHeader (pcVPS);
-//#endif  
-  
-  this.READ_CODE( 4,  &uiCode,  "video_parameter_set_id" );             
+//#endif
+
+  this.READ_CODE( 4,  &uiCode,  "video_parameter_set_id" );
   pcVPS.SetVPSId( int(uiCode) );
-  this.READ_FLAG(     &uiCode,  "vps_temporal_id_nesting_flag" );       
+  this.READ_FLAG(     &uiCode,  "vps_temporal_id_nesting_flag" );
   pcVPS.SetTemporalNestingFlag( uiCode!=0);
 //#if VPS_REARRANGE
   this.READ_CODE( 2,  &uiCode,  "vps_reserved_three_2bits" );           //assert(uiCode == 3);
@@ -399,7 +405,7 @@ func (this *TDecCavlc)  ParseVPS            ( pcVPS *TLibCommon.TComVPS){
 //  READ_CODE( 2,  uiCode,  "vps_reserved_zero_2bits" );            assert(uiCode == 0);
 //#endif
   this.READ_CODE( 6,  &uiCode,  "vps_reserved_zero_6bits" );            //assert(uiCode == 0);
-  this.READ_CODE( 3,  &uiCode,  "vps_max_sub_layers_minus1" );          
+  this.READ_CODE( 3,  &uiCode,  "vps_max_sub_layers_minus1" );
   pcVPS.SetMaxTLayers( uiCode + 1 );
 //#if VPS_REARRANGE
   this.READ_CODE( 16, &uiCode,  "vps_reserved_ffff_16bits" );           //assert(uiCode == 0xffff);
@@ -414,13 +420,13 @@ func (this *TDecCavlc)  ParseVPS            ( pcVPS *TLibCommon.TComVPS){
 //#if HLS_ADD_SUBLAYER_ORDERING_INFO_PRESENT_FLAG
   var subLayerOrderingInfoPresentFlag uint;
   this.READ_FLAG(&subLayerOrderingInfoPresentFlag, "vps_sub_layer_ordering_info_present_flag");
-//#endif // HLS_ADD_SUBLAYER_ORDERING_INFO_PRESENT_FLAG 
+//#endif // HLS_ADD_SUBLAYER_ORDERING_INFO_PRESENT_FLAG
   for i := uint(0); i <= pcVPS.GetMaxTLayers()-1; i++ {
-    this.READ_UVLC( &uiCode,  "vps_max_dec_pic_buffering[i]" );     
+    this.READ_UVLC( &uiCode,  "vps_max_dec_pic_buffering[i]" );
     pcVPS.SetMaxDecPicBuffering( uiCode, i );
-    this.READ_UVLC( &uiCode,  "vps_num_reorder_pics[i]" );          
+    this.READ_UVLC( &uiCode,  "vps_num_reorder_pics[i]" );
     pcVPS.SetNumReorderPics	 ( uiCode, i );
-    this.READ_UVLC( &uiCode,  "vps_max_latency_increase[i]" );      
+    this.READ_UVLC( &uiCode,  "vps_max_latency_increase[i]" );
     pcVPS.SetMaxLatencyIncrease( uiCode, i );
 
 //#if HLS_ADD_SUBLAYER_ORDERING_INFO_PRESENT_FLAG
@@ -432,13 +438,13 @@ func (this *TDecCavlc)  ParseVPS            ( pcVPS *TLibCommon.TComVPS){
       }
       break;
     }
-//#endif // HLS_ADD_SUBLAYER_ORDERING_INFO_PRESENT_FLAG 
+//#endif // HLS_ADD_SUBLAYER_ORDERING_INFO_PRESENT_FLAG
   }
 
 //#if VPS_OPERATING_POINT
-  this.READ_UVLC(    &uiCode, "vps_num_hrd_parameters" );               
+  this.READ_UVLC(    &uiCode, "vps_num_hrd_parameters" );
   pcVPS.SetNumHrdParameters( uiCode );
-  this.READ_CODE( 6, &uiCode, "vps_max_nuh_reserved_zero_layer_id" );   
+  this.READ_CODE( 6, &uiCode, "vps_max_nuh_reserved_zero_layer_id" );
   pcVPS.SetMaxNuhReservedZeroLayerId( uiCode );
   //assert( pcVPS.GetNumHrdParameters() < MAX_VPS_NUM_HRD_PARAMETERS_ALLOWED_PLUS1 );
   //assert( pcVPS.GetMaxNuhReservedZeroLayerId() < MAX_VPS_NUH_RESERVED_ZERO_LAYER_ID_PLUS1 );
@@ -446,7 +452,7 @@ func (this *TDecCavlc)  ParseVPS            ( pcVPS *TLibCommon.TComVPS){
     if opIdx > 0 {
       // operation_point_layer_id_flag( opIdx )
       for i := uint(0); i <= pcVPS.GetMaxNuhReservedZeroLayerId(); i++ {
-        this.READ_FLAG( &uiCode, "op_layer_id_included_flag[opIdx][i]" ); 
+        this.READ_FLAG( &uiCode, "op_layer_id_included_flag[opIdx][i]" );
         pcVPS.SetOpLayerIdIncludedFlag( uiCode!=0, opIdx, i );
       }
     }
@@ -460,18 +466,18 @@ func (this *TDecCavlc)  ParseVPS            ( pcVPS *TLibCommon.TComVPS){
   //future extensions go here..
 }
 func (this *TDecCavlc)  ParseSPS            ( pcSPS *TLibCommon.TComSPS){
-//#if ENC_DEC_TRACE  
+//#if ENC_DEC_TRACE
   this.xTraceSPSHeader (pcSPS);
 //#endif
 
   var uiCode uint;
-  this.READ_CODE( 4,  &uiCode, "video_parameter_set_id");              
+  this.READ_CODE( 4,  &uiCode, "video_parameter_set_id");
   pcSPS.SetVPSId        ( int(uiCode) );
-  this.READ_CODE( 3,  &uiCode, "sps_max_sub_layers_minus1" );          
+  this.READ_CODE( 3,  &uiCode, "sps_max_sub_layers_minus1" );
   pcSPS.SetMaxTLayers   ( uiCode+1 );
 //#if MOVE_SPS_TEMPORAL_ID_NESTING_FLAG
-  this.READ_FLAG( &uiCode, "sps_temporal_id_nesting_flag" );  
-  if uiCode > 0 {             
+  this.READ_FLAG( &uiCode, "sps_temporal_id_nesting_flag" );
+  if uiCode > 0 {
   	pcSPS.SetTemporalIdNestingFlag ( true );
   }else{
   	pcSPS.SetTemporalIdNestingFlag ( false );
@@ -480,9 +486,9 @@ func (this *TDecCavlc)  ParseSPS            ( pcSPS *TLibCommon.TComSPS){
 //  READ_FLAG(     &uiCode, "sps_reserved_zero_bit");               assert(uiCode == 0);
 //#endif
   this.ParsePTL(pcSPS.GetPTL(), true, int(pcSPS.GetMaxTLayers()) - 1);
-  this.READ_UVLC(     &uiCode, "seq_parameter_set_id" );               
+  this.READ_UVLC(     &uiCode, "seq_parameter_set_id" );
   pcSPS.SetSPSId( int(uiCode) );
-  this.READ_UVLC(     &uiCode, "chroma_format_idc" );                  
+  this.READ_UVLC(     &uiCode, "chroma_format_idc" );
   pcSPS.SetChromaFormatIdc( int(uiCode) );
   // in the first version we only support chroma_format_idc equal to 1 (4:2:0), so separate_colour_plane_flag cannot appear in the bitstream
   //assert (uiCode == 1);
@@ -490,20 +496,20 @@ func (this *TDecCavlc)  ParseSPS            ( pcSPS *TLibCommon.TComSPS){
     this.READ_FLAG(     &uiCode, "separate_colour_plane_flag");        //assert(uiCode == 0);
   }
 
-  this.READ_UVLC (    &uiCode, "pic_width_in_luma_samples" );          
+  this.READ_UVLC (    &uiCode, "pic_width_in_luma_samples" );
   pcSPS.SetPicWidthInLumaSamples ( uiCode    );
-  this.READ_UVLC (    &uiCode, "pic_height_in_luma_samples" );         
+  this.READ_UVLC (    &uiCode, "pic_height_in_luma_samples" );
   pcSPS.SetPicHeightInLumaSamples( uiCode    );
   this.READ_FLAG(     &uiCode, "pic_cropping_flag");
   if uiCode != 0 {
     crop := pcSPS.GetPicCroppingWindow();
-    this.READ_UVLC(   &uiCode, "pic_crop_left_offset" );               
+    this.READ_UVLC(   &uiCode, "pic_crop_left_offset" );
     crop.SetPicCropLeftOffset  ( int(uiCode) * pcSPS.GetCropUnitX( pcSPS.GetChromaFormatIdc() ) );
-    this.READ_UVLC(   &uiCode, "pic_crop_right_offset" );              
+    this.READ_UVLC(   &uiCode, "pic_crop_right_offset" );
     crop.SetPicCropRightOffset ( int(uiCode) * pcSPS.GetCropUnitX( pcSPS.GetChromaFormatIdc() ) );
-    this.READ_UVLC(   &uiCode, "pic_crop_top_offset" );                
+    this.READ_UVLC(   &uiCode, "pic_crop_top_offset" );
     crop.SetPicCropTopOffset   ( int(uiCode) * pcSPS.GetCropUnitY( pcSPS.GetChromaFormatIdc() ) );
-    this.READ_UVLC(   &uiCode, "pic_crop_bottom_offset" );             
+    this.READ_UVLC(   &uiCode, "pic_crop_bottom_offset" );
     crop.SetPicCropBottomOffset( int(uiCode) * pcSPS.GetCropUnitY( pcSPS.GetChromaFormatIdc() ) );
   }
 
@@ -526,7 +532,7 @@ func (this *TDecCavlc)  ParseSPS            ( pcSPS *TLibCommon.TComSPS){
     this.READ_CODE( 4, &uiCode, "pcm_bit_depth_chroma_minus1" );         pcSPS.SetPCMBitDepthChroma ( 1 + uiCode );
   }
 
-#endif // !HLS_GROUP_SPS_PCM_FLAGS 
+#endif // !HLS_GROUP_SPS_PCM_FLAGS
 */
   this.READ_UVLC( &uiCode,    "log2_max_pic_order_cnt_lsb_minus4" );   pcSPS.SetBitsForPOC( 4 + uiCode );
 
@@ -551,7 +557,7 @@ func (this *TDecCavlc)  ParseSPS            ( pcSPS *TLibCommon.TComSPS){
       }
       break;
     }
-//#endif // HLS_ADD_SUBLAYER_ORDERING_INFO_PRESENT_FLAG 
+//#endif // HLS_ADD_SUBLAYER_ORDERING_INFO_PRESENT_FLAG
   }
 /*
 #if !HLS_MOVE_SPS_PICLIST_FLAGS
@@ -562,85 +568,85 @@ func (this *TDecCavlc)  ParseSPS            ( pcSPS *TLibCommon.TComSPS){
     this.READ_FLAG( &uiCode, "lists_modification_present_flag" );
     pcSPS.SetListsModificationPresentFlag(uiCode);
   }
-  else 
+  else
   {
     pcSPS.SetListsModificationPresentFlag(true);
   }
 #endif // !HLS_MOVE_SPS_PICLIST_FLAGS
-*/ 
+*/
   this.READ_UVLC( &uiCode, "log2_min_coding_block_size_minus3" );
   log2MinCUSize := uiCode + 3;
   this.READ_UVLC( &uiCode, "log2_diff_max_min_coding_block_size" );
   uiMaxCUDepthCorrect := uiCode;
-  pcSPS.SetMaxCUWidth  ( 1<<(log2MinCUSize + uiMaxCUDepthCorrect) ); 
+  pcSPS.SetMaxCUWidth  ( 1<<(log2MinCUSize + uiMaxCUDepthCorrect) );
   TLibCommon.G_uiMaxCUWidth  = 1<<(log2MinCUSize + uiMaxCUDepthCorrect);
-  pcSPS.SetMaxCUHeight ( 1<<(log2MinCUSize + uiMaxCUDepthCorrect) ); 
+  pcSPS.SetMaxCUHeight ( 1<<(log2MinCUSize + uiMaxCUDepthCorrect) );
   TLibCommon.G_uiMaxCUHeight = 1<<(log2MinCUSize + uiMaxCUDepthCorrect);
-  this.READ_UVLC( &uiCode, "log2_min_transform_block_size_minus2" );   
+  this.READ_UVLC( &uiCode, "log2_min_transform_block_size_minus2" );
   pcSPS.SetQuadtreeTULog2MinSize( uiCode + 2 );
 
-  this.READ_UVLC( &uiCode, "log2_diff_max_min_transform_block_size" ); 
+  this.READ_UVLC( &uiCode, "log2_diff_max_min_transform_block_size" );
   pcSPS.SetQuadtreeTULog2MaxSize( uiCode + pcSPS.GetQuadtreeTULog2MinSize() );
   pcSPS.SetMaxTrSize( 1<<(uiCode + pcSPS.GetQuadtreeTULog2MinSize()) );
 /*#if !HLS_GROUP_SPS_PCM_FLAGS
   if( pcSPS.GetUsePCM() )
   {
-    this.READ_UVLC( &uiCode, "log2_min_pcm_coding_block_size_minus3" );  pcSPS.SetPCMLog2MinSize (uiCode+3); 
+    this.READ_UVLC( &uiCode, "log2_min_pcm_coding_block_size_minus3" );  pcSPS.SetPCMLog2MinSize (uiCode+3);
     this.READ_UVLC( &uiCode, "log2_diff_max_min_pcm_coding_block_size" ); pcSPS.SetPCMLog2MaxSize ( uiCode+pcSPS.GetPCMLog2MinSize() );
   }
 #endif*/ /* !HLS_GROUP_SPS_PCM_FLAGS */
 
-  this.READ_UVLC( &uiCode, "max_transform_hierarchy_depth_inter" );    
+  this.READ_UVLC( &uiCode, "max_transform_hierarchy_depth_inter" );
   pcSPS.SetQuadtreeTUMaxDepthInter( uiCode+1 );
-  this.READ_UVLC( &uiCode, "max_transform_hierarchy_depth_intra" );    
+  this.READ_UVLC( &uiCode, "max_transform_hierarchy_depth_intra" );
   pcSPS.SetQuadtreeTUMaxDepthIntra( uiCode+1 );
   TLibCommon.G_uiAddCUDepth = 0;
   for ( pcSPS.GetMaxCUWidth() >> uiMaxCUDepthCorrect ) > ( 1 << ( pcSPS.GetQuadtreeTULog2MinSize() + TLibCommon.G_uiAddCUDepth )  ) {
     TLibCommon.G_uiAddCUDepth++;
   }
-  pcSPS.SetMaxCUDepth( uiMaxCUDepthCorrect+TLibCommon.G_uiAddCUDepth  ); 
+  pcSPS.SetMaxCUDepth( uiMaxCUDepthCorrect+TLibCommon.G_uiAddCUDepth  );
   TLibCommon.G_uiMaxCUDepth  = uiMaxCUDepthCorrect+TLibCommon.G_uiAddCUDepth;
   // BB: these parameters may be removed completly and replaced by the fixed values
   pcSPS.SetMinTrDepth( 0 );
   pcSPS.SetMaxTrDepth( 1 );
-  this.READ_FLAG( &uiCode, "scaling_list_enabled_flag" );                 
+  this.READ_FLAG( &uiCode, "scaling_list_enabled_flag" );
   pcSPS.SetScalingListFlag ( uiCode==1 );
   if pcSPS.GetScalingListFlag() {
-    this.READ_FLAG( &uiCode, "sps_scaling_list_data_present_flag" );                 
+    this.READ_FLAG( &uiCode, "sps_scaling_list_data_present_flag" );
     pcSPS.SetScalingListPresentFlag ( uiCode==1 );
     if pcSPS.GetScalingListPresentFlag () {
       this.ParseScalingList( pcSPS.GetScalingList() );
     }
   }
-  this.READ_FLAG( &uiCode, "asymmetric_motion_partitions_enabled_flag" ); 
+  this.READ_FLAG( &uiCode, "asymmetric_motion_partitions_enabled_flag" );
   pcSPS.SetUseAMP( uiCode==1 );
-  this.READ_FLAG( &uiCode, "sample_adaptive_offset_enabled_flag" );       
+  this.READ_FLAG( &uiCode, "sample_adaptive_offset_enabled_flag" );
   pcSPS.SetUseSAO ( uiCode!=0 );
-  
+
 //#if HLS_GROUP_SPS_PCM_FLAGS
-  this.READ_FLAG( &uiCode, "pcm_enabled_flag" ); 
+  this.READ_FLAG( &uiCode, "pcm_enabled_flag" );
   pcSPS.SetUsePCM( uiCode!=0 );
 //#endif /* HLS_GROUP_SPS_PCM_FLAGS */
   if pcSPS.GetUsePCM() {
 //#if !HLS_GROUP_SPS_PCM_FLAGS
 //    this.READ_FLAG( &uiCode, "pcm_loop_filter_disable_flag" );           pcSPS.SetPCMFilterDisableFlag ( uiCode ? true : false );
 //#else /* HLS_GROUP_SPS_PCM_FLAGS */
-    this.READ_CODE( 4, &uiCode, "pcm_sample_bit_depth_luma_minus1" );          
+    this.READ_CODE( 4, &uiCode, "pcm_sample_bit_depth_luma_minus1" );
     pcSPS.SetPCMBitDepthLuma   ( 1 + uiCode );
-    this.READ_CODE( 4, &uiCode, "pcm_sample_bit_depth_chroma_minus1" );        
+    this.READ_CODE( 4, &uiCode, "pcm_sample_bit_depth_chroma_minus1" );
     pcSPS.SetPCMBitDepthChroma ( 1 + uiCode );
-    this.READ_UVLC( &uiCode, "log2_min_pcm_luma_coding_block_size_minus3" );   
+    this.READ_UVLC( &uiCode, "log2_min_pcm_luma_coding_block_size_minus3" );
     pcSPS.SetPCMLog2MinSize (uiCode+3);
-    this.READ_UVLC( &uiCode, "log2_diff_max_min_pcm_luma_coding_block_size" ); 
+    this.READ_UVLC( &uiCode, "log2_diff_max_min_pcm_luma_coding_block_size" );
     pcSPS.SetPCMLog2MaxSize ( uiCode+pcSPS.GetPCMLog2MinSize() );
-    this.READ_FLAG( &uiCode, "pcm_loop_filter_disable_flag" );  
+    this.READ_FLAG( &uiCode, "pcm_loop_filter_disable_flag" );
     pcSPS.SetPCMFilterDisableFlag ( uiCode!=0 );
 //#endif /* HLS_GROUP_SPS_PCM_FLAGS */
   }
 
 /*#if !MOVE_SPS_TEMPORAL_ID_NESTING_FLAG
-  this.READ_FLAG( &uiCode, "temporal_id_nesting_flag" );    
-  if uiCode > 0 {            
+  this.READ_FLAG( &uiCode, "temporal_id_nesting_flag" );
+  if uiCode > 0 {
   	pcSPS.SetTemporalIdNestingFlag (true );
   }else{
   	pcSPS.SetTemporalIdNestingFlag (false );
@@ -657,7 +663,7 @@ func (this *TDecCavlc)  ParseSPS            ( pcSPS *TLibCommon.TComSPS){
     rps := rpsList.GetReferencePictureSet(i);
     this.ParseShortTermRefPicSet(pcSPS,rps,i);
   }
-  this.READ_FLAG( &uiCode, "long_term_ref_pics_present_flag" );          
+  this.READ_FLAG( &uiCode, "long_term_ref_pics_present_flag" );
   pcSPS.SetLongTermRefsPresent(uiCode!=0);
   if pcSPS.GetLongTermRefsPresent() {
     this.READ_UVLC( &uiCode, "num_long_term_ref_pic_sps" );
@@ -673,15 +679,15 @@ func (this *TDecCavlc)  ParseSPS            ( pcSPS *TLibCommon.TComSPS){
       }
     }
   }
-  this.READ_FLAG( &uiCode, "sps_temporal_mvp_enable_flag" );            
+  this.READ_FLAG( &uiCode, "sps_temporal_mvp_enable_flag" );
   pcSPS.SetTMVPFlagsPresent(uiCode!=0);
 
 //#if STRONG_INTRA_SMOOTHING
-  this.READ_FLAG( &uiCode, "sps_strong_intra_smoothing_enable_flag" );  
+  this.READ_FLAG( &uiCode, "sps_strong_intra_smoothing_enable_flag" );
   pcSPS.SetUseStrongIntraSmoothing(uiCode!=0);
 //#endif
 
-  this.READ_FLAG( &uiCode, "vui_parameters_present_flag" );             
+  this.READ_FLAG( &uiCode, "vui_parameters_present_flag" );
   pcSPS.SetVuiParametersPresentFlag(uiCode!=0);
 
   if pcSPS.GetVuiParametersPresentFlag() {
@@ -697,41 +703,41 @@ func (this *TDecCavlc)  ParseSPS            ( pcSPS *TLibCommon.TComSPS){
 }
 
 func (this *TDecCavlc)  ParsePPS            ( pcPPS	*TLibCommon.TComPPS){
-//#if ENC_DEC_TRACE  
+//#if ENC_DEC_TRACE
   this.xTracePPSHeader (pcPPS);
 //#endif
   var  uiCode uint;
   var   iCode  int;
 
-  this.READ_UVLC( &uiCode, "pic_parameter_set_id");                      
+  this.READ_UVLC( &uiCode, "pic_parameter_set_id");
   pcPPS.SetPPSId (int(uiCode));
-  this.READ_UVLC( &uiCode, "seq_parameter_set_id");                      
+  this.READ_UVLC( &uiCode, "seq_parameter_set_id");
   pcPPS.SetSPSId (int(uiCode));
 //#if DEPENDENT_SLICE_SEGMENT_FLAGS
 //#if DEPENDENT_SLICES
-  this.READ_FLAG( &uiCode, "dependent_slices_enabled_flag"    );    
+  this.READ_FLAG( &uiCode, "dependent_slices_enabled_flag"    );
   pcPPS.SetDependentSliceEnabledFlag   ( uiCode == 1 );
 //#endif
 //#endif
-  this.READ_FLAG ( &uiCode, "sign_data_hiding_flag" ); 
+  this.READ_FLAG ( &uiCode, "sign_data_hiding_flag" );
   pcPPS.SetSignHideFlag( uiCode!=0 );
 
-  this.READ_FLAG( &uiCode,   "cabac_init_present_flag" );            
+  this.READ_FLAG( &uiCode,   "cabac_init_present_flag" );
   pcPPS.SetCabacInitPresentFlag( uiCode!=0 );
 
-  this.READ_UVLC(&uiCode, "num_ref_idx_l0_default_active_minus1");       
+  this.READ_UVLC(&uiCode, "num_ref_idx_l0_default_active_minus1");
   pcPPS.SetNumRefIdxL0DefaultActive(uiCode+1);
-  this.READ_UVLC(&uiCode, "num_ref_idx_l1_default_active_minus1");       
+  this.READ_UVLC(&uiCode, "num_ref_idx_l1_default_active_minus1");
   pcPPS.SetNumRefIdxL1DefaultActive(uiCode+1);
 
-  this.READ_SVLC(&iCode, "pic_init_qp_minus26" );                        
+  this.READ_SVLC(&iCode, "pic_init_qp_minus26" );
   pcPPS.SetPicInitQPMinus26(iCode);
-  this.READ_FLAG( &uiCode, "constrained_intra_pred_flag" );              
+  this.READ_FLAG( &uiCode, "constrained_intra_pred_flag" );
   pcPPS.SetConstrainedIntraPred( uiCode!=0 );
-  this.READ_FLAG( &uiCode, "transform_skip_enabled_flag" );               
-  pcPPS.SetUseTransformSkip ( uiCode!=0 ); 
+  this.READ_FLAG( &uiCode, "transform_skip_enabled_flag" );
+  pcPPS.SetUseTransformSkip ( uiCode!=0 );
 
-  this.READ_FLAG( &uiCode, "cu_qp_delta_enabled_flag" );            
+  this.READ_FLAG( &uiCode, "cu_qp_delta_enabled_flag" );
   pcPPS.SetUseDQP(  uiCode!=0  );
   if pcPPS.GetUseDQP() {
     this.READ_UVLC( &uiCode, "diff_cu_qp_delta_depth" );
@@ -768,26 +774,26 @@ func (this *TDecCavlc)  ParsePPS            ( pcPPS	*TLibCommon.TComPPS){
 //  this.READ_FLAG( &uiCode, "dependent_slices_enabled_flag"    );    pcPPS.SetDependentSliceEnabledFlag   ( uiCode == 1 );
 //#endif
 //#endif
-  this.READ_FLAG( &uiCode, "tiles_enabled_flag"               );    
+  this.READ_FLAG( &uiCode, "tiles_enabled_flag"               );
   pcPPS.SetTilesEnabledFlag            ( uiCode == 1 );
-  this.READ_FLAG( &uiCode, "entropy_coding_sync_enabled_flag" );    
+  this.READ_FLAG( &uiCode, "entropy_coding_sync_enabled_flag" );
   pcPPS.SetEntropyCodingSyncEnabledFlag( uiCode == 1 );
 //#if !REMOVE_ENTROPY_SLICES
 //  this.READ_FLAG( &uiCode, "entropy_slice_enabled_flag"       );    pcPPS.SetEntropySliceEnabledFlag     ( uiCode == 1 );
 //#endif
-  
+
   if pcPPS.GetTilesEnabledFlag() {
-    this.READ_UVLC ( &uiCode, "num_tile_columns_minus1" );                
-    pcPPS.SetNumColumnsMinus1( int(uiCode) );  
-    this.READ_UVLC ( &uiCode, "num_tile_rows_minus1" );                   
-    pcPPS.SetNumRowsMinus1( int(uiCode) );  
-    this.READ_FLAG ( &uiCode, "uniform_spacing_flag" );                   
+    this.READ_UVLC ( &uiCode, "num_tile_columns_minus1" );
+    pcPPS.SetNumColumnsMinus1( int(uiCode) );
+    this.READ_UVLC ( &uiCode, "num_tile_rows_minus1" );
+    pcPPS.SetNumRowsMinus1( int(uiCode) );
+    this.READ_FLAG ( &uiCode, "uniform_spacing_flag" );
     pcPPS.SetUniformSpacingFlag( uiCode!=0 );
 
     if !pcPPS.GetUniformSpacingFlag() {
       columnWidth := make([]uint, pcPPS.GetNumColumnsMinus1());//UInt* columnWidth = (UInt*)malloc(pcPPS.GetNumColumnsMinus1()*sizeof(UInt));
-      for i:=0; i<pcPPS.GetNumColumnsMinus1(); i++ { 
-        this.READ_UVLC( &uiCode, "column_width_minus1" );  
+      for i:=0; i<pcPPS.GetNumColumnsMinus1(); i++ {
+        this.READ_UVLC( &uiCode, "column_width_minus1" );
         columnWidth[i] = uiCode+1;
       }
       pcPPS.SetColumnWidth(columnWidth);
@@ -799,31 +805,31 @@ func (this *TDecCavlc)  ParsePPS            ( pcPPS	*TLibCommon.TComPPS){
         rowHeight[i] = uiCode + 1;
       }
       pcPPS.SetRowHeight(rowHeight);
-      //free(rowHeight);  
+      //free(rowHeight);
     }
 
     if pcPPS.GetNumColumnsMinus1() !=0 || pcPPS.GetNumRowsMinus1() !=0 {
-      this.READ_FLAG ( &uiCode, "loop_filter_across_tiles_enabled_flag" );   
+      this.READ_FLAG ( &uiCode, "loop_filter_across_tiles_enabled_flag" );
       pcPPS.SetLoopFilterAcrossTilesEnabledFlag( uiCode!=0 );
     }
   }
-  this.READ_FLAG( &uiCode, "loop_filter_across_slices_enabled_flag" );       
+  this.READ_FLAG( &uiCode, "loop_filter_across_slices_enabled_flag" );
   pcPPS.SetLoopFilterAcrossSlicesEnabledFlag( uiCode!=0 );
-  this.READ_FLAG( &uiCode, "deblocking_filter_control_present_flag" );       
+  this.READ_FLAG( &uiCode, "deblocking_filter_control_present_flag" );
   pcPPS.SetDeblockingFilterControlPresentFlag( uiCode!=0 );
   if pcPPS.GetDeblockingFilterControlPresentFlag() {
-    this.READ_FLAG( &uiCode, "deblocking_filter_override_enabled_flag" );    
+    this.READ_FLAG( &uiCode, "deblocking_filter_override_enabled_flag" );
     pcPPS.SetDeblockingFilterOverrideEnabledFlag( uiCode!=0 );
-    this.READ_FLAG( &uiCode, "pic_disable_deblocking_filter_flag" );         
+    this.READ_FLAG( &uiCode, "pic_disable_deblocking_filter_flag" );
     pcPPS.SetPicDisableDeblockingFilterFlag( uiCode!=0 );
     if !pcPPS.GetPicDisableDeblockingFilterFlag(){
-      this.READ_SVLC ( &iCode, "pps_beta_offset_div2" );                     
+      this.READ_SVLC ( &iCode, "pps_beta_offset_div2" );
       pcPPS.SetDeblockingFilterBetaOffsetDiv2( iCode );
-      this.READ_SVLC ( &iCode, "pps_tc_offset_div2" );                       
+      this.READ_SVLC ( &iCode, "pps_tc_offset_div2" );
       pcPPS.SetDeblockingFilterTcOffsetDiv2( iCode );
     }
   }
-  this.READ_FLAG( &uiCode, "pps_scaling_list_data_present_flag" );           
+  this.READ_FLAG( &uiCode, "pps_scaling_list_data_present_flag" );
   pcPPS.SetScalingListPresentFlag( uiCode!=0 );
   if pcPPS.GetScalingListPresentFlag () {
     this.ParseScalingList( pcPPS.GetScalingList() );
@@ -861,70 +867,70 @@ func (this *TDecCavlc)  ParsePTL            ( rpcPTL *TLibCommon.TComPTL, profil
   if profilePresentFlag {
     this.ParseProfileTier(rpcPTL.GetGeneralPTL());
   }
-  this.READ_CODE( 8, &uiCode, "general_level_idc" );    
+  this.READ_CODE( 8, &uiCode, "general_level_idc" );
   rpcPTL.GetGeneralPTL().SetLevelIdc(int(uiCode));
 
   for i := 0; i < maxNumSubLayersMinus1; i++ {
 //#if CONDITION_SUBLAYERPROFILEPRESENTFLAG
     if profilePresentFlag {
-      this.READ_FLAG( &uiCode, "sub_layer_profile_present_flag[i]" ); 
+      this.READ_FLAG( &uiCode, "sub_layer_profile_present_flag[i]" );
       rpcPTL.SetSubLayerProfilePresentFlag(i, uiCode!=0);
     }
 //#else
 //    READ_FLAG( uiCode, "sub_layer_profile_present_flag[i]" ); rpcPTL.SetSubLayerProfilePresentFlag(i, uiCode);
 //#endif
-    this.READ_FLAG( &uiCode, "sub_layer_level_present_flag[i]"   ); 
+    this.READ_FLAG( &uiCode, "sub_layer_level_present_flag[i]"   );
     rpcPTL.SetSubLayerLevelPresentFlag  (i, uiCode!=0);
     if profilePresentFlag && rpcPTL.GetSubLayerProfilePresentFlag(i) {
       this.ParseProfileTier(rpcPTL.GetSubLayerPTL(i));
     }
     if rpcPTL.GetSubLayerLevelPresentFlag(i){
-      this.READ_CODE( 8, &uiCode, "sub_layer_level_idc[i]" );   
+      this.READ_CODE( 8, &uiCode, "sub_layer_level_idc[i]" );
       rpcPTL.GetSubLayerPTL(i).SetLevelIdc(int(uiCode));
     }
   }
 }
 func (this *TDecCavlc)  ParseProfileTier    ( ptl	*TLibCommon.ProfileTierLevel){
   var uiCode uint;
-  this.READ_CODE(2 , &uiCode, "XXX_profile_space[]");   
+  this.READ_CODE(2 , &uiCode, "XXX_profile_space[]");
   ptl.SetProfileSpace(int(uiCode));
-  this.READ_FLAG(    &uiCode, "XXX_tier_flag[]"    ); 
+  this.READ_FLAG(    &uiCode, "XXX_tier_flag[]"    );
   ptl.SetTierFlag    (uiCode!=0);
-  this.READ_CODE(5 , &uiCode, "XXX_profile_idc[]"  );   
+  this.READ_CODE(5 , &uiCode, "XXX_profile_idc[]"  );
   ptl.SetProfileIdc  (int(uiCode));
   for j := 0; j < 32; j++ {
-    this.READ_FLAG(  &uiCode, "XXX_profile_compatibility_flag[][j]"); 
+    this.READ_FLAG(  &uiCode, "XXX_profile_compatibility_flag[][j]");
     ptl.SetProfileCompatibilityFlag(j, uiCode!=0);
   }
-  this.READ_CODE(16, &uiCode, "XXX_reserved_zero_16bits[]");  //assert( uiCode == 0 );  
-	
+  this.READ_CODE(16, &uiCode, "XXX_reserved_zero_16bits[]");  //assert( uiCode == 0 );
+
 }
 //#if SIGNAL_BITRATE_PICRATE_IN_VPS
 func (this *TDecCavlc)  ParseBitratePicRateInfo(info *TLibCommon.TComBitRatePicRateInfo,  tempLevelLow,  tempLevelHigh int){
   var uiCode uint;
   for i := tempLevelLow; i <= tempLevelHigh; i++ {
-    this.READ_FLAG( &uiCode, "bit_rate_info_present_flag[i]" ); 
+    this.READ_FLAG( &uiCode, "bit_rate_info_present_flag[i]" );
     if uiCode!=0{
     	info.SetBitRateInfoPresentFlag(i, true);
     }else{
     	info.SetBitRateInfoPresentFlag(i, false);
     }
-    this.READ_FLAG( &uiCode, "pic_rate_info_present_flag[i]" ); 
+    this.READ_FLAG( &uiCode, "pic_rate_info_present_flag[i]" );
     if uiCode!=0{
     	info.SetPicRateInfoPresentFlag(i, true);
     }else{
     	info.SetPicRateInfoPresentFlag(i, false);
     }
     if info.GetBitRateInfoPresentFlag(i){
-      this.READ_CODE( 16, &uiCode, "avg_bit_rate[i]" ); 
+      this.READ_CODE( 16, &uiCode, "avg_bit_rate[i]" );
       info.SetAvgBitRate(i, int(uiCode));
-      this.READ_CODE( 16, &uiCode, "max_bit_rate[i]" ); 
+      this.READ_CODE( 16, &uiCode, "max_bit_rate[i]" );
       info.SetMaxBitRate(i, int(uiCode));
     }
     if info.GetPicRateInfoPresentFlag(i) {
-      this.READ_CODE(  2, &uiCode,  "constant_pic_rate_idc[i]" ); 
+      this.READ_CODE(  2, &uiCode,  "constant_pic_rate_idc[i]" );
       info.SetConstantPicRateIdc(i, int(uiCode));
-      this.READ_CODE( 16, &uiCode,  "avg_pic_rate[i]"          ); 
+      this.READ_CODE( 16, &uiCode,  "avg_pic_rate[i]"          );
       info.SetAvgPicRate(i, int(uiCode));
     }
   }
@@ -942,10 +948,10 @@ func (this *TDecCavlc)  ParseSliceHeader    ( rpcSlice *TLibCommon.TComSlice, pa
 
   var firstSliceInPic uint;
   this.READ_FLAG( &firstSliceInPic, "first_slice_in_pic_flag" );
-  if rpcSlice.GetRapPicFlag() { 
+  if rpcSlice.GetRapPicFlag() {
     this.READ_FLAG( &uiCode, "no_output_of_prior_pics_flag" );  //ignored
   }
-  this.READ_UVLC (    &uiCode, "pic_parameter_set_id" );  
+  this.READ_UVLC (    &uiCode, "pic_parameter_set_id" );
   rpcSlice.SetPPSId(int(uiCode));
   pps := parameterSetManager.GetPPS(int(uiCode));
   //!KS: need to add error handling code here, if PPS is not available
@@ -957,7 +963,7 @@ func (this *TDecCavlc)  ParseSliceHeader    ( rpcSlice *TLibCommon.TComSlice, pa
   rpcSlice.SetPPS(pps);
 //#if DEPENDENT_SLICE_SEGMENT_FLAGS
   if pps.GetDependentSliceEnabledFlag() && firstSliceInPic==0  {
-    this.READ_FLAG( &uiCode, "dependent_slice_flag" );       
+    this.READ_FLAG( &uiCode, "dependent_slice_flag" );
     rpcSlice.SetDependentSliceFlag(uiCode!=0);
   }else{
     rpcSlice.SetDependentSliceFlag(false);
@@ -1009,7 +1015,7 @@ func (this *TDecCavlc)  ParseSliceHeader    ( rpcSlice *TLibCommon.TComSlice, pa
     rpcSlice.SetSliceCurStartCUAddr(sliceAddress);
     rpcSlice.SetSliceCurEndCUAddr(numCUs*maxParts);
   }
-  
+
   if !rpcSlice.GetDependentSliceFlag() {
 //#if HLS_EXTRA_SLICE_HEADER_BITS
     for i := 0; i < rpcSlice.GetPPS().GetNumExtraSliceHeaderBits(); i++ {
@@ -1017,10 +1023,10 @@ func (this *TDecCavlc)  ParseSliceHeader    ( rpcSlice *TLibCommon.TComSlice, pa
     }
 //#endif /* HLS_EXTRA_SLICE_HEADER_BITS */
 
-    this.READ_UVLC (    &uiCode, "slice_type" );            
+    this.READ_UVLC (    &uiCode, "slice_type" );
     rpcSlice.SetSliceType(TLibCommon.SliceType(uiCode));
     if pps.GetOutputFlagPresentFlag() {
-      this.READ_FLAG( &uiCode, "pic_output_flag" );    
+      this.READ_FLAG( &uiCode, "pic_output_flag" );
       rpcSlice.SetPicOutputFlag( uiCode!=0 );
     }else{
       rpcSlice.SetPicOutputFlag( true );
@@ -1039,7 +1045,7 @@ func (this *TDecCavlc)  ParseSliceHeader    ( rpcSlice *TLibCommon.TComSlice, pa
       rps.SetNumberOfPictures(0);
       rpcSlice.SetRPS(rps);
     }else{
-      this.READ_CODE(sps.GetBitsForPOC(), &uiCode, "pic_order_cnt_lsb");  
+      this.READ_CODE(sps.GetBitsForPOC(), &uiCode, "pic_order_cnt_lsb");
       iPOClsb := int(uiCode);
       iPrevPOC := int(rpcSlice.GetPrevPOC());
       iMaxPOClsb := int(1<< sps.GetBitsForPOC());
@@ -1073,7 +1079,7 @@ func (this *TDecCavlc)  ParseSliceHeader    ( rpcSlice *TLibCommon.TComSlice, pa
           numBits++;
         }
         if numBits > 0 {
-          this.READ_CODE( numBits, &uiCode, "short_term_ref_pic_set_idx");        
+          this.READ_CODE( numBits, &uiCode, "short_term_ref_pic_set_idx");
         }else{
           uiCode = 0;
         }
@@ -1095,7 +1101,7 @@ func (this *TDecCavlc)  ParseSliceHeader    ( rpcSlice *TLibCommon.TComSlice, pa
         for rpcSlice.GetSPS().GetNumLongTermRefPicSPS() > (1 << bitsForLtrpInSPS) {
           bitsForLtrpInSPS++;
         }
-        this.READ_UVLC( &uiCode, "num_long_term_pics");             
+        this.READ_UVLC( &uiCode, "num_long_term_pics");
         rps.SetNumberOfLongtermPictures(int(uiCode));
         numOfLtrp += uiCode;
         rps.SetNumberOfLongtermPictures(int(numOfLtrp));
@@ -1113,9 +1119,9 @@ func (this *TDecCavlc)  ParseSliceHeader    ( rpcSlice *TLibCommon.TComSlice, pa
             pocLsbLt = int(rpcSlice.GetSPS().GetLtRefPicPocLsbSps(uiCode));
             rps.SetUsed(j,usedByCurrFromSPS);
           }else{
-            this.READ_CODE(rpcSlice.GetSPS().GetBitsForPOC(), &uiCode, "poc_lsb_lt"); 
+            this.READ_CODE(rpcSlice.GetSPS().GetBitsForPOC(), &uiCode, "poc_lsb_lt");
             pocLsbLt = int(uiCode);
-            this.READ_FLAG( &uiCode, "used_by_curr_pic_lt_flag");     
+            this.READ_FLAG( &uiCode, "used_by_curr_pic_lt_flag");
             rps.SetUsed(j,uiCode!=0);
           }
           this.READ_FLAG(&uiCode,"delta_poc_msb_present_flag");
@@ -1130,25 +1136,25 @@ func (this *TDecCavlc)  ParseSliceHeader    ( rpcSlice *TLibCommon.TComSlice, pa
             if deltaFlag {
               deltaPocMSBCycleLT = int(uiCode);
             }else{
-              deltaPocMSBCycleLT = int(uiCode) + prevDeltaMSB;              
+              deltaPocMSBCycleLT = int(uiCode) + prevDeltaMSB;
             }
 
             pocLTCurr := rpcSlice.GetPOC() - deltaPocMSBCycleLT * maxPicOrderCntLSB - iPOClsb + pocLsbLt;
-            rps.SetPOC     (j, pocLTCurr); 
+            rps.SetPOC     (j, pocLTCurr);
             rps.SetDeltaPOC(j, - rpcSlice.GetPOC() + pocLTCurr);
-            rps.SetCheckLTMSBPresent(j,true);  
+            rps.SetCheckLTMSBPresent(j,true);
           }else{
             rps.SetPOC     (j, pocLsbLt);
             rps.SetDeltaPOC(j, - rpcSlice.GetPOC() + pocLsbLt);
-            rps.SetCheckLTMSBPresent(j,false);  
+            rps.SetCheckLTMSBPresent(j,false);
           }
           prevLSB = pocLsbLt;
           prevDeltaMSB = deltaPocMSBCycleLT;
           j--;
         }
         offset += rps.GetNumberOfLongtermPictures();
-        rps.SetNumberOfPictures(offset);        
-      }  
+        rps.SetNumberOfPictures(offset);
+      }
       if rpcSlice.GetNalUnitType() == TLibCommon.NAL_UNIT_CODED_SLICE_BLA		||
          rpcSlice.GetNalUnitType() == TLibCommon.NAL_UNIT_CODED_SLICE_BLANT	||
          rpcSlice.GetNalUnitType() == TLibCommon.NAL_UNIT_CODED_SLICE_BLA_N_LP {
@@ -1163,9 +1169,9 @@ func (this *TDecCavlc)  ParseSliceHeader    ( rpcSlice *TLibCommon.TComSlice, pa
     }
     if sps.GetUseSAO() {
       if sps.GetUseSAO() {
-        this.READ_FLAG(&uiCode, "slice_sao_luma_flag");  
+        this.READ_FLAG(&uiCode, "slice_sao_luma_flag");
         rpcSlice.SetSaoEnabledFlag(uiCode!=0);
-        this.READ_FLAG(&uiCode, "slice_sao_chroma_flag");  
+        this.READ_FLAG(&uiCode, "slice_sao_chroma_flag");
         rpcSlice.SetSaoEnabledFlagChroma(uiCode!=0);
       }
     }
@@ -1177,7 +1183,7 @@ func (this *TDecCavlc)  ParseSliceHeader    ( rpcSlice *TLibCommon.TComSlice, pa
 //#endif
       if rpcSlice.GetSPS().GetTMVPFlagsPresent() {
         this.READ_FLAG( &uiCode, "enable_temporal_mvp_flag" );
-        rpcSlice.SetEnableTMVPFlag(uiCode!=0); 
+        rpcSlice.SetEnableTMVPFlag(uiCode!=0);
       }else{
         rpcSlice.SetEnableTMVPFlag(false);
       }
@@ -1190,10 +1196,10 @@ func (this *TDecCavlc)  ParseSliceHeader    ( rpcSlice *TLibCommon.TComSlice, pa
 //#endif
       this.READ_FLAG( &uiCode, "num_ref_idx_active_override_flag");
       if uiCode!=0 {
-        this.READ_UVLC (&uiCode, "num_ref_idx_l0_active_minus1" );  
+        this.READ_UVLC (&uiCode, "num_ref_idx_l0_active_minus1" );
         rpcSlice.SetNumRefIdx( TLibCommon.REF_PIC_LIST_0, int(uiCode) + 1 );
         if rpcSlice.IsInterB() {
-          this.READ_UVLC (&uiCode, "num_ref_idx_l1_active_minus1" );  
+          this.READ_UVLC (&uiCode, "num_ref_idx_l1_active_minus1" );
           rpcSlice.SetNumRefIdx( TLibCommon.REF_PIC_LIST_1, int(uiCode) + 1 );
         }else{
           rpcSlice.SetNumRefIdx(TLibCommon.REF_PIC_LIST_1, 0);
@@ -1225,7 +1231,7 @@ func (this *TDecCavlc)  ParseSliceHeader    ( rpcSlice *TLibCommon.TComSlice, pa
 //#endif
         refPicListModification.SetRefPicListModificationFlagL0( false );
       }else{
-        this.READ_FLAG( &uiCode, "ref_pic_list_modification_flag_l0" ); 
+        this.READ_FLAG( &uiCode, "ref_pic_list_modification_flag_l0" );
         refPicListModification.SetRefPicListModificationFlagL0( uiCode!=0 );
       }
 
@@ -1270,7 +1276,7 @@ func (this *TDecCavlc)  ParseSliceHeader    ( rpcSlice *TLibCommon.TComSlice, pa
 //#endif
         refPicListModification.SetRefPicListModificationFlagL1( false );
       }else{
-        this.READ_FLAG( &uiCode, "ref_pic_list_modification_flag_l1" ); 
+        this.READ_FLAG( &uiCode, "ref_pic_list_modification_flag_l1" );
         refPicListModification.SetRefPicListModificationFlagL1( uiCode!=0 );
       }
       if refPicListModification.GetRefPicListModificationFlagL1() {
@@ -1299,7 +1305,7 @@ func (this *TDecCavlc)  ParseSliceHeader    ( rpcSlice *TLibCommon.TComSlice, pa
       refPicListModification.SetRefPicListModificationFlagL1(false);
     }
     if rpcSlice.IsInterB() {
-      this.READ_FLAG( &uiCode, "mvd_l1_zero_flag" );       
+      this.READ_FLAG( &uiCode, "mvd_l1_zero_flag" );
       rpcSlice.SetMvdL1ZeroFlag( uiCode!=0);
     }
 
@@ -1326,7 +1332,7 @@ func (this *TDecCavlc)  ParseSliceHeader    ( rpcSlice *TLibCommon.TComSlice, pa
         rpcSlice.SetColRefIdx(0);
       }
     }
-    if (pps.GetUseWP() && rpcSlice.GetSliceType()==TLibCommon.P_SLICE) || 
+    if (pps.GetUseWP() && rpcSlice.GetSliceType()==TLibCommon.P_SLICE) ||
        (pps.GetWPBiPred() && rpcSlice.GetSliceType()==TLibCommon.B_SLICE) {
       this.xParsePredWeightTable(rpcSlice);
       rpcSlice.InitWpScaling();
@@ -1360,18 +1366,18 @@ func (this *TDecCavlc)  ParseSliceHeader    ( rpcSlice *TLibCommon.TComSlice, pa
 
     if rpcSlice.GetPPS().GetDeblockingFilterControlPresentFlag() {
       if rpcSlice.GetPPS().GetDeblockingFilterOverrideEnabledFlag() {
-        this.READ_FLAG ( &uiCode, "deblocking_filter_override_flag" );        
+        this.READ_FLAG ( &uiCode, "deblocking_filter_override_flag" );
         rpcSlice.SetDeblockingFilterOverrideFlag(uiCode!=0);
-      }else{  
+      }else{
         rpcSlice.SetDeblockingFilterOverrideFlag(false);
       }
       if rpcSlice.GetDeblockingFilterOverrideFlag() {
-        this.READ_FLAG ( &uiCode, "slice_disable_deblocking_filter_flag" );   
+        this.READ_FLAG ( &uiCode, "slice_disable_deblocking_filter_flag" );
         rpcSlice.SetDeblockingFilterDisable(uiCode!=0);
         if !rpcSlice.GetDeblockingFilterDisable() {
-          this.READ_SVLC( &iCode, "beta_offset_div2" );                       
+          this.READ_SVLC( &iCode, "beta_offset_div2" );
           rpcSlice.SetDeblockingFilterBetaOffsetDiv2(iCode);
-          this.READ_SVLC( &iCode, "tc_offset_div2" );                         
+          this.READ_SVLC( &iCode, "tc_offset_div2" );
           rpcSlice.SetDeblockingFilterTcOffsetDiv2(iCode);
         }
       }else{
@@ -1379,12 +1385,12 @@ func (this *TDecCavlc)  ParseSliceHeader    ( rpcSlice *TLibCommon.TComSlice, pa
         rpcSlice.SetDeblockingFilterBetaOffsetDiv2( rpcSlice.GetPPS().GetDeblockingFilterBetaOffsetDiv2() );
         rpcSlice.SetDeblockingFilterTcOffsetDiv2  ( rpcSlice.GetPPS().GetDeblockingFilterTcOffsetDiv2() );
       }
-    }else{  
+    }else{
       rpcSlice.SetDeblockingFilterDisable       ( false );
       rpcSlice.SetDeblockingFilterBetaOffsetDiv2( 0 );
       rpcSlice.SetDeblockingFilterTcOffsetDiv2  ( 0 );
     }
-	
+
 	var isSAOEnabled bool
 	if !rpcSlice.GetSPS().GetUseSAO() {
     	isSAOEnabled = false;
@@ -1400,12 +1406,12 @@ func (this *TDecCavlc)  ParseSliceHeader    ( rpcSlice *TLibCommon.TComSlice, pa
     }
     rpcSlice.SetLFCrossSliceBoundaryFlag(uiCode!=0);
   }
-  
+
     if pps.GetTilesEnabledFlag() || pps.GetEntropyCodingSyncEnabledFlag() {
       //var entryPointOffset *uint;
       var numEntryPointOffsets, offsetLenMinus1 uint;
 
-      this.READ_UVLC(&numEntryPointOffsets, "num_entry_point_offsets"); 
+      this.READ_UVLC(&numEntryPointOffsets, "num_entry_point_offsets");
       rpcSlice.SetNumEntryPointOffsets ( int(numEntryPointOffsets) );
       if numEntryPointOffsets>0 {
         this.READ_UVLC(&offsetLenMinus1, "offset_len_minus1");
@@ -1451,7 +1457,7 @@ func (this *TDecCavlc)  ParseSliceHeader    ( rpcSlice *TLibCommon.TComSlice, pa
       this.READ_CODE(8,&ignore,"slice_header_extension_data_byte");
     }
   }
-  this.m_pcBitstream.ReadByteAlignment();	
+  this.m_pcBitstream.ReadByteAlignment();
 }
 func (this *TDecCavlc)  ParseTerminatingBit ( ruiBit *uint){
 }
@@ -1497,8 +1503,8 @@ func (this *TDecCavlc)  ParseTransformSkipFlags ( pcCU *TLibCommon.TComDataCU,  
 func (this *TDecCavlc)  ParseIPCMInfo        ( pcCU *TLibCommon.TComDataCU,  uiAbsPartIdx,  uiDepth uint){
 }
 
-func (this *TDecCavlc)  UpdateContextTables  (  eSliceType TLibCommon.SliceType,  iQp int) { 
-	return; 
+func (this *TDecCavlc)  UpdateContextTables  (  eSliceType TLibCommon.SliceType,  iQp int) {
+	return;
 }
 
 func (this *TDecCavlc)  xParsePredWeightTable ( pcSlice *TLibCommon.TComSlice){
@@ -1522,7 +1528,7 @@ func (this *TDecCavlc)  ParseScalingList               ( scalingList *TLibCommon
           }
         }
         scalingList.ProcessRefMatrix( sizeId, listId, scalingList.GetRefMatrixId (sizeId,listId));
-      }else{ //DPCM Mode      
+      }else{ //DPCM Mode
         this.xDecodeScalingList(scalingList, sizeId, listId);
       }
     }
@@ -1556,4 +1562,3 @@ func (this *TDecCavlc)  xMoreRbspData() bool{
   // we have more data, if cnt is not zero
   return cnt>0;
 }
-  
