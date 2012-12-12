@@ -40,37 +40,57 @@ func (this *TDecCu) Create  (  uiMaxDepth,  uiMaxWidth,  uiMaxHeight uint){
 func (this *TDecCu) Destroy() {
 }
 
-/*  
+ 
   /// decode CU information
-  Void  decodeCU                ( TComDataCU* pcCU, UInt& ruiIsLast );
+func (this *TDecCu)  DecodeCU                ( pcCU *TLibCommon.TComDataCU, ruiIsLast *uint){
+}
 
   /// reconstruct CU information
-  Void  decompressCU            ( TComDataCU* pcCU );
+func (this *TDecCu)  DecompressCU            ( pcCU *TLibCommon.TComDataCU ){
+}
 
-protected:
 
-  Void xDecodeCU                ( TComDataCU* pcCU,                       UInt uiAbsPartIdx, UInt uiDepth, UInt &ruiIsLast);
-  Void xFinishDecodeCU          ( TComDataCU* pcCU,                       UInt uiAbsPartIdx, UInt uiDepth, UInt &ruiIsLast);
-  Bool xDecodeSliceEnd          ( TComDataCU* pcCU,                       UInt uiAbsPartIdx, UInt uiDepth);
-  Void xDecompressCU            ( TComDataCU* pcCU, TComDataCU* pcCUCur,  UInt uiAbsPartIdx, UInt uiDepth );
+func (this *TDecCu)  xDecodeCU               ( pcCU *TLibCommon.TComDataCU,                        uiAbsPartIdx,  uiDepth uint,  ruiIsLast *uint){
+}
+func (this *TDecCu)  xFinishDecodeCU         ( pcCU *TLibCommon.TComDataCU,                        uiAbsPartIdx,  uiDepth uint,  ruiIsLast *uint){
+}
+func (this *TDecCu)  xDecodeSliceEnd         ( pcCU *TLibCommon.TComDataCU,                        uiAbsPartIdx,  uiDepth uint) bool{
+	return true
+}
+func (this *TDecCu)  xDecompressCU           ( pcCU *TLibCommon.TComDataCU, pcCUCur *TLibCommon.TComDataCU,   uiAbsPartIdx,  uiDepth uint){
+}
 
-  Void xReconInter              ( TComDataCU* pcCU, UInt uiAbsPartIdx, UInt uiDepth );
+func (this *TDecCu)  xReconInter             ( pcCU *TLibCommon.TComDataCU, uiAbsPartIdx,  uiDepth uint ){
+}
 
-  Void  xReconIntraQT           ( TComDataCU* pcCU, UInt uiAbsPartIdx, UInt uiDepth );
-  Void  xIntraRecLumaBlk        ( TComDataCU* pcCU, UInt uiTrDepth, UInt uiAbsPartIdx, TComYuv* pcRecoYuv, TComYuv* pcPredYuv, TComYuv* pcResiYuv );
-  Void  xIntraRecChromaBlk      ( TComDataCU* pcCU, UInt uiTrDepth, UInt uiAbsPartIdx, TComYuv* pcRecoYuv, TComYuv* pcPredYuv, TComYuv* pcResiYuv, UInt uiChromaId );
+func (this *TDecCu)  xReconIntraQT           ( pcCU *TLibCommon.TComDataCU, uiAbsPartIdx,  uiDepth uint ){
+}
+func (this *TDecCu)  xIntraRecLumaBlk        ( pcCU *TLibCommon.TComDataCU, uiTrDepth,  uiAbsPartIdx uint, pcRecoYuv *TLibCommon.TComYuv, pcPredYuv *TLibCommon.TComYuv, pcResiYuv *TLibCommon.TComYuv){
+}
+func (this *TDecCu)  xIntraRecChromaBlk      ( pcCU *TLibCommon.TComDataCU, uiTrDepth,  uiAbsPartIdx uint, pcRecoYuv *TLibCommon.TComYuv, pcPredYuv *TLibCommon.TComYuv, pcResiYuv *TLibCommon.TComYuv,  uiChromaId uint){
+}
 
-  Void  xReconPCM               ( TComDataCU* pcCU, UInt uiAbsPartIdx, UInt uiDepth );
+func (this *TDecCu)  xReconPCM               ( pcCU *TLibCommon.TComDataCU, uiAbsPartIdx,  uiDepth uint ){
+}
 
-  Void xDecodeInterTexture      ( TComDataCU* pcCU, UInt uiAbsPartIdx, UInt uiDepth );
-  Void xDecodePCMTexture        ( TComDataCU* pcCU, UInt uiPartIdx, Pel *piPCM, Pel* piReco, UInt uiStride, UInt uiWidth, UInt uiHeight, TextType ttText);
+func (this *TDecCu)  xDecodeInterTexture     ( pcCU *TLibCommon.TComDataCU, uiAbsPartIdx,  uiDepth uint ){
+}
+func (this *TDecCu)  xDecodePCMTexture       ( pcCU *TLibCommon.TComDataCU,  uiPartIdx uint, piPCM *TLibCommon.Pel, piReco *TLibCommon.Pel,  uiStride,  uiWidth,  uiHeight uint,  ttText TLibCommon.TextType){
+}
 
-  Void xCopyToPic               ( TComDataCU* pcCU, TComPic* pcPic, UInt uiZorderIdx, UInt uiDepth );
+func (this *TDecCu)  xCopyToPic              ( pcCU *TLibCommon.TComDataCU, pcPic *TLibCommon.TComPic,  uiZorderIdx,  uiDepth uint){
+}
 
-  Void  xIntraLumaRecQT         ( TComDataCU* pcCU, UInt uiTrDepth, UInt uiAbsPartIdx, TComYuv* pcRecoYuv, TComYuv* pcPredYuv, TComYuv* pcResiYuv );
-  Void  xIntraChromaRecQT       ( TComDataCU* pcCU, UInt uiTrDepth, UInt uiAbsPartIdx, TComYuv* pcRecoYuv, TComYuv* pcPredYuv, TComYuv* pcResiYuv );
+func (this *TDecCu)  xIntraLumaRecQT         ( pcCU *TLibCommon.TComDataCU,  uiTrDepth,  uiAbsPartIdx uint, pcRecoYuv *TLibCommon.TComYuv, pcPredYuv *TLibCommon.TComYuv, pcResiYuv *TLibCommon.TComYuv ){
+}
+func (this *TDecCu)  xIntraChromaRecQT       ( pcCU *TLibCommon.TComDataCU,  uiTrDepth,  uiAbsPartIdx uint, pcRecoYuv *TLibCommon.TComYuv, pcPredYuv *TLibCommon.TComYuv, pcResiYuv *TLibCommon.TComYuv ){
+}
 
-  Bool getdQPFlag               ()                        { return m_bDecodeDQP;        }
-  Void setdQPFlag               ( Bool b )                { m_bDecodeDQP = b;           }
-  Void xFillPCMBuffer           (TComDataCU* pCU, UInt absPartIdx, UInt depth);
-};*/
+func (this *TDecCu) GetdQPFlag               ()         bool               { 
+	return this.m_bDecodeDQP;        
+}
+func (this *TDecCu) SetdQPFlag               (  b bool)                { 
+	this.m_bDecodeDQP = b;           
+}
+func (this *TDecCu) xFillPCMBuffer           ( pCU *TLibCommon.TComDataCU,  absPartIdx,  depth uint){
+}

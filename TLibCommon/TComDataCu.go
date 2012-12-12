@@ -68,9 +68,9 @@ type TComDataCU struct{
   m_uiCUPelX			uint;           ///< CU position in a pixel (X)
   m_uiCUPelY			uint;           ///< CU position in a pixel (Y)
   m_uiNumPartition	uint;     ///< total number of minimum partitions in a CU
-  m_puhWidth			*byte;           ///< array of widths
-  m_puhHeight			*byte;          ///< array of heights
-  m_puhDepth			*byte;           ///< array of depths
+  m_puhWidth			[]byte;           ///< array of widths
+  m_puhHeight			[]byte;          ///< array of heights
+  m_puhDepth			[]byte;           ///< array of depths
   m_unitSize			int;           ///< size of a "minimum partition"
   
   // -------------------------------------------------------------------------------------------------------------------
@@ -190,41 +190,66 @@ func (this *TComDataCU) Create(  uiNumPartition,  uiWidth,  uiHeight uint, bDecS
 }
 func (this *TComDataCU) destroy(){
 }
-/*  
-  Void          initCU                ( TComPic* pcPic, UInt uiCUAddr );
-  Void          initEstData           ( UInt uiDepth, Int qp );
-  Void          initSubCU             ( TComDataCU* pcCU, UInt uiPartUnitIdx, UInt uiDepth, Int qp );
-  Void          setOutsideCUPart      ( UInt uiAbsPartIdx, UInt uiDepth );
 
-  Void          copySubCU             ( TComDataCU* pcCU, UInt uiPartUnitIdx, UInt uiDepth );
-  Void          copyInterPredInfoFrom ( TComDataCU* pcCU, UInt uiAbsPartIdx, RefPicList eRefPicList );
-  Void          copyPartFrom          ( TComDataCU* pcCU, UInt uiPartUnitIdx, UInt uiDepth );
+func (this *TComDataCU)          InitCU                ( pcPic *TComPic,  uiCUAddr uint){
+}
+func (this *TComDataCU)          InitEstData           (  uiDepth uint,  qp int){
+}
+func (this *TComDataCU)          InitSubCU             ( pcCU *TComDataCU,  uiPartUnitIdx,  uiDepth uint,  qp int){
+}
+func (this *TComDataCU)          SetOutsideCUPart      (  uiAbsPartIdx,  uiDepth uint){
+}
+
+func (this *TComDataCU)          CopySubCU             ( pcCU *TComDataCU,  uiPartUnitIdx,  uiDepth uint){
+}
+func (this *TComDataCU)          CopyInterPredInfoFrom ( pcCU *TComDataCU,  uiAbsPartIdx uint,  eRefPicList RefPicList){
+}
+func (this *TComDataCU)          CopyPartFrom          ( pcCU *TComDataCU,  uiPartUnitIdx,  uiDepth uint){
+}
   
-  Void          copyToPic             ( UChar uiDepth );
-  Void          copyToPic             ( UChar uiDepth, UInt uiPartIdx, UInt uiPartDepth );
+func (this *TComDataCU)          CopyToPic1             (  uiDepth uint){
+}
+func (this *TComDataCU)          CopyToPic3             (  uiDepth,  uiPartIdx,  uiPartDepth uint){
+}
   
   // -------------------------------------------------------------------------------------------------------------------
   // member functions for CU description
   // -------------------------------------------------------------------------------------------------------------------
-*/  
+
 func (this *TComDataCU) GetPic                ()             *TComPic                  { 
 	return this.m_pcPic;           
 }
- /* 
-  TComSlice*    getSlice              ()                        { return m_pcSlice;         }
-  UInt&         getAddr               ()                        { return m_uiCUAddr;        }
-  UInt&         getZorderIdxInCU      ()                        { return m_uiAbsIdxInLCU; }
-  UInt          getSCUAddr            ();
-  UInt          getCUPelX             ()                        { return m_uiCUPelX;        }
-  UInt          getCUPelY             ()                        { return m_uiCUPelY;        }
-  TComPattern*  getPattern            ()                        { return m_pcPattern;       }
+ 
+func (this *TComDataCU)	GetSlice              ()           *TComSlice                   { 
+	return this.m_pcSlice;         
+}
+func (this *TComDataCU)  GetAddr               ()   uint                     { 
+	return this.m_uiCUAddr;        
+}
+func (this *TComDataCU)  GetZorderIdxInCU      ()   uint                     { 
+	return this.m_uiAbsIdxInLCU; 
+}
+func (this *TComDataCU)  GetSCUAddr            ()	   uint{
+	return 0;
+}
+func (this *TComDataCU)  GetCUPelX             ()    uint                    { 
+	return this.m_uiCUPelX;        
+}
+func (this *TComDataCU)  GetCUPelY             ()    uint                    { 
+	return this.m_uiCUPelY;        }
+func (this *TComDataCU)  GetPattern            ()   *TComPattern                     { 
+	return this.m_pcPattern;       }
   
-  UChar*        getDepth              ()                        { return m_puhDepth;        }
-  UChar         getDepth              ( UInt uiIdx )            { return m_puhDepth[uiIdx]; }
-  Void          setDepth              ( UInt uiIdx, UChar  uh ) { m_puhDepth[uiIdx] = uh;   }
+func (this *TComDataCU)  GetDepth              ()   []byte                     { 
+	return this.m_puhDepth;        }
+func (this *TComDataCU)  GetDepth1              (  uiIdx uint) byte           { 
+	return this.m_puhDepth[uiIdx]; }
+func (this *TComDataCU)  SetDepth              (  uiIdx uint,   uh byte) { 
+	this.m_puhDepth[uiIdx] = uh;   }
   
-  Void          setDepthSubParts      ( UInt uiDepth, UInt uiAbsPartIdx );
-  
+func (this *TComDataCU)  SetDepthSubParts      (  uiDepth,  uiAbsPartIdx uint){
+}
+/*  
   // -------------------------------------------------------------------------------------------------------------------
   // member functions for CU data
   // -------------------------------------------------------------------------------------------------------------------
@@ -405,14 +430,24 @@ func (this *TComDataCU) GetPic                ()             *TComPic           
   // -------------------------------------------------------------------------------------------------------------------
   // utility functions for neighbouring information
   // -------------------------------------------------------------------------------------------------------------------
-  
-  TComDataCU*   getCULeft                   () { return m_pcCULeft;       }
-  TComDataCU*   getCUAbove                  () { return m_pcCUAbove;      }
-  TComDataCU*   getCUAboveLeft              () { return m_pcCUAboveLeft;  }
-  TComDataCU*   getCUAboveRight             () { return m_pcCUAboveRight; }
-  TComDataCU*   getCUColocated              ( RefPicList eRefPicList ) { return m_apcCUColocated[eRefPicList]; }
+*/  
+func (this *TComDataCU)   GetCULeft                   () *TComDataCU{ 
+	return this.m_pcCULeft;       
+}
+func (this *TComDataCU)   GetCUAbove                  () *TComDataCU{ 
+	return this.m_pcCUAbove;    
+}
+func (this *TComDataCU)   GetCUAboveLeft              () *TComDataCU{ 
+	return this.m_pcCUAboveLeft;  
+}
+func (this *TComDataCU)   GetCUAboveRight             () *TComDataCU{ 
+	return this.m_pcCUAboveRight; 
+}
+func (this *TComDataCU)   GetCUColocated              (  eRefPicList RefPicList) *TComDataCU{ 
+	return this.m_apcCUColocated[eRefPicList]; 
+}
 
-
+/*
   TComDataCU*   getPULeft                   ( UInt&  uiLPartUnitIdx, 
                                               UInt uiCurrPartUnitIdx, 
                                               Bool bEnforceSliceRestriction=true, 
