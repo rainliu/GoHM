@@ -86,55 +86,6 @@ func (this *SyntaxElementParser)  xTraceSliceHeader (pSlice *TLibCommon.TComSlic
   		}
 	}
 }
-/*
-func (this *SyntaxElementParser)  xTraceLCUHeader (pLCU *TComDataCU, traceLevel uint)
-{
-  if(traceLevel & TRACE_LEVEL)
-  fprintf( g_hTrace, "========= LCU Parameter Set ===============================================\n");//, pLCU.GetAddr());
-}
-
-func (this *SyntaxElementParser)  xTraceCUHeader (pLCU *TComDataCU, traceLevel uint)
-{
-  if(traceLevel & TRACE_LEVEL)
-  fprintf( g_hTrace, "========= CU Parameter Set ================================================\n");//, pCU.GetCUPelX(), pCU.GetCUPelY());
-}
-
-func (this *SyntaxElementParser)  xTracePUHeader (traceLevel uint)
-{
-  if(traceLevel & TRACE_LEVEL)
-    fprintf( g_hTrace, "========= PU Parameter Set ================================================\n");//, pCU.GetCUPelX(), pCU.GetCUPelY());
-}
-
-func (this *SyntaxElementParser)  xTraceTUHeader (traceLevel uint)
-{
-  if(traceLevel & TRACE_LEVEL)
-    fprintf( g_hTrace, "========= TU Parameter Set ================================================\n");//, pCU.GetCUPelX(), pCU.GetCUPelY());
-}
-
-func (this *SyntaxElementParser)  xTraceCoefHeader (traceLevel uint)
-{
-  if(traceLevel & TRACE_LEVEL)
-    fprintf( g_hTrace, "========= Coefficient Parameter Set =======================================\n");//, pCU.GetCUPelX(), pCU.GetCUPelY());
-}
-
-func (this *SyntaxElementParser)  xTraceResiHeader (traceLevel uint)
-{
-  if(traceLevel & TRACE_LEVEL)
-    fprintf( g_hTrace, "========= Residual Parameter Set ==========================================\n");//, pCU.GetCUPelX(), pCU.GetCUPelY());
-}
-
-func (this *SyntaxElementParser)  xTracePredHeader (traceLevel uint)
-{
-  if(traceLevel & TRACE_LEVEL)
-    fprintf( g_hTrace, "========= Prediction Parameter Set ========================================\n");//, pCU.GetCUPelX(), pCU.GetCUPelY());
-}
-
-func (this *SyntaxElementParser)  xTraceRecoHeader (traceLevel uint)
-{
-  if(traceLevel & TRACE_LEVEL)
-    fprintf( g_hTrace, "========= Reconstruction Parameter Set ====================================\n");//, pCU.GetCUPelX(), pCU.GetCUPelY());
-}
-*/
 
 func (this *SyntaxElementParser)  xReadCode    ( length uint, val *uint ){
 	//assert ( uiLength > 0 );

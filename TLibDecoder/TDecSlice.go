@@ -148,9 +148,9 @@ func (this *TDecSlice) DecompressSlice   ( pcBitstream *TLibCommon.TComInputBits
     pcCU.InitCU( rpcPic, uint(iCUAddr) );
 
 //#ifdef ENC_DEC_TRACE
-//    xTraceLCUHeader(pcCU, TRACE_LCU);
-//    xReadAeTr (iCUAddr, "lcu_address", TRACE_LCU);
-//    xReadAeTr (rpcPic.GetPicSym().GetTileIdxMap(iCUAddr), "tile_id", TRACE_LCU);
+    pcSbacDecoder.XTraceLCUHeader(TLibCommon.TRACE_LCU);
+    pcSbacDecoder.XReadAeTr (iCUAddr, "lcu_address", TLibCommon.TRACE_LCU);
+	pcSbacDecoder.XReadAeTr (int(rpcPic.GetPicSym().GetTileIdxMap(iCUAddr)), "tile_id", TLibCommon.TRACE_LCU);
 //#endif
 
     uiTileCol = rpcPic.GetPicSym().GetTileIdxMap(int(iCUAddr)) % uint(rpcPic.GetPicSym().GetNumColumnsMinus1()+1); // what column of tiles are we in?

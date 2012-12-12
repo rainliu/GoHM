@@ -3,6 +3,7 @@ package TLibDecoder
 import (
 	"fmt"
 	"time"
+	"io"
     "container/list"
     "gohm/TLibCommon"
 )
@@ -61,7 +62,7 @@ func (this *TDecGop) Create() {
 func (this *TDecGop) Destroy() {
 	//do nothing
 }
-func (this *TDecGop) DecompressSlice(pcBitstream *TLibCommon.TComInputBitstream, rpcPic *TLibCommon.TComPic) {
+func (this *TDecGop) DecompressSlice(pcBitstream *TLibCommon.TComInputBitstream, rpcPic *TLibCommon.TComPic, pTraceFile io.Writer) {
   pcSlice := rpcPic.GetSlice(rpcPic.GetCurrSliceIdx());
   // Table of extracted substreams.
   // These must be deallocated AND their internal fifos, too.
@@ -79,6 +80,7 @@ func (this *TDecGop) DecompressSlice(pcBitstream *TLibCommon.TComInputBitstream,
 
   this.m_pcSbacDecoder.Init( this.m_pcBinCABAC );//(TDecBinIf*)
   this.m_pcEntropyDecoder.SetEntropyDecoder (this.m_pcSbacDecoder);
+  this.m_pcEntropyDecoder.SetTraceFile(pTraceFile);
 
   var uiNumSubstreams uint;
   
@@ -104,11 +106,13 @@ func (this *TDecGop) DecompressSlice(pcBitstream *TLibCommon.TComInputBitstream,
 
   for ui := uint(0) ; ui+1 < uiNumSubstreams; ui++ {
     this.m_pcEntropyDecoder.SetEntropyDecoder ( &this.m_pcSbacDecoders[uiNumSubstreams - 1 - ui] );
+    this.m_pcEntropyDecoder.SetTraceFile	  (pTraceFile);
     this.m_pcEntropyDecoder.SetBitstream      ( ppcSubstreams   [uiNumSubstreams - 1 - ui] );
     this.m_pcEntropyDecoder.ResetEntropy      ( pcSlice);
   }
 
   this.m_pcEntropyDecoder.SetEntropyDecoder ( this.m_pcSbacDecoder  );
+  this.m_pcEntropyDecoder.SetTraceFile		(pTraceFile);
   this.m_pcEntropyDecoder.SetBitstream      ( ppcSubstreams[0] );
   this.m_pcEntropyDecoder.ResetEntropy      (pcSlice);
 

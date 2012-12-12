@@ -1,6 +1,7 @@
 package TLibDecoder
 
 import (
+	"fmt"
 	"io"
     "gohm/TLibCommon"
 )
@@ -80,6 +81,7 @@ func (this *TDecBinCabac)  Uninit            (){
 /// SBAC decoder class
 type TDecSbac struct { //: public TDecEntropyIf
     //private:
+    m_pTraceFile	io.Writer;
     m_pcBitstream *TLibCommon.TComInputBitstream
     m_pcTDecBinIf		TDecBinIf;
 
@@ -127,6 +129,61 @@ func NewTDecSbac() *TDecSbac{
 }
 
 
+func (this *TDecSbac)  XTraceLCUHeader (traceLevel uint){
+  if (traceLevel & TLibCommon.TRACE_LEVEL) !=0 {
+  	io.WriteString(this.m_pTraceFile, "========= LCU Parameter Set ===============================================\n");//, pLCU.GetAddr());
+  }
+}
+
+func (this *TDecSbac)  xTraceCUHeader (traceLevel uint){
+  if (traceLevel & TLibCommon.TRACE_LEVEL) !=0 {
+  	io.WriteString(this.m_pTraceFile, "========= CU Parameter Set ================================================\n");//, pCU.GetCUPelX(), pCU.GetCUPelY());
+  }
+}
+
+func (this *TDecSbac)  xTracePUHeader (traceLevel uint){
+  if (traceLevel & TLibCommon.TRACE_LEVEL) !=0 {
+    io.WriteString(this.m_pTraceFile, "========= PU Parameter Set ================================================\n");//, pCU.GetCUPelX(), pCU.GetCUPelY());
+  }
+}
+
+func (this *TDecSbac)  xTraceTUHeader (traceLevel uint){
+  if (traceLevel & TLibCommon.TRACE_LEVEL) !=0 {
+    io.WriteString(this.m_pTraceFile, "========= TU Parameter Set ================================================\n");//, pCU.GetCUPelX(), pCU.GetCUPelY());
+  }
+}
+
+func (this *TDecSbac)  xTraceCoefHeader (traceLevel uint){
+  if (traceLevel & TLibCommon.TRACE_LEVEL) !=0 {
+    io.WriteString(this.m_pTraceFile, "========= Coefficient Parameter Set =======================================\n");//, pCU.GetCUPelX(), pCU.GetCUPelY());
+  }
+}
+
+func (this *TDecSbac)  xTraceResiHeader (traceLevel uint){
+  if (traceLevel & TLibCommon.TRACE_LEVEL) !=0 {
+    io.WriteString(this.m_pTraceFile, "========= Residual Parameter Set ==========================================\n");//, pCU.GetCUPelX(), pCU.GetCUPelY());
+  }
+}
+
+func (this *TDecSbac) xTracePredHeader (traceLevel uint){
+  if (traceLevel & TLibCommon.TRACE_LEVEL) !=0 {
+    io.WriteString(this.m_pTraceFile, "========= Prediction Parameter Set ========================================\n");//, pCU.GetCUPelX(), pCU.GetCUPelY());
+  }
+}
+
+func (this *TDecSbac)  xTraceRecoHeader (traceLevel uint){
+  if (traceLevel & TLibCommon.TRACE_LEVEL) !=0 {
+    io.WriteString(this.m_pTraceFile, "========= Reconstruction Parameter Set ====================================\n");//, pCU.GetCUPelX(), pCU.GetCUPelY());
+  }	
+}
+
+func (this *TDecSbac)  XReadAeTr ( Value int, pSymbolName string,  traceLevel uint){
+  if (traceLevel & TLibCommon.TRACE_LEVEL) !=0 {
+    //fprintf( g_hTrace, "%8lld  ", g_nSymbolCounter++ );
+    io.WriteString(this.m_pTraceFile, fmt.Sprintf ("%-62s ae(v) : %4d\n", pSymbolName, Value )); 
+    //fflush ( g_hTrace );
+  }
+}
 
 func (this *TDecSbac) Init ( p TDecBinIf)    {
 	this.m_pcTDecBinIf = p;
@@ -152,8 +209,9 @@ func (this *TDecSbac)   SetBitstream            ( p  *TLibCommon.TComInputBitstr
 	this.m_pcTDecBinIf.Init( p );
 }
 func (this *TDecSbac)   SetTraceFile 		      ( traceFile io.Writer){
+	this.m_pTraceFile = traceFile;
 }
-func (this *TDecSbac)   SetSliceTrace 		  ( bSliceTrace bool){
+func (this *TDecSbac)   SetSliceTrace 		      ( bSliceTrace bool){
 }
 func (this *TDecSbac)   ParseVPS                  ( pcVPS *TLibCommon.TComVPS )  {
 }
