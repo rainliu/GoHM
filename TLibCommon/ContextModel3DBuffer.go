@@ -9,41 +9,77 @@ import ()
 /// context model 3D buffer class
 type ContextModel3DBuffer struct {
     //protected:
-    m_contextModel *ContextModel ///< array of context models
+    m_contextModel []ContextModel ///< array of context models
     m_sizeX        uint          ///< X size of 3D buffer
     m_sizeXY       uint          ///< X times Y size of 3D buffer
     m_sizeXYZ      uint          ///< total size of 3D buffer
 }
 
-/* 
-public:
-  ContextModel3DBuffer  ( UInt uiSizeZ, UInt uiSizeY, UInt uiSizeX, ContextModel *basePtr, Int &count );
-  ~ContextModel3DBuffer () {}
+
+func NewContextModel3DBuffer  (  uiSizeZ,  uiSizeY,  uiSizeX uint, basePtr []ContextModel, count *int) *ContextModel3DBuffer{
+	pContextModel3DBuffer := &ContextModel3DBuffer{ m_sizeX: uiSizeX ,
+												    m_sizeXY : uiSizeX * uiSizeY ,
+												    m_sizeXYZ: uiSizeX * uiSizeY * uiSizeZ ,
+  												    m_contextModel : basePtr};
+   *count += int(uiSizeX * uiSizeY * uiSizeZ);
+  
+	return pContextModel3DBuffer;
+}
+
 
   // access functions
-  ContextModel& get( UInt uiZ, UInt uiY, UInt uiX )
-  {
-    return  m_contextModel[ uiZ * m_sizeXY + uiY * m_sizeX + uiX ];
-  }
-  ContextModel* get( UInt uiZ, UInt uiY )
-  {
-    return &m_contextModel[ uiZ * m_sizeXY + uiY * m_sizeX ];
-  }
-  ContextModel* get( UInt uiZ )
-  {
-    return &m_contextModel[ uiZ * m_sizeXY ];
-  }
+func (this *ContextModel3DBuffer)  Get3(  uiZ,  uiY,  uiX uint) *ContextModel{
+    return &this.m_contextModel[ uiZ * this.m_sizeXY + uiY * this.m_sizeX + uiX ];
+}
+func (this *ContextModel3DBuffer)  Get1(  uiZ uint) *ContextModel{
+    return &this.m_contextModel[ uiZ * this.m_sizeXY ];
+}
 
   // initialization & copy functions
-  Void initBuffer( SliceType eSliceType, Int iQp, UChar* ctxModel );          ///< initialize 3D buffer by slice type & QP
+func (this *ContextModel3DBuffer)  InitBuffer( sliceType SliceType,  qp int, ctxModel []byte ){         ///< initialize 3D buffer by slice type & QP
+  for n := uint(0); n < this.m_sizeXYZ; n++ {
+    this.m_contextModel[ n ].Init( qp, int(ctxModel[uint(sliceType) * this.m_sizeXYZ + n ]) );
+    this.m_contextModel[ n ].SetBinsCoded( 0 );
+  }
+}
 
-  UInt calcCost( SliceType sliceType, Int qp, UChar* ctxModel );      ///< determine cost of choosing a probability table based on current probabilities
+var aStateToProbLPS = []float64{0.50000000, 0.47460857, 0.45050660, 0.42762859, 0.40591239, 0.38529900, 0.36573242, 0.34715948, 0.32952974, 0.31279528, 0.29691064, 0.28183267, 0.26752040, 0.25393496, 0.24103941, 0.22879875, 0.21717969, 0.20615069, 0.19568177, 0.18574449, 0.17631186, 0.16735824, 0.15885931, 0.15079198, 0.14313433, 0.13586556, 0.12896592, 0.12241667, 0.11620000, 0.11029903, 0.10469773, 0.09938088, 0.09433404, 0.08954349, 0.08499621, 0.08067986, 0.07658271, 0.07269362, 0.06900203, 0.06549791, 0.06217174, 0.05901448, 0.05601756, 0.05317283, 0.05047256, 0.04790942, 0.04547644, 0.04316702, 0.04097487, 0.03889405, 0.03691890, 0.03504406, 0.03326442, 0.03157516, 0.02997168, 0.02844963, 0.02700488, 0.02563349, 0.02433175, 0.02309612, 0.02192323, 0.02080991, 0.01975312, 0.01875000};
+
+func (this *ContextModel3DBuffer)  CalcCost( sliceType SliceType,  qp int, ctxModel []byte) uint{      ///< determine cost of choosing a probability table based on current probabilities
+  cost := uint(0);
+  
+  for n := uint(0); n < this.m_sizeXYZ; n++ {
+    tmpContextModel := NewContextModel();
+    tmpContextModel.Init( qp, int(ctxModel[ uint(sliceType) * this.m_sizeXYZ + n ]) );
+
+    // Map the 64 CABAC states to their corresponding probability values
+    
+    probLPS := aStateToProbLPS[ this.m_contextModel[ n ].GetState() ];
+    var prob0, prob1 float64;
+    if this.m_contextModel[ n ].GetMps()==1 {
+      prob0 = probLPS;
+      prob1 = 1.0-prob0;
+    }else{
+      prob1 = probLPS;
+      prob0 = 1.0-prob1;
+    }
+
+    if this.m_contextModel[ n ].GetBinsCoded()>0 {
+      cost += uint(prob0 * float64(tmpContextModel.GetEntropyBits( 0 )) + prob1 * float64(tmpContextModel.GetEntropyBits( 1 )));
+    }
+  }
+
+  return cost;
+} 
+ 
   // copy from another buffer
   // \param src buffer to copy from
 
-  Void copyFrom( ContextModel3DBuffer* src )
-  {
-    assert( m_sizeXYZ == src->m_sizeXYZ );
-    ::memcpy( m_contextModel, src->m_contextModel, sizeof(ContextModel) * m_sizeXYZ );
-  }
-};*/
+func (this *ContextModel3DBuffer)  CopyFrom( src *ContextModel3DBuffer){
+//    assert( m_sizeXYZ == src->m_sizeXYZ );
+//    ::memcpy( m_contextModel, src->m_contextModel, sizeof(ContextModel) * m_sizeXYZ );
+	for i:=uint(0); i< this.m_sizeXYZ; i++{
+		this.m_contextModel[i] = src.m_contextModel[i];
+	}
+}
+
