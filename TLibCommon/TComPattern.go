@@ -68,6 +68,10 @@ type TComPattern struct{
   
   m_aucIntraFilter	[5]byte;
 }
+
+func NewTComPattern() *TComPattern{
+	return &TComPattern{};
+}
 /*
 public:
   

@@ -61,18 +61,20 @@ type TComCUMvField struct{
 public:
   TComCUMvField() : m_pcMv(NULL), m_pcMvd(NULL), m_piRefIdx(NULL), m_uiNumPartition(0) {}
   ~TComCUMvField() {}
-
+*/
   // ------------------------------------------------------------------------------------------------------------------
   // create / destroy
   // ------------------------------------------------------------------------------------------------------------------
   
-  Void    create( UInt uiNumPartition );
-  Void    destroy();
+func (this *TComCUMvField)  Create(  uiNumPartition uint){
+}
+func (this *TComCUMvField)  Destroy(){
+}
   
   // ------------------------------------------------------------------------------------------------------------------
   // clear / copy
   // ------------------------------------------------------------------------------------------------------------------
-
+/*
   Void    clearMvField();
   
   Void    copyFrom( TComCUMvField const * pcCUMvFieldSrc, Int iNumPartSrc, Int iPartAddrDst );
@@ -97,18 +99,16 @@ public:
   Void    setAllMvd    ( TComMv const & rcMvd,        PartSize eCUMode, Int iPartAddr, UInt uiDepth, Int iPartIdx=0 );
   Void    setAllRefIdx ( Int iRefIdx,                 PartSize eMbMode, Int iPartAddr, UInt uiDepth, Int iPartIdx=0 );
   Void    setAllMvField( TComMvField const & mvField, PartSize eMbMode, Int iPartAddr, UInt uiDepth, Int iPartIdx=0 );
-
-  Void setNumPartition( Int iNumPart )
-  {
-    m_uiNumPartition = iNumPart;
-  }
+*/
+func (this *TComCUMvField) SetNumPartition( uiNumPart uint){
+    this.m_uiNumPartition = uiNumPart;
+}
+/*  
+func (this *TComCUMvField) linkToWithOffset( src *TComCUMvField,  offset int){
+    this.m_pcMv     = src->m_pcMv     + offset;
+    this.m_pcMvd    = src->m_pcMvd    + offset;
+    this.m_piRefIdx = src->m_piRefIdx + offset;
+}
   
-  Void linkToWithOffset( TComCUMvField const * src, Int offset )
-  {
-    m_pcMv     = src->m_pcMv     + offset;
-    m_pcMvd    = src->m_pcMvd    + offset;
-    m_piRefIdx = src->m_piRefIdx + offset;
-  }
-  
-  Void compress(Char* pePredMode, Int scale); 
-};*/
+func (this *TComCUMvField) compress(Char* pePredMode, Int scale); 
+*/

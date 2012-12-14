@@ -56,7 +56,7 @@ type TComDataCU struct{
   // -------------------------------------------------------------------------------------------------------------------
   
   m_pcPic			*TComPic;              ///< picture class pointer
-  m_pcSlice		*TComSlice;            ///< slice header pointer
+  m_pcSlice			*TComSlice;            ///< slice header pointer
   m_pcPattern		*TComPattern;          ///< neighbour access class pointer
   
   // -------------------------------------------------------------------------------------------------------------------
@@ -67,7 +67,7 @@ type TComDataCU struct{
   m_uiAbsIdxInLCU		uint;      ///< absolute address in a CU. It's Z scan order
   m_uiCUPelX			uint;           ///< CU position in a pixel (X)
   m_uiCUPelY			uint;           ///< CU position in a pixel (Y)
-  m_uiNumPartition	uint;     ///< total number of minimum partitions in a CU
+  m_uiNumPartition		uint;     ///< total number of minimum partitions in a CU
   m_puhWidth			[]byte;           ///< array of widths
   m_puhHeight			[]byte;          ///< array of heights
   m_puhDepth			[]byte;           ///< array of depths
@@ -76,34 +76,34 @@ type TComDataCU struct{
   // -------------------------------------------------------------------------------------------------------------------
   // CU data
   // -------------------------------------------------------------------------------------------------------------------
-  m_skipFlag				*bool;           ///< array of skip flags
-  m_pePartSize			*int8;         ///< array of partition sizes
-  m_pePredMode			*int8;         ///< array of prediction modes
-  m_CUTransquantBypass	*bool;   ///< array of cu_transquant_bypass flags
-  m_phQP					*int8;               ///< array of QP values
-  m_puhTrIdx				*byte;           ///< array of transform indices
-  m_puhTransformSkip  	[3]*byte;///< array of transform skipping flags
-  m_puhCbf				[3]*byte;          ///< array of coded block flags (CBF)
+  m_skipFlag			[]bool;           ///< array of skip flags
+  m_pePartSize			[]int8;         ///< array of partition sizes
+  m_pePredMode			[]int8;         ///< array of prediction modes
+  m_CUTransquantBypass	[]bool;   ///< array of cu_transquant_bypass flags
+  m_phQP				[]int8;               ///< array of QP values
+  m_puhTrIdx			[]byte;           ///< array of transform indices
+  m_puhTransformSkip  	[3][]byte;///< array of transform skipping flags
+  m_puhCbf				[3][]byte;          ///< array of coded block flags (CBF)
   m_acCUMvField			[2]TComCUMvField;     ///< array of motion vectors
-  m_pcTrCoeffY			*TCoeff;         ///< transformed coefficient buffer (Y)
-  m_pcTrCoeffCb			*TCoeff;        ///< transformed coefficient buffer (Cb)
-  m_pcTrCoeffCr			*TCoeff;        ///< transformed coefficient buffer (Cr)
+  m_pcTrCoeffY			[]TCoeff;         ///< transformed coefficient buffer (Y)
+  m_pcTrCoeffCb			[]TCoeff;        ///< transformed coefficient buffer (Cb)
+  m_pcTrCoeffCr			[]TCoeff;        ///< transformed coefficient buffer (Cr)
 //#if ADAPTIVE_QP_SELECTION
-  m_pcArlCoeffY			*int;        ///< ARL coefficient buffer (Y)
-  m_pcArlCoeffCb			*int;       ///< ARL coefficient buffer (Cb)
-  m_pcArlCoeffCr			*int;       ///< ARL coefficient buffer (Cr)
+  m_pcArlCoeffY			[]int;        ///< ARL coefficient buffer (Y)
+  m_pcArlCoeffCb		[]int;       ///< ARL coefficient buffer (Cb)
+  m_pcArlCoeffCr		[]int;       ///< ARL coefficient buffer (Cr)
   m_ArlCoeffIsAliasedAllocation	bool; ///< ARL coefficient buffer is an alias of the global buffer and must not be free()'d
 
-  m_pcGlbArlCoeffY		*int;     ///< ARL coefficient buffer (Y)
-  m_pcGlbArlCoeffCb		*int;    ///< ARL coefficient buffer (Cb)
-  m_pcGlbArlCoeffCr		*int;    ///< ARL coefficient buffer (Cr)
+  m_pcGlbArlCoeffY		[]int;     ///< ARL coefficient buffer (Y)
+  m_pcGlbArlCoeffCb		[]int;    ///< ARL coefficient buffer (Cb)
+  m_pcGlbArlCoeffCr		[]int;    ///< ARL coefficient buffer (Cr)
 //#endif
   
-  m_pcIPCMSampleY			*Pel;      ///< PCM sample buffer (Y)
-  m_pcIPCMSampleCb		*Pel;     ///< PCM sample buffer (Cb)
-  m_pcIPCMSampleCr		*Pel;     ///< PCM sample buffer (Cr)
+  m_pcIPCMSampleY		[]Pel;      ///< PCM sample buffer (Y)
+  m_pcIPCMSampleCb		[]Pel;     ///< PCM sample buffer (Cb)
+  m_pcIPCMSampleCr		[]Pel;     ///< PCM sample buffer (Cr)
 
-  m_piSliceSUMap			*int;       ///< pointer of slice ID map
+  m_piSliceSUMap		[]int;       ///< pointer of slice ID map
   m_vNDFBlock 			*list.List;
 
   // -------------------------------------------------------------------------------------------------------------------
@@ -111,69 +111,86 @@ type TComDataCU struct{
   // -------------------------------------------------------------------------------------------------------------------
   
   m_pcCUAboveLeft			*TComDataCU;      ///< pointer of above-left CU
-  m_pcCUAboveRight		*TComDataCU;     ///< pointer of above-right CU
+  m_pcCUAboveRight			*TComDataCU;     ///< pointer of above-right CU
   m_pcCUAbove				*TComDataCU;          ///< pointer of above CU
   m_pcCULeft				*TComDataCU;           ///< pointer of left CU
-  m_apcCUColocated		[2]*TComDataCU;  ///< pointer of temporally colocated CU's for both directions
-  m_cMvFieldA				TComMvField;          ///< motion vector of position A
-  m_cMvFieldB				TComMvField;          ///< motion vector of position B
-  m_cMvFieldC				TComMvField;          ///< motion vector of position C
-  m_cMvPred				TComMv;            ///< motion vector predictor
+  m_apcCUColocated		 [2]*TComDataCU;  ///< pointer of temporally colocated CU's for both directions
+  m_cMvFieldA				 TComMvField;          ///< motion vector of position A
+  m_cMvFieldB				 TComMvField;          ///< motion vector of position B
+  m_cMvFieldC				 TComMvField;          ///< motion vector of position C
+  m_cMvPred					 TComMv;            ///< motion vector predictor
   
   // -------------------------------------------------------------------------------------------------------------------
   // coding tool information
   // -------------------------------------------------------------------------------------------------------------------
   
-  m_pbMergeFlag			*bool;        ///< array of merge flags
-  m_puhMergeIndex			*byte;      ///< array of merge candidate indices
+  m_pbMergeFlag				[]bool;        ///< array of merge flags
+  m_puhMergeIndex			[]byte;      ///< array of merge candidate indices
 //#if AMP_MRG
-  m_bIsMergeAMP			bool;
+  m_bIsMergeAMP				bool;
 //#endif
-  m_puhLumaIntraDir		*byte;    ///< array of intra directions (luma)
-  m_puhChromaIntraDir		*byte;  ///< array of intra directions (chroma)
-  m_puhInterDir			*byte;        ///< array of inter directions
-  m_apiMVPIdx				[2]*int8;       ///< array of motion vector predictor candidates
-  m_apiMVPNum				[2]*int8;       ///< array of number of possible motion vectors predictors
-  m_pbIPCMFlag			*bool;         ///< array of intra_pcm flags
+  m_puhLumaIntraDir			[]byte;    ///< array of intra directions (luma)
+  m_puhChromaIntraDir		[]byte;  ///< array of intra directions (chroma)
+  m_puhInterDir				[]byte;        ///< array of inter directions
+  m_apiMVPIdx				[2][]int8;       ///< array of motion vector predictor candidates
+  m_apiMVPNum				[2][]int8;       ///< array of number of possible motion vectors predictors
+  m_pbIPCMFlag				[]bool;         ///< array of intra_pcm flags
 
-  m_numSucIPCM			int;         ///< the number of succesive IPCM blocks associated with the current log2CUSize
+  m_numSucIPCM				int;         ///< the number of succesive IPCM blocks associated with the current log2CUSize
   m_lastCUSucIPCMFlag		bool;  ///< True indicates that the last CU is IPCM and shares the same root as the current CU.  
 
   // -------------------------------------------------------------------------------------------------------------------
   // misc. variables
   // -------------------------------------------------------------------------------------------------------------------
   
-  m_bDecSubCu				bool;          ///< indicates decoder-mode
+  m_bDecSubCu			bool;          ///< indicates decoder-mode
   m_dTotalCost			float64;         ///< sum of partition RD costs
-  m_uiTotalDistortion		uint;  ///< sum of partition distortion
+  m_uiTotalDistortion	uint;  ///< sum of partition distortion
   m_uiTotalBits			uint;        ///< sum of partition bits
   m_uiTotalBins			uint;       ///< sum of partition bins
-  m_uiSliceStartCU		*uint;    ///< Start CU address of current slice
-  m_uiDependentSliceStartCU	*uint; ///< Start CU address of current slice
-  m_codedQP				int8;
+  m_uiSliceStartCU			[]uint;    ///< Start CU address of current slice
+  m_uiDependentSliceStartCU	[]uint; ///< Start CU address of current slice
+  m_codedQP					int8;
 }
-/*
-protected:
+
+//protected:
   
   /// add possible motion vector predictor candidates
-  Bool          xAddMVPCand           ( AMVPInfo* pInfo, RefPicList eRefPicList, Int iRefIdx, UInt uiPartUnitIdx, MVP_DIR eDir );
-  Bool          xAddMVPCandOrder      ( AMVPInfo* pInfo, RefPicList eRefPicList, Int iRefIdx, UInt uiPartUnitIdx, MVP_DIR eDir );
+func (this *TComDataCU)  xAddMVPCand           ( pInfo *AMVPInfo,  eRefPicList RefPicList,  iRefIdx int,  uiPartUnitIdx uint,  eDir MVP_DIR)bool{
+	return true;
+}
+func (this *TComDataCU)  xAddMVPCandOrder      ( pInfo *AMVPInfo,  eRefPicList RefPicList,  iRefIdx int,  uiPartUnitIdx uint,  eDir MVP_DIR)bool{
+	return true;
+}
 
-  Void          deriveRightBottomIdx        ( UInt uiPartIdx, UInt& ruiPartIdxRB );
-  Bool          xGetColMVP( RefPicList eRefPicList, Int uiCUAddr, Int uiPartUnitIdx, TComMv& rcMv, Int& riRefIdx );
+func (this *TComDataCU)  deriveRightBottomIdx        (  uiPartIdx uint, ruiPartIdxRB *uint){
+}
+func (this *TComDataCU)  xGetColMVP(  eRefPicList RefPicList,  uiCUAddr,  uiPartUnitIdx int, rcMv *TComMv, riRefIdx *int)bool{
+	return true;
+}
   
   /// compute required bits to encode MVD (used in AMVP)
-  UInt          xGetMvdBits           ( TComMv cMvd );
-  UInt          xGetComponentBits     ( Int iVal );
+func (this *TComDataCU)  xGetMvdBits           (  cMvd TComMv)uint{
+	return 0;
+}
+func (this *TComDataCU)  xGetComponentBits     (  iVal int)uint{
+	return 0;
+}
   
   /// compute scaling factor from POC difference
-  Int           xGetDistScaleFactor   ( Int iCurrPOC, Int iCurrRefPOC, Int iColPOC, Int iColRefPOC );
+func (this *TComDataCU)  xGetDistScaleFactor   (  iCurrPOC,  iCurrRefPOC,  iColPOC,  iColRefPOC int)int{
+	return 0;
+}
   
-  Void xDeriveCenterIdx( UInt uiPartIdx, UInt& ruiPartIdxCenter );
-  Bool xGetCenterCol( UInt uiPartIdx, RefPicList eRefPicList, Int iRefIdx, TComMv *pcMv );
+func (this *TComDataCU)  xDeriveCenterIdx(  uiPartIdx uint, ruiPartIdxCenter *uint){
+}
+func (this *TComDataCU)  xGetCenterCol(  uiPartIdx uint,  eRefPicList RefPicList,  iRefIdx int, pcMv *TComMv)bool{
+	return true;
+}
 
-public:
-*/
+
+//public:
+
 func NewTComDataCU() *TComDataCU{
 	return &TComDataCU{}
 }
@@ -186,9 +203,170 @@ func (this *TComDataCU) Create(  uiNumPartition,  uiWidth,  uiHeight uint, bDecS
 //#if ADAPTIVE_QP_SELECTION
     bGlobalRMARLBuffer bool){
 //#endif  
-	
+  this.m_bDecSubCu = bDecSubCu;
+  
+  this.m_pcPic              = nil;
+  this.m_pcSlice            = nil;
+  this.m_uiNumPartition     = uiNumPartition;
+  this.m_unitSize = unitSize;
+  
+  if !bDecSubCu {
+    this.m_phQP               = make([]int8,    uiNumPartition);
+    this.m_puhDepth           = make([]byte,    uiNumPartition);
+    this.m_puhWidth           = make([]byte,    uiNumPartition);
+    this.m_puhHeight          = make([]byte,    uiNumPartition);
+
+    this.m_skipFlag           = make([]bool, 	uiNumPartition);
+
+    this.m_pePartSize         = make([]int8,    uiNumPartition);
+    for i:=uint(0); i<uiNumPartition; i++{
+    	this.m_pePartSize[i] = SIZE_NONE;
+    }
+    
+    this.m_pePredMode         = make([]int8,    uiNumPartition);
+    this.m_CUTransquantBypass = make([]bool,    uiNumPartition);
+    this.m_pbMergeFlag        = make([]bool,    uiNumPartition);
+    this.m_puhMergeIndex      = make([]byte,  uiNumPartition);
+    this.m_puhLumaIntraDir    = make([]byte,  uiNumPartition);
+    this.m_puhChromaIntraDir  = make([]byte,  uiNumPartition);
+    this.m_puhInterDir        = make([]byte,  uiNumPartition);
+    
+    this.m_puhTrIdx           = make([]byte,  uiNumPartition);
+    this.m_puhTransformSkip[0] = make([]byte,  uiNumPartition);
+    this.m_puhTransformSkip[1] = make([]byte,  uiNumPartition);
+    this.m_puhTransformSkip[2] = make([]byte,  uiNumPartition);
+
+    this.m_puhCbf[0]          = make([]byte,  uiNumPartition);
+    this.m_puhCbf[1]          = make([]byte,  uiNumPartition);
+    this.m_puhCbf[2]          = make([]byte,  uiNumPartition);
+    
+    this.m_apiMVPIdx[0]       = make([]int8,    uiNumPartition);
+    this.m_apiMVPIdx[1]       = make([]int8,    uiNumPartition);
+    this.m_apiMVPNum[0]       = make([]int8,    uiNumPartition);
+    this.m_apiMVPNum[1]       = make([]int8,    uiNumPartition);
+    for i:=uint(0); i<uiNumPartition; i++{
+    	this.m_apiMVPIdx[0][i]=-1;
+    	this.m_apiMVPIdx[1][i]=-1;
+    }
+    this.m_pcTrCoeffY         = make([]TCoeff, uiWidth*uiHeight);
+    this.m_pcTrCoeffCb        = make([]TCoeff, uiWidth*uiHeight/4);
+    this.m_pcTrCoeffCr        = make([]TCoeff, uiWidth*uiHeight/4);
+
+//#if ADAPTIVE_QP_SELECTION    
+    if bGlobalRMARLBuffer {
+      if this.m_pcGlbArlCoeffY == nil {
+        this.m_pcGlbArlCoeffY   = make([]int, uiWidth*uiHeight);
+        this.m_pcGlbArlCoeffCb  = make([]int, uiWidth*uiHeight/4);
+        this.m_pcGlbArlCoeffCr  = make([]int, uiWidth*uiHeight/4);
+      }
+      this.m_pcArlCoeffY        = this.m_pcGlbArlCoeffY;
+      this.m_pcArlCoeffCb       = this.m_pcGlbArlCoeffCb;
+      this.m_pcArlCoeffCr       = this.m_pcGlbArlCoeffCr;
+      this.m_ArlCoeffIsAliasedAllocation = true;
+    }else{
+      this.m_pcArlCoeffY        = make([]int, uiWidth*uiHeight);
+      this.m_pcArlCoeffCb       = make([]int, uiWidth*uiHeight/4);
+      this.m_pcArlCoeffCr       = make([]int, uiWidth*uiHeight/4);
+    }
+//#endif
+    
+    this.m_pbIPCMFlag         =  make([]bool, uiNumPartition);
+    this.m_pcIPCMSampleY      =  make([]Pel , uiWidth*uiHeight);
+    this.m_pcIPCMSampleCb     =  make([]Pel , uiWidth*uiHeight/4);
+    this.m_pcIPCMSampleCr     =  make([]Pel , uiWidth*uiHeight/4);
+
+    this.m_acCUMvField[0].Create( uiNumPartition );
+    this.m_acCUMvField[1].Create( uiNumPartition );
+    
+  }else{
+    this.m_acCUMvField[0].SetNumPartition(uiNumPartition );
+    this.m_acCUMvField[1].SetNumPartition(uiNumPartition );
+  }
+  
+  this.m_uiSliceStartCU          = make([]uint, uiNumPartition);
+  this.m_uiDependentSliceStartCU = make([]uint, uiNumPartition);
+  
+  // create pattern memory
+  this.m_pcPattern            =  NewTComPattern();
+  
+  // create motion vector fields
+  
+  this.m_pcCUAboveLeft      = nil;
+  this.m_pcCUAboveRight     = nil;
+  this.m_pcCUAbove          = nil;
+  this.m_pcCULeft           = nil;
+  
+  this.m_apcCUColocated[0]  = nil;
+  this.m_apcCUColocated[1]  = nil;	
 }
-func (this *TComDataCU) destroy(){
+func (this *TComDataCU) 		 Destroy(){
+  this.m_pcPic              = nil;
+  this.m_pcSlice            = nil;
+  
+  if this.m_pcPattern !=nil{ 
+    this.m_pcPattern = nil;
+  }
+  
+  // encoder-side buffer free
+  if !this.m_bDecSubCu {
+    this.m_phQP              = nil; 
+    this.m_puhDepth          = nil; 
+    this.m_puhWidth          = nil; 
+    this.m_puhHeight         = nil; 
+
+    this.m_skipFlag          = nil; 
+
+    this.m_pePartSize        = nil; 
+    this.m_pePredMode        = nil; 
+    this.m_CUTransquantBypass = nil;
+    this.m_puhCbf[0]         = nil; 
+    this.m_puhCbf[1]         = nil; 
+    this.m_puhCbf[2]         = nil; 
+    this.m_puhInterDir       = nil; 
+    this.m_pbMergeFlag       = nil; 
+    this.m_puhMergeIndex     = nil; 
+    this.m_puhLumaIntraDir   = nil; 
+    this.m_puhChromaIntraDir = nil; 
+    this.m_puhTrIdx          = nil; 
+    this.m_puhTransformSkip[0] = nil; 
+    this.m_puhTransformSkip[1] = nil; 
+    this.m_puhTransformSkip[2] = nil; 
+    this.m_pcTrCoeffY        = nil; 
+    this.m_pcTrCoeffCb       = nil; 
+    this.m_pcTrCoeffCr       = nil; 
+//#if ADAPTIVE_QP_SELECTION
+    if !this.m_ArlCoeffIsAliasedAllocation{
+      this.m_pcArlCoeffY  = nil;
+      this.m_pcArlCoeffCb = nil;
+      this.m_pcArlCoeffCr = nil;
+    }
+    this.m_pcGlbArlCoeffY    = nil;
+    this.m_pcGlbArlCoeffCb   = nil;
+    this.m_pcGlbArlCoeffCr   = nil;
+//#endi
+    this.m_pbIPCMFlag        = nil;
+    this.m_pcIPCMSampleY     = nil;
+    this.m_pcIPCMSampleCb    = nil;
+    this.m_pcIPCMSampleCr    = nil;
+    this.m_apiMVPIdx[0]      = nil;
+    this.m_apiMVPIdx[1]      = nil;
+    this.m_apiMVPNum[0]      = nil;
+    this.m_apiMVPNum[1]      = nil;
+    
+    this.m_acCUMvField[0].Destroy();
+    this.m_acCUMvField[1].Destroy();
+  }
+  
+  this.m_pcCUAboveLeft       = nil;
+  this.m_pcCUAboveRight      = nil;
+  this.m_pcCUAbove           = nil;
+  this.m_pcCULeft            = nil;
+  
+  this.m_apcCUColocated[0]   = nil;
+  this.m_apcCUColocated[1]   = nil;
+
+  this.m_uiSliceStartCU=nil;
+  this.m_uiDependentSliceStartCU=nil;
 }
 
 func (this *TComDataCU)          InitCU                ( pcPic *TComPic,  uiCUAddr uint){
@@ -249,37 +427,50 @@ func (this *TComDataCU)  SetDepth              (  uiIdx uint,   uh byte) {
   
 func (this *TComDataCU)  SetDepthSubParts      (  uiDepth,  uiAbsPartIdx uint){
 }
-/*  
+ 
   // -------------------------------------------------------------------------------------------------------------------
   // member functions for CU data
   // -------------------------------------------------------------------------------------------------------------------
+/*  
+func (this *TComDataCU)  Char*         getPartitionSize      ()                        { return m_pePartSize;        }
+func (this *TComDataCU)  PartSize      getPartitionSize      ( UInt uiIdx )            { return static_cast<PartSize>( m_pePartSize[uiIdx] ); }
+func (this *TComDataCU)  Void          setPartitionSize      ( UInt uiIdx, PartSize uh){ m_pePartSize[uiIdx] = uh;   }
+func (this *TComDataCU)  Void          setPartSizeSubParts   ( PartSize eMode, UInt uiAbsPartIdx, UInt uiDepth );
+func (this *TComDataCU)  Void          setCUTransquantBypassSubParts( Bool flag, UInt uiAbsPartIdx, UInt uiDepth );
   
-  Char*         getPartitionSize      ()                        { return m_pePartSize;        }
-  PartSize      getPartitionSize      ( UInt uiIdx )            { return static_cast<PartSize>( m_pePartSize[uiIdx] ); }
-  Void          setPartitionSize      ( UInt uiIdx, PartSize uh){ m_pePartSize[uiIdx] = uh;   }
-  Void          setPartSizeSubParts   ( PartSize eMode, UInt uiAbsPartIdx, UInt uiDepth );
-  Void          setCUTransquantBypassSubParts( Bool flag, UInt uiAbsPartIdx, UInt uiDepth );
-  
-  Bool*        getSkipFlag            ()                        { return m_skipFlag;          }
-  Bool         getSkipFlag            (UInt idx)                { return m_skipFlag[idx];     }
-  Void         setSkipFlag           ( UInt idx, Bool skip)     { m_skipFlag[idx] = skip;   }
-  Void         setSkipFlagSubParts   ( Bool skip, UInt absPartIdx, UInt depth );
+func (this *TComDataCU)  Bool*        getSkipFlag            ()                        { return m_skipFlag;          }
+func (this *TComDataCU)  Bool         getSkipFlag            (UInt idx)                { return m_skipFlag[idx];     }
+func (this *TComDataCU)  Void         setSkipFlag           ( UInt idx, Bool skip)     { m_skipFlag[idx] = skip;   }
+func (this *TComDataCU)  Void         setSkipFlagSubParts   ( Bool skip, UInt absPartIdx, UInt depth );
 
-  Char*         getPredictionMode     ()                        { return m_pePredMode;        }
-  PredMode      getPredictionMode     ( UInt uiIdx )            { return static_cast<PredMode>( m_pePredMode[uiIdx] ); }
-  Bool*         getCUTransquantBypass ()                        { return m_CUTransquantBypass;        }
-  Bool          getCUTransquantBypass( UInt uiIdx )             { return m_CUTransquantBypass[uiIdx]; }
-  Void          setPredictionMode     ( UInt uiIdx, PredMode uh){ m_pePredMode[uiIdx] = uh;   }
-  Void          setPredModeSubParts   ( PredMode eMode, UInt uiAbsPartIdx, UInt uiDepth );
+func (this *TComDataCU)  Char*         getPredictionMode     ()                        { return m_pePredMode;        }
+func (this *TComDataCU)  PredMode      getPredictionMode     ( UInt uiIdx )            { return static_cast<PredMode>( m_pePredMode[uiIdx] ); }
+func (this *TComDataCU)  Bool*         getCUTransquantBypass ()                        { return m_CUTransquantBypass;        }
+func (this *TComDataCU)  Bool          getCUTransquantBypass( UInt uiIdx )             { return m_CUTransquantBypass[uiIdx]; }
+func (this *TComDataCU)  Void          setPredictionMode     ( UInt uiIdx, PredMode uh){ m_pePredMode[uiIdx] = uh;   }
+func (this *TComDataCU)  Void          setPredModeSubParts   ( PredMode eMode, UInt uiAbsPartIdx, UInt uiDepth );
+*/  
+func (this *TComDataCU)  GetWidth              () []byte                       { 
+	return this.m_puhWidth;          
+}
+func (this *TComDataCU)  GetWidth1             (  uiIdx uint) byte           { 
+	return this.m_puhWidth[uiIdx];   
+}
+
+func (this *TComDataCU)  SetWidth              (  uiIdx uint,   uh byte) { 
+	this.m_puhWidth[uiIdx] = uh;     
+}
   
-  UChar*        getWidth              ()                        { return m_puhWidth;          }
-  UChar         getWidth              ( UInt uiIdx )            { return m_puhWidth[uiIdx];   }
-  Void          setWidth              ( UInt uiIdx, UChar  uh ) { m_puhWidth[uiIdx] = uh;     }
-  
-  UChar*        getHeight             ()                        { return m_puhHeight;         }
-  UChar         getHeight             ( UInt uiIdx )            { return m_puhHeight[uiIdx];  }
-  Void          setHeight             ( UInt uiIdx, UChar  uh ) { m_puhHeight[uiIdx] = uh;    }
-  
+func (this *TComDataCU)  GetHeight             ()  []byte                      { 
+	return this.m_puhHeight;         
+}
+func (this *TComDataCU)  GetHeight1            (  uiIdx uint) byte           { 
+	return this.m_puhHeight[uiIdx];  
+}
+func (this *TComDataCU)  SetHeight             (  uiIdx uint,   uh byte) { 
+	this.m_puhHeight[uiIdx] = uh;    
+}
+/*  
   Void          setSizeSubParts       ( UInt uiWidth, UInt uiHeight, UInt uiAbsPartIdx, UInt uiDepth );
   
   Char*         getQP                 ()                        { return m_phQP;              }
@@ -426,11 +617,11 @@ func (this *TComDataCU)  SetDepthSubParts      (  uiDepth,  uiAbsPartIdx uint){
   Void          getMvPredAboveRight   ( TComMv&     rcMvPred )   { rcMvPred = m_cMvFieldC.getMv(); }
   
   Void          compressMV            ();
-  
+ */ 
   // -------------------------------------------------------------------------------------------------------------------
   // utility functions for neighbouring information
   // -------------------------------------------------------------------------------------------------------------------
-*/  
+
 func (this *TComDataCU)   GetCULeft                   () *TComDataCU{ 
 	return this.m_pcCULeft;       
 }
@@ -509,7 +700,7 @@ func (this *TComDataCU)   GetCUColocated              (  eRefPicList RefPicList)
   UInt          getIntraSizeIdx                 ( UInt uiAbsPartIdx                                       );
   
   Void          getAllowedChromaDir             ( UInt uiAbsPartIdx, UInt* uiModeList );
-  Int           getIntraDirLumaPredictor        ( UInt uiAbsPartIdx, Int* uiIntraDirPred, Int* piMode = NULL );
+  Int           getIntraDirLumaPredictor        ( UInt uiAbsPartIdx, Int* uiIntraDirPred, Int* piMode = nil );
   
   // -------------------------------------------------------------------------------------------------------------------
   // member functions for SBAC context
