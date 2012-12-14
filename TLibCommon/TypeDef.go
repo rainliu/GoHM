@@ -290,14 +290,14 @@ type SAOQTPart struct{
 } ;
 
 type SaoLcuParam struct{
-  mergeUpFlag		bool;
-  mergeLeftFlag		bool;
-  typeIdx			int;
-  subTypeIdx		int;                  ///< indicates EO class or BO band position
-  offset			[4]int;
-  partIdx			int;
-  partIdxTmp		int;
-  length			int;
+  MergeUpFlag		bool;
+  MergeLeftFlag		bool;
+  TypeIdx			int;
+  SubTypeIdx		int;                  ///< indicates EO class or BO band position
+  Offset			[4]int;
+  PartIdx			int;
+  PartIdxTmp		int;
+  Length			int;
 };
 
 type SAOParam struct{
@@ -305,7 +305,7 @@ type SAOParam struct{
   SaoPart			[3]*SAOQTPart;
   MaxSplitLevel		int;
   OneUnitFlag		[3]bool;
-  SaoLcuParam		[3]*SaoLcuParam;
+  SaoLcuParam		[3][]SaoLcuParam;
   NumCuInHeight		int;
   NumCuInWidth		int;
 };

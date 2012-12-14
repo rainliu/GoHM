@@ -253,16 +253,16 @@ func (this *TDecSlice) DecompressSlice   ( pcBitstream *TLibCommon.TComInputBits
       cuAddrUpInSlice := cuAddrInSlice - numCuInWidth;
       rx := iCUAddr % numCuInWidth;
       ry := iCUAddr / numCuInWidth;
-      allowMergeLeft := 1;
-      allowMergeUp   := 1;
+      allowMergeLeft := true;
+      allowMergeUp   := true;
       if rx!=0 {
         if rpcPic.GetPicSym().GetTileIdxMap(iCUAddr-1) != rpcPic.GetPicSym().GetTileIdxMap(iCUAddr) {
-          allowMergeLeft = 0;
+          allowMergeLeft = false;
         }
       }
       if ry!=0 {
         if rpcPic.GetPicSym().GetTileIdxMap(iCUAddr-numCuInWidth) != rpcPic.GetPicSym().GetTileIdxMap(iCUAddr) {
-          allowMergeUp = 0;
+          allowMergeUp = false;
         }
       }
       pcSbacDecoder.ParseSaoOneLcuInterleaving(rx, ry, saoParam,pcCU, cuAddrInSlice, cuAddrUpInSlice, allowMergeLeft, allowMergeUp);

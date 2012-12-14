@@ -101,7 +101,7 @@ func (this *TComOutputBitstream) GetNumBitsUntilByteAligned() int {
  * Return the number of bits that have been written since the last clear()
  */
 func (this *TComOutputBitstream) GetNumberOfWrittenBits() uint {
-    //return uint(m_fifo->size()) * 8 + this.m_num_held_bits; 
+    //return uint(m_fifo->size()) * 8 + this.m_num_held_bits;
     return uint(this.m_fifo.Len())*8 + this.m_num_held_bits
 }
 
@@ -316,14 +316,14 @@ func (this *TComInputBitstream) ExtractSubstream(uiNumBits uint) *TComInputBitst
     var uiByte, ui uint
     for ui = 0; ui < uiNumBytes; ui++ {
         this.Read(8, &uiByte)
-        buf.PushBack(uiByte)
+        buf.PushBack(byte(uiByte))
     }
 
     if uiNumBits&0x7 != 0 {
         uiByte = 0
         this.Read(uiNumBits&0x7, &uiByte)
         uiByte <<= 8 - (uiNumBits & 0x7)
-        buf.PushBack(uiByte)
+        buf.PushBack(byte(uiByte))
     }
     return &TComInputBitstream{buf, 0, 0, 0, 0}
 }

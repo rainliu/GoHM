@@ -98,6 +98,7 @@
         <File>TLibCommon\ContextModel3DBuffer.go</File>
         <File>TLibCommon\ContextTables.go</File>
         <File>TLibCommon\TComBitstream.go</File>
+        <File>TLibCommon\TComCabacTables.go</File>
         <File>TLibCommon\TComDataCu.go</File>
         <File>TLibCommon\TComInterpolationFilter.go</File>
         <File>TLibCommon\TComLoopFilter.go</File>

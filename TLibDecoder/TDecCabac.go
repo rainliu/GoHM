@@ -13,7 +13,7 @@ import (
 type TDecBinIf interface {
     Init              (pcTComBitstream * TLibCommon.TComInputBitstream );
     Uninit            ();
-    
+
     Start             ();
     Finish            ();
     Flush             ();
@@ -32,7 +32,7 @@ type TDecBinIf interface {
 
     CopyState         ( pcTDecBinIf TDecBinIf);
     GetTDecBinCABAC   () *TDecBinCabac;
-    
+
 }
 
 type TDecBinCabac struct { //: public TDecBinIf
@@ -65,7 +65,7 @@ func (this *TDecBinCabac)  Finish            (){
 	//do nothing
 }
 func (this *TDecBinCabac)  Flush             (){
-  for this.m_pcTComBitstream.GetNumBitsLeft() > 0 && 
+  for this.m_pcTComBitstream.GetNumBitsLeft() > 0 &&
   	  this.m_pcTComBitstream.GetNumBitsUntilByteAligned() != 0 {
     var uiBits uint;
     this.m_pcTComBitstream.Read ( 1, &uiBits );
@@ -77,22 +77,22 @@ func (this *TDecBinCabac)  DecodeBin         ( ruiBin *uint, rcCtxModel *TLibCom
   uiLPS := uint(TLibCommon.TComCABACTables_sm_aucLPSTable[ rcCtxModel.GetState() ][ ( this.m_uiRange >> 6 ) - 4 ]);
   this.m_uiRange -= uiLPS;
   scaledRange := this.m_uiRange << 7;
-  
+
   if this.m_uiValue < scaledRange {
     // MPS path
     *ruiBin = uint(rcCtxModel.GetMps());
     rcCtxModel.UpdateMPS();
-    
+
     if scaledRange >= ( 256 << 7 ) {
       return;
     }
-    
+
     this.m_uiRange = scaledRange >> 6;
     this.m_uiValue += this.m_uiValue;
     this.m_bitsNeeded++;
     if this.m_bitsNeeded == 0 {
       this.m_bitsNeeded = -8;
-      this.m_uiValue += this.m_pcTComBitstream.ReadByte();      
+      this.m_uiValue += this.m_pcTComBitstream.ReadByte();
     }
   }else{
     // LPS path
@@ -101,9 +101,9 @@ func (this *TDecBinCabac)  DecodeBin         ( ruiBin *uint, rcCtxModel *TLibCom
     this.m_uiRange   = uiLPS << numBits;
     *ruiBin      = uint(1 - rcCtxModel.GetMps());
     rcCtxModel.UpdateLPS();
-    
+
     this.m_bitsNeeded += int(numBits);
-    
+
     if this.m_bitsNeeded >= 0 {
       this.m_uiValue += this.m_pcTComBitstream.ReadByte() << uint(this.m_bitsNeeded);
       this.m_bitsNeeded -= 8;
@@ -117,7 +117,7 @@ func (this *TDecBinCabac)  DecodeBinEP       ( ruiBin *uint                     
     this.m_bitsNeeded = -8;
     this.m_uiValue += this.m_pcTComBitstream.ReadByte();
   }
-  
+
   *ruiBin = 0;
   scaledRange := this.m_uiRange << 7;
   if this.m_uiValue >= scaledRange {
@@ -127,10 +127,10 @@ func (this *TDecBinCabac)  DecodeBinEP       ( ruiBin *uint                     
 }
 func (this *TDecBinCabac)  DecodeBinsEP      ( ruiBin *uint, numBins int              ){
   bins := uint(0);
-  
+
   for numBins > 8 {
     this.m_uiValue = ( this.m_uiValue << 8 ) + ( this.m_pcTComBitstream.ReadByte() << uint( 8 + this.m_bitsNeeded ) );
-    
+
     scaledRange := this.m_uiRange << 15;
     for i := 0; i < 8; i++ {
       bins += bins;
@@ -142,15 +142,15 @@ func (this *TDecBinCabac)  DecodeBinsEP      ( ruiBin *uint, numBins int        
     }
     numBins -= 8;
   }
-  
+
   this.m_bitsNeeded += numBins;
   this.m_uiValue <<= uint(numBins);
-  
+
   if this.m_bitsNeeded >= 0 {
     this.m_uiValue += this.m_pcTComBitstream.ReadByte() << uint(this.m_bitsNeeded);
     this.m_bitsNeeded -= 8;
   }
-  
+
   scaledRange := this.m_uiRange << uint( numBins + 7 );
   for i := 0; i < numBins; i++ {
     bins += bins;
@@ -160,7 +160,7 @@ func (this *TDecBinCabac)  DecodeBinsEP      ( ruiBin *uint, numBins int        
       this.m_uiValue -= scaledRange;
     }
   }
-  
+
   *ruiBin = bins;
 }
 func (this *TDecBinCabac)  DecodeBinTrm      ( ruiBin *uint                           ){
@@ -176,7 +176,7 @@ func (this *TDecBinCabac)  DecodeBinTrm      ( ruiBin *uint                     
       this.m_bitsNeeded++;
       if this.m_bitsNeeded == 0 {
         this.m_bitsNeeded = -8;
-        this.m_uiValue += this.m_pcTComBitstream.ReadByte();      
+        this.m_uiValue += this.m_pcTComBitstream.ReadByte();
       }
     }
   }
@@ -192,7 +192,7 @@ func (this *TDecBinCabac)  ResetBac          (){
 //#endif
 func (this *TDecBinCabac)  DecodePCMAlignBits(){
   iNum := this.m_pcTComBitstream.GetNumBitsUntilByteAligned();
-  
+
   uiBit := uint(0);
   this.m_pcTComBitstream.Read( iNum, &uiBit );
 }
@@ -207,8 +207,8 @@ func (this *TDecBinCabac)  CopyState         ( pcTDecBinIf TDecBinIf){
   this.m_uiValue   = pcTDecBinCABAC.m_uiValue;
   this.m_bitsNeeded= pcTDecBinCABAC.m_bitsNeeded;
 }
-func (this *TDecBinCabac)  GetTDecBinCABAC()  *TDecBinCabac{ 
-	return this; 
+func (this *TDecBinCabac)  GetTDecBinCABAC()  *TDecBinCabac{
+	return this;
 }
 
 
@@ -227,7 +227,7 @@ type TDecSbac struct { //: public TDecEntropyIf
 
     m_contextModels             [TLibCommon.MAX_NUM_CTX_MOD]TLibCommon.ContextModel
     m_numContextModels          int
-    
+
     m_cCUSplitFlagSCModel       *TLibCommon.ContextModel3DBuffer
     m_cCUSkipFlagSCModel        *TLibCommon.ContextModel3DBuffer
     m_cCUMergeFlagExtSCModel    *TLibCommon.ContextModel3DBuffer
@@ -305,13 +305,13 @@ func (this *TDecSbac) xTracePredHeader (traceLevel uint){
 func (this *TDecSbac)  xTraceRecoHeader (traceLevel uint){
   if (traceLevel & TLibCommon.TRACE_LEVEL) !=0 {
     io.WriteString(this.m_pTraceFile, "========= Reconstruction Parameter Set ====================================\n");//, pCU.GetCUPelX(), pCU.GetCUPelY());
-  }	
+  }
 }
 
 func (this *TDecSbac)  XReadAeTr ( Value int, pSymbolName string,  traceLevel uint){
   if (traceLevel & TLibCommon.TRACE_LEVEL) !=0 {
     //fprintf( g_hTrace, "%8lld  ", g_nSymbolCounter++ );
-    io.WriteString(this.m_pTraceFile, fmt.Sprintf ("%-62s ae(v) : %4d\n", pSymbolName, Value )); 
+    io.WriteString(this.m_pTraceFile, fmt.Sprintf ("%-62s ae(v) : %4d\n", pSymbolName, Value ));
     //fflush ( g_hTrace );
   }
 }
@@ -320,7 +320,7 @@ func (this *TDecSbac)  XReadAeTr ( Value int, pSymbolName string,  traceLevel ui
 func NewTDecSbac() *TDecSbac{
 	pTDecSbac := &TDecSbac{ m_pcBitstream : nil, m_pcTDecBinIf : nil, m_numContextModels : 0};
 	pTDecSbac.xInit();
-	
+
 	return pTDecSbac;
 }
 
@@ -379,10 +379,10 @@ func (this *TDecSbac)   ResetEntropy 			( pSlice *TLibCommon.TComSlice){
   if pSlice.GetPPS().GetCabacInitPresentFlag() && pSlice.GetCabacInitFlag() {
     switch sliceType {
     case TLibCommon.P_SLICE:           // change initialization table to B_SLICE initialization
-      sliceType = TLibCommon.B_SLICE; 
+      sliceType = TLibCommon.B_SLICE;
       //break;
     case TLibCommon.B_SLICE:           // change initialization table to P_SLICE initialization
-      sliceType = TLibCommon.P_SLICE; 
+      sliceType = TLibCommon.P_SLICE;
       //break;
     //default     :           // should not occur
       //assert(0);
@@ -416,12 +416,12 @@ func (this *TDecSbac)   ResetEntropy 			( pSlice *TLibCommon.TComSlice){
   this.m_cCUTransSubdivFlagSCModel.InitBuffer 	 ( sliceType, qp, TLibCommon.INIT_TRANS_SUBDIV_FLAG[:] );
   this.m_cTransformSkipSCModel.InitBuffer     	 ( sliceType, qp, TLibCommon.INIT_TRANSFORMSKIP_FLAG[:] );
   this.m_CUTransquantBypassFlagSCModel.InitBuffer( sliceType, qp, TLibCommon.INIT_CU_TRANSQUANT_BYPASS_FLAG[:] );
-  
+
   this.m_uiLastDQpNonZero  = 0;
-  
+
   // new structure
   this.m_uiLastQp          = uint(qp);
-  
+
   this.m_pcTDecBinIf.Start();
 }
 func (this *TDecSbac)   SetBitstream            ( p  *TLibCommon.TComInputBitstream) {
@@ -432,40 +432,341 @@ func (this *TDecSbac)   SetTraceFile 		      ( traceFile io.Writer){
 	this.m_pTraceFile = traceFile;
 }
 func (this *TDecSbac)   SetSliceTrace 		      ( bSliceTrace bool){
+    //do nothing
 }
 func (this *TDecSbac)   ParseVPS                  ( pcVPS *TLibCommon.TComVPS )  {
+    //do nothing
 }
 func (this *TDecSbac)   ParseSPS                  ( pcSPS *TLibCommon.TComSPS         ) {
+    //do nothing
 }
 func (this *TDecSbac)   ParsePPS                  ( pcPPS *TLibCommon.TComPPS        ) {
+    //do nothing
 }
 
 func (this *TDecSbac)   ParseSliceHeader          ( rpcSlice *TLibCommon.TComSlice, parameterSetManager *TLibCommon.ParameterSetManager) {
+    //do nothing
 }
 func (this *TDecSbac)   ParseTerminatingBit       ( ruiBit *uint){
+    this.m_pcTDecBinIf.DecodeBinTrm( ruiBit );
 }
 func (this *TDecSbac)   ParseMVPIdx               ( riMVPIdx  *int ){
 }
 func (this *TDecSbac)   ParseSaoMaxUvlc           ( val *uint,  maxSymbol uint){
+    if maxSymbol == 0 {
+      *val = 0;
+      return;
+    }
+
+    var code uint;
+    var i uint;
+    this.m_pcTDecBinIf.DecodeBinEP( &code );
+    if code == 0 {
+      *val = 0;
+      return;
+    }
+
+    i=1;
+    for {
+      this.m_pcTDecBinIf.DecodeBinEP( &code );
+      if code == 0 {
+        break;
+      }
+      i++;
+      if i == maxSymbol{
+        break;
+      }
+    }
+
+    *val = i;
 }
 func (this *TDecSbac)   ParseSaoMerge         	  ( ruiVal *uint  ){
+    var uiCode uint;
+    this.m_pcTDecBinIf.DecodeBin( &uiCode, this.m_cSaoMergeSCModel.Get3( 0, 0, 0 ) );
+    *ruiVal = uiCode;
 }
 func (this *TDecSbac)   ParseSaoTypeIdx           ( ruiVal *uint ){
+    var uiCode uint;
+    this.m_pcTDecBinIf.DecodeBin( &uiCode, this.m_cSaoTypeIdxSCModel.Get3( 0, 0, 0 ) );
+    if uiCode == 0{
+      *ruiVal = 0;
+    }else{
+      this.m_pcTDecBinIf.DecodeBinEP( &uiCode );
+      if uiCode == 0{
+        *ruiVal = 5;
+      }else{
+        *ruiVal = 1;
+      }
+    }
 }
 func (this *TDecSbac)   ParseSaoUflc              ( uiLength uint, ruiVal *uint    ){
+    this.m_pcTDecBinIf.DecodeBinsEP ( ruiVal, int(uiLength) );
 }
-func (this *TDecSbac)   ParseSaoOneLcuInterleaving( rx,  ry int, pSaoParam *TLibCommon.SAOParam, pcCU *TLibCommon.TComDataCU,  iCUAddrInSlice,  iCUAddrUpInSlice,  allowMergeLeft,  allowMergeUp int){
+
+func (this *TDecSbac)   CopySaoOneLcuParam(psDst *TLibCommon.SaoLcuParam,  psSrc *TLibCommon.SaoLcuParam){
+  var i int;
+  psDst.PartIdx = psSrc.PartIdx;
+  psDst.TypeIdx = psSrc.TypeIdx;
+  if psDst.TypeIdx != -1 {
+    psDst.SubTypeIdx = psSrc.SubTypeIdx ;
+    psDst.Length  = psSrc.Length;
+    for i=0;i<psDst.Length;i++ {
+      psDst.Offset[i] = psSrc.Offset[i];
+    }
+  }else{
+    psDst.Length  = 0;
+    for i=0;i<TLibCommon.SAO_BO_LEN;i++{
+      psDst.Offset[i] = 0;
+    }
+  }
 }
+
+func (this *TDecSbac)   ParseSaoOneLcuInterleaving( rx,  ry int, pSaoParam *TLibCommon.SAOParam, pcCU *TLibCommon.TComDataCU,  iCUAddrInSlice,  iCUAddrUpInSlice int,  allowMergeLeft,  allowMergeUp bool){
+  iAddr := int(pcCU.GetAddr());
+  var uiSymbol uint;
+  for iCompIdx:=0; iCompIdx<3; iCompIdx++{
+    pSaoParam.SaoLcuParam[iCompIdx][iAddr].MergeUpFlag    = false;
+    pSaoParam.SaoLcuParam[iCompIdx][iAddr].MergeLeftFlag  = false;
+    pSaoParam.SaoLcuParam[iCompIdx][iAddr].SubTypeIdx     = 0;
+    pSaoParam.SaoLcuParam[iCompIdx][iAddr].TypeIdx        = -1;
+    pSaoParam.SaoLcuParam[iCompIdx][iAddr].Offset[0]      = 0;
+    pSaoParam.SaoLcuParam[iCompIdx][iAddr].Offset[1]      = 0;
+    pSaoParam.SaoLcuParam[iCompIdx][iAddr].Offset[2]      = 0;
+    pSaoParam.SaoLcuParam[iCompIdx][iAddr].Offset[3]      = 0;
+
+  }
+  if pSaoParam.SaoFlag[0] || pSaoParam.SaoFlag[1]  {
+    if rx>0 && iCUAddrInSlice!=0 && allowMergeLeft {
+      this.ParseSaoMerge(&uiSymbol); 
+      pSaoParam.SaoLcuParam[0][iAddr].MergeLeftFlag = uiSymbol!=0;  
+//#ifdef ENC_DEC_TRACE
+      this.XReadAeTr(int(uiSymbol), "sao_merge_left_flag", TLibCommon.TRACE_LCU);
+//#endif
+    }
+    if pSaoParam.SaoLcuParam[0][iAddr].MergeLeftFlag==false{
+      if (ry > 0) && (iCUAddrUpInSlice>=0) && allowMergeUp {
+        this.ParseSaoMerge(&uiSymbol);
+        pSaoParam.SaoLcuParam[0][iAddr].MergeUpFlag = uiSymbol!=0;  
+//#ifdef ENC_DEC_TRACE
+        this.XReadAeTr(int(uiSymbol), "sao_merge_up_flag", TLibCommon.TRACE_LCU);
+//#endif
+      }
+    }
+  }
+
+  for iCompIdx:=0; iCompIdx<3; iCompIdx++{
+    if (iCompIdx == 0  && pSaoParam.SaoFlag[0]) || (iCompIdx > 0  && pSaoParam.SaoFlag[1]) {
+      if rx>0 && iCUAddrInSlice!=0 && allowMergeLeft{
+        pSaoParam.SaoLcuParam[iCompIdx][iAddr].MergeLeftFlag = pSaoParam.SaoLcuParam[0][iAddr].MergeLeftFlag;
+      }else{
+        pSaoParam.SaoLcuParam[iCompIdx][iAddr].MergeLeftFlag = false;
+      }
+
+      if pSaoParam.SaoLcuParam[iCompIdx][iAddr].MergeLeftFlag==false{
+        if (ry > 0) && (iCUAddrUpInSlice>=0) && allowMergeUp{
+          pSaoParam.SaoLcuParam[iCompIdx][iAddr].MergeUpFlag = pSaoParam.SaoLcuParam[0][iAddr].MergeUpFlag;
+        }else{
+          pSaoParam.SaoLcuParam[iCompIdx][iAddr].MergeUpFlag = false;
+        }
+        if !pSaoParam.SaoLcuParam[iCompIdx][iAddr].MergeUpFlag{
+          pSaoParam.SaoLcuParam[2][iAddr].TypeIdx = pSaoParam.SaoLcuParam[1][iAddr].TypeIdx;
+          this.ParseSaoOffset(&(pSaoParam.SaoLcuParam[iCompIdx][iAddr]), uint(iCompIdx));
+        }else{
+          this.CopySaoOneLcuParam(&pSaoParam.SaoLcuParam[iCompIdx][iAddr], &pSaoParam.SaoLcuParam[iCompIdx][iAddr-pSaoParam.NumCuInWidth]);
+        }
+      }else{
+        this.CopySaoOneLcuParam(&pSaoParam.SaoLcuParam[iCompIdx][iAddr],  &pSaoParam.SaoLcuParam[iCompIdx][iAddr-1]);
+      }
+    }else{
+      pSaoParam.SaoLcuParam[iCompIdx][iAddr].TypeIdx = -1;
+      pSaoParam.SaoLcuParam[iCompIdx][iAddr].SubTypeIdx = 0;
+    }
+  }
+}
+
+var iTypeLength = [TLibCommon.MAX_NUM_SAO_TYPE]int{
+    TLibCommon.SAO_EO_LEN,
+    TLibCommon.SAO_EO_LEN,
+    TLibCommon.SAO_EO_LEN,
+    TLibCommon.SAO_EO_LEN,
+    TLibCommon.SAO_BO_LEN,
+};
+
 func (this *TDecSbac)   ParseSaoOffset            (psSaoLcuParam *TLibCommon.SaoLcuParam,  compIdx uint){
+  var uiSymbol uint;
+
+  if compIdx==2{
+    uiSymbol = uint( psSaoLcuParam.TypeIdx + 1);
+  }else{
+    this.ParseSaoTypeIdx(&uiSymbol);
+//#ifdef ENC_DEC_TRACE
+    if compIdx==0{
+      this.XReadAeTr(int(uiSymbol), "sao_type_idx_luma", TLibCommon.TRACE_LCU);
+    }else{
+      this.XReadAeTr(int(uiSymbol), "sao_type_idx_chroma", TLibCommon.TRACE_LCU);
+    }
+//#endif
+  }
+  psSaoLcuParam.TypeIdx = int(uiSymbol) - 1;
+  if uiSymbol!=0{
+    psSaoLcuParam.Length = iTypeLength[psSaoLcuParam.TypeIdx];
+
+    var bitDepth, offsetTh int;
+    if compIdx!=0 {
+        bitDepth = TLibCommon.G_bitDepthC;
+    }else{
+        bitDepth = TLibCommon.G_bitDepthY;
+    }
+    if bitDepth - 5 < 5 {
+        offsetTh = 1 << 5;
+    }else{
+        offsetTh = 1 << uint(bitDepth - 5);
+    }
+
+    if psSaoLcuParam.TypeIdx == TLibCommon.SAO_BO {
+      for i:=0; i< psSaoLcuParam.Length; i++{
+        this.ParseSaoMaxUvlc(&uiSymbol, uint(offsetTh -1) );
+        psSaoLcuParam.Offset[i] = int(uiSymbol);
+//#ifdef ENC_DEC_TRACE
+        this.XReadAeTr(int(uiSymbol), "sao_offset_abs", TLibCommon.TRACE_LCU);
+//#endif
+      }
+      for i:=0; i< psSaoLcuParam.Length; i++{
+        if psSaoLcuParam.Offset[i] != 0 {
+          this.m_pcTDecBinIf.DecodeBinEP ( &uiSymbol);
+//#ifdef ENC_DEC_TRACE
+          this.XReadAeTr(int(uiSymbol), "sao_offset_sign", TLibCommon.TRACE_LCU);
+//#endif
+          if uiSymbol!=0{
+            psSaoLcuParam.Offset[i] = -psSaoLcuParam.Offset[i] ;
+          }
+        }
+      }
+      this.ParseSaoUflc(5, &uiSymbol );
+      psSaoLcuParam.SubTypeIdx = int(uiSymbol);
+//#ifdef ENC_DEC_TRACE
+      this.XReadAeTr(int(uiSymbol), "sao_band_position", TLibCommon.TRACE_LCU);
+//#endif
+    }else if psSaoLcuParam.TypeIdx < 4 {
+      this.ParseSaoMaxUvlc(&uiSymbol, uint(offsetTh -1) );
+      psSaoLcuParam.Offset[0] = int(uiSymbol);
+//#ifdef ENC_DEC_TRACE
+      this.XReadAeTr(int(uiSymbol), "sao_offset_abs", TLibCommon.TRACE_LCU);
+//#endif
+      this.ParseSaoMaxUvlc(&uiSymbol, uint(offsetTh -1) );
+      psSaoLcuParam.Offset[1] = int(uiSymbol);
+//#ifdef ENC_DEC_TRACE
+      this.XReadAeTr(int(uiSymbol), "sao_offset_abs", TLibCommon.TRACE_LCU);
+//#endif
+      this.ParseSaoMaxUvlc(&uiSymbol, uint(offsetTh -1) );
+      psSaoLcuParam.Offset[2] = -int(uiSymbol);
+//#ifdef ENC_DEC_TRACE
+      this.XReadAeTr(int(uiSymbol), "sao_offset_abs", TLibCommon.TRACE_LCU);
+//#endif
+      this.ParseSaoMaxUvlc(&uiSymbol, uint(offsetTh -1) );
+      psSaoLcuParam.Offset[3] = -int(uiSymbol);
+//#ifdef ENC_DEC_TRACE
+      this.XReadAeTr(int(uiSymbol), "sao_offset_abs", TLibCommon.TRACE_LCU);
+//#endif
+     if compIdx != 2 {
+       this.ParseSaoUflc(2, &uiSymbol );
+       psSaoLcuParam.SubTypeIdx = int(uiSymbol);
+       psSaoLcuParam.TypeIdx += psSaoLcuParam.SubTypeIdx;
+//#ifdef ENC_DEC_TRACE
+       if compIdx==0{
+         this.XReadAeTr(int(uiSymbol), "sao_eo_class_luma", TLibCommon.TRACE_LCU);
+       }else{
+         this.XReadAeTr(int(uiSymbol), "sao_eo_class_chroma", TLibCommon.TRACE_LCU);
+       }
+//#endif
+     }
+   }
+  }else{
+    psSaoLcuParam.Length = 0;
+  }
 }
 //private:
-func (this *TDecSbac)   xReadUnarySymbol    ( ruiSymbol *uint, pcSCModel *TLibCommon.ContextModel,  iOffset int){
+func (this *TDecSbac)   xReadUnarySymbol    ( ruiSymbol *uint, pcSCModel []TLibCommon.ContextModel,  iOffset int){
+    this.m_pcTDecBinIf.DecodeBin( ruiSymbol, &pcSCModel[0] );
+
+    if *ruiSymbol!=0{
+      return;
+    }
+
+    uiSymbol := uint(0);
+    uiCont := uint(1);
+
+    for uiCont!=0 {
+      this.m_pcTDecBinIf.DecodeBin( &uiCont, &pcSCModel[ iOffset ] );
+      uiSymbol++;
+    }
+
+    *ruiSymbol = uiSymbol;
 }
-func (this *TDecSbac)   xReadUnaryMaxSymbol ( ruiSymbol *uint, pcSCModel *TLibCommon.ContextModel,  iOffset,  uiMaxSymbol uint ){
+func (this *TDecSbac)   xReadUnaryMaxSymbol ( ruiSymbol *uint, pcSCModel []TLibCommon.ContextModel,  iOffset,  uiMaxSymbol uint ){
+    if uiMaxSymbol == 0 {
+      *ruiSymbol = 0;
+      return;
+    }
+
+    this.m_pcTDecBinIf.DecodeBin( ruiSymbol, &pcSCModel[0] );
+
+    if *ruiSymbol == 0 || uiMaxSymbol == 1 {
+      return;
+    }
+
+    uiSymbol := uint(0);
+    uiCont   := uint(1);
+
+    for uiCont!=0 && ( uiSymbol < uiMaxSymbol - 1 ) {
+      this.m_pcTDecBinIf.DecodeBin( &uiCont, &pcSCModel[ iOffset ] );
+      uiSymbol++;
+    }
+
+
+    if uiCont!=0 && ( uiSymbol == uiMaxSymbol - 1 ) {
+      uiSymbol++;
+    }
+
+    *ruiSymbol = uiSymbol;
 }
 func (this *TDecSbac)   xReadEpExGolomb     ( ruiSymbol *uint,  uiCount uint){
+    uiSymbol := uint(0);
+    uiBit := uint(1);
+
+    for uiBit!=0 {
+      this.m_pcTDecBinIf.DecodeBinEP( &uiBit );
+      uiSymbol += uiBit << uiCount;
+      uiCount++;
+    }
+
+    uiCount--;
+    if uiCount !=0 {
+      var bins uint;
+      this.m_pcTDecBinIf.DecodeBinsEP( &bins, int(uiCount) );
+      uiSymbol += bins;
+    }
+
+    *ruiSymbol = uiSymbol;
 }
-func (this *TDecSbac)   xReadCoefRemainExGolomb ( ruiSymbol *uint, rParam *uint){
+func (this *TDecSbac)   xReadCoefRemainExGolomb ( rSymbol *uint, rParam uint){
+    prefix   := uint(0);
+    codeWord := uint(1);
+    for codeWord!=0{
+      prefix++;
+      this.m_pcTDecBinIf.DecodeBinEP( &codeWord );
+    }
+
+    codeWord  = 1 - codeWord;
+    prefix -= codeWord;
+    codeWord=0;
+    if prefix < TLibCommon.COEF_REMAIN_BIN_REDUCTION {
+      this.m_pcTDecBinIf.DecodeBinsEP(&codeWord, int(rParam));
+      *rSymbol = (prefix<<rParam) + codeWord;
+    }else{
+      this.m_pcTDecBinIf.DecodeBinsEP(&codeWord,int(prefix-TLibCommon.COEF_REMAIN_BIN_REDUCTION+rParam));
+      *rSymbol = (((1<<(prefix-TLibCommon.COEF_REMAIN_BIN_REDUCTION))+TLibCommon.COEF_REMAIN_BIN_REDUCTION-1)<<rParam)+codeWord;
+    }
 }
 
 //public:
