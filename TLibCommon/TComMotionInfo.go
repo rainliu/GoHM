@@ -23,92 +23,140 @@ type AMVPInfo struct{
 type TComMvField struct{
 //private:
   m_acMv		TComMv;
-  m_iRefIdx		int;
+  m_iRefIdx		int8;
 }
-/*
-public:
-  TComMvField() : m_iRefIdx( NOT_VALID ) {}
+
+func NewTComMvField() *TComMvField{ 
+	return &TComMvField{m_iRefIdx: NOT_VALID}
+}
   
-  Void setMvField( TComMv const & cMv, Int iRefIdx )
-  {
-    m_acMv    = cMv;
-    m_iRefIdx = iRefIdx;
-  }
+func (this *TComMvField) SetMvField( cMv *TComMv,  iRefIdx int8){
+    this.m_acMv.SetHor( cMv.GetHor() );
+    this.m_acMv.SetVer( cMv.GetVer() );
+    
+    this.m_iRefIdx = iRefIdx;
+}
   
-  Void setRefIdx( Int refIdx ) { m_iRefIdx = refIdx; }
+func (this *TComMvField) SetRefIdx( refIdx int8) { 
+	this.m_iRefIdx = refIdx; 
+}
   
-  TComMv const & getMv() const { return  m_acMv; }
-  TComMv       & getMv()       { return  m_acMv; }
-  
-  Int getRefIdx() const { return  m_iRefIdx;       }
-  Int getHor   () const { return  m_acMv.getHor(); }
-  Int getVer   () const { return  m_acMv.getVer(); }
-};*/
+func (this *TComMvField)  GetMv() *TComMv { 
+	return  &this.m_acMv; 
+}  
+func (this *TComMvField)  GetRefIdx() int8 { 
+	return  this.m_iRefIdx;       
+}
+func (this *TComMvField)  GetHor   () int16 { 
+	return  this.m_acMv.GetHor(); 
+}
+func (this *TComMvField)  GetVer   () int16 { 
+	return  this.m_acMv.GetVer(); 
+}
+
 
 /// class for motion information in one CU
 type TComCUMvField struct{
 //private:
-  m_pcMv		*TComMv;
-  m_pcMvd		*TComMv;
-  m_piRefIdx	*int8;
+  m_pcMv		[]TComMv;
+  m_pcMvd		[]TComMv;
+  m_piRefIdx	[]int8;
   m_uiNumPartition	uint;
   m_cAMVPInfo	AMVPInfo;
 }
 /*    
   template <typename T>
   Void setAll( T *p, T const & val, PartSize eCUMode, Int iPartAddr, UInt uiDepth, Int iPartIdx );
-
-public:
-  TComCUMvField() : m_pcMv(NULL), m_pcMvd(NULL), m_piRefIdx(NULL), m_uiNumPartition(0) {}
-  ~TComCUMvField() {}
 */
+//public:
+func NewTComCUMvField()*TComCUMvField{ 
+	return &TComCUMvField{};
+}
+  
   // ------------------------------------------------------------------------------------------------------------------
   // create / destroy
   // ------------------------------------------------------------------------------------------------------------------
   
 func (this *TComCUMvField)  Create(  uiNumPartition uint){
+  this.m_pcMv     = make([]TComMv, uiNumPartition);
+  this.m_pcMvd    = make([]TComMv, uiNumPartition);
+  this.m_piRefIdx = make([]int8,   uiNumPartition);
+  
+  this.m_uiNumPartition = uiNumPartition;
 }
+
 func (this *TComCUMvField)  Destroy(){
+  this.m_pcMv     = nil;
+  this.m_pcMvd    = nil;
+  this.m_piRefIdx = nil;
+  
+  this.m_uiNumPartition = 0;
 }
   
   // ------------------------------------------------------------------------------------------------------------------
   // clear / copy
   // ------------------------------------------------------------------------------------------------------------------
-/*
-  Void    clearMvField();
+
+func (this *TComCUMvField)  ClearMvField(){
+}
   
-  Void    copyFrom( TComCUMvField const * pcCUMvFieldSrc, Int iNumPartSrc, Int iPartAddrDst );
-  Void    copyTo  ( TComCUMvField* pcCUMvFieldDst, Int iPartAddrDst ) const;
-  Void    copyTo  ( TComCUMvField* pcCUMvFieldDst, Int iPartAddrDst, UInt uiOffset, UInt uiNumPart ) const;
-  
+func (this *TComCUMvField)  CopyFrom( pcCUMvFieldSrc *TComCUMvField,  uiNumPartSrc uint,  iPartAddrDst int){
+}
+func (this *TComCUMvField)  CopyTo2 ( pcCUMvFieldDst *TComCUMvField,  iPartAddrDst int){
+}
+func (this *TComCUMvField)  CopyTo4 ( pcCUMvFieldDst *TComCUMvField,  iPartAddrDst int,  uiOffset,  uiNumPart uint){
+}
   // ------------------------------------------------------------------------------------------------------------------
   // get
   // ------------------------------------------------------------------------------------------------------------------
+func (this *TComCUMvField)  GetMvs     ( offset int) []TComMv { 
+	return  this.m_pcMv[offset:]; 
+}
+func (this *TComCUMvField)  GetMvds    ( offset int) []TComMv { 
+	return  this.m_pcMvd[offset:]; 
+}
+func (this *TComCUMvField)  GetRefIdxs( offset int) []int8 { 
+	return  this.m_piRefIdx[offset:]; 
+}
   
-  TComMv const & getMv    ( Int iIdx ) const { return  m_pcMv    [iIdx]; }
-  TComMv const & getMvd   ( Int iIdx ) const { return  m_pcMvd   [iIdx]; }
-  Int            getRefIdx( Int iIdx ) const { return  m_piRefIdx[iIdx]; }
+    
+func (this *TComCUMvField)  GetMv     ( iIdx int) *TComMv { 
+	return  &this.m_pcMv    [iIdx]; 
+}
+func (this *TComCUMvField)  GetMvd    ( iIdx int) *TComMv { 
+	return  &this.m_pcMvd   [iIdx]; 
+}
+func (this *TComCUMvField)  GetRefIdx( iIdx int) int8 { 
+	return  this.m_piRefIdx[iIdx]; 
+}
   
-  AMVPInfo* getAMVPInfo () { return &m_cAMVPInfo; }
+func (this *TComCUMvField)  GetAMVPInfo () *AMVPInfo{ 
+	return &this.m_cAMVPInfo; 
+}
   
   // ------------------------------------------------------------------------------------------------------------------
   // set
   // ------------------------------------------------------------------------------------------------------------------
   
-  Void    setAllMv     ( TComMv const & rcMv,         PartSize eCUMode, Int iPartAddr, UInt uiDepth, Int iPartIdx=0 );
-  Void    setAllMvd    ( TComMv const & rcMvd,        PartSize eCUMode, Int iPartAddr, UInt uiDepth, Int iPartIdx=0 );
-  Void    setAllRefIdx ( Int iRefIdx,                 PartSize eMbMode, Int iPartAddr, UInt uiDepth, Int iPartIdx=0 );
-  Void    setAllMvField( TComMvField const & mvField, PartSize eMbMode, Int iPartAddr, UInt uiDepth, Int iPartIdx=0 );
-*/
+func (this *TComCUMvField)  SetAllMv     ( rcMv  *TComMv,  		 eCUMode PartSize,  iPartAddr int,  uiDepth uint,  iPartIdx int ){
+}
+func (this *TComCUMvField)  SetAllMvd    ( rcMvd *TComMv,  	     eCUMode PartSize,  iPartAddr int,  uiDepth uint,  iPartIdx int ){
+}
+func (this *TComCUMvField)  SetAllRefIdx ( iRefIdx int,          eCUMode PartSize,  iPartAddr int,  uiDepth uint,  iPartIdx int ){
+}
+func (this *TComCUMvField)  SetAllMvField( mvField *TComMvField, eCUMode PartSize,  iPartAddr int,  uiDepth uint,  iPartIdx int ){
+}
+
 func (this *TComCUMvField) SetNumPartition( uiNumPart uint){
     this.m_uiNumPartition = uiNumPart;
 }
-/*  
-func (this *TComCUMvField) linkToWithOffset( src *TComCUMvField,  offset int){
-    this.m_pcMv     = src->m_pcMv     + offset;
-    this.m_pcMvd    = src->m_pcMvd    + offset;
-    this.m_piRefIdx = src->m_piRefIdx + offset;
+ 
+func (this *TComCUMvField) LinkToWithOffset( src *TComCUMvField,  offset int){
+    this.m_pcMv     = src.GetMvs(offset);
+    this.m_pcMvd    = src.GetMvds(offset);
+    this.m_piRefIdx = src.GetRefIdxs(offset);
 }
   
-func (this *TComCUMvField) compress(Char* pePredMode, Int scale); 
-*/
+func (this *TComCUMvField) Compress(pePredMode *int8, scale int){ 
+}
+
