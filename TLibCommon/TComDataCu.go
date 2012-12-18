@@ -157,35 +157,441 @@ type TComDataCU struct{
   
   /// add possible motion vector predictor candidates
 func (this *TComDataCU)  xAddMVPCand           ( pInfo *AMVPInfo,  eRefPicList RefPicList,  iRefIdx int,  uiPartUnitIdx uint,  eDir MVP_DIR)bool{
-	return true;
+  var pcTmpCU *TComDataCU;
+  var  uiIdx uint;
+  switch eDir {
+    case MD_LEFT:
+      pcTmpCU = this.GetPULeft(&uiIdx, uiPartUnitIdx, true, false, true);
+    case MD_ABOVE:
+//#if LINEBUF_CLEANUP
+      pcTmpCU = this.GetPUAbove(&uiIdx, uiPartUnitIdx, true, false, false, true);
+//#else
+//      pcTmpCU = this.GetPUAbove(uiIdx, uiPartUnitIdx, true, false, true);
+//#endif
+    case MD_ABOVE_RIGHT:
+//#if LINEBUF_CLEANUP
+      pcTmpCU = this.GetPUAboveRight(&uiIdx, uiPartUnitIdx, true, false);
+//#else
+//      pcTmpCU = this.GetPUAboveRight(uiIdx, uiPartUnitIdx, true, false, true);
+//#endif
+    case MD_BELOW_LEFT:
+      pcTmpCU = this.GetPUBelowLeft(&uiIdx, uiPartUnitIdx, true, false);
+    case MD_ABOVE_LEFT:
+//#if LINEBUF_CLEANUP
+      pcTmpCU = this.GetPUAboveLeft(&uiIdx, uiPartUnitIdx, true, false);
+//#else
+//      pcTmpCU = this.GetPUAboveLeft(uiIdx, uiPartUnitIdx, true, false, true);
+//#endif
+    default:
+  }
+ 
+  if pcTmpCU != nil && this.m_pcSlice.IsEqualRef(eRefPicList, int(pcTmpCU.GetCUMvField(eRefPicList).GetRefIdx(int(uiIdx))), iRefIdx) {
+    cMvPred := pcTmpCU.GetCUMvField(eRefPicList).GetMv(int(uiIdx));
+    
+    pInfo.MvCand[ pInfo.IN] = *cMvPred;
+    pInfo.IN++;
+    return true;
+  }
+
+  if pcTmpCU == nil  {
+    return false;
+  }
+  
+  eRefPicList2nd := REF_PIC_LIST_0;
+  if eRefPicList == REF_PIC_LIST_0 {
+    eRefPicList2nd = REF_PIC_LIST_1;
+  }else if eRefPicList == REF_PIC_LIST_1 {
+    eRefPicList2nd = REF_PIC_LIST_0;
+  }
+  
+  iCurrRefPOC := this.m_pcSlice.GetRefPic( eRefPicList, iRefIdx).GetPOC();
+  var iNeibRefPOC int;
+
+  if pcTmpCU.GetCUMvField(RefPicList(eRefPicList2nd)).GetRefIdx(int(uiIdx)) >= 0 {
+    iNeibRefPOC = pcTmpCU.GetSlice().GetRefPOC( RefPicList(eRefPicList2nd), int(pcTmpCU.GetCUMvField(RefPicList(eRefPicList2nd)).GetRefIdx(int(uiIdx))) );
+    if iNeibRefPOC == int(iCurrRefPOC) { // Same Reference Frame But Diff List//
+      cMvPred := pcTmpCU.GetCUMvField(RefPicList(eRefPicList2nd)).GetMv(int(uiIdx));
+      pInfo.MvCand[ pInfo.IN] = *cMvPred;
+      pInfo.IN++
+      return true;
+    }
+  }
+  return false;
 }
 func (this *TComDataCU)  xAddMVPCandOrder      ( pInfo *AMVPInfo,  eRefPicList RefPicList,  iRefIdx int,  uiPartUnitIdx uint,  eDir MVP_DIR)bool{
-	return true;
+  var pcTmpCU *TComDataCU;
+  var uiIdx uint;
+  switch eDir {
+  case MD_LEFT:
+      pcTmpCU = this.GetPULeft(&uiIdx, uiPartUnitIdx, true, false, true);
+  case MD_ABOVE:
+//#if LINEBUF_CLEANUP
+      pcTmpCU = this.GetPUAbove(&uiIdx, uiPartUnitIdx, true, false, false, true);
+//#else
+//      pcTmpCU = this.GetPUAbove(uiIdx, uiPartUnitIdx, true, false, true);
+//#endif
+  case MD_ABOVE_RIGHT:
+//#if LINEBUF_CLEANUP
+      pcTmpCU = this.GetPUAboveRight(&uiIdx, uiPartUnitIdx, true, false);
+//#else
+//      pcTmpCU = this.GetPUAboveRight(uiIdx, uiPartUnitIdx, true, false, true);
+//#endif
+  case MD_BELOW_LEFT:
+      pcTmpCU = this.GetPUBelowLeft(&uiIdx, uiPartUnitIdx, true, false);
+  case MD_ABOVE_LEFT:
+//#if LINEBUF_CLEANUP
+      pcTmpCU = this.GetPUAboveLeft(&uiIdx, uiPartUnitIdx, true, false);
+//#else
+//      pcTmpCU = this.GetPUAboveLeft(uiIdx, uiPartUnitIdx, true, false, true);
+//#endif
+  default:
+  }
+
+  if pcTmpCU == nil {
+    return false;
+  }
+  
+  eRefPicList2nd := REF_PIC_LIST_0;
+  if eRefPicList == REF_PIC_LIST_0 {
+    eRefPicList2nd = REF_PIC_LIST_1;
+  }else if eRefPicList == REF_PIC_LIST_1 {
+    eRefPicList2nd = REF_PIC_LIST_0;
+  }
+
+  iCurrPOC := this.m_pcSlice.GetPOC();
+  iCurrRefPOC := this.m_pcSlice.GetRefPic( eRefPicList, iRefIdx).GetPOC();
+  iNeibPOC := iCurrPOC;
+  var iNeibRefPOC int;
+
+  bIsCurrRefLongTerm := this.m_pcSlice.GetRefPic( eRefPicList, iRefIdx).GetIsLongTerm();
+  bIsNeibRefLongTerm := false;
+  //---------------  V1 (END) ------------------//
+  if pcTmpCU.GetCUMvField(eRefPicList).GetRefIdx(int(uiIdx)) >= 0 {
+    iNeibRefPOC = pcTmpCU.GetSlice().GetRefPOC( eRefPicList, int(pcTmpCU.GetCUMvField(eRefPicList).GetRefIdx(int(uiIdx))) );
+    cMvPred := pcTmpCU.GetCUMvField(eRefPicList).GetMv(int(uiIdx));
+    var rcMv *TComMv;
+
+    bIsNeibRefLongTerm = pcTmpCU.GetSlice().GetRefPic( eRefPicList, int(pcTmpCU.GetCUMvField(eRefPicList).GetRefIdx(int(uiIdx))) ).GetIsLongTerm();
+    if bIsCurrRefLongTerm == bIsNeibRefLongTerm {
+	    if bIsCurrRefLongTerm || bIsNeibRefLongTerm {
+	      rcMv = cMvPred;
+	    }else{
+	      iScale := this.xGetDistScaleFactor( iCurrPOC, int(iCurrRefPOC), iNeibPOC, iNeibRefPOC );
+	      if iScale == 4096 {
+	        rcMv = cMvPred;
+	      }else{
+	        rcMv = cMvPred.ScaleMv( iScale );
+	      }
+	    }
+	    pInfo.MvCand[ pInfo.IN] = *rcMv;
+	    pInfo.IN++;
+	    return true;
+    }
+  }
+  //---------------------- V2(END) --------------------//
+  if pcTmpCU.GetCUMvField(RefPicList(eRefPicList2nd)).GetRefIdx(int(uiIdx)) >= 0 {
+    iNeibRefPOC = pcTmpCU.GetSlice().GetRefPOC( RefPicList(eRefPicList2nd), int(pcTmpCU.GetCUMvField(RefPicList(eRefPicList2nd)).GetRefIdx(int(uiIdx))) );
+    cMvPred := pcTmpCU.GetCUMvField(RefPicList(eRefPicList2nd)).GetMv(int(uiIdx));
+    var rcMv *TComMv;
+
+    bIsNeibRefLongTerm = pcTmpCU.GetSlice().GetRefPic( RefPicList(eRefPicList2nd), int(pcTmpCU.GetCUMvField(RefPicList(eRefPicList2nd)).GetRefIdx(int(uiIdx))) ).GetIsLongTerm();
+    if bIsCurrRefLongTerm == bIsNeibRefLongTerm {
+	    if bIsCurrRefLongTerm || bIsNeibRefLongTerm {
+	      rcMv = cMvPred;
+	    }else{
+	      iScale := this.xGetDistScaleFactor( iCurrPOC, int(iCurrRefPOC), iNeibPOC, iNeibRefPOC );
+	      if iScale == 4096 {
+	        rcMv = cMvPred;
+	      }else{
+	        rcMv = cMvPred.ScaleMv( iScale );
+	      }
+	    }
+	    pInfo.MvCand[ pInfo.IN] = *rcMv;
+	    pInfo.IN++
+	    return true;
+    }
+  }
+  //---------------------- V3(END) --------------------//
+  return false;
 }
 
-func (this *TComDataCU)  deriveRightBottomIdx        (  uiPartIdx uint, ruiPartIdxRB *uint){
+func (this *TComDataCU)  DeriveRightBottomIdx        (  uiPartIdx uint, ruiPartIdxRB *uint){
+  *ruiPartIdxRB = G_auiRasterToZscan [G_auiZscanToRaster[ this.m_uiAbsIdxInLCU ] + ( ((uint(this.m_puhHeight[0]) / this.m_pcPic.GetMinCUHeight())>>1) - 1)*this.m_pcPic.GetNumPartInWidth() +  uint(this.m_puhWidth[0]) / this.m_pcPic.GetMinCUWidth() - 1];
+
+  switch this.m_pePartSize[0] {
+    case SIZE_2Nx2N:  
+      *ruiPartIdxRB += this.m_uiNumPartition >> 1;    
+      //break;
+    case SIZE_2NxN:  
+      if uiPartIdx == 0 {	
+      	*ruiPartIdxRB += 0 ;   
+      }else{
+      	*ruiPartIdxRB += this.m_uiNumPartition >> 1;   
+      }
+      //break;
+    case SIZE_Nx2N:  
+      if uiPartIdx == 0 {
+      	*ruiPartIdxRB += this.m_uiNumPartition >> 2;   
+      }else{
+        *ruiPartIdxRB += this.m_uiNumPartition >> 1;  
+      }
+      //break;
+    case SIZE_NxN:   
+      *ruiPartIdxRB += ( this.m_uiNumPartition >> 2 ) * ( uiPartIdx - 1 );   
+      //break;
+    case SIZE_2NxnU:
+      if uiPartIdx == 0 {	
+      	*ruiPartIdxRB -= this.m_uiNumPartition >> 3;
+      }else{
+      	*ruiPartIdxRB += this.m_uiNumPartition >> 1;
+      }
+      //break;
+    case SIZE_2NxnD:
+      if uiPartIdx == 0 {
+      	*ruiPartIdxRB +=  (this.m_uiNumPartition >> 2) + (this.m_uiNumPartition >> 3);	
+      }else{
+      	*ruiPartIdxRB +=  this.m_uiNumPartition >> 1;
+      }
+      //break;
+    case SIZE_nLx2N:
+      if uiPartIdx == 0 {	
+      	*ruiPartIdxRB += (this.m_uiNumPartition >> 3) + (this.m_uiNumPartition >> 4);
+      }else{	
+      	*ruiPartIdxRB += this.m_uiNumPartition >> 1;
+      }
+      //break;
+    case SIZE_nRx2N:
+      if uiPartIdx == 0 {	
+      	*ruiPartIdxRB += (this.m_uiNumPartition >> 2) + (this.m_uiNumPartition >> 3) + (this.m_uiNumPartition >> 4);
+      }else{
+      	*ruiPartIdxRB += this.m_uiNumPartition >> 1;
+      }
+      //break;
+    default:
+      //assert (0);
+      //break;
+  }
 }
 func (this *TComDataCU)  xGetColMVP(  eRefPicList RefPicList,  uiCUAddr,  uiPartUnitIdx int, rcMv *TComMv, riRefIdx *int)bool{
-	return true;
+  uiAbsPartAddr := uiPartUnitIdx;
+
+  var eColRefPicList RefPicList;
+  var iColPOC, iColRefPOC, iCurrPOC, iCurrRefPOC, iScale int;
+  var cColMv *TComMv;
+
+  // use coldir.
+  var pColPic *TComPic;
+  if this.GetSlice().IsInterB() {
+  	pColPic = this.GetSlice().GetRefPic( RefPicList(1-this.GetSlice().GetColFromL0Flag() ), int(this.GetSlice().GetColRefIdx()));
+  }else{
+  	pColPic = this.GetSlice().GetRefPic( RefPicList(0), int(this.GetSlice().GetColRefIdx()));
+  }
+  
+  pColCU := pColPic.GetCU( uint(uiCUAddr) );
+  if pColCU.GetPic()==nil||pColCU.GetPartitionSize1(uint(uiPartUnitIdx))==SIZE_NONE {
+    return false;
+  }
+  iCurrPOC = this.m_pcSlice.GetPOC();    
+  iCurrRefPOC = int(this.m_pcSlice.GetRefPic(eRefPicList, *riRefIdx).GetPOC());
+  iColPOC = pColCU.GetSlice().GetPOC();  
+
+  if pColCU.IsIntra(uint(uiAbsPartAddr)) {
+    return false;
+  }
+  if this.GetSlice().GetCheckLDC(){
+  	eColRefPicList = eRefPicList;
+  }else{
+    eColRefPicList = RefPicList(this.GetSlice().GetColFromL0Flag());
+  }
+  
+  iColRefIdx := pColCU.GetCUMvField(RefPicList(eColRefPicList)).GetRefIdx(uiAbsPartAddr);
+
+  if iColRefIdx < 0 {
+    eColRefPicList = RefPicList(1 - eColRefPicList);
+    iColRefIdx = pColCU.GetCUMvField(RefPicList(eColRefPicList)).GetRefIdx(uiAbsPartAddr);
+
+    if iColRefIdx < 0 {
+      return false;
+    }
+  }
+
+  // Scale the vector.
+  iColRefPOC = pColCU.GetSlice().GetRefPOC(eColRefPicList, int(iColRefIdx));
+  cColMv = pColCU.GetCUMvField(eColRefPicList).GetMv(uiAbsPartAddr);
+
+  iCurrRefPOC = int(this.m_pcSlice.GetRefPic(eRefPicList, *riRefIdx).GetPOC());
+  bIsCurrRefLongTerm := this.m_pcSlice.GetRefPic(eRefPicList, *riRefIdx).GetIsLongTerm();
+  bIsColRefLongTerm := pColCU.GetSlice().GetRefPic(eColRefPicList, int(iColRefIdx)).GetIsUsedAsLongTerm();
+
+  if bIsCurrRefLongTerm != bIsColRefLongTerm {
+    return false;
+  }
+
+  if bIsCurrRefLongTerm || bIsColRefLongTerm {
+    rcMv = cColMv;
+  }else{
+    iScale = this.xGetDistScaleFactor(iCurrPOC, iCurrRefPOC, iColPOC, iColRefPOC);
+    if iScale == 4096 {
+      rcMv = cColMv;
+    }else{
+      rcMv = cColMv.ScaleMv( iScale );
+    }
+  }
+  return true;
 }
   
   /// compute required bits to encode MVD (used in AMVP)
 func (this *TComDataCU)  xGetMvdBits           (  cMvd TComMv)uint{
-	return 0;
+	return ( this.xGetComponentBits(int(cMvd.GetHor())) + this.xGetComponentBits(int(cMvd.GetVer())) );
 }
 func (this *TComDataCU)  xGetComponentBits     (  iVal int)uint{
-	return 0;
+  uiLength := uint(1);
+  var uiTemp int;
+  if iVal <= 0 {
+  	uiTemp = -(iVal<<1)+1;
+  }else{
+    uiTemp = (iVal<<1);
+  }
+  
+  //assert ( uiTemp );
+  
+  for 1 != uiTemp {
+    uiTemp >>= 1;
+    uiLength += 2;
+  }
+  
+  return uiLength;
 }
   
   /// compute scaling factor from POC difference
 func (this *TComDataCU)  xGetDistScaleFactor   (  iCurrPOC,  iCurrRefPOC,  iColPOC,  iColRefPOC int)int{
-	return 0;
+  iDiffPocD := iColPOC - iColRefPOC;
+  iDiffPocB := iCurrPOC - iCurrRefPOC;
+  
+  if iDiffPocD != iDiffPocB {
+  	var iTDB, iTDD, iX, iScale int;
+  	iTDB = iDiffPocB;
+  	if iTDB < -128 {
+  		iTDB = -128;
+  	}else if iTDB > 127{
+  		iTDB = 127;
+  	}
+  	
+  	iTDD = iDiffPocD;
+    if iTDD < -128{
+  		iTDD = -128;
+  	}else if iTDD > 127{
+  		iTDD = 127;
+  	}
+  	
+    if iTDD < 0{
+    	iX = (0x4000 - (iTDD/2)) / iTDD;
+    }else{
+    	iX = (0x4000 + (iTDD/2)) / iTDD;
+    }
+    
+    iScale = (iTDB * iX + 32) >> 6;
+    if iScale < -4096{
+  		iScale = -4096;
+  	}else if iScale > 127{
+  		iScale = 4095;
+  	}
+  }
+  
+  return 4096;
 }
   
 func (this *TComDataCU)  xDeriveCenterIdx(  uiPartIdx uint, ruiPartIdxCenter *uint){
+  var uiPartAddr uint;
+  var iPartWidth, iPartHeight int;
+  this.GetPartIndexAndSize( uiPartIdx, &uiPartAddr, &iPartWidth, &iPartHeight);
+  
+  *ruiPartIdxCenter = this.m_uiAbsIdxInLCU+uiPartAddr; // partition origin.
+  *ruiPartIdxCenter = G_auiRasterToZscan[ int(G_auiZscanToRaster[ *ruiPartIdxCenter ]) + ( iPartHeight/int(this.m_pcPic.GetMinCUHeight()) )/2*int(this.m_pcPic.GetNumPartInWidth()) + ( iPartWidth /int(this.m_pcPic.GetMinCUWidth())  )/2];
 }
-func (this *TComDataCU)  xGetCenterCol(  uiPartIdx uint,  eRefPicList RefPicList,  iRefIdx int, pcMv *TComMv)bool{
-	return true;
+
+func (this *TComDataCU)  xGetCenterCol(  uiPartIdx uint,  eRefPicList RefPicList,  iRefIdx int, pcMv []TComMv)bool{
+  iCurrPOC := this.m_pcSlice.GetPOC();
+  
+  // use coldir.
+  var pColPic *TComPic;
+  if this.GetSlice().IsInterB() {
+    pColPic = this.GetSlice().GetRefPic( RefPicList(1-this.GetSlice().GetColFromL0Flag() ), int(this.GetSlice().GetColRefIdx()));
+  }else{
+    pColPic = this.GetSlice().GetRefPic( RefPicList(0), int(this.GetSlice().GetColRefIdx()));
+  }
+  
+  pColCU := pColPic.GetCU( this.m_uiCUAddr );
+  
+  iColPOC := pColCU.GetSlice().GetPOC();
+  var uiPartIdxCenter uint;
+  this.xDeriveCenterIdx( uiPartIdx, &uiPartIdxCenter );
+  
+  if pColCU.IsIntra(uiPartIdxCenter) {
+    return false;
+  }
+  
+  // Prefer a vector crossing us.  Prefer shortest.
+  eColRefPicList := RefPicList(REF_PIC_LIST_0);
+  bFirstCrosses := false;
+  iFirstColDist := -1;
+  for l := 0; l < 2; l++ {
+    bSaveIt := false;
+    iColRefIdx := pColCU.GetCUMvField(RefPicList(l)).GetRefIdx(int(uiPartIdxCenter));
+    if iColRefIdx < 0 {
+      continue;
+    }
+    iColRefPOC := pColCU.GetSlice().GetRefPOC(RefPicList(l), int(iColRefIdx));
+    var iColDist int;
+    if iColRefPOC - iColPOC < 0{
+    	iColDist= -(iColRefPOC - iColPOC);
+    }else{
+    	iColDist=  (iColRefPOC - iColPOC);
+    }
+    var bCrosses bool;
+    if iColPOC < iCurrPOC {
+		bCrosses = iColRefPOC > iCurrPOC;
+	}else{
+		bCrosses = iColRefPOC < iCurrPOC;
+	}
+    if iFirstColDist < 0{
+      bSaveIt = true;
+    }else if bCrosses && !bFirstCrosses{
+      bSaveIt = true;
+    }else if bCrosses == bFirstCrosses && RefPicList(l) == eRefPicList{
+      bSaveIt = true;
+    }
+    
+    if bSaveIt {
+      bFirstCrosses = bCrosses;
+      iFirstColDist = iColDist;
+      eColRefPicList = RefPicList(l);
+    }
+  }
+  
+  // Scale the vector.
+  iColRefPOC := pColCU.GetSlice().GetRefPOC(eColRefPicList, int(pColCU.GetCUMvField(eColRefPicList).GetRefIdx(int(uiPartIdxCenter))));
+  cColMv := pColCU.GetCUMvField(eColRefPicList).GetMv(int(uiPartIdxCenter));
+  
+  iCurrRefPOC := this.m_pcSlice.GetRefPic(eRefPicList, iRefIdx).GetPOC();
+  bIsCurrRefLongTerm := this.m_pcSlice.GetRefPic(eRefPicList, iRefIdx).GetIsLongTerm();
+  bIsColRefLongTerm := pColCU.GetSlice().GetRefPic(eColRefPicList, int(pColCU.GetCUMvField(eColRefPicList).GetRefIdx(int(uiPartIdxCenter)))).GetIsUsedAsLongTerm();
+
+  if bIsCurrRefLongTerm != bIsColRefLongTerm {
+    return false;
+  }
+
+  if bIsCurrRefLongTerm || bIsColRefLongTerm {
+    pcMv[0] = *cColMv;
+  }else{
+    iScale := this.xGetDistScaleFactor(iCurrPOC, int(iCurrRefPOC), iColPOC, iColRefPOC);
+    if iScale == 4096 {
+      pcMv[0] = *cColMv;
+    }else{
+      pcMv[0] = *cColMv.ScaleMv( iScale );
+    }
+  }
+  return true;
 }
 
 
@@ -1325,7 +1731,7 @@ func (this *TComDataCU)  GetQpMinCuLeft              ( uiLPartUnitIdx *uint, uiC
     return nil;
   }
 
-  // get index of left-CU relative to top-left corner of current quantization group
+  // this.Get index of left-CU relative to top-left corner of current quantization group
   *uiLPartUnitIdx = G_auiRasterToZscan[absRorderQpMinCUIdx - 1];
 
   // return pointer to current LCU
@@ -1341,7 +1747,7 @@ func (this *TComDataCU)  GetQpMinCuAbove             ( aPartUnitIdx *uint, currA
     return nil;
   }
 
-  // get index of top-CU relative to top-left corner of current quantization group
+  // this.Get index of top-CU relative to top-left corner of current quantization group
   *aPartUnitIdx = G_auiRasterToZscan[absRorderQpMinCUIdx - numPartInCUWidth];
 
   // return pointer to current LCU
@@ -1484,11 +1890,450 @@ func (this *TComDataCU)  HasEqualMotion              (  uiAbsPartIdx uint, pcCan
 
   return true;
 }
-func (this *TComDataCU)  GetInterMergeCandidates       ( uiAbsPartIdx,  uiPUIdx uint, pcMFieldNeighbours *TComMvField, puhInterDirNeighbours *byte, numValidMergeCand *int, mrgCandIdx int ){
+func (this *TComDataCU)  GetInterMergeCandidates       ( uiAbsPartIdx,  uiPUIdx uint, pcMvFieldNeighbours []TComMvField, puhInterDirNeighbours []byte, numValidMergeCand *int, mrgCandIdx int ){
+  uiAbsPartAddr := this.m_uiAbsIdxInLCU + uiAbsPartIdx;
+  uiIdx := uint(1);
+  var abCandIsInter	[ MRG_MAX_NUM_CANDS ]bool;
+  for ui := uint(0); ui < this.GetSlice().GetMaxNumMergeCand(); ui++ {
+    abCandIsInter[ui] = false;
+  }
+  *numValidMergeCand = int(this.GetSlice().GetMaxNumMergeCand());
+  // compute the location of the current PU
+  var xP, yP, nPSW, nPSH int;
+  this.GetPartPosition(uiPUIdx, &xP, &yP, &nPSW, &nPSH);
+
+  iCount := int(0);
+
+  var uiPartIdxLT, uiPartIdxRT, uiPartIdxLB uint;
+  cCurPS := this.GetPartitionSize1( uiAbsPartIdx );
+  this.DeriveLeftRightTopIdxGeneral( uiAbsPartIdx, uiPUIdx, &uiPartIdxLT, &uiPartIdxRT );
+  this.DeriveLeftBottomIdxGeneral  ( uiAbsPartIdx, uiPUIdx, &uiPartIdxLB );
+
+  //left
+  uiLeftPartIdx := uint(0);
+  var pcCULeft *TComDataCU;
+  pcCULeft = this.GetPULeft( &uiLeftPartIdx, uiPartIdxLB, true, false, true );
+//#if MERGE_CLEANUP_AND_K0197
+  isAvailableA1 := pcCULeft!=nil &&
+				   pcCULeft.IsDiffMER(xP -1, yP+nPSH-1, xP, yP) &&
+				  !( uiPUIdx == 1 && (cCurPS == SIZE_Nx2N || cCurPS == SIZE_nLx2N || cCurPS == SIZE_nRx2N) ) &&
+				  !pcCULeft.IsIntra( uiLeftPartIdx ) ;
+  if  isAvailableA1 {
+/*#else
+  if (pcCULeft)
+  {
+    if (!pcCULeft.IsDiffMER(xP -1, yP+nPSH-1, xP, yP))
+    {
+      pcCULeft = nil;
+    }
+  }
+  PartSize partSize = this.GetPartitionSize( uiAbsPartIdx );
+  if (!(uiPUIdx == 1 && (partSize == SIZE_Nx2N || partSize == SIZE_nLx2N || partSize == SIZE_nRx2N)))
+  {
+  if ( pcCULeft && !pcCULeft.IsIntra( uiLeftPartIdx ) )
+#endif*/
+    abCandIsInter[iCount] = true;
+    // this.Get Inter Dir
+    puhInterDirNeighbours[iCount] = pcCULeft.GetInterDir1( uiLeftPartIdx );
+    // this.Get Mv from Left
+    pcCULeft.GetMvField( pcCULeft, uiLeftPartIdx, REF_PIC_LIST_0, &pcMvFieldNeighbours[iCount<<1] );
+    if this.GetSlice().IsInterB() {
+      pcCULeft.GetMvField( pcCULeft, uiLeftPartIdx, REF_PIC_LIST_1, &pcMvFieldNeighbours[(iCount<<1)+1] );
+    }
+    if mrgCandIdx == iCount {
+      return;
+    }
+    iCount ++;
+  }
+/*#if !MERGE_CLEANUP_AND_K0197
+  }
+#endif*/
+  
+  // early termination
+  if iCount == int(this.GetSlice().GetMaxNumMergeCand()) {
+    return;
+  }
+  // above
+  uiAbovePartIdx := uint(0);
+  var pcCUAbove *TComDataCU;
+//#if LINEBUF_CLEANUP
+  pcCUAbove = this.GetPUAbove( &uiAbovePartIdx, uiPartIdxRT, true, false, false, true );
+//#else
+//  pcCUAbove = this.GetPUAbove( &uiAbovePartIdx, uiPartIdxRT, true, false, true );
+//#endif
+//#if MERGE_CLEANUP_AND_K0197
+  isAvailableB1 := pcCUAbove!=nil &&
+				   pcCUAbove.IsDiffMER(xP+nPSW-1, yP-1, xP, yP) &&
+				  !( uiPUIdx == 1 && (cCurPS == SIZE_2NxN || cCurPS == SIZE_2NxnU || cCurPS == SIZE_2NxnD) ) &&
+				  !pcCUAbove.IsIntra( uiAbovePartIdx );
+  if  isAvailableB1 && (!isAvailableA1 || !pcCULeft.HasEqualMotion( uiLeftPartIdx, pcCUAbove, uiAbovePartIdx ) ) {
+/*#else
+  if (pcCUAbove)
+  {
+    if (!pcCUAbove.IsDiffMER(xP+nPSW-1, yP-1, xP, yP))
+    {
+      pcCUAbove = nil;
+    }
+  }
+  if ( pcCUAbove && !pcCUAbove.IsIntra( uiAbovePartIdx ) 
+    && !(uiPUIdx == 1 && (cCurPS == SIZE_2NxN || cCurPS == SIZE_2NxnU || cCurPS == SIZE_2NxnD))
+    && ( !pcCULeft || pcCULeft.IsIntra( uiLeftPartIdx ) || !pcCULeft->hasEqualMotion( uiLeftPartIdx, pcCUAbove, uiAbovePartIdx ) ) )
+#endif*/
+    abCandIsInter[iCount] = true;
+    // this.Get Inter Dir
+    puhInterDirNeighbours[iCount] = pcCUAbove.GetInterDir1( uiAbovePartIdx );
+    // this.Get Mv from Left
+    pcCUAbove.GetMvField( pcCUAbove, uiAbovePartIdx, REF_PIC_LIST_0, &pcMvFieldNeighbours[iCount<<1] );
+    if this.GetSlice().IsInterB() {
+      pcCUAbove.GetMvField( pcCUAbove, uiAbovePartIdx, REF_PIC_LIST_1, &pcMvFieldNeighbours[(iCount<<1)+1] );
+    }
+    if mrgCandIdx == iCount {
+      return;
+    }
+    iCount ++;
+  }
+  // early termination
+  if iCount == int(this.GetSlice().GetMaxNumMergeCand()) {
+    return;
+  }
+
+  // above right
+  uiAboveRightPartIdx := uint(0);
+  var pcCUAboveRight *TComDataCU;
+//#if LINEBUF_CLEANUP
+  pcCUAboveRight = this.GetPUAboveRight( &uiAboveRightPartIdx, uiPartIdxRT, true, false );
+//#else
+//  pcCUAboveRight = this.GetPUAboveRight( uiAboveRightPartIdx, uiPartIdxRT, true, false, true );
+//#endif
+//#if MERGE_CLEANUP_AND_K0197
+  isAvailableB0 := pcCUAboveRight!=nil &&
+				   pcCUAboveRight.IsDiffMER(xP+nPSW, yP-1, xP, yP) &&
+				  !pcCUAboveRight.IsIntra( uiAboveRightPartIdx );
+  if isAvailableB0 && ( !isAvailableB1 || !pcCUAbove.HasEqualMotion( uiAbovePartIdx, pcCUAboveRight, uiAboveRightPartIdx ) ) {
+/*#else
+  if (pcCUAboveRight)
+  {
+    if (!pcCUAboveRight.IsDiffMER(xP+nPSW, yP-1, xP, yP))
+    {
+      pcCUAboveRight = nil;
+    }
+  }
+  if ( pcCUAboveRight && !pcCUAboveRight.IsIntra( uiAboveRightPartIdx ) && ( !pcCUAbove || pcCUAbove.IsIntra( uiAbovePartIdx ) || !pcCUAbove->hasEqualMotion( uiAbovePartIdx, pcCUAboveRight, uiAboveRightPartIdx ) ) )
+#endif
+  {*/
+    abCandIsInter[iCount] = true;
+    // this.Get Inter Dir
+    puhInterDirNeighbours[iCount] = pcCUAboveRight.GetInterDir1( uiAboveRightPartIdx );
+    // this.Get Mv from Left
+    pcCUAboveRight.GetMvField( pcCUAboveRight, uiAboveRightPartIdx, REF_PIC_LIST_0, &pcMvFieldNeighbours[iCount<<1] );
+    if this.GetSlice().IsInterB() {
+      pcCUAboveRight.GetMvField( pcCUAboveRight, uiAboveRightPartIdx, REF_PIC_LIST_1, &pcMvFieldNeighbours[(iCount<<1)+1] );
+    }
+    if mrgCandIdx == iCount {
+      return;
+    }
+    iCount ++;
+  }
+  // early termination
+  if iCount == int(this.GetSlice().GetMaxNumMergeCand()) {
+    return;
+  }
+
+  //left bottom
+  uiLeftBottomPartIdx := uint(0);
+  var pcCULeftBottom *TComDataCU;
+  pcCULeftBottom = this.GetPUBelowLeft( &uiLeftBottomPartIdx, uiPartIdxLB, true, false );
+//#if MERGE_CLEANUP_AND_K0197
+  isAvailableA0 := pcCULeftBottom!=nil &&
+				   pcCULeftBottom.IsDiffMER(xP-1, yP+nPSH, xP, yP) &&
+				  !pcCULeftBottom.IsIntra( uiLeftBottomPartIdx ) ;
+  if isAvailableA0 && ( !isAvailableA1 || !pcCULeft.HasEqualMotion( uiLeftPartIdx, pcCULeftBottom, uiLeftBottomPartIdx ) ) {
+/*#else
+  if (pcCULeftBottom)
+  {
+    if (!pcCULeftBottom.IsDiffMER(xP-1, yP+nPSH, xP, yP))
+    {
+      pcCULeftBottom = nil;
+    }
+  }
+  if ( pcCULeftBottom && !pcCULeftBottom.IsIntra( uiLeftBottomPartIdx ) && ( !pcCULeft || pcCULeft.IsIntra( uiLeftPartIdx ) || !pcCULeft->hasEqualMotion( uiLeftPartIdx, pcCULeftBottom, uiLeftBottomPartIdx ) ) )
+#endif
+  {*/
+    abCandIsInter[iCount] = true;
+    // this.Get Inter Dir
+    puhInterDirNeighbours[iCount] = pcCULeftBottom.GetInterDir1( uiLeftBottomPartIdx );
+    // this.Get Mv from Left
+    pcCULeftBottom.GetMvField( pcCULeftBottom, uiLeftBottomPartIdx, REF_PIC_LIST_0, &pcMvFieldNeighbours[iCount<<1] );
+    if this.GetSlice().IsInterB() {
+      pcCULeftBottom.GetMvField( pcCULeftBottom, uiLeftBottomPartIdx, REF_PIC_LIST_1, &pcMvFieldNeighbours[(iCount<<1)+1] );
+    }
+    if mrgCandIdx == iCount {
+      return;
+    }
+    iCount ++;
+  }
+  // early termination
+  if iCount == int(this.GetSlice().GetMaxNumMergeCand()) {
+    return;
+  }
+  // above left 
+  if iCount < 4 {
+    uiAboveLeftPartIdx := uint(0);
+    var pcCUAboveLeft *TComDataCU;
+//#if LINEBUF_CLEANUP
+    pcCUAboveLeft = this.GetPUAboveLeft( &uiAboveLeftPartIdx, uiAbsPartAddr, true, false );
+//#else
+//    pcCUAboveLeft = this.GetPUAboveLeft( uiAboveLeftPartIdx, , true, false, true );
+//#endif
+//#if MERGE_CLEANUP_AND_K0197
+    isAvailableB2 := pcCUAboveLeft!=nil &&
+				     pcCUAboveLeft.IsDiffMER(xP-1, yP-1, xP, yP) &&
+				    !pcCUAboveLeft.IsIntra( uiAboveLeftPartIdx );
+    if isAvailableB2 && ( !isAvailableA1 || !pcCULeft.HasEqualMotion( uiLeftPartIdx, pcCUAboveLeft, uiAboveLeftPartIdx ) ) &&
+       ( !isAvailableB1 || !pcCUAbove.HasEqualMotion( uiAbovePartIdx, pcCUAboveLeft, uiAboveLeftPartIdx ) ) {
+/*#else
+    if (pcCUAboveLeft)
+    {
+      if (!pcCUAboveLeft.IsDiffMER(xP-1, yP-1, xP, yP))
+      {
+        pcCUAboveLeft = nil;
+      }
+    }
+    if( pcCUAboveLeft && !pcCUAboveLeft.IsIntra( uiAboveLeftPartIdx )
+     && ( !pcCULeft || pcCULeft.IsIntra( uiLeftPartIdx ) || !pcCULeft->hasEqualMotion( uiLeftPartIdx, pcCUAboveLeft, uiAboveLeftPartIdx ) )
+     && ( !pcCUAbove || pcCUAbove.IsIntra( uiAbovePartIdx ) || !pcCUAbove->hasEqualMotion( uiAbovePartIdx, pcCUAboveLeft, uiAboveLeftPartIdx ) )
+     )
+#endif
+    {*/
+      abCandIsInter[iCount] = true;
+      // this.Get Inter Dir
+      puhInterDirNeighbours[iCount] = pcCUAboveLeft.GetInterDir1( uiAboveLeftPartIdx );
+      // this.Get Mv from Left
+      pcCUAboveLeft.GetMvField( pcCUAboveLeft, uiAboveLeftPartIdx, REF_PIC_LIST_0, &pcMvFieldNeighbours[iCount<<1] );
+      if this.GetSlice().IsInterB() {
+        pcCUAboveLeft.GetMvField( pcCUAboveLeft, uiAboveLeftPartIdx, REF_PIC_LIST_1, &pcMvFieldNeighbours[(iCount<<1)+1] );
+      }
+      if mrgCandIdx == iCount {
+        return;
+      }
+      iCount ++;
+    }
+  }
+  // early termination
+  if iCount == int(this.GetSlice().GetMaxNumMergeCand()) {
+    return;
+  }
+  if this.GetSlice().GetEnableTMVPFlag() {
+    //>> MTK colocated-RightBottom
+    var uiPartIdxRB uint;
+    uiLCUIdx := int(this.GetAddr());
+
+    this.DeriveRightBottomIdx( uiPUIdx, &uiPartIdxRB );  
+
+    uiAbsPartIdxTmp := G_auiZscanToRaster[uiPartIdxRB];
+    uiNumPartInCUWidth := this.m_pcPic.GetNumPartInWidth();
+
+    var cColMv TComMv ;
+    var iRefIdx int;
+
+    if ( this.m_pcPic.GetCU(this.m_uiCUAddr).GetCUPelX() + G_auiRasterToPelX[uiAbsPartIdxTmp] + this.m_pcPic.GetMinCUWidth() ) >= this.m_pcSlice.GetSPS().GetPicWidthInLumaSamples() {  // image boundary check 
+      uiLCUIdx = -1;
+    }else if  ( this.m_pcPic.GetCU(this.m_uiCUAddr).GetCUPelY() + G_auiRasterToPelY[uiAbsPartIdxTmp] + this.m_pcPic.GetMinCUHeight() ) >= this.m_pcSlice.GetSPS().GetPicHeightInLumaSamples() {
+      uiLCUIdx = -1;
+    }else{
+      if  ( uiAbsPartIdxTmp % uiNumPartInCUWidth < uiNumPartInCUWidth - 1 ) &&           // is not at the last column of LCU 
+          ( uiAbsPartIdxTmp / uiNumPartInCUWidth < this.m_pcPic.GetNumPartInHeight() - 1 ) { // is not at the last row    of LCU
+        uiAbsPartAddr = G_auiRasterToZscan[ uiAbsPartIdxTmp + uiNumPartInCUWidth + 1 ];
+        uiLCUIdx = int(this.GetAddr());
+      }else if uiAbsPartIdxTmp % uiNumPartInCUWidth < uiNumPartInCUWidth - 1 {           // is not at the last column of LCU But is last row of LCU
+        uiAbsPartAddr = G_auiRasterToZscan[ (uiAbsPartIdxTmp + uiNumPartInCUWidth + 1) % this.m_pcPic.GetNumPartInCU() ];
+        uiLCUIdx = -1 ; 
+      }else if uiAbsPartIdxTmp / uiNumPartInCUWidth < this.m_pcPic.GetNumPartInHeight() - 1 { // is not at the last row of LCU But is last column of LCU
+        uiAbsPartAddr = G_auiRasterToZscan[ uiAbsPartIdxTmp + 1 ];
+        uiLCUIdx = int(this.GetAddr()) + 1;
+      }else{ //is the right bottom corner of LCU                       
+        uiAbsPartAddr = 0;
+        uiLCUIdx = -1 ; 
+      }
+    }
+    iRefIdx = 0;
+
+    bExistMV := false;
+    var uiPartIdxCenter uint;
+    uiCurLCUIdx := this.GetAddr();
+    this.xDeriveCenterIdx( uiPUIdx, &uiPartIdxCenter );
+    bExistMV = uiLCUIdx >= 0 && this.xGetColMVP( REF_PIC_LIST_0, uiLCUIdx, int(uiAbsPartAddr), &cColMv, &iRefIdx );
+    if bExistMV == false {
+      bExistMV = this.xGetColMVP( REF_PIC_LIST_0, int(uiCurLCUIdx), int(uiPartIdxCenter),  &cColMv, &iRefIdx );
+    }
+    if bExistMV {
+      uiArrayAddr := iCount;
+      abCandIsInter[uiArrayAddr] = true;
+      pcMvFieldNeighbours[uiArrayAddr << 1].SetMvField( &cColMv, int8(iRefIdx) );
+
+      if this.GetSlice().IsInterB() {       
+        iRefIdx = 0;
+        bExistMV = uiLCUIdx >= 0 && this.xGetColMVP( REF_PIC_LIST_1, uiLCUIdx, int(uiAbsPartAddr), &cColMv, &iRefIdx);
+        if bExistMV == false {
+          bExistMV = this.xGetColMVP( REF_PIC_LIST_1, int(uiCurLCUIdx), int(uiPartIdxCenter),  &cColMv, &iRefIdx );
+        }
+        if bExistMV {
+          pcMvFieldNeighbours[ ( uiArrayAddr << 1 ) + 1 ].SetMvField( &cColMv, int8(iRefIdx) );
+          puhInterDirNeighbours[uiArrayAddr] = 3;
+        }else{
+          puhInterDirNeighbours[uiArrayAddr] = 1;
+        }
+      }else{
+        puhInterDirNeighbours[uiArrayAddr] = 1;
+      }
+      if mrgCandIdx == iCount {
+        return;
+      }
+      iCount++;
+    }
+    uiIdx++;
+
+  }
+  // early termination
+  if iCount == int(this.GetSlice().GetMaxNumMergeCand()) {
+    return;
+  }
+  uiArrayAddr := iCount;
+  uiCutoff := uiArrayAddr;
+    
+  if this.GetSlice().IsInterB() {
+    var uiPriorityList0 =[12]uint{0 , 1, 0, 2, 1, 2, 0, 3, 1, 3, 2, 3};
+    var uiPriorityList1 =[12]uint{1 , 0, 2, 0, 2, 1, 3, 0, 3, 1, 3, 2};
+
+    for idx:=int(0); idx<uiCutoff*(uiCutoff-1) && uiArrayAddr!= int(this.GetSlice().GetMaxNumMergeCand()); idx++ {
+      i := uiPriorityList0[idx]; 
+	  j := uiPriorityList1[idx];
+      if abCandIsInter[i] && abCandIsInter[j]&& (puhInterDirNeighbours[i]&0x1)!=0 &&(puhInterDirNeighbours[j]&0x2)!=0  {
+        abCandIsInter[uiArrayAddr] = true;
+        puhInterDirNeighbours[uiArrayAddr] = 3;
+
+        // this.Get Mv from cand[i] and cand[j]
+        pcMvFieldNeighbours[uiArrayAddr << 1].SetMvField(pcMvFieldNeighbours[i<<1].GetMv(), pcMvFieldNeighbours[i<<1].GetRefIdx());
+        pcMvFieldNeighbours[( uiArrayAddr << 1 ) + 1].SetMvField(pcMvFieldNeighbours[(j<<1)+1].GetMv(), pcMvFieldNeighbours[(j<<1)+1].GetRefIdx());
+
+        iRefPOCL0 := this.m_pcSlice.GetRefPOC( REF_PIC_LIST_0, int(pcMvFieldNeighbours[(uiArrayAddr<<1)].GetRefIdx()) );
+        iRefPOCL1 := this.m_pcSlice.GetRefPOC( REF_PIC_LIST_1, int(pcMvFieldNeighbours[(uiArrayAddr<<1)+1].GetRefIdx()) );
+        if iRefPOCL0 == iRefPOCL1 && pcMvFieldNeighbours[(uiArrayAddr<<1)].GetMv() == pcMvFieldNeighbours[(uiArrayAddr<<1)+1].GetMv() {
+          abCandIsInter[uiArrayAddr] = false;
+        }else{
+          uiArrayAddr++;
+        }
+      }
+    }
+  }
+  // early termination
+  if uiArrayAddr == int(this.GetSlice().GetMaxNumMergeCand()) {
+    return;
+  }
+  
+  var iNumRefIdx int;
+  if this.GetSlice().IsInterB() {
+  	if this.m_pcSlice.GetNumRefIdx(REF_PIC_LIST_0) < this.m_pcSlice.GetNumRefIdx(REF_PIC_LIST_1){
+  		iNumRefIdx =  this.m_pcSlice.GetNumRefIdx(REF_PIC_LIST_0);
+  	}else{
+  		iNumRefIdx =  this.m_pcSlice.GetNumRefIdx(REF_PIC_LIST_1);
+  	}
+  }else{
+  	iNumRefIdx =  this.m_pcSlice.GetNumRefIdx(REF_PIC_LIST_0);
+  }
+  
+  r := int(0);
+  refcnt := int(0);
+  for uiArrayAddr < int(this.GetSlice().GetMaxNumMergeCand()) {
+    abCandIsInter[uiArrayAddr] = true;
+    puhInterDirNeighbours[uiArrayAddr] = 1;
+    pcMvFieldNeighbours[uiArrayAddr << 1].SetMvField( &TComMv{0, 0}, int8(r));
+
+    if this.GetSlice().IsInterB() {
+      puhInterDirNeighbours[uiArrayAddr] = 3;
+      pcMvFieldNeighbours[(uiArrayAddr << 1) + 1].SetMvField(&TComMv{0, 0}, int8(r));
+    }
+    uiArrayAddr++;
+    if refcnt == iNumRefIdx - 1 {
+      r = 0;
+    }else{
+      r++;
+      refcnt++;
+    }
+  }
+
+  *numValidMergeCand = uiArrayAddr;
 }
+
 func (this *TComDataCU)  DeriveLeftRightTopIdxGeneral  (  uiAbsPartIdx,  uiPartIdx uint, ruiPartIdxLT, ruiPartIdxRT *uint ){
+  *ruiPartIdxLT = this.m_uiAbsIdxInLCU + uiAbsPartIdx;
+  uiPUWidth := uint(0);
+  
+  switch this.m_pePartSize[uiAbsPartIdx] {
+    case SIZE_2Nx2N:   uiPUWidth = uint(this.m_puhWidth[uiAbsPartIdx]);  
+    case SIZE_2NxN:    uiPUWidth = uint(this.m_puhWidth[uiAbsPartIdx]);  
+    case SIZE_Nx2N:    uiPUWidth = uint(this.m_puhWidth[uiAbsPartIdx])  >> 1;  
+    case SIZE_NxN:     uiPUWidth = uint(this.m_puhWidth[uiAbsPartIdx])  >> 1; 
+    case SIZE_2NxnU:   uiPUWidth = uint(this.m_puhWidth[uiAbsPartIdx]); 
+    case SIZE_2NxnD:   uiPUWidth = uint(this.m_puhWidth[uiAbsPartIdx]); 
+    case SIZE_nLx2N:   
+      if uiPartIdx == 0 {
+        uiPUWidth = uint(this.m_puhWidth[uiAbsPartIdx]  >> 2); 
+      }else if uiPartIdx == 1 {
+        uiPUWidth = uint(this.m_puhWidth[uiAbsPartIdx]  >> 1) + uint(this.m_puhWidth[uiAbsPartIdx]  >> 2); 
+      }else{
+        //assert(0);
+      }
+      //break;
+    case SIZE_nRx2N:   
+      if uiPartIdx == 0 {
+        uiPUWidth = uint(this.m_puhWidth[uiAbsPartIdx]  >> 1) + uint(this.m_puhWidth[uiAbsPartIdx]  >> 2); 
+      }else if uiPartIdx == 1 {
+        uiPUWidth = uint(this.m_puhWidth[uiAbsPartIdx]  >> 2); 
+      }else{
+        //assert(0);
+      }
+      //break;
+    default:
+      //assert (0);
+      //break;
+  }
+  
+  *ruiPartIdxRT = G_auiRasterToZscan [G_auiZscanToRaster[ *ruiPartIdxLT ] + uiPUWidth / this.m_pcPic.GetMinCUWidth() - 1 ];
 }
-func (this *TComDataCU)  DeriveLeftBottomIdxGeneral    (  uiAbsPartIdx,  uiPartIdx uint, UruiPartIdxLB *uint){
+func (this *TComDataCU)  DeriveLeftBottomIdxGeneral    (  uiAbsPartIdx,  uiPartIdx uint, ruiPartIdxLB *uint){
+  uiPUHeight := uint(0);
+  switch this.m_pePartSize[uiAbsPartIdx] {
+    case SIZE_2Nx2N: uiPUHeight = uint(this.m_puhHeight[uiAbsPartIdx]);    
+    case SIZE_2NxN:  uiPUHeight = uint(this.m_puhHeight[uiAbsPartIdx]) >> 1;    
+    case SIZE_Nx2N:  uiPUHeight = uint(this.m_puhHeight[uiAbsPartIdx]);  
+    case SIZE_NxN:   uiPUHeight = uint(this.m_puhHeight[uiAbsPartIdx]) >> 1;    
+    case SIZE_2NxnU: 
+      if uiPartIdx == 0 {
+        uiPUHeight = uint(this.m_puhHeight[uiAbsPartIdx]) >> 2;    
+      }else if uiPartIdx == 1 {
+        uiPUHeight = uint(this.m_puhHeight[uiAbsPartIdx] >> 1) + uint(this.m_puhHeight[uiAbsPartIdx] >> 2);    
+      }else{
+        //assert(0);
+      }
+      //break;
+    case SIZE_2NxnD: 
+      if uiPartIdx == 0 {
+        uiPUHeight = uint(this.m_puhHeight[uiAbsPartIdx] >> 1) + uint(this.m_puhHeight[uiAbsPartIdx] >> 2);    
+      }else if uiPartIdx == 1 {
+        uiPUHeight = uint(this.m_puhHeight[uiAbsPartIdx] >> 2);    
+      }else{
+        //assert(0);
+      }
+      //break;
+    case SIZE_nLx2N: uiPUHeight = uint(this.m_puhHeight[uiAbsPartIdx]);  //break;
+    case SIZE_nRx2N: uiPUHeight = uint(this.m_puhHeight[uiAbsPartIdx]);  //break;
+    default:
+      //assert (0);
+      //break;
+  }
+  
+  *ruiPartIdxLB = G_auiRasterToZscan [G_auiZscanToRaster[ this.m_uiAbsIdxInLCU + uiAbsPartIdx ] + ((uiPUHeight / this.m_pcPic.GetMinCUHeight()) - 1)*this.m_pcPic.GetNumPartInWidth()];
 }
   
   
@@ -1543,9 +2388,106 @@ func (this *TComDataCU)  GetIntraSizeIdx                 (  uiAbsPartIdx    uint
   return uiCnt;
 }
   
-func (this *TComDataCU)  GetAllowedChromaDir             (  uiAbsPartIdx uint, uiModeList *uint ){
+func (this *TComDataCU)  GetAllowedChromaDir             (  uiAbsPartIdx uint, uiModeList []uint ){
+  uiModeList[0] = PLANAR_IDX;
+  uiModeList[1] = VER_IDX;
+  uiModeList[2] = HOR_IDX;
+  uiModeList[3] = DC_IDX;
+  uiModeList[4] = DM_CHROMA_IDX;
+
+  uiLumaMode := uint(this.GetLumaIntraDir1( uiAbsPartIdx ));
+
+  for i := 0; i < NUM_CHROMA_MODE - 1; i++ {
+    if uiLumaMode == uiModeList[i] {
+      uiModeList[i] = 34; // VER+8 mode
+      break;
+    }
+  }
 }
-func (this *TComDataCU)  GetIntraDirLumaPredictor        (  uiAbsPartIdx uint, uiIntraDirPred *int, piMode *int ) int{
+
+func (this *TComDataCU)  GetIntraDirLumaPredictor        (  uiAbsPartIdx uint, uiIntraDirPred []int, piMode *int ) int{
+  var pcTempCU *TComDataCU;
+  var uiTempPartIdx uint;
+  var iLeftIntraDir, iAboveIntraDir int;
+  uiPredNum := 0;
+  
+  // Get intra direction of left PU
+//#if DEPENDENT_SLICES
+  bDepSliceRestriction := ( !this.m_pcSlice.GetPPS().GetDependentSliceEnabledFlag());
+  pcTempCU = this.GetPULeft( &uiTempPartIdx, this.m_uiAbsIdxInLCU + uiAbsPartIdx, true, bDepSliceRestriction, true);
+//#else
+//  pcTempCU = this..GetPULeft( uiTempPartIdx, this.m_uiAbsIdxInLCU + uiAbsPartIdx );
+//#endif
+  
+  if pcTempCU!=nil{
+  	if pcTempCU.IsIntra( uiTempPartIdx ) {
+  		iLeftIntraDir = int(pcTempCU.GetLumaIntraDir1( uiTempPartIdx )) ;
+  	}else{
+  		iLeftIntraDir = DC_IDX;
+  	}
+  }else{
+  	iLeftIntraDir  = DC_IDX;
+  }
+  
+  // Get intra direction of above PU
+//#if LINEBUF_CLEANUP
+//#if DEPENDENT_SLICES
+  pcTempCU = this.GetPUAbove( &uiTempPartIdx, this.m_uiAbsIdxInLCU + uiAbsPartIdx, true, bDepSliceRestriction, true, true );
+//#else
+//  pcTempCU = this..GetPUAbove( uiTempPartIdx, this.m_uiAbsIdxInLCU + uiAbsPartIdx, true, true, true );
+//#endif
+/*#else
+#if DEPENDENT_SLICES
+  pcTempCU = this.GetPUAbove( uiTempPartIdx, this.m_uiAbsIdxInLCU + uiAbsPartIdx, true, bDepSliceRestriction, false, true );
+#else
+  pcTempCU = this.GetPUAbove( uiTempPartIdx, this.m_uiAbsIdxInLCU + uiAbsPartIdx, true, true, false, true );
+#endif
+#endif*/
+  
+  if pcTempCU!=nil {
+  	if pcTempCU.IsIntra( uiTempPartIdx ){
+  		iAboveIntraDir =  int(pcTempCU.GetLumaIntraDir1( uiTempPartIdx ));
+  	}else{
+  		iAboveIntraDir = DC_IDX;
+  	}
+  }else{
+  	iAboveIntraDir = DC_IDX;
+  }
+  
+  uiPredNum = 3;
+  if iLeftIntraDir == iAboveIntraDir {
+    if piMode!=nil {
+      *piMode = 1;
+    }
+    
+    if iLeftIntraDir > 1 { // angular modes
+      uiIntraDirPred[0] = iLeftIntraDir;
+      uiIntraDirPred[1] = ((iLeftIntraDir + 29) % 32) + 2;
+      uiIntraDirPred[2] = ((iLeftIntraDir - 1 ) % 32) + 2;
+    }else{ //non-angular
+      uiIntraDirPred[0] = PLANAR_IDX;
+      uiIntraDirPred[1] = DC_IDX;
+      uiIntraDirPred[2] = VER_IDX; 
+    }
+  }else{
+    if piMode!=nil {
+      *piMode = 2;
+    }
+    uiIntraDirPred[0] = iLeftIntraDir;
+    uiIntraDirPred[1] = iAboveIntraDir;
+    
+    if iLeftIntraDir!=0 && iAboveIntraDir!=0 { //both modes are non-planar
+      uiIntraDirPred[2] = PLANAR_IDX;
+    }else{
+      if (iLeftIntraDir+iAboveIntraDir)<2 {
+      	uiIntraDirPred[2] =  VER_IDX;
+      }else{
+        uiIntraDirPred[2] =  DC_IDX;
+      }
+    }
+  }
+  
+  return uiPredNum;
 }
   
   // -------------------------------------------------------------------------------------------------------------------
@@ -1553,13 +2495,91 @@ func (this *TComDataCU)  GetIntraDirLumaPredictor        (  uiAbsPartIdx uint, u
   // -------------------------------------------------------------------------------------------------------------------
   
 func (this *TComDataCU)  GetCtxSplitFlag                 (    uiAbsPartIdx,  uiDepth   uint                ) uint{
+  var pcTempCU *TComDataCU;
+  var uiTempPartIdx, uiCtx uint;
+  
+  // Get left split flag
+//#if DEPENDENT_SLICES
+  bDepSliceRestriction := ( !this.m_pcSlice.GetPPS().GetDependentSliceEnabledFlag());
+  pcTempCU = this.GetPULeft( &uiTempPartIdx, this.m_uiAbsIdxInLCU + uiAbsPartIdx, true, bDepSliceRestriction, true );
+//#else
+//  pcTempCU = this.GetPULeft( uiTempPartIdx, this.m_uiAbsIdxInLCU + uiAbsPartIdx );
+//#endif
+  if pcTempCU!=nil{
+  	if uint(pcTempCU.GetDepth1( uiTempPartIdx )) > uiDepth {
+  		uiCtx  = 1
+  	}else{
+  		uiCtx = 0;
+  	}
+  }else{
+  	uiCtx  = 0;
+  }
+  
+  // Get above split flag
+//#if DEPENDENT_SLICES
+  pcTempCU = this.GetPUAbove( &uiTempPartIdx, this.m_uiAbsIdxInLCU + uiAbsPartIdx, true, bDepSliceRestriction, false, true );
+//#else
+//  pcTempCU = this.GetPUAbove( uiTempPartIdx, this.m_uiAbsIdxInLCU + uiAbsPartIdx );
+//#endif
+	if pcTempCU!=nil{
+  	if uint(pcTempCU.GetDepth1( uiTempPartIdx )) > uiDepth {
+  		uiCtx += 1
+  	}else{
+  		uiCtx += 0;
+  	}
+  }else{
+  	uiCtx  += 0;
+  }
+  
+  return uiCtx;
 }
+
 func (this *TComDataCU)  GetCtxQtCbf                     (  eType TextType, uiTrDepth uint ) uint{
+  if eType!=0  {
+    return uiTrDepth;
+  }
+  
+  if uiTrDepth == 0 {
+  	return 1;
+  }
+
+  return 0;
 }
 
 func (this *TComDataCU)  GetCtxSkipFlag                  (    uiAbsPartIdx  uint                              )uint{
+  var pcTempCU *TComDataCU;
+  var uiTempPartIdx uint;
+  uiCtx := uint(0);
+  
+  // Get BCBP of left PU
+//#if DEPENDENT_SLICES
+  bDepSliceRestriction := ( !this.m_pcSlice.GetPPS().GetDependentSliceEnabledFlag());
+  pcTempCU = this.GetPULeft( &uiTempPartIdx, this.m_uiAbsIdxInLCU + uiAbsPartIdx, true, bDepSliceRestriction, true );
+//#else
+//  pcTempCU = this.GetPULeft( uiTempPartIdx, this.m_uiAbsIdxInLCU + uiAbsPartIdx );
+//#endif
+  if pcTempCU!=nil {
+  	uiCtx = uint(B2U(pcTempCU.IsSkipped( uiTempPartIdx )));
+  }else{
+  	uiCtx = 0;
+  }
+  
+  // Get BCBP of above PU
+//#if DEPENDENT_SLICES
+  pcTempCU = this.GetPUAbove( &uiTempPartIdx, this.m_uiAbsIdxInLCU + uiAbsPartIdx, true, bDepSliceRestriction, false, true );
+//#else
+//  pcTempCU = this.GetPUAbove( uiTempPartIdx, this.m_uiAbsIdxInLCU + uiAbsPartIdx );
+//#endif
+	if pcTempCU!=nil {
+  	uiCtx += uint(B2U(pcTempCU.IsSkipped( uiTempPartIdx )));
+  }else{
+  	uiCtx += 0;
+  }
+
+  return uiCtx;
 }
 func (this *TComDataCU)  GetCtxInterDir                  (    uiAbsPartIdx  uint                               )uint{
+  return uint(this.GetDepth1( uiAbsPartIdx ));
 }
   
 func (this *TComDataCU)  GetSliceStartCU         (  pos uint)                  uint{ 
@@ -1589,6 +2609,83 @@ func (this *TComDataCU)  GetTotalNumPart()              uint {
 }
 
 func (this *TComDataCU)  GetCoefScanIdx( uiAbsPartIdx,  uiWidth uint,  bIsLuma,  bIsIntra bool) uint{
+  var uiCTXIdx, uiScanIdx, uiDirMode uint;
+
+  if !bIsIntra {
+    uiScanIdx = SCAN_DIAG;
+    return uiScanIdx;
+  }
+
+  switch uiWidth {
+    case  2: uiCTXIdx = 6;
+    case  4: uiCTXIdx = 5; 
+    case  8: uiCTXIdx = 4; 
+    case 16: uiCTXIdx = 3; 
+    case 32: uiCTXIdx = 2; 
+    case 64: uiCTXIdx = 1; 
+    default: uiCTXIdx = 0; 
+  }
+
+  if bIsLuma {
+    uiDirMode = uint(this.GetLumaIntraDir1(uiAbsPartIdx));
+    uiScanIdx = SCAN_DIAG;
+    if uiCTXIdx >3 && uiCTXIdx < 6 { //if multiple scans supported for transform size
+      var a, b int;
+      if int(uiDirMode) - VER_IDX < 0 {
+      	a =  VER_IDX - int(uiDirMode);
+      }else{
+      	a = int(uiDirMode) - VER_IDX;
+      }
+      if int(uiDirMode) - HOR_IDX < 0 {
+      	b =  HOR_IDX - int(uiDirMode);
+      }else{
+      	b = int(uiDirMode) - HOR_IDX;
+      }
+      
+      if a < 5 {
+      	uiScanIdx = SCAN_HOR;
+      }else if b < 5{
+      	uiScanIdx = SCAN_VER;
+      }else{
+      	uiScanIdx = SCAN_DIAG;
+      }
+    }
+  }else{
+    uiDirMode = uint(this.GetChromaIntraDir1(uiAbsPartIdx));
+    if uiDirMode == DM_CHROMA_IDX {
+      // this.Get number of partitions in current CU
+      depth := this.GetDepth1(uiAbsPartIdx);
+      numParts := this.GetPic().GetNumPartInCU() >> (2 * depth);
+      
+      // this.Get luma mode from upper-left corner of current CU
+      uiDirMode = uint(this.GetLumaIntraDir1((uiAbsPartIdx/numParts)*numParts));
+    }
+    
+    uiScanIdx = SCAN_DIAG;
+    if uiCTXIdx >4 && uiCTXIdx < 7 { //if multiple scans supported for transform size
+      var a, b int;
+      if int(uiDirMode) - VER_IDX < 0 {
+      	a =  VER_IDX - int(uiDirMode);
+      }else{
+      	a = int(uiDirMode) - VER_IDX;
+      }
+      if int(uiDirMode) - HOR_IDX < 0 {
+      	b =  HOR_IDX - int(uiDirMode);
+      }else{
+      	b = int(uiDirMode) - HOR_IDX;
+      }
+      
+      if a < 5 {
+      	uiScanIdx = SCAN_HOR;
+      }else if b < 5{
+      	uiScanIdx = SCAN_VER;
+      }else{
+      	uiScanIdx = SCAN_DIAG;
+      }
+    }
+  }
+
+  return uiScanIdx;
 }
 
 //namespace RasterAddress

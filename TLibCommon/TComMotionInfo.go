@@ -11,8 +11,8 @@ import (
 
 /// parameters for AMVP
 type AMVPInfo struct{
-  m_acMvCand	[ AMVP_MAX_NUM_CANDS_MEM ]TComMv;  ///< array of motion vector predictor candidates
-  iN	int;                                ///< number of motion vector predictor candidates
+  MvCand	[ AMVP_MAX_NUM_CANDS_MEM ]TComMv;  ///< array of motion vector predictor candidates
+  IN	int;                                ///< number of motion vector predictor candidates
 } ;
 
 // ====================================================================================================================
