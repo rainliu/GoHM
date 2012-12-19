@@ -1,6 +1,6 @@
 package TLibCommon
 
-import ()
+import ("fmt")
 
 const NV_VERSION = "9.1.0"
 
@@ -64,7 +64,7 @@ const EARLY_SKIP_THRES = 1.50 ///< if RD < thres*avg[BestSkipRD]
 const MAX_CHROMA_FORMAT_IDC = 3
 
 // TODO: Existing names used for the different NAL unit types can be altered to better reflect the names in the spec.
-//       However, the names in the spec are not yet stable at this point. Once the names are stable, a cleanup 
+//       However, the names in the spec are not yet stable at this point. Once the names are stable, a cleanup
 //       effort can be done without use of macros to alter the names used to indicate the different NAL unit types.
 type NalUnitType uint8
 
@@ -163,7 +163,9 @@ func MAX(a, b interface{}) interface{} {
     case int:
     	if a.(int) < b.(int) {
             return b
-        }    
+        }
+    default:
+        fmt.Printf("unsupport data type\n");
     }
 
     return a
@@ -187,16 +189,31 @@ func MIN(a, b interface{}) interface{} {
         if a.(int) > b.(int) {
             return b
         }
+    default:
+        fmt.Printf("unsupport data type\n");
     }
 
     return a
 }
 
 
-func ABS(a Pel) Pel {
-	if a < 0 {
-		return -a;
-	}
+func ABS(a interface{}) interface{} {
+    switch a.(type) {
+    case Pel:
+        if a.(Pel) < 0 {
+            return -a.(Pxl);
+        }
+    case TCoeff:
+        if a.(TCoeff) < 0 {
+            return  -a.(TCoeff);
+        }
+    case int:
+        if a.(int) < 0 {
+            return  -a.(int);
+        }
+    default:
+        fmt.Printf("unsupport data type\n");
+    }
 
     return a
 }
@@ -223,7 +240,7 @@ func ClipC(a Pel) Pel {
 
     return a
 }
-
+/*
 func Clip3(minVal, maxVal, a Pel) Pel {
     if a < minVal {
         a = minVal
@@ -233,6 +250,7 @@ func Clip3(minVal, maxVal, a Pel) Pel {
 
     return a
 }   ///< general min/max clip
+*/
 
 func B2U(b bool) uint8 {
     if b {
@@ -240,10 +258,3 @@ func B2U(b bool) uint8 {
     }
     return 0
 }
-/*
-func U2B(u uint8) bool {
-    if u != 0 {
-        return true
-    }
-    return false
-}*/

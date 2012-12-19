@@ -364,12 +364,21 @@ func (this *TDecSbac)   Uninit                  ( )    {
 }
 
 func (this *TDecSbac)   Load                    ( pScr *TDecSbac){
+    this.xCopyFrom(pScr);
 }
 func (this *TDecSbac)   LoadContexts            ( pScr *TDecSbac){
+    this.xCopyContextsFrom(pScr);
 }
 func (this *TDecSbac)   xCopyFrom           	( pSrc *TDecSbac){
+  this.m_pcTDecBinIf.CopyState( pSrc.m_pcTDecBinIf );
+
+  this.m_uiLastQp  = pSrc.m_uiLastQp;
+  this.xCopyContextsFrom( pSrc );
 }
 func (this *TDecSbac)   xCopyContextsFrom       ( pSrc *TDecSbac){
+    for i:=0; i<this.m_numContextModels; i++ {
+        this.m_contextModels[i] = pSrc.m_contextModels[i];//, m_numContextModels*sizeof(m_contextModels[0]));
+    }
 }
 
 func (this *TDecSbac)   ResetEntropy 			( pSlice *TLibCommon.TComSlice){
@@ -451,6 +460,9 @@ func (this *TDecSbac)   ParseTerminatingBit       ( ruiBit *uint){
     this.m_pcTDecBinIf.DecodeBinTrm( ruiBit );
 }
 func (this *TDecSbac)   ParseMVPIdx               ( riMVPIdx  *int ){
+  var uiSymbol uint;
+  this.xReadUnaryMaxSymbol(&uiSymbol, this.m_cMVPIdxSCModel.Get1(0), 1, TLibCommon.AMVP_MAX_NUM_CANDS-1);
+  *riMVPIdx = int(uiSymbol);
 }
 func (this *TDecSbac)   ParseSaoMaxUvlc           ( val *uint,  maxSymbol uint){
     if maxSymbol == 0 {
@@ -537,8 +549,8 @@ func (this *TDecSbac)   ParseSaoOneLcuInterleaving( rx,  ry int, pSaoParam *TLib
   }
   if pSaoParam.SaoFlag[0] || pSaoParam.SaoFlag[1]  {
     if rx>0 && iCUAddrInSlice!=0 && allowMergeLeft {
-      this.ParseSaoMerge(&uiSymbol); 
-      pSaoParam.SaoLcuParam[0][iAddr].MergeLeftFlag = uiSymbol!=0;  
+      this.ParseSaoMerge(&uiSymbol);
+      pSaoParam.SaoLcuParam[0][iAddr].MergeLeftFlag = uiSymbol!=0;
 //#ifdef ENC_DEC_TRACE
       this.XReadAeTr(int(uiSymbol), "sao_merge_left_flag", TLibCommon.TRACE_LCU);
 //#endif
@@ -546,7 +558,7 @@ func (this *TDecSbac)   ParseSaoOneLcuInterleaving( rx,  ry int, pSaoParam *TLib
     if pSaoParam.SaoLcuParam[0][iAddr].MergeLeftFlag==false{
       if (ry > 0) && (iCUAddrUpInSlice>=0) && allowMergeUp {
         this.ParseSaoMerge(&uiSymbol);
-        pSaoParam.SaoLcuParam[0][iAddr].MergeUpFlag = uiSymbol!=0;  
+        pSaoParam.SaoLcuParam[0][iAddr].MergeUpFlag = uiSymbol!=0;
 //#ifdef ENC_DEC_TRACE
         this.XReadAeTr(int(uiSymbol), "sao_merge_up_flag", TLibCommon.TRACE_LCU);
 //#endif
@@ -771,55 +783,942 @@ func (this *TDecSbac)   xReadCoefRemainExGolomb ( rSymbol *uint, rParam uint){
 
 //public:
 func (this *TDecSbac)  ParseSkipFlag      		  ( pcCU *TLibCommon.TComDataCU,  uiAbsPartIdx,  uiDepth uint){
+    if pcCU.GetSlice().IsIntra() {
+      return;
+    }
+
+    uiSymbol  := uint(0);
+    uiCtxSkip := pcCU.GetCtxSkipFlag( uiAbsPartIdx );
+    this.m_pcTDecBinIf.DecodeBin( &uiSymbol, this.m_cCUSkipFlagSCModel.Get3( 0, 0, uiCtxSkip ) );
+    /*DTRACE_CABAC_VL( g_nSymbolCounter++ );
+    DTRACE_CABAC_T( "\tSkipFlag" );
+    DTRACE_CABAC_T( "\tuiCtxSkip: ");
+    DTRACE_CABAC_V( uiCtxSkip );
+    DTRACE_CABAC_T( "\tuiSymbol: ");
+    DTRACE_CABAC_V( uiSymbol );
+    DTRACE_CABAC_T( "\n");*/
+
+    if uiSymbol!=0 {
+      pcCU.SetSkipFlagSubParts( true,        uiAbsPartIdx, uiDepth );
+      pcCU.SetPredModeSubParts( TLibCommon.MODE_INTER,  uiAbsPartIdx, uiDepth );
+      pcCU.SetPartSizeSubParts( TLibCommon.SIZE_2Nx2N, uiAbsPartIdx, uiDepth );
+      pcCU.SetSizeSubParts( TLibCommon.G_uiMaxCUWidth>>uiDepth, TLibCommon.G_uiMaxCUHeight>>uiDepth, uiAbsPartIdx, uiDepth );
+      pcCU.SetMergeFlagSubParts( true , uiAbsPartIdx, 0, uiDepth );
+    }
 }
 func (this *TDecSbac)  ParseCUTransquantBypassFlag( pcCU *TLibCommon.TComDataCU,  uiAbsPartIdx,  uiDepth uint ){
+    var uiSymbol uint;
+    this.m_pcTDecBinIf.DecodeBin( &uiSymbol, this.m_CUTransquantBypassFlagSCModel.Get3( 0, 0, 0 ) );
+    pcCU.SetCUTransquantBypassSubParts( uiSymbol!=0, uiAbsPartIdx, uiDepth);
 }
 func (this *TDecSbac)  ParseSplitFlag     ( pcCU *TLibCommon.TComDataCU,  uiAbsPartIdx,  uiDepth uint ){
+    if uiDepth == TLibCommon.G_uiMaxCUDepth - TLibCommon.G_uiAddCUDepth {
+      pcCU.SetDepthSubParts( uiDepth, uiAbsPartIdx );
+      return;
+    }
+
+    var uiSymbol uint;
+    this.m_pcTDecBinIf.DecodeBin( &uiSymbol, this.m_cCUSplitFlagSCModel.Get3( 0, 0, pcCU.GetCtxSplitFlag( uiAbsPartIdx, uiDepth ) ) );
+    //DTRACE_CABAC_VL( g_nSymbolCounter++ )
+    //DTRACE_CABAC_T( "\tSplitFlag\n" )
+    pcCU.SetDepthSubParts( uiDepth + uiSymbol, uiAbsPartIdx );
+
+    return;
 }
 func (this *TDecSbac)  ParseMergeFlag     ( pcCU *TLibCommon.TComDataCU,  uiAbsPartIdx,  uiDepth, uiPUIdx uint  ){
+    var uiSymbol uint;
+    this.m_pcTDecBinIf.DecodeBin( &uiSymbol, this.m_cCUMergeFlagExtSCModel.Get3(0,0,0));// &this.m_cCUMergeFlagExtSCModel.Get1( 0 )[0] );
+    pcCU.SetMergeFlagSubParts( uiSymbol!=0, uiAbsPartIdx, uiPUIdx, uiDepth );
+
+    /*DTRACE_CABAC_VL( g_nSymbolCounter++ );
+    DTRACE_CABAC_T( "\tMergeFlag: " );
+    DTRACE_CABAC_V( uiSymbol );
+    DTRACE_CABAC_T( "\tAddress: " );
+    DTRACE_CABAC_V( pcCU->getAddr() );
+    DTRACE_CABAC_T( "\tuiAbsPartIdx: " );
+    DTRACE_CABAC_V( uiAbsPartIdx );
+    DTRACE_CABAC_T( "\n" );*/
 }
 func (this *TDecSbac)  ParseMergeIndex    ( pcCU *TLibCommon.TComDataCU, ruiMergeIndex *uint,  uiAbsPartIdx,  uiDepth uint){
+    uiUnaryIdx := uint(0);
+    uiNumCand := pcCU.GetSlice().GetMaxNumMergeCand();
+    if uiNumCand > 1 {
+      for ; uiUnaryIdx < uiNumCand - 1; uiUnaryIdx++ {
+        uiSymbol := uint(0);
+        if uiUnaryIdx==0 {
+          this.m_pcTDecBinIf.DecodeBin( &uiSymbol, this.m_cCUMergeIdxExtSCModel.Get3( 0, 0, 0 ) );
+        }else{
+          this.m_pcTDecBinIf.DecodeBinEP( &uiSymbol );
+        }
+
+        if uiSymbol == 0 {
+          break;
+        }
+      }
+    }
+    *ruiMergeIndex = uiUnaryIdx;
+/*
+    DTRACE_CABAC_VL( g_nSymbolCounter++ )
+    DTRACE_CABAC_T( "\tparseMergeIndex()" )
+    DTRACE_CABAC_T( "\tuiMRGIdx= " )
+    DTRACE_CABAC_V( ruiMergeIndex )
+    DTRACE_CABAC_T( "\n" )*/
 }
 func (this *TDecSbac)  ParsePartSize      ( pcCU *TLibCommon.TComDataCU, uiAbsPartIdx,  uiDepth uint ){
+    var uiSymbol, uiMode uint;
+    uiMode = 0;
+    var eMode TLibCommon.PartSize;
+
+    if pcCU.IsIntra( uiAbsPartIdx ) {
+      uiSymbol = 1;
+      if uiDepth == TLibCommon.G_uiMaxCUDepth - TLibCommon.G_uiAddCUDepth {
+        this.m_pcTDecBinIf.DecodeBin( &uiSymbol, this.m_cCUPartSizeSCModel.Get3( 0, 0, 0) );
+      }
+      if uiSymbol!=0 {
+        eMode = TLibCommon.SIZE_2Nx2N;
+      }else{
+        eMode = TLibCommon.SIZE_NxN;
+      }
+
+      uiTrLevel := uint(0);
+      uiWidthInBit  := uint(TLibCommon.G_aucConvertToBit[pcCU.GetWidth1(uiAbsPartIdx)]+2);
+      uiTrSizeInBit := uint(TLibCommon.G_aucConvertToBit[pcCU.GetSlice().GetSPS().GetMaxTrSize()]+2);
+      if uiWidthInBit >= uiTrSizeInBit {
+        uiTrLevel = uiWidthInBit - uiTrSizeInBit;
+      }else{
+        uiTrLevel = 0;
+      }
+      if eMode == TLibCommon.SIZE_NxN {
+        pcCU.SetTrIdxSubParts( 1+uiTrLevel, uiAbsPartIdx, uiDepth );
+      }else{
+        pcCU.SetTrIdxSubParts( uiTrLevel, uiAbsPartIdx, uiDepth );
+      }
+    }else{
+      uiMaxNumBits := uint(2);
+      if uiDepth == TLibCommon.G_uiMaxCUDepth - TLibCommon.G_uiAddCUDepth && !( (TLibCommon.G_uiMaxCUWidth>>uiDepth) == 8 && (TLibCommon.G_uiMaxCUHeight>>uiDepth) == 8 ) {
+        uiMaxNumBits ++;
+      }
+      for ui := uint(0); ui < uiMaxNumBits; ui++ {
+        this.m_pcTDecBinIf.DecodeBin( &uiSymbol, this.m_cCUPartSizeSCModel.Get3( 0, 0, ui) );
+        if uiSymbol!=0 {
+          break;
+        }
+        uiMode++;
+      }
+      eMode = TLibCommon.PartSize(uiMode);
+      if pcCU.GetSlice().GetSPS().GetAMPAcc( uiDepth )!=0 {
+        if eMode == TLibCommon.SIZE_2NxN {
+          this.m_pcTDecBinIf.DecodeBin(&uiSymbol, this.m_cCUAMPSCModel.Get3( 0, 0, 0 ));
+          if uiSymbol == 0{
+            this.m_pcTDecBinIf.DecodeBinEP(&uiSymbol);
+            if uiSymbol == 0 {
+                eMode = TLibCommon.SIZE_2NxnU;
+            }else{
+                eMode = TLibCommon.SIZE_2NxnD;
+            }
+          }
+        }else if eMode == TLibCommon.SIZE_Nx2N {
+          this.m_pcTDecBinIf.DecodeBin(&uiSymbol, this.m_cCUAMPSCModel.Get3( 0, 0, 0 ));
+          if uiSymbol == 0 {
+            this.m_pcTDecBinIf.DecodeBinEP(&uiSymbol);
+            if uiSymbol == 0 {
+                eMode = TLibCommon.SIZE_nLx2N;
+            }else{
+                eMode = TLibCommon.SIZE_nRx2N;
+            }
+          }
+        }
+      }
+    }
+    pcCU.SetPartSizeSubParts( eMode, uiAbsPartIdx, uiDepth );
+    pcCU.SetSizeSubParts( TLibCommon.G_uiMaxCUWidth>>uiDepth, TLibCommon.G_uiMaxCUHeight>>uiDepth, uiAbsPartIdx, uiDepth );
 }
 func (this *TDecSbac)  ParsePredMode      ( pcCU *TLibCommon.TComDataCU, uiAbsPartIdx,  uiDepth uint ){
+    if pcCU.GetSlice().IsIntra() {
+      pcCU.SetPredModeSubParts( TLibCommon.MODE_INTRA, uiAbsPartIdx, uiDepth );
+      return;
+    }
+
+    var uiSymbol uint;
+    iPredMode := TLibCommon.MODE_INTER;
+    this.m_pcTDecBinIf.DecodeBin( &uiSymbol, this.m_cCUPredModeSCModel.Get3( 0, 0, 0 ) );
+    iPredMode += int(uiSymbol);
+    pcCU.SetPredModeSubParts( TLibCommon.PredMode(iPredMode), uiAbsPartIdx, uiDepth );
 }
 
-func (this *TDecSbac)  ParseIntraDirLumaAng( pcCU *TLibCommon.TComDataCU, uiAbsPartIdx,  uiDepth uint ){
+func (this *TDecSbac)  ParseIntraDirLumaAng( pcCU *TLibCommon.TComDataCU, absPartIdx,  depth uint ){
+    mode := pcCU.GetPartitionSize1( absPartIdx );
+    var partNum uint;
+    if  mode==TLibCommon.SIZE_NxN {
+        partNum = 4;
+    }else{
+        partNum = 1;
+    }
+
+    partOffset := uint( pcCU.GetPic().GetNumPartInCU() >> ( pcCU.GetDepth1(absPartIdx) << 1 ) ) >> 2;
+    var mpmPred [4]uint;
+    var symbol uint;
+    var j,intraPredMode int;
+    if mode==TLibCommon.SIZE_NxN{
+      depth++;
+    }
+    for j=0;j<int(partNum);j++{
+      this.m_pcTDecBinIf.DecodeBin( &symbol, this.m_cCUIntraPredSCModel.Get3( 0, 0, 0) );
+      mpmPred[j] = symbol;
+    }
+    for j=0;j<int(partNum);j++{
+      var preds =[3]int{-1, -1, -1};
+      predNum := pcCU.GetIntraDirLumaPredictor(absPartIdx+partOffset*uint(j), preds[:], nil);
+      if mpmPred[j]!=0 {
+        this.m_pcTDecBinIf.DecodeBinEP( &symbol );
+        if symbol!=0 {
+          this.m_pcTDecBinIf.DecodeBinEP( &symbol );
+          symbol++;
+        }
+        intraPredMode = preds[symbol];
+      }else{
+        intraPredMode = 0;
+        this.m_pcTDecBinIf.DecodeBinsEP( &symbol, 5 );
+        intraPredMode = int(symbol);
+
+        //postponed sorting of MPMs (only in remaining branch)
+        if preds[0] > preds[1]{
+          tmp:=preds[0];
+          preds[0] = preds[1];
+          preds[1] = tmp;
+          //std::swap(preds[0], preds[1]);
+        }
+        if preds[0] > preds[2]{
+          tmp:=preds[0];
+          preds[0] = preds[2];
+          preds[2] = tmp;
+          //std::swap(preds[0], preds[2]);
+        }
+        if preds[1] > preds[2]{
+          tmp:=preds[1];
+          preds[1] = preds[2];
+          preds[2] = tmp;
+          //std::swap(preds[1], preds[2]);
+        }
+        for i := int(0); i < predNum; i++ {
+          intraPredMode += int(TLibCommon.B2U( intraPredMode >= preds[i] ));
+        }
+      }
+      pcCU.SetLumaIntraDirSubParts( uint(intraPredMode), absPartIdx+partOffset*uint(j), depth );
+    }
 }
 
 func (this *TDecSbac)  ParseIntraDirChroma( pcCU *TLibCommon.TComDataCU, uiAbsPartIdx,  uiDepth uint ){
+    var uiSymbol uint;
+
+    this.m_pcTDecBinIf.DecodeBin( &uiSymbol, this.m_cCUChromaPredSCModel.Get3( 0, 0, 0 ) );
+
+    if uiSymbol == 0 {
+      uiSymbol = TLibCommon.DM_CHROMA_IDX;
+    }else{
+        var uiIPredMode uint;
+        this.m_pcTDecBinIf.DecodeBinsEP( &uiIPredMode, 2 );
+        var uiAllowedChromaDir  [ TLibCommon.NUM_CHROMA_MODE ]uint;
+        pcCU.GetAllowedChromaDir( uiAbsPartIdx, uiAllowedChromaDir[:] );
+        uiSymbol = uiAllowedChromaDir[ uiIPredMode ];
+    }
+    pcCU.SetChromIntraDirSubParts( uiSymbol, uiAbsPartIdx, uiDepth );
+    return;
 }
 
 func (this *TDecSbac)  ParseInterDir      ( pcCU *TLibCommon.TComDataCU, ruiInterDir *uint, uiAbsPartIdx,  uiDepth uint ){
+    var uiSymbol uint;
+    uiCtx := pcCU.GetCtxInterDir( uiAbsPartIdx );
+    pCtx := this.m_cCUInterDirSCModel.Get1( 0 );
+    uiSymbol = 0;
+    if pcCU.GetPartitionSize1(uiAbsPartIdx) == TLibCommon.SIZE_2Nx2N || pcCU.GetHeight1(uiAbsPartIdx) != 8 {
+      this.m_pcTDecBinIf.DecodeBin( &uiSymbol, &pCtx[uiCtx] );
+    }
+
+    if uiSymbol!=0{
+      uiSymbol = 2;
+    }else{
+      this.m_pcTDecBinIf.DecodeBin( &uiSymbol, &pCtx[4] );
+      //assert(uiSymbol == 0 || uiSymbol == 1);
+    }
+
+    uiSymbol++;
+    *ruiInterDir = uiSymbol;
+    return;
 }
 func (this *TDecSbac)  ParseRefFrmIdx     ( pcCU *TLibCommon.TComDataCU, riRefFrmIdx *int, uiAbsPartIdx,  uiDepth uint,  eRefList TLibCommon.RefPicList){
+    var uiSymbol uint;
+    {
+      pCtx := this.m_cCURefPicSCModel.Get1( 0 );
+      this.m_pcTDecBinIf.DecodeBin( &uiSymbol, &pCtx[0] );
+
+      if uiSymbol!=0 {
+        uiRefNum := pcCU.GetSlice().GetNumRefIdx( eRefList ) - 2;
+        //pCtx++;
+        var ui uint;
+        for ui = 0; ui < uint(uiRefNum); ui++ {
+          if ui == 0 {
+            this.m_pcTDecBinIf.DecodeBin( &uiSymbol, &pCtx[1] );
+          }else{
+            this.m_pcTDecBinIf.DecodeBinEP( &uiSymbol );
+          }
+          if uiSymbol == 0 {
+            break;
+          }
+        }
+        uiSymbol = ui + 1;
+      }
+      *riRefFrmIdx = int(uiSymbol);
+    }
+
+    return;
 }
 func (this *TDecSbac)  ParseMvd           ( pcCU *TLibCommon.TComDataCU,  uiAbsPartIdx,  uiPartIdx,  uiDepth uint, eRefList TLibCommon.RefPicList){
+    var uiSymbol uint;
+    var uiHorAbs, uiVerAbs, uiHorSign, uiVerSign uint;
+    uiHorSign = 0;
+    uiVerSign = 0;
+    pCtx := this.m_cCUMvdSCModel.Get1( 0 );
+
+    if pcCU.GetSlice().GetMvdL1ZeroFlag() && eRefList == TLibCommon.REF_PIC_LIST_1 && pcCU.GetInterDir1(uiAbsPartIdx)==3 {
+      uiHorAbs=0;
+      uiVerAbs=0;
+    }else{
+      this.m_pcTDecBinIf.DecodeBin( &uiHorAbs, &pCtx[0] );
+      this.m_pcTDecBinIf.DecodeBin( &uiVerAbs, &pCtx[0] );
+
+      bHorAbsGr0 := uiHorAbs != 0;
+      bVerAbsGr0 := uiVerAbs != 0;
+      //pCtx++;
+
+      if bHorAbsGr0 {
+        this.m_pcTDecBinIf.DecodeBin( &uiSymbol, &pCtx[1] );
+        uiHorAbs += uiSymbol;
+      }
+
+      if bVerAbsGr0 {
+        this.m_pcTDecBinIf.DecodeBin( &uiSymbol, &pCtx[1] );
+        uiVerAbs += uiSymbol;
+      }
+
+      if bHorAbsGr0 {
+        if 2 == uiHorAbs {
+          this.xReadEpExGolomb( &uiSymbol, 1 );
+          uiHorAbs += uiSymbol;
+        }
+
+        this.m_pcTDecBinIf.DecodeBinEP( &uiHorSign );
+      }
+
+      if bVerAbsGr0 {
+        if 2 == uiVerAbs {
+          this.xReadEpExGolomb( &uiSymbol, 1 );
+          uiVerAbs += uiSymbol;
+        }
+
+        this.m_pcTDecBinIf.DecodeBinEP( &uiVerSign );
+      }
+
+    }
+
+    var mv_x, mv_y int16;
+    if uiHorSign!=0 {
+        mv_x = -int16( uiHorAbs )
+    }else{
+        mv_x =  int16( uiHorAbs )
+    }
+    if uiVerSign!=0 {
+        mv_y = -int16( uiVerAbs )
+    }else{
+        mv_y =  int16( uiVerAbs )
+    }
+    //const TComMv cMv( uiHorSign ? -Int( uiHorAbs ): uiHorAbs, uiVerSign ? -Int( uiVerAbs ) : uiVerAbs );
+    cMv := TLibCommon.NewTComMv(mv_x, mv_y);
+
+    pcCU.GetCUMvField( eRefList ).SetAllMvd( cMv, pcCU.GetPartitionSize1( uiAbsPartIdx ), int(uiAbsPartIdx), uiDepth, int(uiPartIdx) );
+    return;
 }
 
 func (this *TDecSbac)  ParseTransformSubdivFlag(  ruiSubdivFlag *uint,  uiLog2TransformBlockSize uint){
+    this.m_pcTDecBinIf.DecodeBin( ruiSubdivFlag, this.m_cCUTransSubdivFlagSCModel.Get3( 0, 0, uiLog2TransformBlockSize ) );
+    /*DTRACE_CABAC_VL( g_nSymbolCounter++ )
+    DTRACE_CABAC_T( "\tparseTransformSubdivFlag()" )
+    DTRACE_CABAC_T( "\tsymbol=" )
+    DTRACE_CABAC_V( ruiSubdivFlag )
+    DTRACE_CABAC_T( "\tctx=" )
+    DTRACE_CABAC_V( uiLog2TransformBlockSize )
+    DTRACE_CABAC_T( "\n" )*/
 }
 func (this *TDecSbac)  ParseQtCbf         ( pcCU *TLibCommon.TComDataCU,  uiAbsPartIdx uint,  eType TLibCommon.TextType,  uiTrDepth, uiDepth uint  ){
+    var uiSymbol uint;
+    uiCtx := pcCU.GetCtxQtCbf( eType, uiTrDepth );
+    if eType!=0 {
+        this.m_pcTDecBinIf.DecodeBin( &uiSymbol , this.m_cCUQtCbfSCModel.Get3( 0, TLibCommon.TEXT_CHROMA, uiCtx ) );
+    }else{
+        this.m_pcTDecBinIf.DecodeBin( &uiSymbol , this.m_cCUQtCbfSCModel.Get3( 0, uint(eType), uiCtx ) );
+    }
+/*
+    DTRACE_CABAC_VL( g_nSymbolCounter++ )
+    DTRACE_CABAC_T( "\tparseQtCbf()" )
+    DTRACE_CABAC_T( "\tsymbol=" )
+    DTRACE_CABAC_V( uiSymbol )
+    DTRACE_CABAC_T( "\tctx=" )
+    DTRACE_CABAC_V( uiCtx )
+    DTRACE_CABAC_T( "\tetype=" )
+    DTRACE_CABAC_V( eType )
+    DTRACE_CABAC_T( "\tuiAbsPartIdx=" )
+    DTRACE_CABAC_V( uiAbsPartIdx )
+    DTRACE_CABAC_T( "\n" )*/
+
+    pcCU.SetCbfSubParts4( uiSymbol << uiTrDepth, eType, uiAbsPartIdx, uiDepth );
 }
 func (this *TDecSbac)  ParseQtRootCbf     ( pcCU *TLibCommon.TComDataCU,  uiAbsPartIdx,  uiDepth uint, uiQtRootCbf *uint ){
+    var uiSymbol uint;
+    uiCtx := uint(0);
+    this.m_pcTDecBinIf.DecodeBin( &uiSymbol , this.m_cCUQtRootCbfSCModel.Get3( 0, 0, uiCtx ) );
+    /*DTRACE_CABAC_VL( g_nSymbolCounter++ )
+    DTRACE_CABAC_T( "\tparseQtRootCbf()" )
+    DTRACE_CABAC_T( "\tsymbol=" )
+    DTRACE_CABAC_V( uiSymbol )
+    DTRACE_CABAC_T( "\tctx=" )
+    DTRACE_CABAC_V( uiCtx )
+    DTRACE_CABAC_T( "\tuiAbsPartIdx=" )
+    DTRACE_CABAC_V( uiAbsPartIdx )
+    DTRACE_CABAC_T( "\n" )*/
+
+    *uiQtRootCbf = uiSymbol;
 }
 
 func (this *TDecSbac)  ParseDeltaQP       ( pcCU *TLibCommon.TComDataCU,  uiAbsPartIdx,  uiDepth uint){
+    var qp, iDQp int;
+    var uiDQp uint;
+    var uiSymbol uint;
+
+    this.xReadUnaryMaxSymbol (&uiDQp,  this.m_cCUDeltaQpSCModel.Get1(0), 1, TLibCommon.CU_DQP_TU_CMAX);
+
+    if uiDQp >= TLibCommon.CU_DQP_TU_CMAX{
+      this.xReadEpExGolomb( &uiSymbol, TLibCommon.CU_DQP_EG_k );
+      uiDQp+=uiSymbol;
+    }
+
+    if  uiDQp > 0 {
+      var uiSign uint;
+      qpBdOffsetY := pcCU.GetSlice().GetSPS().GetQpBDOffsetY();
+      this.m_pcTDecBinIf.DecodeBinEP(&uiSign);
+      iDQp = int(uiDQp);
+      if uiSign!=0 {
+        iDQp = -iDQp;
+      }
+      qp = ((int(pcCU.GetRefQP( uiAbsPartIdx )) + iDQp + 52 + 2*qpBdOffsetY )%(52+qpBdOffsetY)) - qpBdOffsetY;
+    }else{
+      iDQp=0;
+      qp  = int(pcCU.GetRefQP(uiAbsPartIdx));
+    }
+    pcCU.SetQPSubParts(qp, uiAbsPartIdx, uiDepth);
+    pcCU.SetCodedQP(int8(qp));
 }
 
 func (this *TDecSbac)  ParseIPCMInfo      ( pcCU *TLibCommon.TComDataCU, uiAbsPartIdx,  uiDepth uint){
+  var uiSymbol uint;
+/*#if !REMOVE_BURST_IPCM
+  Int numSubseqIPCM = 0;
+#endif*/
+  readPCMSampleFlag := false;
+
+/*#if !REMOVE_BURST_IPCM
+  if(pcCU.GetNumSucIPCM() > 0)
+  {
+    readPCMSampleFlag = true;
+  }
+  else
+  {
+#endif*/
+    this.m_pcTDecBinIf.DecodeBinTrm(&uiSymbol);
+
+    if uiSymbol!=0 {
+      readPCMSampleFlag = true;
+/*#if !REMOVE_BURST_IPCM
+      this.m_pcTDecBinIf.DecodeNumSubseqIPCM(numSubseqIPCM);
+      pcCU.SetNumSucIPCM(numSubseqIPCM + 1);
+#endif*/
+      this.m_pcTDecBinIf.DecodePCMAlignBits();
+    }
+/*#if !REMOVE_BURST_IPCM
+  }
+#endif*/
+
+  if readPCMSampleFlag == true {
+    bIpcmFlag := true;
+
+    pcCU.SetPartSizeSubParts  ( TLibCommon.SIZE_2Nx2N, uiAbsPartIdx, uiDepth );
+    pcCU.SetSizeSubParts      ( TLibCommon.G_uiMaxCUWidth>>uiDepth, TLibCommon.G_uiMaxCUHeight>>uiDepth, uiAbsPartIdx, uiDepth );
+    pcCU.SetTrIdxSubParts     ( 0, uiAbsPartIdx, uiDepth );
+    pcCU.SetIPCMFlagSubParts  ( bIpcmFlag, uiAbsPartIdx, uiDepth );
+
+    uiMinCoeffSize := pcCU.GetPic().GetMinCUWidth()*pcCU.GetPic().GetMinCUHeight();
+    uiLumaOffset   := uiMinCoeffSize*uiAbsPartIdx;
+    uiChromaOffset := uiLumaOffset>>2;
+
+    //Pel* piPCMSample;
+    var uiWidth,uiHeight,uiSampleBits,uiX,uiY uint;
+
+    piPCMSample := pcCU.GetPCMSampleY() [ uiLumaOffset:];
+    uiWidth = uint(pcCU.GetWidth1(uiAbsPartIdx));
+    uiHeight = uint(pcCU.GetHeight1(uiAbsPartIdx));
+    uiSampleBits = uint(pcCU.GetSlice().GetSPS().GetPCMBitDepthLuma());
+
+    for uiY = 0; uiY < uiHeight; uiY++ {
+      for uiX = 0; uiX < uiWidth; uiX++ {
+        var uiSample uint;
+        this.m_pcTDecBinIf.xReadPCMCode(uiSampleBits, &uiSample);
+        piPCMSample[uiY*uiWidth+uiX] = TLibCommon.Pel(uiSample);
+      }
+      //piPCMSample += uiWidth;
+    }
+
+    piPCMSample = pcCU.GetPCMSampleCb() [uiChromaOffset:];
+    uiWidth = uint(pcCU.GetWidth1(uiAbsPartIdx))/2;
+    uiHeight = uint(pcCU.GetHeight1(uiAbsPartIdx))/2;
+    uiSampleBits = uint(pcCU.GetSlice().GetSPS().GetPCMBitDepthChroma());
+
+    for uiY = 0; uiY < uiHeight; uiY++{
+      for uiX = 0; uiX < uiWidth; uiX++{
+        var uiSample uint;
+        this.m_pcTDecBinIf.xReadPCMCode(uiSampleBits, &uiSample);
+        piPCMSample[uiY*uiWidth+uiX] = TLibCommon.Pel(uiSample);
+      }
+      //piPCMSample += uiWidth;
+    }
+
+    piPCMSample = pcCU.GetPCMSampleCr() [uiChromaOffset:];
+    uiWidth = uint(pcCU.GetWidth1(uiAbsPartIdx))/2;
+    uiHeight = uint(pcCU.GetHeight1(uiAbsPartIdx))/2;
+    uiSampleBits = uint(pcCU.GetSlice().GetSPS().GetPCMBitDepthChroma());
+
+    for uiY = 0; uiY < uiHeight; uiY++{
+      for uiX = 0; uiX < uiWidth; uiX++ {
+        var uiSample uint;
+        this.m_pcTDecBinIf.xReadPCMCode(uiSampleBits, &uiSample);
+        piPCMSample[uiY*uiWidth+uiX] = TLibCommon.Pel(uiSample);
+      }
+      //piPCMSample += uiWidth;
+    }
+
+/*#if !REMOVE_BURST_IPCM
+    pcCU.SetNumSucIPCM( pcCU.GetNumSucIPCM() - 1);
+    if(pcCU.GetNumSucIPCM() == 0)
+    {
+#endif*/
+      this.m_pcTDecBinIf.ResetBac();
+/*#if !REMOVE_BURST_IPCM
+    }
+#endif*/
+  }
 }
 
 func (this *TDecSbac)  ParseLastSignificantXY( uiPosLastX *uint, uiPosLastY *uint,  width,  height int,  eTType TLibCommon.TextType,  uiScanIdx uint){
+    var uiLast uint;
+    pCtxX := this.m_cCuCtxLastX.Get2( 0, uint(eTType) );
+    pCtxY := this.m_cCuCtxLastY.Get2( 0, uint(eTType) );
+
+    var blkSizeOffsetX, blkSizeOffsetY, shiftX, shiftY int;
+    if eTType!=0 {
+        blkSizeOffsetX = 0;
+        blkSizeOffsetY = 0;
+        shiftX= int(TLibCommon.G_aucConvertToBit[ width  ]);
+        shiftY= int(TLibCommon.G_aucConvertToBit[ height ]);
+    }else{
+        blkSizeOffsetX =  int(TLibCommon.G_aucConvertToBit[ width ] *3 + ((TLibCommon.G_aucConvertToBit[ width ] +1)>>2));
+        blkSizeOffsetY =  int(TLibCommon.G_aucConvertToBit[ height ]*3 + ((TLibCommon.G_aucConvertToBit[ height ]+1)>>2));
+        shiftX= int((TLibCommon.G_aucConvertToBit[ width  ]+3)>>2);
+        shiftY= int((TLibCommon.G_aucConvertToBit[ height ]+3)>>2);
+    }
+    // posX
+    for *uiPosLastX = 0; *uiPosLastX < TLibCommon.G_uiGroupIdx[ width - 1 ]; (*uiPosLastX)++ {
+      this.m_pcTDecBinIf.DecodeBin( &uiLast, &pCtxX [ blkSizeOffsetX + int(*uiPosLastX >>uint(shiftX))] );
+      if uiLast!=0 {
+        break;
+      }
+    }
+
+    // posY
+    for *uiPosLastY = 0; *uiPosLastY < TLibCommon.G_uiGroupIdx[ height - 1 ]; (*uiPosLastY)++  {
+      this.m_pcTDecBinIf.DecodeBin( &uiLast, &pCtxY [ blkSizeOffsetY + int(*uiPosLastY >>uint(shiftY))] );
+      if uiLast!=0 {
+        break;
+      }
+    }
+    if  *uiPosLastX > 3  {
+      uiTemp  := uint(0);
+      uiCount := uint( *uiPosLastX - 2 ) >> 1;
+      for i := int(uiCount) - 1; i >= 0; i-- {
+        this.m_pcTDecBinIf.DecodeBinEP( &uiLast );
+        uiTemp += uiLast << uint(i);
+      }
+      *uiPosLastX = TLibCommon.G_uiMinInGroup[ *uiPosLastX ] + uiTemp;
+    }
+    if *uiPosLastY > 3  {
+      uiTemp  := uint(0);
+      uiCount := uint( *uiPosLastY - 2 ) >> 1;
+      for  i := int(uiCount) - 1; i >= 0; i-- {
+        this.m_pcTDecBinIf.DecodeBinEP( &uiLast );
+        uiTemp += uiLast << uint(i);
+      }
+      *uiPosLastY = TLibCommon.G_uiMinInGroup[ *uiPosLastY ] + uiTemp;
+    }
+
+    if uiScanIdx == TLibCommon.SCAN_VER {
+      tmp:=*uiPosLastX;
+      *uiPosLastX= *uiPosLastY;
+      *uiPosLastY= tmp;
+      //swap( uiPosLastX, uiPosLastY );
+    }
 }
-func (this *TDecSbac)  ParseCoeffNxN      ( pcCU *TLibCommon.TComDataCU, pcCoef *TLibCommon.TCoeff,  uiAbsPartIdx,  uiWidth,  uiHeight,  uiDepth uint,  eTType TLibCommon.TextType){
+func (this *TDecSbac)  ParseCoeffNxN      ( pcCU *TLibCommon.TComDataCU, pcCoef []TLibCommon.TCoeff,  uiAbsPartIdx,  uiWidth,  uiHeight,  uiDepth uint,  eTType TLibCommon.TextType){
+    /*DTRACE_CABAC_VL( TLibCommon.GnSymbolCounter++ )
+    DTRACE_CABAC_T( "\tparseCoeffNxN()\teType=" )
+    DTRACE_CABAC_V( eTType )
+    DTRACE_CABAC_T( "\twidth=" )
+    DTRACE_CABAC_V( uiWidth )
+    DTRACE_CABAC_T( "\theight=" )
+    DTRACE_CABAC_V( uiHeight )
+    DTRACE_CABAC_T( "\tdepth=" )
+    DTRACE_CABAC_V( uiDepth )
+    DTRACE_CABAC_T( "\tabspartidx=" )
+    DTRACE_CABAC_V( uiAbsPartIdx )
+    DTRACE_CABAC_T( "\ttoCU-X=" )
+    DTRACE_CABAC_V( pcCU.GetCUPelX() )
+    DTRACE_CABAC_T( "\ttoCU-Y=" )
+    DTRACE_CABAC_V( pcCU.GetCUPelY() )
+    DTRACE_CABAC_T( "\tCU-addr=" )
+    DTRACE_CABAC_V(  pcCU.GetAddr() )
+    DTRACE_CABAC_T( "\tinCU-X=" )
+    DTRACE_CABAC_V( TLibCommon.GauiRasterToPelX[ TLibCommon.GauiZscanToRaster[uiAbsPartIdx] ] )
+    DTRACE_CABAC_T( "\tinCU-Y=" )
+    DTRACE_CABAC_V( TLibCommon.GauiRasterToPelY[ TLibCommon.GauiZscanToRaster[uiAbsPartIdx] ] )
+    DTRACE_CABAC_T( "\tpredmode=" )
+    DTRACE_CABAC_V(  pcCU.GetPredictionMode( uiAbsPartIdx ) )
+    DTRACE_CABAC_T( "\n" )*/
+
+    if uiWidth > pcCU.GetSlice().GetSPS().GetMaxTrSize() {
+      uiWidth  = pcCU.GetSlice().GetSPS().GetMaxTrSize();
+      uiHeight = pcCU.GetSlice().GetSPS().GetMaxTrSize();
+    }
+    if pcCU.GetSlice().GetPPS().GetUseTransformSkip(){
+      this.ParseTransformSkipFlags( pcCU, uiAbsPartIdx, uiWidth, uiHeight, uiDepth, eTType);
+    }
+
+    if eTType == TLibCommon.TEXT_LUMA {
+        eTType = TLibCommon.TEXT_LUMA;
+    }else if eTType == TLibCommon.TEXT_NONE {
+        eTType =  TLibCommon.TEXT_NONE;
+    }else{
+        eTType =  TLibCommon.TEXT_CHROMA;
+    }
+
+    //----- parse significance map -----
+    uiLog2BlockSize   := TLibCommon.G_aucConvertToBit[ uiWidth ] + 2;
+    uiMaxNumCoeff     := uiWidth * uiHeight;
+    uiMaxNumCoeffM1   := uiMaxNumCoeff - 1;
+    uiScanIdx         := pcCU.GetCoefScanIdx(uiAbsPartIdx, uiWidth, eTType==TLibCommon.TEXT_LUMA, pcCU.IsIntra(uiAbsPartIdx));
+
+    //===== decode last significant =====
+    var uiPosLastX, uiPosLastY uint;
+    this.ParseLastSignificantXY( &uiPosLastX, &uiPosLastY, int(uiWidth), int(uiHeight), eTType, uiScanIdx );
+    uiBlkPosLast      := uiPosLastX + (uiPosLastY<<uint(uiLog2BlockSize));
+    pcCoef[ uiBlkPosLast ] = 1;
+
+    //===== decode significance flags =====
+    uiScanPosLast := uiBlkPosLast;
+    scan  := TLibCommon.G_auiSigLastScan[ uiScanIdx ][ uiLog2BlockSize-1 ];
+    for uiScanPosLast := uint(0); uiScanPosLast < uiMaxNumCoeffM1; uiScanPosLast++  {
+      uiBlkPos := scan[ uiScanPosLast ];
+      if uiBlkPosLast == uiBlkPos {
+        break;
+      }
+    }
+
+    baseCoeffGroupCtx := this.m_cCUSigCoeffGroupSCModel.Get2( 0, uint(eTType) );
+    var baseCtx []TLibCommon.ContextModel;
+    if eTType==TLibCommon.TEXT_LUMA {
+        baseCtx = this.m_cCUSigSCModel.Get2( 0, 0 ) ;
+    }else{
+        baseCtx = this.m_cCUSigSCModel.Get2( 0, 0 ) [TLibCommon.NUM_SIG_FLAG_CTX_LUMA:];
+    }
+
+    iLastScanSet  := uiScanPosLast >> TLibCommon.LOG2_SCAN_SET_SIZE;
+    c1            := 1;
+    uiGoRiceParam := 0;
+
+    var beValid bool;
+    if pcCU.GetCUTransquantBypass1(uiAbsPartIdx){
+      beValid = false;
+    }else{
+      beValid = pcCU.GetSlice().GetPPS().GetSignHideFlag();
+    }
+    absSum := uint(0);
+
+    var uiSigCoeffGroupFlag [ TLibCommon.MLS_GRP_NUM ]uint;
+    //::memset( uiSigCoeffGroupFlag, 0, sizeof(UInt) * MLS_GRP_NUM );
+    uiNumBlkSide := uiWidth >> (TLibCommon.MLS_CG_SIZE >> 1);
+    var scanCG []uint;
+    {
+      if uiLog2BlockSize > 3 {
+        scanCG = TLibCommon.G_auiSigLastScan[ uiScanIdx ][ uiLog2BlockSize-2-1 ];
+      }else{
+        scanCG = TLibCommon.G_auiSigLastScan[ uiScanIdx ][ 0  ];
+      }
+      if uiLog2BlockSize == 3 {
+        scanCG = TLibCommon.G_sigLastScan8x8[ uiScanIdx ][:];
+      }else if uiLog2BlockSize == 5 {
+        scanCG = TLibCommon.G_sigLastScanCG32x32[:];
+      }
+    }
+
+    iScanPosSig := int(uiScanPosLast);
+    for iSubSet := iLastScanSet; iSubSet >= 0; iSubSet-- {
+      iSubPos := iSubSet << TLibCommon.LOG2_SCAN_SET_SIZE;
+      uiGoRiceParam  = 0;
+      numNonZero := 0;
+
+      lastNZPosInCG := -1;
+      firstNZPosInCG := TLibCommon.SCAN_SET_SIZE;
+
+      var pos   [TLibCommon.SCAN_SET_SIZE]int;
+      if iScanPosSig == int(uiScanPosLast) {
+        lastNZPosInCG  = iScanPosSig;
+        firstNZPosInCG = iScanPosSig;
+        iScanPosSig--;
+        pos[ numNonZero ] = int(uiBlkPosLast);
+        numNonZero = 1;
+      }
+
+      // decode significant_coeffgroup_flag
+      iCGBlkPos := scanCG[ iSubSet ];
+      iCGPosY   := iCGBlkPos / uiNumBlkSide;
+      iCGPosX   := iCGBlkPos - (iCGPosY * uiNumBlkSide);
+      if iSubSet == iLastScanSet || iSubSet == 0 {
+        uiSigCoeffGroupFlag[ iCGBlkPos ] = 1;
+      }else{
+        var uiSigCoeffGroup uint;
+        uiCtxSig  := TLibCommon.GetSigCoeffGroupCtxInc( uiSigCoeffGroupFlag[:], iCGPosX, iCGPosY, uiScanIdx, int(uiWidth), int(uiHeight) );
+        this.m_pcTDecBinIf.DecodeBin( &uiSigCoeffGroup, &baseCoeffGroupCtx[ uiCtxSig ] );
+        uiSigCoeffGroupFlag[ iCGBlkPos ] = uiSigCoeffGroup;
+      }
+
+      // decode significant_coeff_flag
+      patternSigCtx := TLibCommon.CalcPatternSigCtx( uiSigCoeffGroupFlag[:], iCGPosX, iCGPosY, int(uiWidth), int(uiHeight) );
+      var uiBlkPos, uiPosY, uiPosX, uiSig, uiCtxSig uint;
+      for ; iScanPosSig >= int(iSubPos); iScanPosSig-- {
+        uiBlkPos  = scan[ iScanPosSig ];
+        uiPosY    = uiBlkPos >> uint(uiLog2BlockSize);
+        uiPosX    = uiBlkPos - ( uiPosY << uint(uiLog2BlockSize) );
+        uiSig     = 0;
+
+        if uiSigCoeffGroupFlag[ iCGBlkPos ]!=0 {
+          if iScanPosSig > int(iSubPos) || iSubSet == 0  || numNonZero!=0 {
+            uiCtxSig  = uint(TLibCommon.GetSigCtxInc( patternSigCtx, uiScanIdx, int(uiPosX), int(uiPosY), int(uiLog2BlockSize), int(uiWidth), int(uiHeight), eTType ));
+            this.m_pcTDecBinIf.DecodeBin( &uiSig, &baseCtx[ uiCtxSig ] );
+          }else{
+            uiSig = 1;
+          }
+        }
+        pcCoef[ uiBlkPos ] = TLibCommon.TCoeff(uiSig);
+        if uiSig!=0 {
+          pos[ numNonZero ] = int(uiBlkPos);
+          numNonZero ++;
+          if lastNZPosInCG == -1 {
+            lastNZPosInCG = iScanPosSig;
+          }
+          firstNZPosInCG = iScanPosSig;
+        }
+      }
+
+      if numNonZero!=0 {
+        signHidden := ( lastNZPosInCG - firstNZPosInCG >= TLibCommon.SBH_THRESHOLD );
+        absSum = 0;
+
+        var uiCtxSet uint;
+        if iSubSet > 0 && eTType==TLibCommon.TEXT_LUMA {
+            uiCtxSet = 2;
+        }else{
+            uiCtxSet = 0;
+        }
+
+        var uiBin uint;
+        if c1 == 0  {
+          uiCtxSet++;
+        }
+        c1 = 1;
+
+        var baseCtxMod []TLibCommon.ContextModel;
+
+        if eTType==TLibCommon.TEXT_LUMA {
+            baseCtxMod = this.m_cCUOneSCModel.Get2( 0, 0 ) [ 4 * uiCtxSet:];
+        }else{
+            baseCtxMod = this.m_cCUOneSCModel.Get2( 0, 0 ) [ TLibCommon.NUM_ONE_FLAG_CTX_LUMA + 4 * uiCtxSet:];
+        }
+        var absCoeff    [TLibCommon.SCAN_SET_SIZE]int;
+
+        for i := int(0); i < numNonZero; i++ {
+            absCoeff[i] = 1;
+        }
+
+        numC1Flag := TLibCommon.MIN(numNonZero, TLibCommon.C1FLAG_NUMBER).(int);
+        firstC2FlagIdx := -1;
+
+        for idx := int(0); idx < numC1Flag; idx++ {
+          this.m_pcTDecBinIf.DecodeBin( &uiBin, &baseCtxMod[c1] );
+          if uiBin == 1 {
+            c1 = 0;
+            if firstC2FlagIdx == -1 {
+              firstC2FlagIdx = idx;
+            }
+          }else if (c1 < 3) && (c1 > 0) {
+            c1++;
+          }
+          absCoeff[ idx ] = int(uiBin) + 1;
+        }
+
+        if c1 == 0 {
+          if eTType==TLibCommon.TEXT_LUMA  {
+            baseCtxMod = this.m_cCUAbsSCModel.Get2( 0, 0 ) [ uiCtxSet:];
+          }else{
+            baseCtxMod = this.m_cCUAbsSCModel.Get2( 0, 0 ) [ TLibCommon.NUM_ABS_FLAG_CTX_LUMA + uiCtxSet:];
+          }
+
+          if firstC2FlagIdx != -1{
+            this.m_pcTDecBinIf.DecodeBin( &uiBin, &baseCtxMod[0] );
+            absCoeff[ firstC2FlagIdx ] = int(uiBin) + 2;
+          }
+        }
+
+        var coeffSigns uint;
+        if signHidden && beValid  {
+          this.m_pcTDecBinIf.DecodeBinsEP( &coeffSigns, numNonZero-1 );
+          coeffSigns <<= uint(32 - (numNonZero-1));
+        }else{
+          this.m_pcTDecBinIf.DecodeBinsEP( &coeffSigns, numNonZero );
+          coeffSigns <<= uint(32 - numNonZero);
+        }
+
+        iFirstCoeff2 := int(1);
+        if c1 == 0 || numNonZero > TLibCommon.C1FLAG_NUMBER {
+          for idx := int(0); idx < numNonZero; idx++ {
+            var baseLevel uint;
+            if idx < TLibCommon.C1FLAG_NUMBER {
+                baseLevel = uint(2 + iFirstCoeff2) ;
+            }else{
+                baseLevel = 1;
+            }
+
+            if absCoeff[ idx ] == int(baseLevel) {
+              var uiLevel uint;
+              this.xReadCoefRemainExGolomb( &uiLevel, uint(uiGoRiceParam) );
+              absCoeff[ idx ] = int(uiLevel + baseLevel);
+              if absCoeff[idx]>3*(1<<uint(uiGoRiceParam)) {
+                uiGoRiceParam = TLibCommon.MIN(uiGoRiceParam+ 1, 4).(int);
+              }
+            }
+
+            if absCoeff[ idx ] >= 2{
+              iFirstCoeff2 = 0;
+            }
+          }
+        }
+
+        for idx := int(0); idx < numNonZero; idx++ {
+          blkPos := pos[ idx ];
+          // Signs applied later.
+          pcCoef[ blkPos ] = TLibCommon.TCoeff(absCoeff[ idx ]);
+          absSum += uint(absCoeff[ idx ]);
+
+          if idx == numNonZero-1 && signHidden && beValid {
+            // Infer sign of 1st element.
+            if (absSum&0x1)!=0 {
+              pcCoef[ blkPos ] = -pcCoef[ blkPos ];
+            }
+          }else{
+            sign := int( coeffSigns ) >> 31;
+            pcCoef[ blkPos ] = ( pcCoef[ blkPos ] ^ TLibCommon.TCoeff(sign) ) - TLibCommon.TCoeff(sign);
+            coeffSigns <<= 1;
+          }
+        }
+      }
+    }
+ 
+    return;
 }
 func (this *TDecSbac)  ParseTransformSkipFlags ( pcCU *TLibCommon.TComDataCU,  uiAbsPartIdx,  width,  height,  uiDepth uint,  eTType TLibCommon.TextType){
+    if pcCU.GetCUTransquantBypass1(uiAbsPartIdx){
+      return;
+    }
+    if width != 4 || height != 4 {
+      return;
+    }
+
+    var useTransformSkip uint;
+    if eTType!=0{
+        this.m_pcTDecBinIf.DecodeBin( &useTransformSkip , this.m_cTransformSkipSCModel.Get3( 0, TLibCommon.TEXT_CHROMA, 0 ) );
+    }else{
+        this.m_pcTDecBinIf.DecodeBin( &useTransformSkip , this.m_cTransformSkipSCModel.Get3( 0, TLibCommon.TEXT_LUMA, 0 ) );
+    }
+    if eTType!= TLibCommon.TEXT_LUMA {
+      uiLog2TrafoSize := uint(TLibCommon.G_aucConvertToBit[pcCU.GetSlice().GetSPS().GetMaxCUWidth()]) + 2 - uiDepth;
+      if uiLog2TrafoSize == 2{
+        uiDepth --;
+      }
+    }
+    /*DTRACE_CABAC_VL( TLibCommon.GnSymbolCounter++ )
+    DTRACE_CABAC_T("\tparseTransformSkip()");
+    DTRACE_CABAC_T( "\tsymbol=" )
+    DTRACE_CABAC_V( useTransformSkip )
+    DTRACE_CABAC_T( "\tAddr=" )
+    DTRACE_CABAC_V( pcCU.GetAddr() )
+    DTRACE_CABAC_T( "\tetype=" )
+    DTRACE_CABAC_V( eTType )
+    DTRACE_CABAC_T( "\tuiAbsPartIdx=" )
+    DTRACE_CABAC_V( uiAbsPartIdx )
+    DTRACE_CABAC_T( "\n" )*/
+
+    pcCU.SetTransformSkipSubParts4( useTransformSkip, eTType, uiAbsPartIdx, uiDepth);
 }
 
 func (this *TDecSbac)  UpdateContextTables(  eSliceType TLibCommon.SliceType,  iQp int ){
+    var uiBit uint;
+    this.m_pcTDecBinIf.DecodeBinTrm(&uiBit);
+    this.m_pcTDecBinIf.Finish();
+    this.m_pcBitstream.ReadOutTrailingBits();
+    this.m_cCUSplitFlagSCModel.InitBuffer       ( eSliceType, iQp, TLibCommon.INIT_SPLIT_FLAG[:] );
+    this.m_cCUSkipFlagSCModel.InitBuffer        ( eSliceType, iQp, TLibCommon.INIT_SKIP_FLAG[:] );
+    this.m_cCUMergeFlagExtSCModel.InitBuffer    ( eSliceType, iQp, TLibCommon.INIT_MERGE_FLAG_EXT[:] );
+    this.m_cCUMergeIdxExtSCModel.InitBuffer     ( eSliceType, iQp, TLibCommon.INIT_MERGE_IDX_EXT[:] );
+    this.m_cCUPartSizeSCModel.InitBuffer        ( eSliceType, iQp, TLibCommon.INIT_PART_SIZE[:] );
+    this.m_cCUAMPSCModel.InitBuffer             ( eSliceType, iQp, TLibCommon.INIT_CU_AMP_POS[:] );
+    this.m_cCUPredModeSCModel.InitBuffer        ( eSliceType, iQp, TLibCommon.INIT_PRED_MODE[:] );
+    this.m_cCUIntraPredSCModel.InitBuffer       ( eSliceType, iQp, TLibCommon.INIT_INTRA_PRED_MODE[:] );
+    this.m_cCUChromaPredSCModel.InitBuffer      ( eSliceType, iQp, TLibCommon.INIT_CHROMA_PRED_MODE[:] );
+    this.m_cCUInterDirSCModel.InitBuffer        ( eSliceType, iQp, TLibCommon.INIT_INTER_DIR[:] );
+    this.m_cCUMvdSCModel.InitBuffer             ( eSliceType, iQp, TLibCommon.INIT_MVD[:] );
+    this.m_cCURefPicSCModel.InitBuffer          ( eSliceType, iQp, TLibCommon.INIT_REF_PIC[:] );
+    this.m_cCUDeltaQpSCModel.InitBuffer         ( eSliceType, iQp, TLibCommon.INIT_DQP[:] );
+    this.m_cCUQtCbfSCModel.InitBuffer           ( eSliceType, iQp, TLibCommon.INIT_QT_CBF[:] );
+    this.m_cCUQtRootCbfSCModel.InitBuffer       ( eSliceType, iQp, TLibCommon.INIT_QT_ROOT_CBF[:] );
+    this.m_cCUSigCoeffGroupSCModel.InitBuffer   ( eSliceType, iQp, TLibCommon.INIT_SIG_CG_FLAG[:] );
+    this.m_cCUSigSCModel.InitBuffer             ( eSliceType, iQp, TLibCommon.INIT_SIG_FLAG[:] );
+    this.m_cCuCtxLastX.InitBuffer               ( eSliceType, iQp, TLibCommon.INIT_LAST[:] );
+    this.m_cCuCtxLastY.InitBuffer               ( eSliceType, iQp, TLibCommon.INIT_LAST[:] );
+    this.m_cCUOneSCModel.InitBuffer             ( eSliceType, iQp, TLibCommon.INIT_ONE_FLAG[:] );
+    this.m_cCUAbsSCModel.InitBuffer             ( eSliceType, iQp, TLibCommon.INIT_ABS_FLAG[:] );
+    this.m_cMVPIdxSCModel.InitBuffer            ( eSliceType, iQp, TLibCommon.INIT_MVP_IDX[:] );
+    this.m_cSaoMergeSCModel.InitBuffer          ( eSliceType, iQp, TLibCommon.INIT_SAO_MERGE_FLAG[:] );
+    this.m_cSaoTypeIdxSCModel.InitBuffer        ( eSliceType, iQp, TLibCommon.INIT_SAO_TYPE_IDX[:] );
+    this.m_cCUTransSubdivFlagSCModel.InitBuffer ( eSliceType, iQp, TLibCommon.INIT_TRANS_SUBDIV_FLAG[:] );
+    this.m_cTransformSkipSCModel.InitBuffer     ( eSliceType, iQp, TLibCommon.INIT_TRANSFORMSKIP_FLAG[:] );
+    this.m_CUTransquantBypassFlagSCModel.InitBuffer( eSliceType, iQp, TLibCommon.INIT_CU_TRANSQUANT_BYPASS_FLAG[:] );
+    this.m_pcTDecBinIf.Start();
 }
 
 func (this *TDecSbac)  ParseScalingList ( scalingList *TLibCommon.TComScalingList) {
+    //do nothing
 }

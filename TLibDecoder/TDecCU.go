@@ -38,32 +38,32 @@ func (this *TDecCu) Init  ( pcEntropyDecoder *TDecEntropy, pcTrQuant *TLibCommon
   /// create internal buffers
 func (this *TDecCu) Create  (  uiMaxDepth,  uiMaxWidth,  uiMaxHeight uint){
   this.m_uiMaxDepth = uiMaxDepth+1;
-  
+
   this.m_ppcYuvResi = make([]*TLibCommon.TComYuv, 	  this.m_uiMaxDepth-1);
   this.m_ppcYuvReco = make([]*TLibCommon.TComYuv,	  this.m_uiMaxDepth-1);
   this.m_ppcCU      = make([]*TLibCommon.TComDataCU, this.m_uiMaxDepth-1);
-  
+
   var uiNumPartitions uint;
   for ui := uint(0); ui < this.m_uiMaxDepth-1; ui++ {
     uiNumPartitions = 1<<( ( this.m_uiMaxDepth - ui - 1 )<<1 );
     uiWidth  := uiMaxWidth  >> ui;
     uiHeight := uiMaxHeight >> ui;
-    
-    this.m_ppcYuvResi[ui] = TLibCommon.NewTComYuv();    
+
+    this.m_ppcYuvResi[ui] = TLibCommon.NewTComYuv();
     this.m_ppcYuvResi[ui].Create( uiWidth, uiHeight );
-    this.m_ppcYuvReco[ui] = TLibCommon.NewTComYuv();    
+    this.m_ppcYuvReco[ui] = TLibCommon.NewTComYuv();
     this.m_ppcYuvReco[ui].Create( uiWidth, uiHeight );
-    this.m_ppcCU     [ui] = TLibCommon.NewTComDataCU(); 
+    this.m_ppcCU     [ui] = TLibCommon.NewTComDataCU();
     this.m_ppcCU     [ui].Create( uiNumPartitions, uiWidth, uiHeight, true, int(uiMaxWidth >> (this.m_uiMaxDepth - 1)), false );
   }
-  
+
   this.m_bDecodeDQP = false;
 
   // initialize partition order.
   piTmp := uint(0);
   TLibCommon.InitZscanToRaster(int(this.m_uiMaxDepth), 1, 0, TLibCommon.G_auiZscanToRaster[:], &piTmp);
   TLibCommon.InitRasterToZscan( uiMaxWidth, uiMaxHeight, this.m_uiMaxDepth );
-  
+
   // initialize conversion matrix from partition index to pel
   TLibCommon.InitRasterToPelXY( uiMaxWidth, uiMaxHeight, this.m_uiMaxDepth );
 //#if !LINEBUF_CLEANUP
@@ -74,26 +74,26 @@ func (this *TDecCu) Create  (  uiMaxDepth,  uiMaxWidth,  uiMaxHeight uint){
 /// destroy internal buffers
 func (this *TDecCu) Destroy() {
   for ui := uint(0); ui < this.m_uiMaxDepth-1; ui++ {
-    this.m_ppcYuvResi[ui].Destroy(); 
-    //delete m_ppcYuvResi[ui]; 
+    this.m_ppcYuvResi[ui].Destroy();
+    //delete m_ppcYuvResi[ui];
     this.m_ppcYuvResi[ui] = nil;
-    this.m_ppcYuvReco[ui].Destroy(); 
-    //delete m_ppcYuvReco[ui]; 
+    this.m_ppcYuvReco[ui].Destroy();
+    //delete m_ppcYuvReco[ui];
     this.m_ppcYuvReco[ui] = nil;
-    this.m_ppcCU     [ui].Destroy(); 
-    //delete m_ppcCU     [ui]; 
+    this.m_ppcCU     [ui].Destroy();
+    //delete m_ppcCU     [ui];
     this.m_ppcCU     [ui] = nil;
   }
-  
-  //delete [] m_ppcYuvResi; 
+
+  //delete [] m_ppcYuvResi;
   this.m_ppcYuvResi = nil;
-  //delete [] m_ppcYuvReco; 
+  //delete [] m_ppcYuvReco;
   this.m_ppcYuvReco = nil;
-  //delete [] m_ppcCU     ; 
+  //delete [] m_ppcCU     ;
   this.m_ppcCU      = nil;
 }
 
- 
+
   /// decode CU information
 func (this *TDecCu)  DecodeCU                ( pcCU *TLibCommon.TComDataCU, ruiIsLast *uint){
   if pcCU.GetSlice().GetPPS().GetUseDQP() {
@@ -113,11 +113,12 @@ func (this *TDecCu)  DecompressCU            ( pcCU *TLibCommon.TComDataCU ){
 	this.xDecompressCU( pcCU, pcCU, 0,  0 );
 }
 
-
 func (this *TDecCu)  xDecodeCU               ( pcCU *TLibCommon.TComDataCU,                        uiAbsPartIdx,  uiDepth uint,  ruiIsLast *uint){
 }
+
 func (this *TDecCu)  xFinishDecodeCU         ( pcCU *TLibCommon.TComDataCU,                        uiAbsPartIdx,  uiDepth uint,  ruiIsLast *uint){
 }
+
 func (this *TDecCu)  xDecodeSliceEnd         ( pcCU *TLibCommon.TComDataCU,                        uiAbsPartIdx,  uiDepth uint) bool{
   var uiIsLast uint;
   pcPic := pcCU.GetPic();
@@ -135,7 +136,7 @@ func (this *TDecCu)  xDecodeSliceEnd         ( pcCU *TLibCommon.TComDataCU,     
   }else{
     uiIsLast=0;
   }
-  
+
   if uiIsLast!=0 {
     if pcSlice.IsNextDependentSlice()&&!pcSlice.IsNextSlice() {
       pcSlice.SetDependentSliceCurEndCUAddr(pcCU.GetSCUAddr()+uiAbsPartIdx+uiCurNumParts);
@@ -176,11 +177,11 @@ func (this *TDecCu)  xIntraLumaRecQT         ( pcCU *TLibCommon.TComDataCU,  uiT
 func (this *TDecCu)  xIntraChromaRecQT       ( pcCU *TLibCommon.TComDataCU,  uiTrDepth,  uiAbsPartIdx uint, pcRecoYuv *TLibCommon.TComYuv, pcPredYuv *TLibCommon.TComYuv, pcResiYuv *TLibCommon.TComYuv ){
 }
 
-func (this *TDecCu) GetdQPFlag               ()         bool               { 
-	return this.m_bDecodeDQP;        
+func (this *TDecCu) GetdQPFlag               ()         bool               {
+	return this.m_bDecodeDQP;
 }
-func (this *TDecCu) SetdQPFlag               (  b bool)                { 
-	this.m_bDecodeDQP = b;           
+func (this *TDecCu) SetdQPFlag               (  b bool)                {
+	this.m_bDecodeDQP = b;
 }
 func (this *TDecCu) xFillPCMBuffer           ( pCU *TLibCommon.TComDataCU,  absPartIdx,  depth uint){
 }

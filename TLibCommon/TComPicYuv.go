@@ -102,7 +102,7 @@ func (this *TComPicYuv) Create(iPicWidth, iPicHeight int, uiMaxCUWidth, uiMaxCUH
 }
 
 func (this *TComPicYuv) Destroy() {
-    //do nothing due to Garbage Collection of GO 
+    //do nothing due to Garbage Collection of GO
 }
 
 func (this *TComPicYuv) CreateLuma(iPicWidth, iPicHeight int, uiMaxCUWidth, uiMaxCUHeight, uiMaxCUDepth uint) {
@@ -349,7 +349,7 @@ func (this *TComPicYuv) Dump(pFileName string, bAdd bool) (err error) {
 
     for y = 0; y < this.m_iPicHeight; y++ {
         for x = 0; x < this.m_iPicWidth; x++ {
-            uy[x] = byte(Clip3(0, 255, (piY[y*iStride+x]+offset)>>shift))
+            uy[x] = byte(CLIP3(0, 255, (piY[y*iStride+x]+offset)>>shift).(Pel))
         }
         pFile.Write(uy)
     }
@@ -363,14 +363,14 @@ func (this *TComPicYuv) Dump(pFileName string, bAdd bool) (err error) {
 
     for y = 0; y < this.m_iPicHeight>>1; y++ {
         for x = 0; x < this.m_iPicWidth>>1; x++ {
-            uc[x] = byte(Clip3(0, 255, (piCb[y*iStrideC+x]+offset)>>shift))
+            uc[x] = byte(CLIP3(0, 255, (piCb[y*iStrideC+x]+offset)>>shift).(Pel))
         }
         pFile.Write(uc)
     }
 
     for y = 0; y < this.m_iPicHeight>>1; y++ {
         for x = 0; x < this.m_iPicWidth>>1; x++ {
-            uc[x] = byte(Clip3(0, 255, (piCr[y*iStrideC+x]+offset)>>shift))
+            uc[x] = byte(CLIP3(0, 255, (piCr[y*iStrideC+x]+offset)>>shift).(Pel))
         }
         pFile.Write(uc)
     }

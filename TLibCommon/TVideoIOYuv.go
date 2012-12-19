@@ -20,7 +20,7 @@ func NewTVideoIOYuv() *TVideoIOYuv {
     return &TVideoIOYuv{}
 }
 
-///< open or create file 
+///< open or create file
 /**
  * Open file for reading/writing Y'CbCr frames.
  *
@@ -59,7 +59,7 @@ func (this *TVideoIOYuv) Open(pchFile string, bWriteMode bool, fileBitDepthY, fi
     return nil
 }
 
-///< close file 
+///< close file
 func (this *TVideoIOYuv) Close() {
 	if this.m_cHandle!=nil{
     	this.m_cHandle.Close()
@@ -94,7 +94,7 @@ func (this *TVideoIOYuv) SkipFrames(numFrames, width, height uint) (err error) {
     _, err = this.m_cHandle.Seek(int64(offset), 1)
     return err
 
-    /* fall back to consuming the input 
+    /* fall back to consuming the input
     buf := make([]byte, 512)
     offset_mod_bufsize := offset % len(buf);
     for i := 0; i < offset - offset_mod_bufsize; i += len(buf) {
@@ -103,7 +103,7 @@ func (this *TVideoIOYuv) SkipFrames(numFrames, width, height uint) (err error) {
     this.m_cHandle.Read(buf, offset_mod_bufsize);*/
 }
 
-///< read  one YUV frame with padding parameter  
+///< read  one YUV frame with padding parameter
 /**
  * Read one Y'CbCr frame, performing any required input scaling to change
  * from the bitdepth of the input file to the internal bit-depth.
@@ -263,14 +263,14 @@ exit:
     return retval
 }
 
-///< check for end-of-file  
-//func (this *TVideoIOYuv) IsEof () bool {                                           
+///< check for end-of-file
+//func (this *TVideoIOYuv) IsEof () bool {
 //	this.m_cHandle.
 //	return true
 //}
 
 ///< check for failure
-//func (this *TVideoIOYuv) IsFail() bool {                                           
+//func (this *TVideoIOYuv) IsFail() bool {
 //	return true
 //}
 
@@ -392,7 +392,7 @@ func (this *TVideoIOYuv) invScalePlane(img []Pel, stride, width, height, shiftbi
     for y := 0; y < height; y++ {
         for x := 0; x < width; x++ {
             val := (img[y*stride+x] + offset) >> uint(shiftbits)
-            img[y*stride+x] = Clip3(minval, maxval, val)
+            img[y*stride+x] = CLIP3(minval, maxval, val).(Pel)
         }
     }
 }

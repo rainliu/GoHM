@@ -22,7 +22,7 @@ func NewContextModel3DBuffer  (  uiSizeZ,  uiSizeY,  uiSizeX uint, basePtr []Con
 												    m_sizeXYZ: uiSizeX * uiSizeY * uiSizeZ ,
   												    m_contextModel : basePtr};
    *count += int(uiSizeX * uiSizeY * uiSizeZ);
-  
+
 	return pContextModel3DBuffer;
 }
 
@@ -31,8 +31,13 @@ func NewContextModel3DBuffer  (  uiSizeZ,  uiSizeY,  uiSizeX uint, basePtr []Con
 func (this *ContextModel3DBuffer)  Get3(  uiZ,  uiY,  uiX uint) *ContextModel{
     return &this.m_contextModel[ uiZ * this.m_sizeXY + uiY * this.m_sizeX + uiX ];
 }
-func (this *ContextModel3DBuffer)  Get1(  uiZ uint) *ContextModel{
-    return &this.m_contextModel[ uiZ * this.m_sizeXY ];
+
+func (this *ContextModel3DBuffer)  Get2(  uiZ,  uiY uint) []ContextModel{
+    return this.m_contextModel[ uiZ * this.m_sizeXY + uiY * this.m_sizeX : ];
+}
+
+func (this *ContextModel3DBuffer)  Get1(  uiZ uint) []ContextModel{
+    return this.m_contextModel[ uiZ * this.m_sizeXY: ];
 }
 
   // initialization & copy functions
@@ -47,13 +52,13 @@ var aStateToProbLPS = []float64{0.50000000, 0.47460857, 0.45050660, 0.42762859, 
 
 func (this *ContextModel3DBuffer)  CalcCost( sliceType SliceType,  qp int, ctxModel []byte) uint{      ///< determine cost of choosing a probability table based on current probabilities
   cost := uint(0);
-  
+
   for n := uint(0); n < this.m_sizeXYZ; n++ {
     tmpContextModel := NewContextModel();
     tmpContextModel.Init( qp, int(ctxModel[ uint(sliceType) * this.m_sizeXYZ + n ]) );
 
     // Map the 64 CABAC states to their corresponding probability values
-    
+
     probLPS := aStateToProbLPS[ this.m_contextModel[ n ].GetState() ];
     var prob0, prob1 float64;
     if this.m_contextModel[ n ].GetMps()==1 {
@@ -70,8 +75,8 @@ func (this *ContextModel3DBuffer)  CalcCost( sliceType SliceType,  qp int, ctxMo
   }
 
   return cost;
-} 
- 
+}
+
   // copy from another buffer
   // \param src buffer to copy from
 
@@ -82,4 +87,3 @@ func (this *ContextModel3DBuffer)  CopyFrom( src *ContextModel3DBuffer){
 		this.m_contextModel[i] = src.m_contextModel[i];
 	}
 }
-

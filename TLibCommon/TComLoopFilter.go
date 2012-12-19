@@ -37,7 +37,7 @@ func (this *TComLoopFilter) xSetEdgefilterPU           ( pcCU *TComDataCU,  uiAb
 }
 func (this *TComLoopFilter) xGetBoundaryStrengthSingle ( pcCU *TComDataCU,  uiAbsZorderIdx uint,  iDir int,  uiPartIdx uint){
 }
-  
+
 func (this *TComLoopFilter)   xCalcBsIdx           ( pcCU *TComDataCU,  uiAbsZorderIdx uint,  iDir,  iEdgeIdx,  iBaseUnitIdx int) uint{
     pcPic := pcCU.GetPic();
     uiLCUWidthInBaseUnits := pcPic.GetNumPartInWidth();
@@ -67,16 +67,16 @@ func (this *TComLoopFilter) xUseStrongFiltering(  offset,  d,  beta,  tc int, pi
   m7  := piSrc[ offset*3];
   m0  := piSrc[-offset*4];
 
-  d_strong := int(ABS(m0-m3) + ABS(m7-m4));
+  d_strong := int(ABS(m0-m3).(Pel) + ABS(m7-m4).(Pel));
 
-  return  (d_strong < (beta>>3)) && (d<(beta>>2)) && ( int(ABS(m3-m4)) < ((tc*5+1)>>1)) ;
-	
+  return  (d_strong < (beta>>3)) && (d<(beta>>2)) && ( int(ABS(m3-m4).(Pel)) < ((tc*5+1)>>1)) ;
+
 }
 func (this *TComLoopFilter) xCalcDP( piSrc []Pel, iOffset int) Pel{
-	return ABS( piSrc[-iOffset*3] - 2*piSrc[-iOffset*2] + piSrc[-iOffset] ) ;
+	return ABS( piSrc[-iOffset*3] - 2*piSrc[-iOffset*2] + piSrc[-iOffset] ).(Pel) ;
 }
 func (this *TComLoopFilter) xCalcDQ( piSrc []Pel, iOffset int) Pel{
-	return ABS( piSrc[0] - 2*piSrc[iOffset] + piSrc[iOffset*2] );
+	return ABS( piSrc[0] - 2*piSrc[iOffset] + piSrc[iOffset*2] ).(Pel);
 }
 
 
@@ -96,4 +96,3 @@ func (this *TComLoopFilter) SetCfg(  bLFCrossTileBoundary bool){
   /// picture-level deblocking filter
 func (this *TComLoopFilter) LoopFilterPic( pcPic *TComPic){
 }
-

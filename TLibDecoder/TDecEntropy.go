@@ -53,7 +53,7 @@ type TDecEntropyIf interface {
 
     ParseIPCMInfo     ( pcCU *TLibCommon.TComDataCU, uiAbsPartIdx, uiDepth uint);
 
-    ParseCoeffNxN( pcCU *TLibCommon.TComDataCU, pcCoef *TLibCommon.TCoeff, uiAbsPartIdx, uiWidth, uiHeight, uiDepth uint,  eTType TLibCommon.TextType);
+    ParseCoeffNxN( pcCU *TLibCommon.TComDataCU, pcCoef []TLibCommon.TCoeff, uiAbsPartIdx, uiWidth, uiHeight, uiDepth uint,  eTType TLibCommon.TextType);
     ParseTransformSkipFlags ( pcCU *TLibCommon.TComDataCU,  uiAbsPartIdx, width,  height, uiDepth uint,  eTType TLibCommon.TextType);
     UpdateContextTables(  eSliceType TLibCommon.SliceType, iQp int ) ;
 }

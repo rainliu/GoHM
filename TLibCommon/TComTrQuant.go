@@ -42,32 +42,41 @@ type QpParam struct {
 
 //public:
 
-/*
-  QpParam();  
-  Void setQpParam( Int qpScaled )
-  {
-    m_iQP   = qpScaled;
-    m_iPer  = qpScaled / 6;
-    m_iRem  = qpScaled % 6;
-    m_iBits = QP_BITS + m_iPer;
-  }
 
-  Void clear()
-  {
-    m_iQP   = 0;
-    m_iPer  = 0;
-    m_iRem  = 0;
-    m_iBits = 0;
-  }
+func NewQpParam() *QpParam{ 
+	return &QpParam{};
+}
+
+func (this *QpParam) SetQpParam(  qpScaled int) {
+    this.m_iQP   = qpScaled;
+    this.m_iPer  = qpScaled / 6;
+    this.m_iRem  = qpScaled % 6;
+    this.m_iBits = QP_BITS + this.m_iPer;
+}
+
+func (this *QpParam) Clear(){
+    this.m_iQP   = 0;
+    this.m_iPer  = 0;
+    this.m_iRem  = 0;
+    this.m_iBits = 0;
+}
 
 
-  Int per()   const { return m_iPer; }
-  Int rem()   const { return m_iRem; }
-  Int bits()  const { return m_iBits; }
+func (this *QpParam)  GetPer()   int { 
+	return this.m_iPer; 
+}
+func (this *QpParam)  GetRem()   int { 
+	return this.m_iRem;
+}
+func (this *QpParam)  GetBits()  int { 
+	return this.m_iBits; 
+}
 
-  Int qp() {return m_iQP;}
-}; // END CLASS DEFINITION QpParam
-*/
+func (this *QpParam)  GetQp() int{
+	return this.m_iQP;
+}
+
+
 /// transform and quantization class
 type TComTrQuant struct {
     //protected:
@@ -99,6 +108,7 @@ type TComTrQuant struct {
     m_quantCoef              [SCALING_LIST_SIZE_NUM][SCALING_LIST_NUM][SCALING_LIST_REM_NUM][]int     ///< array of quantization matrix coefficient 4x4
     m_dequantCoef            [SCALING_LIST_SIZE_NUM][SCALING_LIST_NUM][SCALING_LIST_REM_NUM][]int     ///< array of dequantization matrix coefficient 4x4
     m_errScale               [SCALING_LIST_SIZE_NUM][SCALING_LIST_NUM][SCALING_LIST_REM_NUM][]float64 ///< array of quantization matrix coefficient 4x4
+	m_pcEstBitsSbac	*estBitsSbacStruct;
 }
 
 func NewTComTrQuant() *TComTrQuant{
@@ -116,59 +126,78 @@ func (this *TComTrQuant) Init ( uiMaxWidth, uiMaxHeight, uiMaxTrSize uint, iSymb
     bUseAdaptQpSelect bool ){
 //#endif 
 }
-/*
-  // transform & inverse transform functions
-  Void transformNxN( TComDataCU* pcCU, 
-                     Pel*        pcResidual, 
-                     UInt        uiStride, 
-                     TCoeff*     rpcCoeff, 
-#if ADAPTIVE_QP_SELECTION
-                     Int*&       rpcArlCoeff, 
-#endif
-                     UInt        uiWidth, 
-                     UInt        uiHeight, 
-                     UInt&       uiAbsSum, 
-                     TextType    eTType, 
-                     UInt        uiAbsPartIdx,
-                     Bool        useTransformSkip = false );
 
-  Void invtransformNxN( Bool transQuantBypass, TextType eText, UInt uiMode,Pel* rpcResidual, UInt uiStride, TCoeff*   pcCoeff, UInt uiWidth, UInt uiHeight,  Int scalingListType, Bool useTransformSkip = false );
-  Void invRecurTransformNxN ( TComDataCU* pcCU, TComYuv* pcYuvPred, UInt uiAbsPartIdx, TextType eTxt, Pel* rpcResidual, UInt uiAddr,   UInt uiStride, UInt uiWidth, UInt uiHeight,
-                             UInt uiMaxTrMode,  UInt uiTrMode, TCoeff* rpcCoeff );
+  // transform & inverse transform functions
+func (this *TComTrQuant)  transformNxN( pcCU *TComDataCU, 
+                     pcResidual *Pel, 
+                     uiStride	uint, 
+                     rpcCoeff *TCoeff, 
+//#if ADAPTIVE_QP_SELECTION
+                     rpcArlCoeff *int, 
+//#endif
+                           uiWidth uint, 
+                             uiHeight uint, 
+                            uiAbsSum *uint, 
+                        eTType TextType, 
+                             uiAbsPartIdx uint,
+                             useTransformSkip bool ){
+}
+
+func (this *TComTrQuant)  InvtransformNxN( transQuantBypass bool,  eText TextType,  uiMode uint, rpcResidual *Pel,  uiStride uint, pcCoeff *TCoeff,  uiWidth,  uiHeight uint,   scalingListType int,  useTransformSkip bool ){
+}
+func (this *TComTrQuant)  InvRecurTransformNxN ( pcCU *TComDataCU, pcYuvPred *TComYuv,  uiAbsPartIdx uint,  eTxt TextType, rpcResidual *Pel,  uiAddr, uiStride,  uiWidth,  uiHeight, uiMaxTrMode, uiTrMode uint, rpcCoeff *TCoeff){
+}
 
   // Misc functions
-  Void setQPforQuant( Int qpy, TextType eTxtType, Int qpBdOffset, Int chromaQPOffset);
+func (this *TComTrQuant)   SetQPforQuant(  qpy int,  eTxtType TextType,  qpBdOffset,  chromaQPOffset int){
+}
 
-#if RDOQ_CHROMA_LAMBDA 
-  Void setLambda(Double dLambdaLuma, Double dLambdaChroma) { m_dLambdaLuma = dLambdaLuma; m_dLambdaChroma = dLambdaChroma; }
-  Void selectLambda(TextType eTType) { m_dLambda = (eTType == TEXT_LUMA) ? m_dLambdaLuma : m_dLambdaChroma; }
-#else
-  Void setLambda(Double dLambda) { m_dLambda = dLambda;}
-#endif
-  Void setRDOQOffset( UInt uiRDOQOffset ) { m_uiRDOQOffset = uiRDOQOffset; }
+//#if RDOQ_CHROMA_LAMBDA 
+func (this *TComTrQuant)   SetLambda( dLambdaLuma,  dLambdaChroma float64) { 
+	this.m_dLambdaLuma = dLambdaLuma;
+	this.m_dLambdaChroma = dLambdaChroma; 
+}
+func (this *TComTrQuant)   SelectLambda( eTType TextType) { 
+	if 	eTType == TEXT_LUMA {
+		this.m_dLambda = this.m_dLambdaLuma;
+	}else{
+		this.m_dLambda = this.m_dLambdaChroma; 
+	}
+}
+//#else
+//  Void setLambda(Double dLambda) { m_dLambda = dLambda;}
+//#endif
+func (this *TComTrQuant)   SetRDOQOffset(  uiRDOQOffset uint) { 
+	this.m_uiRDOQOffset = uiRDOQOffset; 
+}
 
-  estBitsSbacStruct* m_pcEstBitsSbac;
+func CalcPatternSigCtx( sigCoeffGroupFlag []uint,  posXCG,  posYCG uint,  width,  height int) int{
+	return 0;
+}
 
-  static Int      calcPatternSigCtx( const UInt* sigCoeffGroupFlag, UInt posXCG, UInt posYCG, Int width, Int height );
+func GetSigCtxInc     (
+                                                                  patternSigCtx int,
+                                                                 scanIdx uint,
+                                                                  posX int,
+                                                                  posY int,
+                                                                  blockType int,
+                                                                  width int,
+                                                                 height int,
+                                                            textureType  TextType) int{
+	return 0;
+}
+func GetSigCoeffGroupCtxInc  ( uiSigCoeffGroupFlag []uint,
+                                       uiCGPosX uint,
+                                       uiCGPosY uint,
+                                       scanIdx uint,
+                                        width,  height int) uint{
+   return 0;
+}
+func (this *TComTrQuant)  InitScalingList                      (){
+}
+func (this *TComTrQuant)  DestroyScalingList                   (){
+}
 
-  static Int      getSigCtxInc     (
-                                     Int                             patternSigCtx,
-                                     UInt                            scanIdx,
-                                     Int                             posX,
-                                     Int                             posY,
-                                     Int                             blockType,
-                                     Int                             width
-                                    ,Int                             height
-                                    ,TextType                        textureType
-                                    );
-  static UInt getSigCoeffGroupCtxInc  ( const UInt*                   uiSigCoeffGroupFlag,
-                                       const UInt                       uiCGPosX,
-                                       const UInt                       uiCGPosY,
-                                       const UInt                     scanIdx,
-                                       Int width, Int height);
-  Void initScalingList                      ();
-  Void destroyScalingList                   ();
-*/
 func (this *TComTrQuant)  SetErrScaleCoeff    	   ( list, size, qp uint ){
   uiLog2TrSize := int(G_aucConvertToBit[ G_scalingListSizeX[size] ]) + 2;
   var bitDepth int;
