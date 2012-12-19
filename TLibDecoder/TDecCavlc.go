@@ -87,6 +87,37 @@ func (this *SyntaxElementParser)  xTraceSliceHeader (pSlice *TLibCommon.TComSlic
 	}
 }
 
+func (this *SyntaxElementParser) DTRACE_CABAC_F(x float32) {
+	if this.GetTraceFile()!=nil {
+		io.WriteString(this.m_pTraceFile, fmt.Sprintf ("%f", x ));
+	}
+}
+func (this *SyntaxElementParser) DTRACE_CABAC_V(x uint)     {
+	if this.GetTraceFile()!=nil {
+		io.WriteString(this.m_pTraceFile, fmt.Sprintf ("%d", x ));
+	}
+}
+func (this *SyntaxElementParser) DTRACE_CABAC_VL(x uint)    {
+	if this.GetTraceFile()!=nil {
+	 	io.WriteString(this.m_pTraceFile, fmt.Sprintf ("%lld", x ));
+	}
+}
+func (this *SyntaxElementParser) DTRACE_CABAC_T(x string)  {
+    if this.GetTraceFile()!=nil {
+   		io.WriteString(this.m_pTraceFile, fmt.Sprintf ("%s", x ));
+    }
+}
+func (this *SyntaxElementParser) DTRACE_CABAC_X(x uint)     {
+	if this.GetTraceFile()!=nil {
+		io.WriteString(this.m_pTraceFile, fmt.Sprintf ("%x", x ));
+	}
+}
+func (this *SyntaxElementParser) DTRACE_CABAC_N(){
+    if this.GetTraceFile()!=nil {
+    	io.WriteString(this.m_pTraceFile, "\n");
+    }
+}
+
 func (this *SyntaxElementParser)  xReadCode    ( length uint, val *uint ){
 	//assert ( uiLength > 0 );
   	this.m_pcBitstream.Read (length, val);

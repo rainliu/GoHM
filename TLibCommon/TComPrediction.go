@@ -10,7 +10,7 @@ import ()
 type TComPrediction struct {
     TComWeightPrediction
     //protected:
-    m_piYuvExt      *int
+    m_piYuvExt     []int
     m_iYuvExtStride int
     m_iYuvExtHeight int
 
@@ -47,24 +47,35 @@ func NewTComPrediction() *TComPrediction{
 
 func (this *TComPrediction) InitTempBuff(){
 }
-/*
+
   // inter
-  Void motionCompensation         ( TComDataCU*  pcCU, TComYuv* pcYuvPred, RefPicList eRefPicList = REF_PIC_LIST_X, Int iPartIdx = -1 );
+func (this *TComPrediction) MotionCompensation         ( pcCU *TComDataCU, pcYuvPred *TComYuv,  eRefPicList RefPicList,  iPartIdx int ){
+}
 
   // motion vector prediction
-  Void getMvPredAMVP              ( TComDataCU* pcCU, UInt uiPartIdx, UInt uiPartAddr, RefPicList eRefPicList, Int iRefIdx, TComMv& rcMvPred );
+func (this *TComPrediction) GetMvPredAMVP              ( pcCU *TComDataCU,  uiPartIdx,  uiPartAddr uint,  eRefPicList RefPicList,  iRefIdx int, rcMvPred *TComMv ){
+}
 
   // Angular Intra
-  Void predIntraLumaAng           ( TComPattern* pcTComPattern, UInt uiDirMode, Pel* piPred, UInt uiStride, Int iWidth, Int iHeight,  TComDataCU* pcCU, Bool bAbove, Bool bLeft );
-  Void predIntraChromaAng         ( TComPattern* pcTComPattern, Int* piSrc, UInt uiDirMode, Pel* piPred, UInt uiStride, Int iWidth, Int iHeight, TComDataCU* pcCU, Bool bAbove, Bool bLeft );
+func (this *TComPrediction) PredIntraLumaAng           ( pcTComPattern *TComPattern,  uiDirMode uint, piPred []Pel,  uiStride uint,  iWidth,  iHeight int,  pcCU *TComDataCU,  bAbove,  bLeft bool){
+}
+func (this *TComPrediction) PredIntraChromaAng         ( pcTComPattern *TComPattern, piSrc []int,  uiDirMode uint, piPred []Pel,  uiStride uint,  iWidth,  iHeight int, pcCU *TComDataCU,  bAbove,  bLeft bool){
+}
 
-  Pel  predIntraGetPredValDC      ( Int* pSrc, Int iSrcStride, UInt iWidth, UInt iHeight, Bool bAbove, Bool bLeft );
+func (this *TComPrediction) PredIntraGetPredValDC      ( pSrc []int,  iSrcStride int,  iWidth,  iHeight uint,  bAbove,  bLeft bool) Pel{
+	return 0;
+}
 
-  Int* getPredicBuf()             { return m_piYuvExt;      }
-  Int  getPredicBufWidth()        { return m_iYuvExtStride; }
-  Int  getPredicBufHeight()       { return m_iYuvExtHeight; }
+func (this *TComPrediction) GetPredicBuf()         []int   { 
+	return this.m_piYuvExt;      
+}
+func (this *TComPrediction) GetPredicBufWidth()     int   { 
+	return this.m_iYuvExtStride; 
+}
+func (this *TComPrediction) GetPredicBufHeight()    int   { 
+	return this.m_iYuvExtHeight; 
+}
 
-};*/
 
 // ====================================================================================================================
 // Class definition
