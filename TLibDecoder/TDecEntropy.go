@@ -262,6 +262,7 @@ func (this *TDecEntropy)   DecodeSkipFlag          		( pcCU *TLibCommon.TComData
 	this.m_pcEntropyDecoderIf.ParseCUTransquantBypassFlag( pcCU, uiAbsPartIdx, uiDepth );
 }
 func (this *TDecEntropy)   DecodeCUTransquantBypassFlag	( pcCU *TLibCommon.TComDataCU, uiAbsPartIdx, uiDepth uint ){
+	this.m_pcEntropyDecoderIf.ParseCUTransquantBypassFlag( pcCU, uiAbsPartIdx, uiDepth );
 }
 func (this *TDecEntropy)   DecodeMergeFlag         		( pcSubCU *TLibCommon.TComDataCU, uiAbsPartIdx, uiDepth, uiPUIdx uint ){
   // at least one merge candidate exists

@@ -240,17 +240,6 @@ func ClipC(a Pel) Pel {
 
     return a
 }
-/*
-func Clip3(minVal, maxVal, a Pel) Pel {
-    if a < minVal {
-        a = minVal
-    } else if a > maxVal {
-        a = maxVal
-    }
-
-    return a
-}   ///< general min/max clip
-*/
 
 func B2U(b bool) uint8 {
     if b {
