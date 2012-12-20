@@ -157,6 +157,6 @@ func (this *TComCUMvField) LinkToWithOffset( src *TComCUMvField,  offset int){
     this.m_piRefIdx = src.GetRefIdxs(offset);
 }
   
-func (this *TComCUMvField) Compress(pePredMode *int8, scale int){ 
+func (this *TComCUMvField) Compress(pePredMode []PredMode, scale int){ 
 }
 
