@@ -1210,7 +1210,7 @@ func (this *TDecSbac)  ParseQtCbf         ( pcCU *TLibCommon.TComDataCU,  uiAbsP
     this.DTRACE_CABAC_V( uiAbsPartIdx )
     this.DTRACE_CABAC_T( "\n" )
 
-    pcCU.SetCbfSubParts4( uiSymbol << uiTrDepth, eType, uiAbsPartIdx, uiDepth );
+    pcCU.SetCbfSubParts4( byte(uiSymbol << uiTrDepth), eType, uiAbsPartIdx, uiDepth );
 }
 func (this *TDecSbac)  ParseQtRootCbf     ( pcCU *TLibCommon.TComDataCU,  uiAbsPartIdx,  uiDepth uint, uiQtRootCbf *uint ){
     var uiSymbol uint;
@@ -1686,7 +1686,7 @@ func (this *TDecSbac)  ParseCoeffNxN      ( pcCU *TLibCommon.TComDataCU, pcCoef 
         }
       }
     }
- 
+
     return;
 }
 func (this *TDecSbac)  ParseTransformSkipFlags ( pcCU *TLibCommon.TComDataCU,  uiAbsPartIdx,  width,  height,  uiDepth uint,  eTType TLibCommon.TextType){

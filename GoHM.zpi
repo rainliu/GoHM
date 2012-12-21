@@ -92,7 +92,6 @@
         <File>TAppDecoder\TAppDecTop.go</File>
     </Folder>
     <Folder name="TLibCommon" sorted="Yes">
-        <File>TLibCommon\AccessUnit.go</File>
         <File>TLibCommon\CommonDef.go</File>
         <File>TLibCommon\ContextModel.go</File>
         <File>TLibCommon\ContextModel3DBuffer.go</File>

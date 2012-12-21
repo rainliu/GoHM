@@ -1808,7 +1808,7 @@ func (this *TComDataCU)  SetTransformSkipSubParts5  (  useTransformSkipY,  useTr
   		this.m_puhTransformSkip[1][i + uiAbsPartIdx]= byte(useTransformSkipU);//, sizeof( UChar ) * uiCurrPartNumb );
   		this.m_puhTransformSkip[2][i + uiAbsPartIdx]= byte(useTransformSkipV);//, sizeof( UChar ) * uiCurrPartNumb );
 	}
- 
+
 }
 
 func (this *TComDataCU)  GetQuadtreeTULog2MinSizeInCU(  absPartIdx uint) uint{
@@ -1949,7 +1949,7 @@ func (this *TComDataCU)  SetMergeIndexSubParts (  uiMergeIndex,  uiAbsPartIdx,  
 //  template <typename T>
 func (this *TComDataCU)  SetSubPartByte ( uiParameter byte, puhBaseLCU []byte,  uiCUAddr,  uiCUDepth,  uiPUIdx uint){
   //assert( sizeof(T) == 1 ); // Using memset() works only for types of size 1
-  
+
   uiCurrPartNumQ := (this.m_pcPic.GetNumPartInCU() >> (2 * uiCUDepth)) >> 2;
   switch this.m_pePartSize[ uiCUAddr ] {
     case SIZE_2Nx2N:
@@ -1967,20 +1967,20 @@ func (this *TComDataCU)  SetSubPartByte ( uiParameter byte, puhBaseLCU []byte,  
 		}
     case SIZE_NxN:
     	for i:=uint(0); i<    uiCurrPartNumQ; i++{
-      		puhBaseLCU[i + uiCUAddr]= uiParameter;//, uiCurrPartNumQ ); 
+      		puhBaseLCU[i + uiCUAddr]= uiParameter;//, uiCurrPartNumQ );
 		}
     case SIZE_2NxnU:
       if uiPUIdx == 0 {
       	for i:=uint(0); i<    (uiCurrPartNumQ >> 1); i++{
-        	puhBaseLCU[i + uiCUAddr]= uiParameter;//, (uiCurrPartNumQ >> 1) );                      
-        	puhBaseLCU[i + uiCUAddr + uiCurrPartNumQ]= uiParameter;//, (uiCurrPartNumQ >> 1) ); 
-       	}                     
+        	puhBaseLCU[i + uiCUAddr]= uiParameter;//, (uiCurrPartNumQ >> 1) );
+        	puhBaseLCU[i + uiCUAddr + uiCurrPartNumQ]= uiParameter;//, (uiCurrPartNumQ >> 1) );
+       	}
       }else if uiPUIdx == 1 {
       	for i:=uint(0); i<    (uiCurrPartNumQ >> 1); i++{
-        	puhBaseLCU[i + uiCUAddr]= uiParameter;//, (uiCurrPartNumQ >> 1) );     
-        }  
-        for i:=uint(0); i<    ((uiCurrPartNumQ >> 1) + (uiCurrPartNumQ << 1)); i++{               
-        	puhBaseLCU[i + uiCUAddr + uiCurrPartNumQ]= uiParameter;//, ((uiCurrPartNumQ >> 1) + (uiCurrPartNumQ << 1)) );                      
+        	puhBaseLCU[i + uiCUAddr]= uiParameter;//, (uiCurrPartNumQ >> 1) );
+        }
+        for i:=uint(0); i<    ((uiCurrPartNumQ >> 1) + (uiCurrPartNumQ << 1)); i++{
+        	puhBaseLCU[i + uiCUAddr + uiCurrPartNumQ]= uiParameter;//, ((uiCurrPartNumQ >> 1) + (uiCurrPartNumQ << 1)) );
       	}
       }else{
         //assert(0);
@@ -1988,64 +1988,64 @@ func (this *TComDataCU)  SetSubPartByte ( uiParameter byte, puhBaseLCU []byte,  
 
     case SIZE_2NxnD:
       if uiPUIdx == 0 {
-      	for i:=uint(0); i<    ((uiCurrPartNumQ << 1) + (uiCurrPartNumQ >> 1)); i++{            
-        	puhBaseLCU[i + uiCUAddr]= uiParameter;//, ((uiCurrPartNumQ << 1) + (uiCurrPartNumQ >> 1)) );                      
+      	for i:=uint(0); i<    ((uiCurrPartNumQ << 1) + (uiCurrPartNumQ >> 1)); i++{
+        	puhBaseLCU[i + uiCUAddr]= uiParameter;//, ((uiCurrPartNumQ << 1) + (uiCurrPartNumQ >> 1)) );
         }
         for i:=uint(0); i<     (uiCurrPartNumQ >> 1); i++{
-        	puhBaseLCU[i + uiCUAddr + (uiCurrPartNumQ << 1) + uiCurrPartNumQ]= uiParameter;//, (uiCurrPartNumQ >> 1) );                      
+        	puhBaseLCU[i + uiCUAddr + (uiCurrPartNumQ << 1) + uiCurrPartNumQ]= uiParameter;//, (uiCurrPartNumQ >> 1) );
       	}
       }else if uiPUIdx == 1 {
       	for i:=uint(0); i<     (uiCurrPartNumQ >> 1); i++{
-        	puhBaseLCU[i + uiCUAddr]= uiParameter;//, (uiCurrPartNumQ >> 1) );                      
+        	puhBaseLCU[i + uiCUAddr]= uiParameter;//, (uiCurrPartNumQ >> 1) );
         	puhBaseLCU[i + uiCUAddr + uiCurrPartNumQ]= uiParameter;//, (uiCurrPartNumQ >> 1) );
-        }                      
+        }
       }else{
         //assert(0);
       }
-      
+
     case SIZE_nLx2N:
       if uiPUIdx == 0 {
       	for i:=uint(0); i<     (uiCurrPartNumQ >> 2); i++{
         	puhBaseLCU[i + uiCUAddr]= uiParameter;//, (uiCurrPartNumQ >> 2) );
-        	puhBaseLCU[i + uiCUAddr + (uiCurrPartNumQ >> 1)]= uiParameter;//, (uiCurrPartNumQ >> 2) ); 
-        	puhBaseLCU[i + uiCUAddr + (uiCurrPartNumQ << 1)]= uiParameter;//, (uiCurrPartNumQ >> 2) ); 
-        	puhBaseLCU[i + uiCUAddr + (uiCurrPartNumQ << 1) + (uiCurrPartNumQ >> 1)]= uiParameter;//, (uiCurrPartNumQ >> 2) ); 
+        	puhBaseLCU[i + uiCUAddr + (uiCurrPartNumQ >> 1)]= uiParameter;//, (uiCurrPartNumQ >> 2) );
+        	puhBaseLCU[i + uiCUAddr + (uiCurrPartNumQ << 1)]= uiParameter;//, (uiCurrPartNumQ >> 2) );
+        	puhBaseLCU[i + uiCUAddr + (uiCurrPartNumQ << 1) + (uiCurrPartNumQ >> 1)]= uiParameter;//, (uiCurrPartNumQ >> 2) );
       	}
       }else if uiPUIdx == 1 {
       	for i:=uint(0); i<     (uiCurrPartNumQ >> 2); i++{
         	puhBaseLCU[i + uiCUAddr]= uiParameter;//, (uiCurrPartNumQ >> 2) );
-        	puhBaseLCU[i + uiCUAddr + (uiCurrPartNumQ << 1)]= uiParameter;//, (uiCurrPartNumQ >> 2) ); 
-        	
+        	puhBaseLCU[i + uiCUAddr + (uiCurrPartNumQ << 1)]= uiParameter;//, (uiCurrPartNumQ >> 2) );
+
         }
-        for i:=uint(0); i<(uiCurrPartNumQ + (uiCurrPartNumQ >> 2)); i++{	
-        	puhBaseLCU[i + uiCUAddr + (uiCurrPartNumQ >> 1)]= uiParameter;//, (uiCurrPartNumQ + (uiCurrPartNumQ >> 2)) ); 
-        	puhBaseLCU[i + uiCUAddr + (uiCurrPartNumQ << 1) + (uiCurrPartNumQ >> 1)]= uiParameter;//, (uiCurrPartNumQ + (uiCurrPartNumQ >> 2)) ); 
+        for i:=uint(0); i<(uiCurrPartNumQ + (uiCurrPartNumQ >> 2)); i++{
+        	puhBaseLCU[i + uiCUAddr + (uiCurrPartNumQ >> 1)]= uiParameter;//, (uiCurrPartNumQ + (uiCurrPartNumQ >> 2)) );
+        	puhBaseLCU[i + uiCUAddr + (uiCurrPartNumQ << 1) + (uiCurrPartNumQ >> 1)]= uiParameter;//, (uiCurrPartNumQ + (uiCurrPartNumQ >> 2)) );
       	}
       }else{
         //assert(0);
       }
-      
+
     case SIZE_nRx2N:
-      if uiPUIdx == 0 {     
-      	for i:=uint(0); i<     (uiCurrPartNumQ >> 2); i++{ 
+      if uiPUIdx == 0 {
+      	for i:=uint(0); i<     (uiCurrPartNumQ >> 2); i++{
         	puhBaseLCU[i + uiCUAddr + uiCurrPartNumQ + (uiCurrPartNumQ >> 1)]= uiParameter;//, (uiCurrPartNumQ >> 2) );
-        	puhBaseLCU[i + uiCUAddr + (uiCurrPartNumQ << 1) + uiCurrPartNumQ + (uiCurrPartNumQ >> 1)]= uiParameter;//, (uiCurrPartNumQ >> 2) ); 
-        }      
-        for i:=uint(0); i<(uiCurrPartNumQ + (uiCurrPartNumQ >> 2)) ; i++{ 
-            puhBaseLCU[i + uiCUAddr]= uiParameter;//, (uiCurrPartNumQ + (uiCurrPartNumQ >> 2)) );                                     
-        	puhBaseLCU[i + uiCUAddr + (uiCurrPartNumQ << 1)]= uiParameter;//, (uiCurrPartNumQ + (uiCurrPartNumQ >> 2)) );         
-        }               
+        	puhBaseLCU[i + uiCUAddr + (uiCurrPartNumQ << 1) + uiCurrPartNumQ + (uiCurrPartNumQ >> 1)]= uiParameter;//, (uiCurrPartNumQ >> 2) );
+        }
+        for i:=uint(0); i<(uiCurrPartNumQ + (uiCurrPartNumQ >> 2)) ; i++{
+            puhBaseLCU[i + uiCUAddr]= uiParameter;//, (uiCurrPartNumQ + (uiCurrPartNumQ >> 2)) );
+        	puhBaseLCU[i + uiCUAddr + (uiCurrPartNumQ << 1)]= uiParameter;//, (uiCurrPartNumQ + (uiCurrPartNumQ >> 2)) );
+        }
       }else if uiPUIdx == 1 {
-      	for i:=uint(0); i<     (uiCurrPartNumQ >> 2); i++{ 
-        	puhBaseLCU[i + uiCUAddr]= uiParameter;// (uiCurrPartNumQ >> 2) );                           
-        	puhBaseLCU[i + uiCUAddr + (uiCurrPartNumQ >> 1)]= uiParameter;// (uiCurrPartNumQ >> 2) );                           
-        	puhBaseLCU[i + uiCUAddr + (uiCurrPartNumQ << 1)]= uiParameter;// (uiCurrPartNumQ >> 2) );                           
-        	puhBaseLCU[i + uiCUAddr + (uiCurrPartNumQ << 1) + (uiCurrPartNumQ >> 1)]= uiParameter;// (uiCurrPartNumQ >> 2) );   
-        }                     
+      	for i:=uint(0); i<     (uiCurrPartNumQ >> 2); i++{
+        	puhBaseLCU[i + uiCUAddr]= uiParameter;// (uiCurrPartNumQ >> 2) );
+        	puhBaseLCU[i + uiCUAddr + (uiCurrPartNumQ >> 1)]= uiParameter;// (uiCurrPartNumQ >> 2) );
+        	puhBaseLCU[i + uiCUAddr + (uiCurrPartNumQ << 1)]= uiParameter;// (uiCurrPartNumQ >> 2) );
+        	puhBaseLCU[i + uiCUAddr + (uiCurrPartNumQ << 1) + (uiCurrPartNumQ >> 1)]= uiParameter;// (uiCurrPartNumQ >> 2) );
+        }
       }else{
         //assert(0);
       }
-      
+
     default:
       //assert( 0 );
   }
@@ -2053,7 +2053,7 @@ func (this *TComDataCU)  SetSubPartByte ( uiParameter byte, puhBaseLCU []byte,  
 
 func (this *TComDataCU)  SetSubPartInt8 ( uiParameter int8, puhBaseLCU []int8,  uiCUAddr,  uiCUDepth,  uiPUIdx uint){
   //assert( sizeof(T) == 1 ); // Using memset() works only for types of size 1
-  
+
   uiCurrPartNumQ := (this.m_pcPic.GetNumPartInCU() >> (2 * uiCUDepth)) >> 2;
   switch this.m_pePartSize[ uiCUAddr ] {
     case SIZE_2Nx2N:
@@ -2071,20 +2071,20 @@ func (this *TComDataCU)  SetSubPartInt8 ( uiParameter int8, puhBaseLCU []int8,  
 		}
     case SIZE_NxN:
     	for i:=uint(0); i<    uiCurrPartNumQ; i++{
-      		puhBaseLCU[i + uiCUAddr]= uiParameter;//, uiCurrPartNumQ ); 
+      		puhBaseLCU[i + uiCUAddr]= uiParameter;//, uiCurrPartNumQ );
 		}
     case SIZE_2NxnU:
       if uiPUIdx == 0 {
       	for i:=uint(0); i<    (uiCurrPartNumQ >> 1); i++{
-        	puhBaseLCU[i + uiCUAddr]= uiParameter;//, (uiCurrPartNumQ >> 1) );                      
-        	puhBaseLCU[i + uiCUAddr + uiCurrPartNumQ]= uiParameter;//, (uiCurrPartNumQ >> 1) ); 
-       	}                     
+        	puhBaseLCU[i + uiCUAddr]= uiParameter;//, (uiCurrPartNumQ >> 1) );
+        	puhBaseLCU[i + uiCUAddr + uiCurrPartNumQ]= uiParameter;//, (uiCurrPartNumQ >> 1) );
+       	}
       }else if uiPUIdx == 1 {
       	for i:=uint(0); i<    (uiCurrPartNumQ >> 1); i++{
-        	puhBaseLCU[i + uiCUAddr]= uiParameter;//, (uiCurrPartNumQ >> 1) );     
-        }  
-        for i:=uint(0); i<    ((uiCurrPartNumQ >> 1) + (uiCurrPartNumQ << 1)); i++{               
-        	puhBaseLCU[i + uiCUAddr + uiCurrPartNumQ]= uiParameter;//, ((uiCurrPartNumQ >> 1) + (uiCurrPartNumQ << 1)) );                      
+        	puhBaseLCU[i + uiCUAddr]= uiParameter;//, (uiCurrPartNumQ >> 1) );
+        }
+        for i:=uint(0); i<    ((uiCurrPartNumQ >> 1) + (uiCurrPartNumQ << 1)); i++{
+        	puhBaseLCU[i + uiCUAddr + uiCurrPartNumQ]= uiParameter;//, ((uiCurrPartNumQ >> 1) + (uiCurrPartNumQ << 1)) );
       	}
       }else{
         //assert(0);
@@ -2092,71 +2092,71 @@ func (this *TComDataCU)  SetSubPartInt8 ( uiParameter int8, puhBaseLCU []int8,  
 
     case SIZE_2NxnD:
       if uiPUIdx == 0 {
-      	for i:=uint(0); i<    ((uiCurrPartNumQ << 1) + (uiCurrPartNumQ >> 1)); i++{            
-        	puhBaseLCU[i + uiCUAddr]= uiParameter;//, ((uiCurrPartNumQ << 1) + (uiCurrPartNumQ >> 1)) );                      
+      	for i:=uint(0); i<    ((uiCurrPartNumQ << 1) + (uiCurrPartNumQ >> 1)); i++{
+        	puhBaseLCU[i + uiCUAddr]= uiParameter;//, ((uiCurrPartNumQ << 1) + (uiCurrPartNumQ >> 1)) );
         }
         for i:=uint(0); i<     (uiCurrPartNumQ >> 1); i++{
-        	puhBaseLCU[i + uiCUAddr + (uiCurrPartNumQ << 1) + uiCurrPartNumQ]= uiParameter;//, (uiCurrPartNumQ >> 1) );                      
+        	puhBaseLCU[i + uiCUAddr + (uiCurrPartNumQ << 1) + uiCurrPartNumQ]= uiParameter;//, (uiCurrPartNumQ >> 1) );
       	}
       }else if uiPUIdx == 1 {
       	for i:=uint(0); i<     (uiCurrPartNumQ >> 1); i++{
-        	puhBaseLCU[i + uiCUAddr]= uiParameter;//, (uiCurrPartNumQ >> 1) );                      
+        	puhBaseLCU[i + uiCUAddr]= uiParameter;//, (uiCurrPartNumQ >> 1) );
         	puhBaseLCU[i + uiCUAddr + uiCurrPartNumQ]= uiParameter;//, (uiCurrPartNumQ >> 1) );
-        }                      
+        }
       }else{
         //assert(0);
       }
-      
+
     case SIZE_nLx2N:
       if uiPUIdx == 0 {
       	for i:=uint(0); i<     (uiCurrPartNumQ >> 2); i++{
         	puhBaseLCU[i + uiCUAddr]= uiParameter;//, (uiCurrPartNumQ >> 2) );
-        	puhBaseLCU[i + uiCUAddr + (uiCurrPartNumQ >> 1)]= uiParameter;//, (uiCurrPartNumQ >> 2) ); 
-        	puhBaseLCU[i + uiCUAddr + (uiCurrPartNumQ << 1)]= uiParameter;//, (uiCurrPartNumQ >> 2) ); 
-        	puhBaseLCU[i + uiCUAddr + (uiCurrPartNumQ << 1) + (uiCurrPartNumQ >> 1)]= uiParameter;//, (uiCurrPartNumQ >> 2) ); 
+        	puhBaseLCU[i + uiCUAddr + (uiCurrPartNumQ >> 1)]= uiParameter;//, (uiCurrPartNumQ >> 2) );
+        	puhBaseLCU[i + uiCUAddr + (uiCurrPartNumQ << 1)]= uiParameter;//, (uiCurrPartNumQ >> 2) );
+        	puhBaseLCU[i + uiCUAddr + (uiCurrPartNumQ << 1) + (uiCurrPartNumQ >> 1)]= uiParameter;//, (uiCurrPartNumQ >> 2) );
       	}
       }else if uiPUIdx == 1 {
       	for i:=uint(0); i<     (uiCurrPartNumQ >> 2); i++{
         	puhBaseLCU[i + uiCUAddr]= uiParameter;//, (uiCurrPartNumQ >> 2) );
-        	puhBaseLCU[i + uiCUAddr + (uiCurrPartNumQ << 1)]= uiParameter;//, (uiCurrPartNumQ >> 2) ); 
-        	
+        	puhBaseLCU[i + uiCUAddr + (uiCurrPartNumQ << 1)]= uiParameter;//, (uiCurrPartNumQ >> 2) );
+
         }
-        for i:=uint(0); i<(uiCurrPartNumQ + (uiCurrPartNumQ >> 2)); i++{	
-        	puhBaseLCU[i + uiCUAddr + (uiCurrPartNumQ >> 1)]= uiParameter;//, (uiCurrPartNumQ + (uiCurrPartNumQ >> 2)) ); 
-        	puhBaseLCU[i + uiCUAddr + (uiCurrPartNumQ << 1) + (uiCurrPartNumQ >> 1)]= uiParameter;//, (uiCurrPartNumQ + (uiCurrPartNumQ >> 2)) ); 
+        for i:=uint(0); i<(uiCurrPartNumQ + (uiCurrPartNumQ >> 2)); i++{
+        	puhBaseLCU[i + uiCUAddr + (uiCurrPartNumQ >> 1)]= uiParameter;//, (uiCurrPartNumQ + (uiCurrPartNumQ >> 2)) );
+        	puhBaseLCU[i + uiCUAddr + (uiCurrPartNumQ << 1) + (uiCurrPartNumQ >> 1)]= uiParameter;//, (uiCurrPartNumQ + (uiCurrPartNumQ >> 2)) );
       	}
       }else{
         //assert(0);
       }
-      
+
     case SIZE_nRx2N:
-      if uiPUIdx == 0 {     
-      	for i:=uint(0); i<     (uiCurrPartNumQ >> 2); i++{ 
+      if uiPUIdx == 0 {
+      	for i:=uint(0); i<     (uiCurrPartNumQ >> 2); i++{
         	puhBaseLCU[i + uiCUAddr + uiCurrPartNumQ + (uiCurrPartNumQ >> 1)]= uiParameter;//, (uiCurrPartNumQ >> 2) );
-        	puhBaseLCU[i + uiCUAddr + (uiCurrPartNumQ << 1) + uiCurrPartNumQ + (uiCurrPartNumQ >> 1)]= uiParameter;//, (uiCurrPartNumQ >> 2) ); 
-        }      
-        for i:=uint(0); i<(uiCurrPartNumQ + (uiCurrPartNumQ >> 2)) ; i++{ 
-            puhBaseLCU[i + uiCUAddr]= uiParameter;//, (uiCurrPartNumQ + (uiCurrPartNumQ >> 2)) );                                     
-        	puhBaseLCU[i + uiCUAddr + (uiCurrPartNumQ << 1)]= uiParameter;//, (uiCurrPartNumQ + (uiCurrPartNumQ >> 2)) );         
-        }               
+        	puhBaseLCU[i + uiCUAddr + (uiCurrPartNumQ << 1) + uiCurrPartNumQ + (uiCurrPartNumQ >> 1)]= uiParameter;//, (uiCurrPartNumQ >> 2) );
+        }
+        for i:=uint(0); i<(uiCurrPartNumQ + (uiCurrPartNumQ >> 2)) ; i++{
+            puhBaseLCU[i + uiCUAddr]= uiParameter;//, (uiCurrPartNumQ + (uiCurrPartNumQ >> 2)) );
+        	puhBaseLCU[i + uiCUAddr + (uiCurrPartNumQ << 1)]= uiParameter;//, (uiCurrPartNumQ + (uiCurrPartNumQ >> 2)) );
+        }
       }else if uiPUIdx == 1 {
-      	for i:=uint(0); i<     (uiCurrPartNumQ >> 2); i++{ 
-        	puhBaseLCU[i + uiCUAddr]= uiParameter;// (uiCurrPartNumQ >> 2) );                           
-        	puhBaseLCU[i + uiCUAddr + (uiCurrPartNumQ >> 1)]= uiParameter;// (uiCurrPartNumQ >> 2) );                           
-        	puhBaseLCU[i + uiCUAddr + (uiCurrPartNumQ << 1)]= uiParameter;// (uiCurrPartNumQ >> 2) );                           
-        	puhBaseLCU[i + uiCUAddr + (uiCurrPartNumQ << 1) + (uiCurrPartNumQ >> 1)]= uiParameter;// (uiCurrPartNumQ >> 2) );   
-        }                     
+      	for i:=uint(0); i<     (uiCurrPartNumQ >> 2); i++{
+        	puhBaseLCU[i + uiCUAddr]= uiParameter;// (uiCurrPartNumQ >> 2) );
+        	puhBaseLCU[i + uiCUAddr + (uiCurrPartNumQ >> 1)]= uiParameter;// (uiCurrPartNumQ >> 2) );
+        	puhBaseLCU[i + uiCUAddr + (uiCurrPartNumQ << 1)]= uiParameter;// (uiCurrPartNumQ >> 2) );
+        	puhBaseLCU[i + uiCUAddr + (uiCurrPartNumQ << 1) + (uiCurrPartNumQ >> 1)]= uiParameter;// (uiCurrPartNumQ >> 2) );
+        }
       }else{
         //assert(0);
       }
-      
+
     default:
       //assert( 0 );
   }
 }
 func (this *TComDataCU)  SetSubPartBool ( uiParameter bool, puhBaseLCU []bool,  uiCUAddr,  uiCUDepth,  uiPUIdx uint){
   //assert( sizeof(T) == 1 ); // Using memset() works only for types of size 1
-  
+
   uiCurrPartNumQ := (this.m_pcPic.GetNumPartInCU() >> (2 * uiCUDepth)) >> 2;
   switch this.m_pePartSize[ uiCUAddr ] {
     case SIZE_2Nx2N:
@@ -2174,20 +2174,20 @@ func (this *TComDataCU)  SetSubPartBool ( uiParameter bool, puhBaseLCU []bool,  
 		}
     case SIZE_NxN:
     	for i:=uint(0); i<    uiCurrPartNumQ; i++{
-      		puhBaseLCU[i + uiCUAddr]= uiParameter;//, uiCurrPartNumQ ); 
+      		puhBaseLCU[i + uiCUAddr]= uiParameter;//, uiCurrPartNumQ );
 		}
     case SIZE_2NxnU:
       if uiPUIdx == 0 {
       	for i:=uint(0); i<    (uiCurrPartNumQ >> 1); i++{
-        	puhBaseLCU[i + uiCUAddr]= uiParameter;//, (uiCurrPartNumQ >> 1) );                      
-        	puhBaseLCU[i + uiCUAddr + uiCurrPartNumQ]= uiParameter;//, (uiCurrPartNumQ >> 1) ); 
-       	}                     
+        	puhBaseLCU[i + uiCUAddr]= uiParameter;//, (uiCurrPartNumQ >> 1) );
+        	puhBaseLCU[i + uiCUAddr + uiCurrPartNumQ]= uiParameter;//, (uiCurrPartNumQ >> 1) );
+       	}
       }else if uiPUIdx == 1 {
       	for i:=uint(0); i<    (uiCurrPartNumQ >> 1); i++{
-        	puhBaseLCU[i + uiCUAddr]= uiParameter;//, (uiCurrPartNumQ >> 1) );     
-        }  
-        for i:=uint(0); i<    ((uiCurrPartNumQ >> 1) + (uiCurrPartNumQ << 1)); i++{               
-        	puhBaseLCU[i + uiCUAddr + uiCurrPartNumQ]= uiParameter;//, ((uiCurrPartNumQ >> 1) + (uiCurrPartNumQ << 1)) );                      
+        	puhBaseLCU[i + uiCUAddr]= uiParameter;//, (uiCurrPartNumQ >> 1) );
+        }
+        for i:=uint(0); i<    ((uiCurrPartNumQ >> 1) + (uiCurrPartNumQ << 1)); i++{
+        	puhBaseLCU[i + uiCUAddr + uiCurrPartNumQ]= uiParameter;//, ((uiCurrPartNumQ >> 1) + (uiCurrPartNumQ << 1)) );
       	}
       }else{
         //assert(0);
@@ -2195,64 +2195,64 @@ func (this *TComDataCU)  SetSubPartBool ( uiParameter bool, puhBaseLCU []bool,  
 
     case SIZE_2NxnD:
       if uiPUIdx == 0 {
-      	for i:=uint(0); i<    ((uiCurrPartNumQ << 1) + (uiCurrPartNumQ >> 1)); i++{            
-        	puhBaseLCU[i + uiCUAddr]= uiParameter;//, ((uiCurrPartNumQ << 1) + (uiCurrPartNumQ >> 1)) );                      
+      	for i:=uint(0); i<    ((uiCurrPartNumQ << 1) + (uiCurrPartNumQ >> 1)); i++{
+        	puhBaseLCU[i + uiCUAddr]= uiParameter;//, ((uiCurrPartNumQ << 1) + (uiCurrPartNumQ >> 1)) );
         }
         for i:=uint(0); i<     (uiCurrPartNumQ >> 1); i++{
-        	puhBaseLCU[i + uiCUAddr + (uiCurrPartNumQ << 1) + uiCurrPartNumQ]= uiParameter;//, (uiCurrPartNumQ >> 1) );                      
+        	puhBaseLCU[i + uiCUAddr + (uiCurrPartNumQ << 1) + uiCurrPartNumQ]= uiParameter;//, (uiCurrPartNumQ >> 1) );
       	}
       }else if uiPUIdx == 1 {
       	for i:=uint(0); i<     (uiCurrPartNumQ >> 1); i++{
-        	puhBaseLCU[i + uiCUAddr]= uiParameter;//, (uiCurrPartNumQ >> 1) );                      
+        	puhBaseLCU[i + uiCUAddr]= uiParameter;//, (uiCurrPartNumQ >> 1) );
         	puhBaseLCU[i + uiCUAddr + uiCurrPartNumQ]= uiParameter;//, (uiCurrPartNumQ >> 1) );
-        }                      
+        }
       }else{
         //assert(0);
       }
-      
+
     case SIZE_nLx2N:
       if uiPUIdx == 0 {
       	for i:=uint(0); i<     (uiCurrPartNumQ >> 2); i++{
         	puhBaseLCU[i + uiCUAddr]= uiParameter;//, (uiCurrPartNumQ >> 2) );
-        	puhBaseLCU[i + uiCUAddr + (uiCurrPartNumQ >> 1)]= uiParameter;//, (uiCurrPartNumQ >> 2) ); 
-        	puhBaseLCU[i + uiCUAddr + (uiCurrPartNumQ << 1)]= uiParameter;//, (uiCurrPartNumQ >> 2) ); 
-        	puhBaseLCU[i + uiCUAddr + (uiCurrPartNumQ << 1) + (uiCurrPartNumQ >> 1)]= uiParameter;//, (uiCurrPartNumQ >> 2) ); 
+        	puhBaseLCU[i + uiCUAddr + (uiCurrPartNumQ >> 1)]= uiParameter;//, (uiCurrPartNumQ >> 2) );
+        	puhBaseLCU[i + uiCUAddr + (uiCurrPartNumQ << 1)]= uiParameter;//, (uiCurrPartNumQ >> 2) );
+        	puhBaseLCU[i + uiCUAddr + (uiCurrPartNumQ << 1) + (uiCurrPartNumQ >> 1)]= uiParameter;//, (uiCurrPartNumQ >> 2) );
       	}
       }else if uiPUIdx == 1 {
       	for i:=uint(0); i<     (uiCurrPartNumQ >> 2); i++{
         	puhBaseLCU[i + uiCUAddr]= uiParameter;//, (uiCurrPartNumQ >> 2) );
-        	puhBaseLCU[i + uiCUAddr + (uiCurrPartNumQ << 1)]= uiParameter;//, (uiCurrPartNumQ >> 2) ); 
-        	
+        	puhBaseLCU[i + uiCUAddr + (uiCurrPartNumQ << 1)]= uiParameter;//, (uiCurrPartNumQ >> 2) );
+
         }
-        for i:=uint(0); i<(uiCurrPartNumQ + (uiCurrPartNumQ >> 2)); i++{	
-        	puhBaseLCU[i + uiCUAddr + (uiCurrPartNumQ >> 1)]= uiParameter;//, (uiCurrPartNumQ + (uiCurrPartNumQ >> 2)) ); 
-        	puhBaseLCU[i + uiCUAddr + (uiCurrPartNumQ << 1) + (uiCurrPartNumQ >> 1)]= uiParameter;//, (uiCurrPartNumQ + (uiCurrPartNumQ >> 2)) ); 
+        for i:=uint(0); i<(uiCurrPartNumQ + (uiCurrPartNumQ >> 2)); i++{
+        	puhBaseLCU[i + uiCUAddr + (uiCurrPartNumQ >> 1)]= uiParameter;//, (uiCurrPartNumQ + (uiCurrPartNumQ >> 2)) );
+        	puhBaseLCU[i + uiCUAddr + (uiCurrPartNumQ << 1) + (uiCurrPartNumQ >> 1)]= uiParameter;//, (uiCurrPartNumQ + (uiCurrPartNumQ >> 2)) );
       	}
       }else{
         //assert(0);
       }
-      
+
     case SIZE_nRx2N:
-      if uiPUIdx == 0 {     
-      	for i:=uint(0); i<     (uiCurrPartNumQ >> 2); i++{ 
+      if uiPUIdx == 0 {
+      	for i:=uint(0); i<     (uiCurrPartNumQ >> 2); i++{
         	puhBaseLCU[i + uiCUAddr + uiCurrPartNumQ + (uiCurrPartNumQ >> 1)]= uiParameter;//, (uiCurrPartNumQ >> 2) );
-        	puhBaseLCU[i + uiCUAddr + (uiCurrPartNumQ << 1) + uiCurrPartNumQ + (uiCurrPartNumQ >> 1)]= uiParameter;//, (uiCurrPartNumQ >> 2) ); 
-        }      
-        for i:=uint(0); i<(uiCurrPartNumQ + (uiCurrPartNumQ >> 2)) ; i++{ 
-            puhBaseLCU[i + uiCUAddr]= uiParameter;//, (uiCurrPartNumQ + (uiCurrPartNumQ >> 2)) );                                     
-        	puhBaseLCU[i + uiCUAddr + (uiCurrPartNumQ << 1)]= uiParameter;//, (uiCurrPartNumQ + (uiCurrPartNumQ >> 2)) );         
-        }               
+        	puhBaseLCU[i + uiCUAddr + (uiCurrPartNumQ << 1) + uiCurrPartNumQ + (uiCurrPartNumQ >> 1)]= uiParameter;//, (uiCurrPartNumQ >> 2) );
+        }
+        for i:=uint(0); i<(uiCurrPartNumQ + (uiCurrPartNumQ >> 2)) ; i++{
+            puhBaseLCU[i + uiCUAddr]= uiParameter;//, (uiCurrPartNumQ + (uiCurrPartNumQ >> 2)) );
+        	puhBaseLCU[i + uiCUAddr + (uiCurrPartNumQ << 1)]= uiParameter;//, (uiCurrPartNumQ + (uiCurrPartNumQ >> 2)) );
+        }
       }else if uiPUIdx == 1 {
-      	for i:=uint(0); i<     (uiCurrPartNumQ >> 2); i++{ 
-        	puhBaseLCU[i + uiCUAddr]= uiParameter;// (uiCurrPartNumQ >> 2) );                           
-        	puhBaseLCU[i + uiCUAddr + (uiCurrPartNumQ >> 1)]= uiParameter;// (uiCurrPartNumQ >> 2) );                           
-        	puhBaseLCU[i + uiCUAddr + (uiCurrPartNumQ << 1)]= uiParameter;// (uiCurrPartNumQ >> 2) );                           
-        	puhBaseLCU[i + uiCUAddr + (uiCurrPartNumQ << 1) + (uiCurrPartNumQ >> 1)]= uiParameter;// (uiCurrPartNumQ >> 2) );   
-        }                     
+      	for i:=uint(0); i<     (uiCurrPartNumQ >> 2); i++{
+        	puhBaseLCU[i + uiCUAddr]= uiParameter;// (uiCurrPartNumQ >> 2) );
+        	puhBaseLCU[i + uiCUAddr + (uiCurrPartNumQ >> 1)]= uiParameter;// (uiCurrPartNumQ >> 2) );
+        	puhBaseLCU[i + uiCUAddr + (uiCurrPartNumQ << 1)]= uiParameter;// (uiCurrPartNumQ >> 2) );
+        	puhBaseLCU[i + uiCUAddr + (uiCurrPartNumQ << 1) + (uiCurrPartNumQ >> 1)]= uiParameter;// (uiCurrPartNumQ >> 2) );
+        }
       }else{
         //assert(0);
       }
-      
+
     default:
       //assert( 0 );
   }
@@ -2558,7 +2558,7 @@ func (this *TComDataCU)  SetNDBFilterBlockBorderAvailability( numLCUInPicWidth, 
       if(bLCUTBoundary && bLCURBoundary)
       {
         zRefSU      = g_auiRasterToZscan[numSUInLCU - numSUInLCUWidth];
-        pRefMapLCU  = pSliceIDMapLCU - ( (numLCUInPicWidth-1)*numSUInLCU);        
+        pRefMapLCU  = pSliceIDMapLCU - ( (numLCUInPicWidth-1)*numSUInLCU);
       }
       else if(bLCUTBoundary)
       {
@@ -2594,7 +2594,7 @@ func (this *TComDataCU)  SetNDBFilterBlockBorderAvailability( numLCUInPicWidth, 
       if(bLCUBBoundary && bLCULBoundary)
       {
         zRefSU      = g_auiRasterToZscan[numSUInLCUWidth - 1];
-        pRefMapLCU  = pSliceIDMapLCU + ( (numLCUInPicWidth-1)*numSUInLCU);        
+        pRefMapLCU  = pSliceIDMapLCU + ( (numLCUInPicWidth-1)*numSUInLCU);
       }
       else if(bLCUBBoundary)
       {
@@ -2703,8 +2703,8 @@ func (this *TComDataCU)  SetNDBFilterBlockBorderAvailability( numLCUInPicWidth, 
 func (this *TComDataCU)  GetPartIndexAndSizePos(  uiPartIdx uint, ruiPartAddr *uint, riWidth, riHeight, rPosX, rPosY *int ){
   switch this.m_pePartSize[0] {
     case SIZE_2NxN:
-      *riWidth  = int(this.GetWidth1(0));      
-      *riHeight = int(this.GetHeight1(0)) >> 1; 
+      *riWidth  = int(this.GetWidth1(0));
+      *riHeight = int(this.GetHeight1(0)) >> 1;
       if uiPartIdx == 0 {
       	*ruiPartAddr = 0;
       	*rPosY = 0;
@@ -2712,95 +2712,95 @@ func (this *TComDataCU)  GetPartIndexAndSizePos(  uiPartIdx uint, ruiPartAddr *u
       	*ruiPartAddr = this.m_uiNumPartition >> 1;
       	*rPosY = *riHeight;
       }
-      *rPosX = 0; 
-      
+      *rPosX = 0;
+
     case SIZE_Nx2N:
-      *riWidth  = int(this.GetWidth1(0)) >> 1; 
-      *riHeight = int(this.GetHeight1(0)); 
-      if uiPartIdx == 0 {    
+      *riWidth  = int(this.GetWidth1(0)) >> 1;
+      *riHeight = int(this.GetHeight1(0));
+      if uiPartIdx == 0 {
 	      *ruiPartAddr = 0 ;
-	      *rPosX = 0 ; 
+	      *rPosX = 0 ;
       }else{
       	  *ruiPartAddr = this.m_uiNumPartition >> 2;
-	      *rPosX = *riWidth; 
+	      *rPosX = *riWidth;
       }
       *rPosY = 0;
-      
+
     case SIZE_NxN:
-      *riWidth  = int(this.GetWidth1(0)) >> 1; 
-      *riHeight = int(this.GetHeight1(0)) >> 1; 
+      *riWidth  = int(this.GetWidth1(0)) >> 1;
+      *riHeight = int(this.GetHeight1(0)) >> 1;
       *ruiPartAddr = ( this.m_uiNumPartition >> 2 ) * uiPartIdx;
       if uiPartIdx%2!=0{
-      	*rPosX =  *riWidth; 
+      	*rPosX =  *riWidth;
       }else{
-      	*rPosX =  0; 
+      	*rPosX =  0;
       }
       if uiPartIdx/2!=0{
       	*rPosY = *riHeight;
       }else{
       	*rPosY = 0;
       }
-      
+
     case SIZE_2NxnU:
       *riWidth     = int(this.GetWidth1(0));
-      *rPosX = 0; 
+      *rPosX = 0;
       if uiPartIdx == 0 {
 	      *riHeight    = int(this.GetHeight1(0)) >> 2 ;
 	      *ruiPartAddr = 0 ;
-	      *rPosY = 0 ; 
+	      *rPosY = 0 ;
       }else{
       	  *riHeight    =  int( this.GetHeight1(0) >> 2 ) + int( this.GetHeight1(0) >> 1 );
 	      *ruiPartAddr =  this.m_uiNumPartition >> 3;
-	      *rPosY =  int(this.GetHeight1(0) >> 2); 
+	      *rPosY =  int(this.GetHeight1(0) >> 2);
       }
-      
+
     case SIZE_2NxnD:
-      *riWidth     = int(this.GetWidth1(0)); 
+      *riWidth     = int(this.GetWidth1(0));
       *rPosX = 0;
       if  uiPartIdx == 0 {
       	*riHeight    = int( this.GetHeight1(0) >> 2 ) + int( this.GetHeight1(0) >> 1 ) ;
       	*ruiPartAddr =  0 ;
-       	*rPosY =  0 ; 
+       	*rPosY =  0 ;
       }else{
       	*riHeight    = int(this.GetHeight1(0) >> 2);
       	*ruiPartAddr = (this.m_uiNumPartition >> 1) + (this.m_uiNumPartition >> 3);
-       	*rPosY = int( this.GetHeight1(0) >> 2 ) + int( this.GetHeight1(0) >> 1 ); 
+       	*rPosY = int( this.GetHeight1(0) >> 2 ) + int( this.GetHeight1(0) >> 1 );
       }
-      
+
     case SIZE_nLx2N:
     	*riHeight    = int(this.GetHeight1(0));
-    	*rPosY = 0; 
-    	if uiPartIdx == 0 {	
+    	*rPosY = 0;
+    	if uiPartIdx == 0 {
 	      *riWidth     = int(this.GetWidth1(0) >> 2);
 	      *ruiPartAddr = 0 ;
-	      *rPosX =       0 ; 
+	      *rPosX =       0 ;
 	    }else{
 	      *riWidth     =  int( this.GetWidth1(0) >> 2 ) + int( this.GetWidth1(0) >> 1 );
 	      *ruiPartAddr = this.m_uiNumPartition >> 4;
-	      *rPosX =  int(this.GetWidth1(0) >> 2); 	
+	      *rPosX =  int(this.GetWidth1(0) >> 2);
 	    }
-      
+
     case SIZE_nRx2N:
-      *riHeight    = int(this.GetHeight1(0)); 
+      *riHeight    = int(this.GetHeight1(0));
       *rPosY = 0;
       if uiPartIdx == 0 {
       	*riWidth     = int( this.GetWidth1(0) >> 2 ) + int( this.GetWidth1(0) >> 1 ) ;
       	*ruiPartAddr = 0 ;
-      	*rPosX = 0 ;  
+      	*rPosX = 0 ;
       }else{
       	*riWidth     =  int(this.GetWidth1(0) >> 2);
       	*ruiPartAddr =  (this.m_uiNumPartition >> 2) + (this.m_uiNumPartition >> 4);
-      	*rPosX =  int( this.GetWidth1(0) >> 2 ) + int( this.GetWidth1(0) >> 1 ); 
+      	*rPosX =  int( this.GetWidth1(0) >> 2 ) + int( this.GetWidth1(0) >> 1 );
       }
-      
+
     default:
       //assert ( this.m_pePartSize[0] == SIZE_2Nx2N );
-      *riWidth = int(this.GetWidth1(0));      
-      *riHeight = int(this.GetHeight1(0));      
+      *riWidth = int(this.GetWidth1(0));
+      *riHeight = int(this.GetHeight1(0));
       *ruiPartAddr = 0;
-      *rPosX = 0; 
+      *rPosX = 0;
       *rPosY = 0;
-      
+
   }
 }
 
@@ -2874,7 +2874,7 @@ func (this *TComDataCU)  GetMvField            ( pcCU *TComDataCU,  uiAbsPartIdx
     rcMvField.SetMvField( cZeroMv, NOT_VALID );
     return;
   }
-  
+
   pcCUMvField := pcCU.GetCUMvField( eRefPicList );
   rcMvField.SetMvField( pcCUMvField.GetMv( int(uiAbsPartIdx) ), pcCUMvField.GetRefIdx( int(uiAbsPartIdx) ) );
 }
@@ -2883,19 +2883,19 @@ func (this *TComDataCU)  FillMvpCand           (  uiPartIdx,  uiPartAddr uint,  
   //var cMvPred TComMv;
   bAddedSmvp := false;
 
-  pInfo.IN = 0;  
+  pInfo.IN = 0;
   if iRefIdx < 0 {
     return;
   }
-  
+
   //-- Get Spatial MV
   var uiPartIdxLT, uiPartIdxRT, uiPartIdxLB uint;
   uiNumPartInCUWidth := this.m_pcPic.GetNumPartInWidth();
   bAdded := false;
-  
+
   this.DeriveLeftRightTopIdx( uiPartIdx, &uiPartIdxLT, &uiPartIdxRT );
   this.DeriveLeftBottomIdx  ( uiPartIdx, &uiPartIdxLB );
-  
+
   var tmpCU *TComDataCU;
   var idx uint;
   tmpCU = this.GetPUBelowLeft(&idx, uiPartIdxLB, true, false);
@@ -2911,7 +2911,7 @@ func (this *TComDataCU)  FillMvpCand           (  uiPartIdx,  uiPartAddr uint,  
   if !bAdded {
     bAdded = this.xAddMVPCand( pInfo, eRefPicList, iRefIdx, uiPartIdxLB, MD_LEFT );
   }
-  
+
   if !bAdded {
     bAdded = this.xAddMVPCandOrder( pInfo, eRefPicList, iRefIdx, uiPartIdxLB, MD_BELOW_LEFT);
     if !bAdded {
@@ -2943,7 +2943,7 @@ func (this *TComDataCU)  FillMvpCand           (  uiPartIdx,  uiPartAddr uint,  
       bAdded = this.xAddMVPCandOrder( pInfo, eRefPicList, iRefIdx, uiPartIdxLT, MD_ABOVE_LEFT);
     }
   }
-  
+
   if pInfo.IN == 2 {
     if pInfo.MvCand[ 0 ] == pInfo.MvCand[ 1 ] {
       pInfo.IN = 1;
@@ -2962,24 +2962,24 @@ func (this *TComDataCU)  FillMvpCand           (  uiPartIdx,  uiPartAddr uint,  
 
     //----  co-located RightBottom Temporal Predictor (H) ---//
     uiAbsPartIdx = G_auiZscanToRaster[uiPartIdxRB];
-    if  ( this.m_pcPic.GetCU(this.m_uiCUAddr).GetCUPelX() + G_auiRasterToPelX[uiAbsPartIdx] + this.m_pcPic.GetMinCUWidth() ) >= this.m_pcSlice.GetSPS().GetPicWidthInLumaSamples() {  // image boundary check 
+    if  ( this.m_pcPic.GetCU(this.m_uiCUAddr).GetCUPelX() + G_auiRasterToPelX[uiAbsPartIdx] + this.m_pcPic.GetMinCUWidth() ) >= this.m_pcSlice.GetSPS().GetPicWidthInLumaSamples() {  // image boundary check
       uiLCUIdx = -1;
     }else if  ( this.m_pcPic.GetCU(this.m_uiCUAddr).GetCUPelY() + G_auiRasterToPelY[uiAbsPartIdx] + this.m_pcPic.GetMinCUHeight() ) >= this.m_pcSlice.GetSPS().GetPicHeightInLumaSamples() {
       uiLCUIdx = -1;
     }else{
-      if ( uiAbsPartIdx % uiNumPartInCUWidth < uiNumPartInCUWidth - 1 ) &&           // is not at the last column of LCU 
+      if ( uiAbsPartIdx % uiNumPartInCUWidth < uiNumPartInCUWidth - 1 ) &&           // is not at the last column of LCU
          ( uiAbsPartIdx / uiNumPartInCUWidth < this.m_pcPic.GetNumPartInHeight() - 1 ) { // is not at the last row    of LCU
         uiAbsPartAddr = G_auiRasterToZscan[ uiAbsPartIdx + uiNumPartInCUWidth + 1 ];
         uiLCUIdx = int(this.GetAddr());
       }else if  uiAbsPartIdx % uiNumPartInCUWidth < uiNumPartInCUWidth - 1 {           // is not at the last column of LCU But is last row of LCU
         uiAbsPartAddr = G_auiRasterToZscan[ (uiAbsPartIdx + uiNumPartInCUWidth + 1) % this.m_pcPic.GetNumPartInCU() ];
-        uiLCUIdx      = -1 ; 
+        uiLCUIdx      = -1 ;
       }else if  uiAbsPartIdx / uiNumPartInCUWidth < this.m_pcPic.GetNumPartInHeight() - 1 { // is not at the last row of LCU But is last column of LCU
         uiAbsPartAddr = G_auiRasterToZscan[ uiAbsPartIdx + 1 ];
         uiLCUIdx = int(this.GetAddr()) + 1;
-      }else{ //is the right bottom corner of LCU                       
+      }else{ //is the right bottom corner of LCU
         uiAbsPartAddr = 0;
-        uiLCUIdx      = -1 ; 
+        uiLCUIdx      = -1 ;
       }
     }
     if uiLCUIdx >= 0 && this.xGetColMVP( eRefPicList, uiLCUIdx, int(uiAbsPartAddr), &cColMv, &iRefIdx_Col ) {
@@ -3024,8 +3024,8 @@ func (this *TComDataCU)  GetPartPosition       (  partIdx uint, xP, yP, nPSW, nP
 
   switch this.m_pePartSize[0] {
   case SIZE_2NxN:
-    *nPSW = int(this.GetWidth1(0));      
-    *nPSH = int(this.GetHeight1(0)) >> 1; 
+    *nPSW = int(this.GetWidth1(0));
+    *nPSH = int(this.GetHeight1(0)) >> 1;
     *xP   = col;
     if partIdx ==0 {
     	*yP   = row;
@@ -3033,22 +3033,22 @@ func (this *TComDataCU)  GetPartPosition       (  partIdx uint, xP, yP, nPSW, nP
     	*yP   = row + *nPSH;
     }
   case SIZE_Nx2N:
-    *nPSW = int(this.GetWidth1(0)) >> 1; 
-    *nPSH = int(this.GetHeight1(0));  
-    if partIdx ==0 {   
+    *nPSW = int(this.GetWidth1(0)) >> 1;
+    *nPSH = int(this.GetHeight1(0));
+    if partIdx ==0 {
     	*xP   = col;
     }else{
     	*xP   = col + *nPSW;
     }
     *yP   = row;
   case SIZE_NxN:
-    *nPSW = int(this.GetWidth1(0)) >> 1; 
-    *nPSH = int(this.GetHeight1(0)) >> 1; 
+    *nPSW = int(this.GetWidth1(0)) >> 1;
+    *nPSH = int(this.GetHeight1(0)) >> 1;
     *xP   = col + int(partIdx&0x1)*(*nPSW);
     *yP   = row + int(partIdx>>1)*(*nPSH);
-    
+
   case SIZE_2NxnU:
-    *nPSW = int(this.GetWidth1(0)); 
+    *nPSW = int(this.GetWidth1(0));
     *xP   = col;
     if partIdx == 0 {
     	*nPSH = int(this.GetHeight1(0)) >> 2 ;
@@ -3057,7 +3057,7 @@ func (this *TComDataCU)  GetPartPosition       (  partIdx uint, xP, yP, nPSW, nP
 		*nPSH = int( this.GetHeight1(0) >> 2 ) + int( this.GetHeight1(0) >> 1 );
     	*yP   = row + int(this.GetHeight1(0)) - (*nPSH);
 	}
-   
+
   case SIZE_2NxnD:
     *nPSW = int(this.GetWidth1(0));
     *xP   = col;
@@ -3078,7 +3078,7 @@ func (this *TComDataCU)  GetPartPosition       (  partIdx uint, xP, yP, nPSW, nP
     }
     *nPSH = int(this.GetHeight1(0));
     *yP   = row;
-    
+
   case SIZE_nRx2N:
   	if partIdx == 0 {
     	*nPSW = int( this.GetWidth1(0) >> 2 ) + int( this.GetWidth1(0) >> 1 ) ;
@@ -3089,11 +3089,11 @@ func (this *TComDataCU)  GetPartPosition       (  partIdx uint, xP, yP, nPSW, nP
     }
     *nPSH = int(this.GetHeight1(0));
     *yP   = row;
-    
+
   default:
     //assert ( m_pePartSize[0] == SIZE_2Nx2N );
-    *nPSW = int(this.GetWidth1(0));      
-    *nPSH = int(this.GetHeight1(0));      
+    *nPSW = int(this.GetWidth1(0));
+    *nPSH = int(this.GetHeight1(0));
     *xP   = col ;
     *yP   = row ;
   }
@@ -3130,10 +3130,10 @@ func (this *TComDataCU)  ClipMv                ( rcMv  *TComMv   ){
   iOffset := 8;
   iHorMax := ( this.m_pcSlice.GetSPS().GetPicWidthInLumaSamples() + uint(iOffset) - this.m_uiCUPelX - 1 ) << iMvShift;
   iHorMin := (       - int(G_uiMaxCUWidth) - iOffset - int(this.m_uiCUPelX) + 1 ) << iMvShift;
-  
+
   iVerMax := ( this.m_pcSlice.GetSPS().GetPicHeightInLumaSamples() + uint(iOffset) - this.m_uiCUPelY - 1 ) << iMvShift;
   iVerMin := (       - int(G_uiMaxCUHeight) - iOffset - int(this.m_uiCUPelY) + 1 ) << iMvShift;
-  
+
   rcMv.SetHor( MIN (iHorMax, MAX (iHorMin, rcMv.GetHor()).(int16)).(int16) );
   rcMv.SetVer( MIN (iVerMax, MAX (iVerMin, rcMv.GetVer()).(int16)).(int16) );
 }
@@ -3151,7 +3151,7 @@ func (this *TComDataCU)  CompressMV            (){
   scaleFactor := 4 * AMVP_DECIMATION_FACTOR / this.m_unitSize;
   if scaleFactor > 0{
     this.m_acCUMvField[0].Compress(this.m_pePredMode, scaleFactor);
-    this.m_acCUMvField[1].Compress(this.m_pePredMode, scaleFactor);    
+    this.m_acCUMvField[1].Compress(this.m_pePredMode, scaleFactor);
   }
 }
 
@@ -3566,23 +3566,23 @@ func (this *TComDataCU)  GetPUBelowLeftAdi           ( uiBLPartUnitIdx *uint,  u
 func (this *TComDataCU)  DeriveLeftRightTopIdx       ( uiPartIdx uint, ruiPartIdxLT, ruiPartIdxRT *uint){
   *ruiPartIdxLT = this.m_uiAbsIdxInLCU;
   *ruiPartIdxRT = G_auiRasterToZscan [G_auiZscanToRaster[ *ruiPartIdxLT ] + uint(this.m_puhWidth[0]) / this.m_pcPic.GetMinCUWidth() - 1 ];
-  
+
   switch this.m_pePartSize[0] {
-    case SIZE_2Nx2N:   
-     fallthrough                                                                                                                            
+    case SIZE_2Nx2N:
+     fallthrough
     case SIZE_2NxN:
       if uiPartIdx == 0 {
-      	*ruiPartIdxLT += 0 ; 
+      	*ruiPartIdxLT += 0 ;
       	*ruiPartIdxRT +=  0;
       }else{
-      	*ruiPartIdxLT += this.m_uiNumPartition >> 1; 
+      	*ruiPartIdxLT += this.m_uiNumPartition >> 1;
       	*ruiPartIdxRT +=  this.m_uiNumPartition >> 1;
       }
     case SIZE_Nx2N:
       if uiPartIdx == 0 {
-      	*ruiPartIdxLT += 0 ; 
+      	*ruiPartIdxLT += 0 ;
       }else{
-      	*ruiPartIdxLT += this.m_uiNumPartition >> 2; 
+      	*ruiPartIdxLT += this.m_uiNumPartition >> 2;
       }
       if uiPartIdx == 1 {
       	*ruiPartIdxRT -=  0 ;
@@ -3590,9 +3590,9 @@ func (this *TComDataCU)  DeriveLeftRightTopIdx       ( uiPartIdx uint, ruiPartId
       	*ruiPartIdxRT -= this.m_uiNumPartition >> 2;
       }
     case SIZE_NxN:
-      *ruiPartIdxLT += ( this.m_uiNumPartition >> 2 ) * uiPartIdx;         
+      *ruiPartIdxLT += ( this.m_uiNumPartition >> 2 ) * uiPartIdx;
       *ruiPartIdxRT += ( this.m_uiNumPartition >> 2 ) * ( uiPartIdx - 1 );
-      
+
     case SIZE_2NxnU:
       if uiPartIdx == 0{
       *ruiPartIdxLT += 0 ;
@@ -3601,7 +3601,7 @@ func (this *TComDataCU)  DeriveLeftRightTopIdx       ( uiPartIdx uint, ruiPartId
       *ruiPartIdxLT += this.m_uiNumPartition >> 3;
       *ruiPartIdxRT += this.m_uiNumPartition >> 3;
       }
-      
+
     case SIZE_2NxnD:
       if uiPartIdx == 0{
       *ruiPartIdxLT += 0 ;
@@ -3632,83 +3632,136 @@ func (this *TComDataCU)  DeriveLeftRightTopIdx       ( uiPartIdx uint, ruiPartId
       }else{
       *ruiPartIdxRT -= this.m_uiNumPartition >> 4;
       }
-      
+
     default:
-      
+
   }
 }
 
 func (this *TComDataCU) DeriveLeftRightTopIdxGeneral (  uiAbsPartIdx,  uiPartIdx uint, ruiPartIdxLT, ruiPartIdxRT *uint )  {
   *ruiPartIdxLT = this.m_uiAbsIdxInLCU + uiAbsPartIdx;
   uiPUWidth := byte(0);
-  
+
   switch  this.m_pePartSize[uiAbsPartIdx] {
-    case SIZE_2Nx2N: uiPUWidth = this.m_puhWidth[uiAbsPartIdx];  
-    case SIZE_2NxN:  uiPUWidth = this.m_puhWidth[uiAbsPartIdx];   
-    case SIZE_Nx2N:  uiPUWidth = this.m_puhWidth[uiAbsPartIdx]  >> 1; 
-    case SIZE_NxN:   uiPUWidth = this.m_puhWidth[uiAbsPartIdx]  >> 1; 
-    case SIZE_2NxnU:   uiPUWidth = this.m_puhWidth[uiAbsPartIdx]; 
-    case SIZE_2NxnD:   uiPUWidth = this.m_puhWidth[uiAbsPartIdx]; 
-    case SIZE_nLx2N:   
+    case SIZE_2Nx2N: uiPUWidth = this.m_puhWidth[uiAbsPartIdx];
+    case SIZE_2NxN:  uiPUWidth = this.m_puhWidth[uiAbsPartIdx];
+    case SIZE_Nx2N:  uiPUWidth = this.m_puhWidth[uiAbsPartIdx]  >> 1;
+    case SIZE_NxN:   uiPUWidth = this.m_puhWidth[uiAbsPartIdx]  >> 1;
+    case SIZE_2NxnU:   uiPUWidth = this.m_puhWidth[uiAbsPartIdx];
+    case SIZE_2NxnD:   uiPUWidth = this.m_puhWidth[uiAbsPartIdx];
+    case SIZE_nLx2N:
       if uiPartIdx == 0 {
-        uiPUWidth = this.m_puhWidth[uiAbsPartIdx]  >> 2; 
+        uiPUWidth = this.m_puhWidth[uiAbsPartIdx]  >> 2;
       }else if uiPartIdx == 1 {
-        uiPUWidth = (this.m_puhWidth[uiAbsPartIdx]  >> 1) + (this.m_puhWidth[uiAbsPartIdx]  >> 2); 
+        uiPUWidth = (this.m_puhWidth[uiAbsPartIdx]  >> 1) + (this.m_puhWidth[uiAbsPartIdx]  >> 2);
       }else{
         //assert(0);
       }
-      
-    case SIZE_nRx2N:   
+
+    case SIZE_nRx2N:
       if uiPartIdx == 0 {
-        uiPUWidth = (this.m_puhWidth[uiAbsPartIdx]  >> 1) + (this.m_puhWidth[uiAbsPartIdx]  >> 2); 
+        uiPUWidth = (this.m_puhWidth[uiAbsPartIdx]  >> 1) + (this.m_puhWidth[uiAbsPartIdx]  >> 2);
       }else if uiPartIdx == 1 {
-        uiPUWidth = this.m_puhWidth[uiAbsPartIdx]  >> 2; 
+        uiPUWidth = this.m_puhWidth[uiAbsPartIdx]  >> 2;
       }else{
         //assert(0);
       }
-      
+
     default:
       //assert (0);
       //break;
   }
-  
+
   *ruiPartIdxRT = G_auiRasterToZscan [G_auiZscanToRaster[ *ruiPartIdxLT ] + uint(uiPUWidth) / this.m_pcPic.GetMinCUWidth() - 1 ];
 }
 func (this *TComDataCU)  DeriveLeftBottomIdx         ( uiPartIdx uint, ruiPartIdxLB *uint){
+    *ruiPartIdxLB      = G_auiRasterToZscan [G_auiZscanToRaster[ this.m_uiAbsIdxInLCU ] + ( ((uint(this.m_puhHeight[0]) / this.m_pcPic.GetMinCUHeight())>>1) - 1)*this.m_pcPic.GetNumPartInWidth()];
+
+    switch this.m_pePartSize[0] {
+      case SIZE_2Nx2N:
+        *ruiPartIdxLB += this.m_uiNumPartition >> 1;
+
+      case SIZE_2NxN:
+        if uiPartIdx == 0  {
+            *ruiPartIdxLB += 0 ;
+        }else{
+            *ruiPartIdxLB += this.m_uiNumPartition >> 1;
+        }
+
+      case SIZE_Nx2N:
+        if uiPartIdx == 0 {
+            *ruiPartIdxLB += this.m_uiNumPartition >> 1 ;
+        }else{
+            *ruiPartIdxLB += (this.m_uiNumPartition >> 2)*3;
+        }
+      case SIZE_NxN:
+        *ruiPartIdxLB += ( this.m_uiNumPartition >> 2 ) * uiPartIdx;
+
+      case SIZE_2NxnU:
+        if uiPartIdx == 0 {
+            *ruiPartIdxLB -= this.m_uiNumPartition >> 3;//-(int(this.m_uiNumPartition) >> 3);
+        }else{
+            *ruiPartIdxLB += this.m_uiNumPartition >> 1;
+        }
+
+      case SIZE_2NxnD:
+        if uiPartIdx == 0 {
+            *ruiPartIdxLB += (this.m_uiNumPartition >> 2) + (this.m_uiNumPartition >> 3);
+        }else{
+            *ruiPartIdxLB += this.m_uiNumPartition >> 1;
+        }
+
+      case SIZE_nLx2N:
+        if uiPartIdx == 0 {
+            *ruiPartIdxLB += this.m_uiNumPartition >> 1;
+        }else{
+            *ruiPartIdxLB += (this.m_uiNumPartition >> 1) + (this.m_uiNumPartition >> 4);
+        }
+
+      case SIZE_nRx2N:
+        if uiPartIdx == 0 {
+            *ruiPartIdxLB += this.m_uiNumPartition >> 1 ;
+        }else{
+            *ruiPartIdxLB += (this.m_uiNumPartition >> 1) + (this.m_uiNumPartition >> 2) + (this.m_uiNumPartition >> 4);
+        }
+
+      default:
+
+    }
 }
 
 func (this *TComDataCU) DeriveLeftBottomIdxGeneral(  uiAbsPartIdx,  uiPartIdx uint, ruiPartIdxLB *uint){
   uiPUHeight := byte(0);
   switch this.m_pePartSize[uiAbsPartIdx] {
-    case SIZE_2Nx2N: uiPUHeight = this.m_puhHeight[uiAbsPartIdx];    
-    case SIZE_2NxN:  uiPUHeight = this.m_puhHeight[uiAbsPartIdx] >> 1;    
-    case SIZE_Nx2N:  uiPUHeight = this.m_puhHeight[uiAbsPartIdx];  
-    case SIZE_NxN:   uiPUHeight = this.m_puhHeight[uiAbsPartIdx] >> 1;   
-    case SIZE_2NxnU: 
+    case SIZE_2Nx2N: uiPUHeight = this.m_puhHeight[uiAbsPartIdx];
+    case SIZE_2NxN:  uiPUHeight = this.m_puhHeight[uiAbsPartIdx] >> 1;
+    case SIZE_Nx2N:  uiPUHeight = this.m_puhHeight[uiAbsPartIdx];
+    case SIZE_NxN:   uiPUHeight = this.m_puhHeight[uiAbsPartIdx] >> 1;
+    case SIZE_2NxnU:
       if uiPartIdx == 0 {
-        uiPUHeight = this.m_puhHeight[uiAbsPartIdx] >> 2;    
+        uiPUHeight = this.m_puhHeight[uiAbsPartIdx] >> 2;
       }else if uiPartIdx == 1 {
-        uiPUHeight = (this.m_puhHeight[uiAbsPartIdx] >> 1) + (this.m_puhHeight[uiAbsPartIdx] >> 2);    
+        uiPUHeight = (this.m_puhHeight[uiAbsPartIdx] >> 1) + (this.m_puhHeight[uiAbsPartIdx] >> 2);
       }else{
        // assert(0);
       }
-      
-    case SIZE_2NxnD: 
+
+    case SIZE_2NxnD:
       if uiPartIdx == 0 {
-        uiPUHeight = (this.m_puhHeight[uiAbsPartIdx] >> 1) + (this.m_puhHeight[uiAbsPartIdx] >> 2);    
+        uiPUHeight = (this.m_puhHeight[uiAbsPartIdx] >> 1) + (this.m_puhHeight[uiAbsPartIdx] >> 2);
       }else if uiPartIdx == 1 {
-        uiPUHeight = this.m_puhHeight[uiAbsPartIdx] >> 2;    
+        uiPUHeight = this.m_puhHeight[uiAbsPartIdx] >> 2;
       }else{
         //assert(0);
       }
-      
-    case SIZE_nLx2N: uiPUHeight = this.m_puhHeight[uiAbsPartIdx]; 
-    case SIZE_nRx2N: uiPUHeight = this.m_puhHeight[uiAbsPartIdx];  
+
+    case SIZE_nLx2N: uiPUHeight = this.m_puhHeight[uiAbsPartIdx];
+    case SIZE_nRx2N: uiPUHeight = this.m_puhHeight[uiAbsPartIdx];
     default:
      // assert (0);
      // break;
   }
-  
+
   *ruiPartIdxLB      = G_auiRasterToZscan [G_auiZscanToRaster[ this.m_uiAbsIdxInLCU + uiAbsPartIdx ] + ((uint(uiPUHeight) / this.m_pcPic.GetMinCUHeight()) - 1)*this.m_pcPic.GetNumPartInWidth()];
 }
 
@@ -3719,7 +3772,7 @@ func (this *TComDataCU)  DeriveLeftRightTopIdxAdi    ( ruiPartIdxLT, ruiPartIdxR
 }
 func (this *TComDataCU)  DeriveLeftBottomIdxAdi      ( ruiPartIdxLB *uint,   uiPartOffset,  uiPartDepth uint){
   var uiAbsIdx, uiMinCuWidth, uiWidthInMinCus uint;
-  
+
   uiMinCuWidth    = this.GetPic().GetMinCUWidth();
   uiWidthInMinCus = (uint(this.GetWidth1(0))/uiMinCuWidth)>>uiPartDepth;
   uiAbsIdx        = this.GetZorderIdxInCU()+uiPartOffset+(this.m_uiNumPartition>>(uiPartDepth<<1))-1;
@@ -4117,78 +4170,6 @@ func (this *TComDataCU)  GetInterMergeCandidates       ( uiAbsPartIdx,  uiPUIdx 
 
   *numValidMergeCand = uiArrayAddr;
 }
-/*
-func (this *TComDataCU)  DeriveLeftRightTopIdxGeneral  (  uiAbsPartIdx,  uiPartIdx uint, ruiPartIdxLT, ruiPartIdxRT *uint ){
-  *ruiPartIdxLT = this.m_uiAbsIdxInLCU + uiAbsPartIdx;
-  uiPUWidth := uint(0);
-
-  switch this.m_pePartSize[uiAbsPartIdx] {
-    case SIZE_2Nx2N:   uiPUWidth = uint(this.m_puhWidth[uiAbsPartIdx]);
-    case SIZE_2NxN:    uiPUWidth = uint(this.m_puhWidth[uiAbsPartIdx]);
-    case SIZE_Nx2N:    uiPUWidth = uint(this.m_puhWidth[uiAbsPartIdx])  >> 1;
-    case SIZE_NxN:     uiPUWidth = uint(this.m_puhWidth[uiAbsPartIdx])  >> 1;
-    case SIZE_2NxnU:   uiPUWidth = uint(this.m_puhWidth[uiAbsPartIdx]);
-    case SIZE_2NxnD:   uiPUWidth = uint(this.m_puhWidth[uiAbsPartIdx]);
-    case SIZE_nLx2N:
-      if uiPartIdx == 0 {
-        uiPUWidth = uint(this.m_puhWidth[uiAbsPartIdx]  >> 2);
-      }else if uiPartIdx == 1 {
-        uiPUWidth = uint(this.m_puhWidth[uiAbsPartIdx]  >> 1) + uint(this.m_puhWidth[uiAbsPartIdx]  >> 2);
-      }else{
-        //assert(0);
-      }
-      //break;
-    case SIZE_nRx2N:
-      if uiPartIdx == 0 {
-        uiPUWidth = uint(this.m_puhWidth[uiAbsPartIdx]  >> 1) + uint(this.m_puhWidth[uiAbsPartIdx]  >> 2);
-      }else if uiPartIdx == 1 {
-        uiPUWidth = uint(this.m_puhWidth[uiAbsPartIdx]  >> 2);
-      }else{
-        //assert(0);
-      }
-      //break;
-    default:
-      //assert (0);
-      //break;
-  }
-
-  *ruiPartIdxRT = G_auiRasterToZscan [G_auiZscanToRaster[ *ruiPartIdxLT ] + uiPUWidth / this.m_pcPic.GetMinCUWidth() - 1 ];
-}
-func (this *TComDataCU)  DeriveLeftBottomIdxGeneral    (  uiAbsPartIdx,  uiPartIdx uint, ruiPartIdxLB *uint){
-  uiPUHeight := uint(0);
-  switch this.m_pePartSize[uiAbsPartIdx] {
-    case SIZE_2Nx2N: uiPUHeight = uint(this.m_puhHeight[uiAbsPartIdx]);
-    case SIZE_2NxN:  uiPUHeight = uint(this.m_puhHeight[uiAbsPartIdx]) >> 1;
-    case SIZE_Nx2N:  uiPUHeight = uint(this.m_puhHeight[uiAbsPartIdx]);
-    case SIZE_NxN:   uiPUHeight = uint(this.m_puhHeight[uiAbsPartIdx]) >> 1;
-    case SIZE_2NxnU:
-      if uiPartIdx == 0 {
-        uiPUHeight = uint(this.m_puhHeight[uiAbsPartIdx]) >> 2;
-      }else if uiPartIdx == 1 {
-        uiPUHeight = uint(this.m_puhHeight[uiAbsPartIdx] >> 1) + uint(this.m_puhHeight[uiAbsPartIdx] >> 2);
-      }else{
-        //assert(0);
-      }
-      //break;
-    case SIZE_2NxnD:
-      if uiPartIdx == 0 {
-        uiPUHeight = uint(this.m_puhHeight[uiAbsPartIdx] >> 1) + uint(this.m_puhHeight[uiAbsPartIdx] >> 2);
-      }else if uiPartIdx == 1 {
-        uiPUHeight = uint(this.m_puhHeight[uiAbsPartIdx] >> 2);
-      }else{
-        //assert(0);
-      }
-      //break;
-    case SIZE_nLx2N: uiPUHeight = uint(this.m_puhHeight[uiAbsPartIdx]);  //break;
-    case SIZE_nRx2N: uiPUHeight = uint(this.m_puhHeight[uiAbsPartIdx]);  //break;
-    default:
-      //assert (0);
-      //break;
-  }
-
-  *ruiPartIdxLB = G_auiRasterToZscan [G_auiZscanToRaster[ this.m_uiAbsIdxInLCU + uiAbsPartIdx ] + ((uiPUHeight / this.m_pcPic.GetMinCUHeight()) - 1)*this.m_pcPic.GetNumPartInWidth()];
-}
-*/
 
   // -------------------------------------------------------------------------------------------------------------------
   // member functions for modes
