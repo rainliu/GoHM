@@ -3183,7 +3183,8 @@ func (this *TComDataCU)  GetPULeft          ( uiLPartUnitIdx *uint,
   uiAbsPartIdx       := G_auiZscanToRaster[uiCurrPartUnitIdx];
   uiAbsZorderCUIdx   := G_auiZscanToRaster[this.m_uiAbsIdxInLCU];
   uiNumPartInCUWidth := this.m_pcPic.GetNumPartInWidth();
-
+  //fmt.Printf("uiNumPartInCUWidth=%d\n %v", uiNumPartInCUWidth, IsZeroCol( int(uiAbsPartIdx), int(uiNumPartInCUWidth) ));
+  
   if  !IsZeroCol( int(uiAbsPartIdx), int(uiNumPartInCUWidth) ) {
     *uiLPartUnitIdx = G_auiRasterToZscan[ uiAbsPartIdx - 1 ];
     if IsEqualCol( int(uiAbsPartIdx), int(uiAbsZorderCUIdx), int(uiNumPartInCUWidth) ) {
@@ -4355,7 +4356,8 @@ func (this *TComDataCU)  GetCtxSplitFlag                 (    uiAbsPartIdx,  uiD
 //#else
 //  pcTempCU = this.GetPUAbove( uiTempPartIdx, this.m_uiAbsIdxInLCU + uiAbsPartIdx );
 //#endif
-	if pcTempCU!=nil{
+  
+  if pcTempCU!=nil{
   	if uint(pcTempCU.GetDepth1( uiTempPartIdx )) > uiDepth {
   		uiCtx += 1
   	}else{

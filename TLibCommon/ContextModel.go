@@ -92,10 +92,10 @@ func (this *ContextModel)   Init (  qp,  initValue int){   ///< initialize state
 
   slope      := (initValue>>4)*5 - 45;
   offset     := ((initValue&15)<<3)-16;
-  var initState int;
-  if  ( ( slope * qp ) >> 4 ) + offset < 1{
+  initState := ( ( slope * qp ) >> 4 ) + offset;
+  if  initState < 1{
   	initState = 1;
-  }else if ( ( slope * qp ) >> 4 ) + offset > 126{
+  }else if initState > 126{
   	initState = 126;
   }
 
