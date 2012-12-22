@@ -261,55 +261,55 @@ type TDecSbac struct { //: public TDecEntropyIf
 }
 
 func (this *TDecSbac)  XTraceLCUHeader (traceLevel uint){
-  if (traceLevel & TLibCommon.TRACE_LEVEL) !=0 {
+  if this.GetTraceFile()!=nil && (traceLevel & TLibCommon.TRACE_LEVEL) !=0 {
   	io.WriteString(this.m_pTraceFile, "========= LCU Parameter Set ===============================================\n");//, pLCU.GetAddr());
   }
 }
 
 func (this *TDecSbac)  xTraceCUHeader (traceLevel uint){
-  if (traceLevel & TLibCommon.TRACE_LEVEL) !=0 {
+  if this.GetTraceFile()!=nil && (traceLevel & TLibCommon.TRACE_LEVEL) !=0 {
   	io.WriteString(this.m_pTraceFile, "========= CU Parameter Set ================================================\n");//, pCU.GetCUPelX(), pCU.GetCUPelY());
   }
 }
 
 func (this *TDecSbac)  xTracePUHeader (traceLevel uint){
-  if (traceLevel & TLibCommon.TRACE_LEVEL) !=0 {
+  if this.GetTraceFile()!=nil && (traceLevel & TLibCommon.TRACE_LEVEL) !=0 {
     io.WriteString(this.m_pTraceFile, "========= PU Parameter Set ================================================\n");//, pCU.GetCUPelX(), pCU.GetCUPelY());
   }
 }
 
 func (this *TDecSbac)  xTraceTUHeader (traceLevel uint){
-  if (traceLevel & TLibCommon.TRACE_LEVEL) !=0 {
+  if this.GetTraceFile()!=nil && (traceLevel & TLibCommon.TRACE_LEVEL) !=0 {
     io.WriteString(this.m_pTraceFile, "========= TU Parameter Set ================================================\n");//, pCU.GetCUPelX(), pCU.GetCUPelY());
   }
 }
 
 func (this *TDecSbac)  xTraceCoefHeader (traceLevel uint){
-  if (traceLevel & TLibCommon.TRACE_LEVEL) !=0 {
+  if this.GetTraceFile()!=nil && (traceLevel & TLibCommon.TRACE_LEVEL) !=0 {
     io.WriteString(this.m_pTraceFile, "========= Coefficient Parameter Set =======================================\n");//, pCU.GetCUPelX(), pCU.GetCUPelY());
   }
 }
 
 func (this *TDecSbac)  xTraceResiHeader (traceLevel uint){
-  if (traceLevel & TLibCommon.TRACE_LEVEL) !=0 {
+  if this.GetTraceFile()!=nil && (traceLevel & TLibCommon.TRACE_LEVEL) !=0 {
     io.WriteString(this.m_pTraceFile, "========= Residual Parameter Set ==========================================\n");//, pCU.GetCUPelX(), pCU.GetCUPelY());
   }
 }
 
 func (this *TDecSbac) xTracePredHeader (traceLevel uint){
-  if (traceLevel & TLibCommon.TRACE_LEVEL) !=0 {
+  if this.GetTraceFile()!=nil && (traceLevel & TLibCommon.TRACE_LEVEL) !=0 {
     io.WriteString(this.m_pTraceFile, "========= Prediction Parameter Set ========================================\n");//, pCU.GetCUPelX(), pCU.GetCUPelY());
   }
 }
 
 func (this *TDecSbac)  xTraceRecoHeader (traceLevel uint){
-  if (traceLevel & TLibCommon.TRACE_LEVEL) !=0 {
+  if this.GetTraceFile()!=nil && (traceLevel & TLibCommon.TRACE_LEVEL) !=0 {
     io.WriteString(this.m_pTraceFile, "========= Reconstruction Parameter Set ====================================\n");//, pCU.GetCUPelX(), pCU.GetCUPelY());
   }
 }
 
 func (this *TDecSbac)  XReadAeTr ( Value int, pSymbolName string,  traceLevel uint){
-  if (traceLevel & TLibCommon.TRACE_LEVEL) !=0 {
+  if this.GetTraceFile()!=nil && (traceLevel & TLibCommon.TRACE_LEVEL) !=0 {
     //fprintf( g_hTrace, "%8lld  ", g_nSymbolCounter++ );
     io.WriteString(this.m_pTraceFile, fmt.Sprintf ("%-62s ae(v) : %4d\n", pSymbolName, Value ));
     //fflush ( g_hTrace );
@@ -317,37 +317,37 @@ func (this *TDecSbac)  XReadAeTr ( Value int, pSymbolName string,  traceLevel ui
 }
 
 func (this *TDecSbac) DTRACE_CABAC_F(x float32) {
-	if this.GetTraceFile()!=nil {
+	if this.GetTraceFile()!=nil && TLibCommon.TRACE_CABAC {
 		//fmt.Printf("%f", x)
 		io.WriteString(this.m_pTraceFile, fmt.Sprintf ("%f", x ));
 	}
 }
 func (this *TDecSbac) DTRACE_CABAC_V(x uint)     {
-	if this.GetTraceFile()!=nil {
+	if this.GetTraceFile()!=nil && TLibCommon.TRACE_CABAC {
 		//fmt.Printf ("%d", x )
 		io.WriteString(this.m_pTraceFile, fmt.Sprintf ("%d", x ));
 	}
 }
 func (this *TDecSbac) DTRACE_CABAC_VL(x uint)    {
-	if this.GetTraceFile()!=nil {
+	if this.GetTraceFile()!=nil && TLibCommon.TRACE_CABAC {
 		//fmt.Printf ("%lld", x )
 	 	io.WriteString(this.m_pTraceFile, fmt.Sprintf ("%lld", x ));
 	}
 }
 func (this *TDecSbac) DTRACE_CABAC_T(x string)  {
-    if this.GetTraceFile()!=nil {
+    if this.GetTraceFile()!=nil && TLibCommon.TRACE_CABAC {
     	//fmt.Printf ("%s", x )
    		io.WriteString(this.m_pTraceFile, fmt.Sprintf ("%s", x ));
     }
 }
 func (this *TDecSbac) DTRACE_CABAC_X(x uint)     {
-	if this.GetTraceFile()!=nil {
+	if this.GetTraceFile()!=nil && TLibCommon.TRACE_CABAC {
 		//fmt.Printf ("%x", x )
 		io.WriteString(this.m_pTraceFile, fmt.Sprintf ("%x", x ));
 	}
 }
 func (this *TDecSbac) DTRACE_CABAC_N(){
-    if this.GetTraceFile()!=nil {
+    if this.GetTraceFile()!=nil && TLibCommon.TRACE_CABAC {
     	//fmt.Printf ("\n" )
     	io.WriteString(this.m_pTraceFile, "\n");
     }
