@@ -85,7 +85,7 @@ type TComTrQuant struct {
     m_sliceNsamples [LEVEL_RANGE + 1]int
     m_sliceSumC     [LEVEL_RANGE + 1]float64
     //#endif
-    m_plTempCoeff *int
+    m_plTempCoeff []int
 
     m_cQP QpParam
     //#if RDOQ_CHROMA_LAMBDA
@@ -112,26 +112,46 @@ type TComTrQuant struct {
 }
 
 func NewTComTrQuant() *TComTrQuant{
-	return &TComTrQuant{}
+  pTrQuant := &TComTrQuant{}
+  pTrQuant.m_cQP.Clear();
+  
+  // allocate temporary buffers
+  pTrQuant.m_plTempCoeff  = make([]int, MAX_CU_SIZE*MAX_CU_SIZE );
+  
+  // allocate bit estimation class  (for RDOQ)
+  pTrQuant.m_pcEstBitsSbac = &estBitsSbacStruct{};
+  pTrQuant.InitScalingList();
+  
+  return pTrQuant
 }
 
   // initialize class
 func (this *TComTrQuant) Init ( uiMaxWidth, uiMaxHeight, uiMaxTrSize uint, iSymbolMode int, 
-	aTable4 []uint, aTable8 []uint, aTableLastPosVlcIndex []uint, useRDOQ bool,  
+	aTable4 []uint, aTable8 []uint, aTableLastPosVlcIndex []uint, bUseRDOQ bool,  
 //#if RDOQ_TRANSFORMSKIP
-    useRDOQTS bool,  
+    bUseRDOQTS bool,  
 //#endif
     bEnc bool, useTransformSkipFast bool,
 //#if ADAPTIVE_QP_SELECTION
     bUseAdaptQpSelect bool ){
 //#endif 
+  this.m_uiMaxTrSize  = uiMaxTrSize;
+  this.m_bEnc         = bEnc;
+  this.m_useRDOQ      = bUseRDOQ;
+//#if RDOQ_TRANSFORMSKIP
+  this.m_useRDOQTS    = bUseRDOQTS;
+//#endif
+//#if ADAPTIVE_QP_SELECTION
+  this.m_bUseAdaptQpSelect = bUseAdaptQpSelect;
+//#endif
+  this.m_useTransformSkipFast = useTransformSkipFast;
 }
 
   // transform & inverse transform functions
 func (this *TComTrQuant)  transformNxN( pcCU *TComDataCU, 
-                     pcResidual *Pel, 
+                     pcResidual []Pel, 
                      uiStride	uint, 
-                     rpcCoeff *TCoeff, 
+                     rpcCoeff []TCoeff, 
 //#if ADAPTIVE_QP_SELECTION
                      rpcArlCoeff *int, 
 //#endif
@@ -141,15 +161,230 @@ func (this *TComTrQuant)  transformNxN( pcCU *TComDataCU,
                         eTType TextType, 
                              uiAbsPartIdx uint,
                              useTransformSkip bool ){
+  if pcCU.GetCUTransquantBypass1(uiAbsPartIdx) {
+    *uiAbsSum=0;
+    for k := uint(0); k<uiHeight; k++ {
+      for j := uint(0); j<uiWidth; j++ {
+        rpcCoeff[k*uiWidth+j]= TCoeff(pcResidual[k*uiStride+j]);
+        *uiAbsSum += uint(ABS(pcResidual[k*uiStride+j]).(Pel));
+      }
+    }
+    return;
+  }
+  var uiMode uint;  //luma intra pred
+  if eTType == TEXT_LUMA && pcCU.GetPredictionMode1(uiAbsPartIdx) == MODE_INTRA  {
+    uiMode = uint(pcCU.GetLumaIntraDir1( uiAbsPartIdx ));
+  }else{
+    uiMode = REG_DCT;
+  }
+  
+  *uiAbsSum = 0;
+  //assert( (pcCU.GetSlice().GetSPS().GetMaxTrSize() >= uiWidth) );
+  var bitDepth int;
+  if eTType == TEXT_LUMA { 
+  	bitDepth = G_bitDepthY
+  }else{
+  	bitDepth = G_bitDepthC;
+  }
+  
+  if useTransformSkip {
+    this.xTransformSkip(bitDepth, pcResidual, uiStride, this.m_plTempCoeff, int(uiWidth), int(uiHeight) );
+  }else{
+    this.xT(bitDepth, uiMode, pcResidual, uiStride, this.m_plTempCoeff, int(uiWidth), int(uiHeight) );
+  }
+  this.xQuant( pcCU, this.m_plTempCoeff, rpcCoeff,
+//#if ADAPTIVE_QP_SELECTION
+       rpcArlCoeff,
+//#endif
+       int(uiWidth), int(uiHeight), uiAbsSum, eTType, uiAbsPartIdx );
 }
 
-func (this *TComTrQuant)  InvtransformNxN( transQuantBypass bool,  eText TextType,  uiMode uint, rpcResidual *Pel,  uiStride uint, pcCoeff *TCoeff,  uiWidth,  uiHeight uint,   scalingListType int,  useTransformSkip bool ){
+func (this *TComTrQuant)  InvtransformNxN( transQuantBypass bool,  eText TextType,  uiMode uint, rpcResidual []Pel,  uiStride uint, pcCoeff []TCoeff,  uiWidth,  uiHeight uint,   scalingListType int,  useTransformSkip bool ){
+/*#ifdef ENC_DEC_TRACE
+  xTraceCoefHeader(TRACE_COEF);
+  
+  for (UInt k = 0; k<uiHeight; k++)
+    xReadCeofTr(&pcCoeff[k*uiWidth], uiWidth, TRACE_COEF);
+#endif*/
+  if transQuantBypass  {
+    for k := uint(0); k<uiHeight; k++ {
+      for j := uint(0); j<uiWidth; j++ {
+        rpcResidual[k*uiStride+j] = Pel(pcCoeff[k*uiWidth+j]);
+      }
+    } 
+  }else{
+  	var bitDepth int;
+  	if eText == TEXT_LUMA { 
+	  	bitDepth = G_bitDepthY
+	}else{
+	  	bitDepth = G_bitDepthC;
+	}
+    this.xDeQuant(bitDepth, pcCoeff, this.m_plTempCoeff, int(uiWidth), int(uiHeight), scalingListType);
+    if useTransformSkip == true {
+      this.xITransformSkip(bitDepth, this.m_plTempCoeff, rpcResidual, uiStride, int(uiWidth), int(uiHeight) );
+    }else{
+      this.xIT(bitDepth, uiMode, this.m_plTempCoeff, rpcResidual, uiStride, int(uiWidth), int(uiHeight) );
+    }
+  }
+/*#ifdef ENC_DEC_TRACE
+  xTraceResiHeader(TRACE_RESI);
+  
+  for (UInt k = 0; k<uiHeight; k++)
+    xReadResiTr(&rpcResidual[k*uiStride], uiWidth, TRACE_RESI);
+#endif*/
 }
-func (this *TComTrQuant)  InvRecurTransformNxN ( pcCU *TComDataCU, pcYuvPred *TComYuv,  uiAbsPartIdx uint,  eTxt TextType, rpcResidual *Pel,  uiAddr, uiStride,  uiWidth,  uiHeight, uiMaxTrMode, uiTrMode uint, rpcCoeff *TCoeff){
+func (this *TComTrQuant)  InvRecurTransformNxN ( pcCU *TComDataCU, pcYuvPred *TComYuv,  uiAbsPartIdx uint,  eTxt TextType, rpcResidual []Pel,  uiAddr, uiStride,  uiWidth,  uiHeight, uiMaxTrMode, uiTrMode uint, rpcCoeff []TCoeff){
+  if pcCU.GetCbf3(uiAbsPartIdx, eTxt, uiTrMode)==0 {
+/*#ifdef ENC_DEC_TRACE
+    UChar chroma = eTxt!=TEXT_LUMA;
+    UInt blkX    = g_auiRasterToPelX[ g_auiZscanToRaster[ uiAbsPartIdx ] ]>>chroma;
+    UInt blkY    = g_auiRasterToPelY[ g_auiZscanToRaster[ uiAbsPartIdx ] ]>>chroma;
+    
+    xTraceTUHeader(TRACE_TU);
+  
+    xReadAeTr(eTxt!=TEXT_LUMA?eTxt-1:0,  "tu_color",  TRACE_TU);
+    xReadAeTr(blkX,                      "tu_x",		  TRACE_TU);
+    xReadAeTr(blkY,                      "tu_y",	  	TRACE_TU);
+    xReadAeTr(uiWidth,		               "tu_width",	TRACE_TU);
+    xReadAeTr(uiHeight,		               "tu_height",	TRACE_TU);
+    
+    xTraceCoefHeader(TRACE_COEF);
+    
+    for (UInt k=0; k<uiHeight; k++)
+      xReadCeofTr(NULL, uiWidth, TRACE_COEF);
+    
+    xTraceResiHeader(TRACE_RESI);
+    
+    for (UInt k=0; k<uiHeight; k++)
+      xReadResiTr(NULL, uiWidth, TRACE_RESI);
+    
+    Pel *piPred = eTxt==TEXT_LUMA     ? pcYuvPred.GetLumaAddr( uiAbsPartIdx ) :
+                 (eTxt==TEXT_CHROMA_U ? pcYuvPred.GetCbAddr  ( uiAbsPartIdx ) :
+                                        pcYuvPred.GetCrAddr  ( uiAbsPartIdx ) );
+    
+    UInt uiStride = pcYuvPred.GetStride  ();
+    
+    xTracePredHeader(TRACE_PRED);
+    
+    Pel *pPred = piPred;
+    for (UInt k=0; k<uiHeight; k++)
+    {
+      xReadPredTr(pPred, uiWidth, TRACE_PRED);
+      pPred += uiStride;
+    }
+    
+    xTraceRecoHeader(TRACE_RECON);
+    
+    Pel *pReco = piPred;
+    for (UInt k=0; k<uiHeight; k++)
+    {
+      xReadRecoTr(pReco, uiWidth, TRACE_RECON);
+      pReco += uiStride;
+    }
+#endif*/
+    return;
+  }  
+  stopTrMode := uint(pcCU.GetTransformIdx1( uiAbsPartIdx ));
+  
+  if uiTrMode == stopTrMode {
+    uiDepth      := uint(pcCU.GetDepth1( uiAbsPartIdx )) + uiTrMode;
+    uiLog2TrSize := G_aucConvertToBit[ pcCU.GetSlice().GetSPS().GetMaxCUWidth() >> uiDepth ] + 2;
+    if eTxt != TEXT_LUMA && uiLog2TrSize == 2 {
+      uiQPDiv := pcCU.GetPic().GetNumPartInCU() >> ( ( uiDepth - 1 ) << 1 );
+      if ( uiAbsPartIdx % uiQPDiv ) != 0 {
+        return;
+      }
+      uiWidth  <<= 1;
+      uiHeight <<= 1;
+    }
+    pResi := rpcResidual [ uiAddr:];
+/*#ifdef ENC_DEC_TRACE
+    UChar chroma = eTxt!=TEXT_LUMA;
+    UInt blkX = g_auiRasterToPelX[ g_auiZscanToRaster[ uiAbsPartIdx ] ]>>chroma;
+    UInt blkY = g_auiRasterToPelY[ g_auiZscanToRaster[ uiAbsPartIdx ] ]>>chroma;
+  
+    xTraceTUHeader(TRACE_TU);
+    
+    xReadAeTr(eTxt!=TEXT_LUMA?eTxt-1:0,  "tu_color",  TRACE_TU);
+    xReadAeTr(blkX,                      "tu_x",		  TRACE_TU);
+    xReadAeTr(blkY,                      "tu_y",	  	TRACE_TU);
+    xReadAeTr(uiWidth,		               "tu_width",	TRACE_TU);
+    xReadAeTr(uiHeight,		               "tu_height",	TRACE_TU);
+#endif*/
+
+    var scalingListType int;
+    if pcCU.IsIntra(uiAbsPartIdx) {
+    	scalingListType =  0 + G_eTTable[int(eTxt)];
+    }else{
+    	scalingListType =  3 + G_eTTable[int(eTxt)];
+    }
+    //assert(scalingListType < 6);
+    this.InvtransformNxN( pcCU.GetCUTransquantBypass1(uiAbsPartIdx), eTxt, REG_DCT, pResi, uiStride, rpcCoeff, uiWidth, uiHeight, scalingListType, pcCU.GetTransformSkip2(uiAbsPartIdx, eTxt)!=0 );
+/*#ifdef ENC_DEC_TRACE
+    Pel *piPred = eTxt==TEXT_LUMA     ? pcYuvPred.GetLumaAddr( uiAbsPartIdx ) :
+                 (eTxt==TEXT_CHROMA_U ? pcYuvPred.GetCbAddr  ( uiAbsPartIdx ) :
+                                        pcYuvPred.GetCrAddr  ( uiAbsPartIdx ) );
+    xTracePredHeader(TRACE_PRED);
+    
+    Pel *pPred = piPred;
+    for (UInt k=0; k<uiHeight; k++)
+    {
+      xReadPredTr(pPred, uiWidth, TRACE_PRED);
+      pPred += uiStride;
+    }
+    
+    xTraceRecoHeader(TRACE_RECON);
+    
+    Pel pReco[64];
+    for (UInt k=0; k<uiHeight; k++)
+    {
+      for (UInt j=0; j<uiWidth; j++)
+      {
+        if(!chroma)
+          pReco[j] = (Pel) ClipY(piPred[k*uiStride+j]+pResi[k*uiStride+j]);
+        else
+          pReco[j] = (Pel) ClipC(piPred[k*uiStride+j]+pResi[k*uiStride+j]);
+      }
+      xReadRecoTr(pReco, uiWidth, TRACE_RECON);
+    }
+#endif*/
+  }else{
+    uiTrMode++;
+    uiWidth  >>= 1;
+    uiHeight >>= 1;
+    trWidth := uiWidth;
+    trHeight := uiHeight;
+    uiAddrOffset := trHeight * uiStride;
+    uiCoefOffset := trWidth * trHeight;
+    uiPartOffset := pcCU.GetTotalNumPart() >> ( uiTrMode << 1 );
+    {
+      this.InvRecurTransformNxN( pcCU, pcYuvPred, uiAbsPartIdx, eTxt, rpcResidual, uiAddr                         , uiStride, uiWidth, uiHeight, uiMaxTrMode, uiTrMode, rpcCoeff ); 
+       uiAbsPartIdx += uiPartOffset;//rpcCoeff += uiCoefOffset;
+      this.InvRecurTransformNxN( pcCU, pcYuvPred, uiAbsPartIdx, eTxt, rpcResidual[uiCoefOffset:], uiAddr + trWidth               , uiStride, uiWidth, uiHeight, uiMaxTrMode, uiTrMode, rpcCoeff ); 
+       uiAbsPartIdx += uiPartOffset;//rpcCoeff += uiCoefOffset;
+      this.InvRecurTransformNxN( pcCU, pcYuvPred, uiAbsPartIdx, eTxt, rpcResidual[uiCoefOffset*2:], uiAddr + uiAddrOffset          , uiStride, uiWidth, uiHeight, uiMaxTrMode, uiTrMode, rpcCoeff ); 
+       uiAbsPartIdx += uiPartOffset;//rpcCoeff += uiCoefOffset;
+      this.InvRecurTransformNxN( pcCU, pcYuvPred, uiAbsPartIdx, eTxt, rpcResidual[uiCoefOffset*3:], uiAddr + uiAddrOffset + trWidth, uiStride, uiWidth, uiHeight, uiMaxTrMode, uiTrMode, rpcCoeff );
+    }
+  }
 }
 
   // Misc functions
 func (this *TComTrQuant)   SetQPforQuant(  qpy int,  eTxtType TextType,  qpBdOffset,  chromaQPOffset int){
+  var qpScaled int;
+
+  if eTxtType == TEXT_LUMA {
+    qpScaled = qpy + qpBdOffset;
+  }else{
+    qpScaled = CLIP3( -qpBdOffset, 57, qpy + chromaQPOffset ).(int);
+
+    if qpScaled < 0 {
+      qpScaled = qpScaled + qpBdOffset;
+    }else{
+      qpScaled = int(G_aucChromaScale[ qpScaled ]) + qpBdOffset;
+    }
+  }
+  this.m_cQP.SetQpParam( qpScaled );
 }
 
 //#if RDOQ_CHROMA_LAMBDA 
@@ -172,7 +407,21 @@ func (this *TComTrQuant)   SetRDOQOffset(  uiRDOQOffset uint) {
 }
 
 func CalcPatternSigCtx( sigCoeffGroupFlag []uint,  posXCG,  posYCG uint,  width,  height int) int{
-	return 0;
+  if width == 4 && height == 4 {
+  	return -1;
+  }
+  sigRight := uint8(0);
+  sigLower := uint8(0);
+
+  width >>= 2;
+  height >>= 2;
+  if int(posXCG) < width - 1 {
+    sigRight = B2U(sigCoeffGroupFlag[ posYCG * uint(width) + posXCG + 1 ] != 0);
+  }
+  if int(posYCG) < height - 1 {
+    sigLower = B2U(sigCoeffGroupFlag[ (posYCG  + 1 ) * uint(width) + posXCG ] != 0);
+  }
+  return int(sigRight + (sigLower<<1));
 }
 
 func GetSigCtxInc     (
@@ -180,22 +429,126 @@ func GetSigCtxInc     (
                                                                  scanIdx uint,
                                                                   posX int,
                                                                   posY int,
-                                                                  blockType int,
+                                                                  log2BlockSize int,
                                                                   width int,
                                                                  height int,
                                                             textureType  TextType) int{
-	return 0;
+  var  ctxIndMap = [16]int{ 0, 1, 4, 5,
+						    2, 3, 4, 5,
+						    6, 6, 8, 8,
+						    7, 7, 8, 8};
+
+  if posX + posY == 0 {
+    return 0;
+  }
+
+  if log2BlockSize == 2 {
+    return ctxIndMap[ 4 * posY + posX ];
+  }
+
+  var offset int;
+  if log2BlockSize == 3 {
+  	 if scanIdx==SCAN_DIAG {
+  	 	offset = 9;
+  	 }else{
+  	 	offset =15;
+  	 }
+  }else{
+  	if textureType == TEXT_LUMA {
+  		offset = 21
+  	}else{
+  		offset = 12
+  	}
+  }
+  
+  posXinSubset := posX-((posX>>2)<<2);
+  posYinSubset := posY-((posY>>2)<<2);
+  cnt := int(0);
+  if patternSigCtx==0 {
+  	if posXinSubset+posYinSubset<=2 {
+  		if posXinSubset+posYinSubset==0 {
+    		cnt =   2;
+    	}else{
+    		cnt =   1;
+    	}
+    }else{
+    	cnt =  0;
+    }
+  }else if patternSigCtx==1 {
+  	if posYinSubset<=1 {
+  		if posYinSubset==0 {
+    		cnt =  2 ;
+    	}else{
+    		cnt =  1 ;
+    	}
+    }else{
+    	cnt = 0;
+    }
+  }else if patternSigCtx==2 {
+  	if posXinSubset<=1  {
+  		if posXinSubset==0 {
+    		cnt =  2 ;
+    	}else{
+    		cnt =  1 ;
+    	}
+    }else{
+    	cnt = 0;
+    }
+  }else{
+    cnt = 2;
+  }
+
+  if  textureType == TEXT_LUMA && ((posX>>2) + (posY>>2)) > 0 {
+  	return 3 + offset + cnt
+  }
+  
+  return 0 + offset + cnt;
 }
 func GetSigCoeffGroupCtxInc  ( uiSigCoeffGroupFlag []uint,
                                        uiCGPosX uint,
                                        uiCGPosY uint,
                                        scanIdx uint,
                                         width,  height int) uint{
-   return 0;
+  uiRight := uint8(0);
+  uiLower := uint8(0);
+
+  width >>= 2;
+  height >>= 2;
+  if int(uiCGPosX) < width - 1 {
+    uiRight = B2U(uiSigCoeffGroupFlag[ uiCGPosY * uint(width) + uiCGPosX + 1 ] != 0);
+  }
+  if int(uiCGPosY) < height - 1 {
+    uiLower = B2U(uiSigCoeffGroupFlag[ (uiCGPosY  + 1 ) * uint(width) + uiCGPosX ] != 0);
+  }
+  return uint(B2U(uiRight!=0 || uiLower!=0));
 }
 func (this *TComTrQuant)  InitScalingList                      (){
+  for sizeId := uint(0); sizeId < SCALING_LIST_SIZE_NUM; sizeId++ {
+    for listId := uint(0); listId < G_scalingListNum[sizeId]; listId++ {
+      for qp := uint(0); qp < SCALING_LIST_REM_NUM; qp++ {
+        this.m_quantCoef   [sizeId][listId][qp] = make([]int, G_scalingListSize[sizeId]);
+        this.m_dequantCoef [sizeId][listId][qp] = make([]int, G_scalingListSize[sizeId]);
+        this.m_errScale    [sizeId][listId][qp] = make([]float64, G_scalingListSize[sizeId]);
+      }
+    }
+  }
+  // alias list [1] as [3].
+  for qp := uint(0); qp < SCALING_LIST_REM_NUM; qp++ {
+    this.m_quantCoef   [SCALING_LIST_32x32][3][qp] = this.m_quantCoef   [SCALING_LIST_32x32][1][qp];
+    this.m_dequantCoef [SCALING_LIST_32x32][3][qp] = this.m_dequantCoef [SCALING_LIST_32x32][1][qp];
+    this.m_errScale    [SCALING_LIST_32x32][3][qp] = this.m_errScale    [SCALING_LIST_32x32][1][qp];
+  }
 }
 func (this *TComTrQuant)  DestroyScalingList                   (){
+  for sizeId := uint(0); sizeId < SCALING_LIST_SIZE_NUM; sizeId++ {
+    for listId := uint(0); listId < G_scalingListNum[sizeId]; listId++ {
+      for qp := uint(0); qp < SCALING_LIST_REM_NUM; qp++ {
+        //if(m_quantCoef   [sizeId][listId][qp]) delete [] m_quantCoef   [sizeId][listId][qp];
+        //if(m_dequantCoef [sizeId][listId][qp]) delete [] m_dequantCoef [sizeId][listId][qp];
+        //if(m_errScale    [sizeId][listId][qp]) delete [] m_errScale    [sizeId][listId][qp];
+      }
+    }
+  }
 }
 
 func (this *TComTrQuant)  SetErrScaleCoeff    	   ( list, size, qp uint ){
@@ -235,13 +588,53 @@ func (this *TComTrQuant)  GetUseScalingList   () bool{
 	return this.m_scalingListEnabledFlag; 
 }
 func (this *TComTrQuant)  SetFlatScalingList  (){
+  var size,list,qp uint;
+
+  for size=0;size<SCALING_LIST_SIZE_NUM;size++ {
+    for list = 0; list <  G_scalingListNum[size]; list++ {
+      for qp=0;qp<SCALING_LIST_REM_NUM;qp++ {
+        this.xSetFlatScalingList(list,size,qp);
+        this.SetErrScaleCoeff(list,size,qp);
+      }
+    }
+  }
 }
 func (this *TComTrQuant)  xSetFlatScalingList ( list, size, qp uint){
+  var i,num uint;
+  num = G_scalingListSize[size];
+  var quantcoeff []int;
+  var dequantcoeff []int;
+  quantScales := G_quantScales[qp];
+  invQuantScales := G_invQuantScales[qp]<<4;
+
+  quantcoeff   = this.GetQuantCoeff(list, qp, size);
+  dequantcoeff = this.GetDequantCoeff(list, qp, size);
+
+  for i=0;i<num;i++ {
+    quantcoeff[i] = quantScales;
+    dequantcoeff[i] = invQuantScales;
+  }
 }
 
-func (this *TComTrQuant) xSetScalingListEnc  ( scalingList *TComScalingList, list, size, qp uint){
+func (this *TComTrQuant) xSetScalingListEnc  ( scalingList *TComScalingList, listId, sizeId, qp uint){
+  width  := G_scalingListSizeX[sizeId];
+  height := G_scalingListSizeX[sizeId];
+  ratio  := int(G_scalingListSizeX[sizeId])/MIN(MAX_MATRIX_SIZE_NUM,int(G_scalingListSizeX[sizeId])).(int);
+  var quantcoeff []int;
+  coeff := scalingList.GetScalingListAddress(sizeId,listId);
+  quantcoeff   = this.GetQuantCoeff(listId, qp, sizeId);
+
+  this.ProcessScalingListEnc(coeff,quantcoeff,G_quantScales[qp]<<4,height,width,uint(ratio),int(MIN(MAX_MATRIX_SIZE_NUM,int(G_scalingListSizeX[sizeId])).(int)), uint(scalingList.GetScalingListDC(sizeId,listId)));
 }
-func (this *TComTrQuant) xSetScalingListDec  ( scalingList *TComScalingList, list, size, qp uint){
+func (this *TComTrQuant) xSetScalingListDec  ( scalingList *TComScalingList, listId, sizeId, qp uint){
+  width  := G_scalingListSizeX[sizeId];
+  height := G_scalingListSizeX[sizeId];
+  ratio  := int(G_scalingListSizeX[sizeId])/MIN(MAX_MATRIX_SIZE_NUM,int(G_scalingListSizeX[sizeId])).(int);
+  var dequantcoeff []int;
+  coeff := scalingList.GetScalingListAddress(sizeId,listId);
+
+  dequantcoeff = this.GetDequantCoeff(listId, qp, sizeId);
+  this.ProcessScalingListDec(coeff,dequantcoeff,G_invQuantScales[qp],height,width,uint(ratio),MIN(MAX_MATRIX_SIZE_NUM, int(G_scalingListSizeX[sizeId])).(int), uint(scalingList.GetScalingListDC(sizeId,listId)));
 }
 
 func (this *TComTrQuant) SetScalingList      ( scalingList *TComScalingList){
@@ -268,97 +661,259 @@ func (this *TComTrQuant) SetScalingListDec   ( scalingList *TComScalingList){
     }
   }
 }
-/*
-  Void processScalingListEnc( Int *coeff, Int *quantcoeff, Int quantScales, UInt height, UInt width, UInt ratio, Int sizuNum, UInt dc);
-  Void processScalingListDec( Int *coeff, Int *dequantcoeff, Int invQuantScales, UInt height, UInt width, UInt ratio, Int sizuNum, UInt dc);
-#if ADAPTIVE_QP_SELECTION
-  Void    initSliceQpDelta() ;
-  Void    storeSliceQpNext(TComSlice* pcSlice);
-  Void    clearSliceARLCnt();
-  Int     getQpDelta(Int qp) { return m_qpDelta[qp]; } 
-  Int*    getSliceNSamples(){ return m_sliceNsamples ;} 
-  Double* getSliceSumC()    { return m_sliceSumC; }
-#endif
-private:
+
+func (this *TComTrQuant) ProcessScalingListEnc( coeff []int, quantcoeff   []int,  quantScales int,  height,  width,  ratio uint,  sizuNum int,  dc uint){
+}
+func (this *TComTrQuant) ProcessScalingListDec( coeff []int, dequantcoeff []int,  invQuantScales int,  height,  width,  ratio uint, sizuNum int,  dc uint){
+}
+//#if ADAPTIVE_QP_SELECTION
+func (this *TComTrQuant) InitSliceQpDelta(){
+}
+func (this *TComTrQuant) StoreSliceQpNext(pcSlice *TComSlice){
+}
+func (this *TComTrQuant) ClearSliceARLCnt(){
+}
+func (this *TComTrQuant) GetQpDelta( qp int) int { 
+	return this.m_qpDelta[qp]; 
+} 
+func (this *TComTrQuant) GetSliceNSamples() []int{ 
+	return this.m_sliceNsamples[:] ;
+} 
+func (this *TComTrQuant) GetSliceSumC() []float64{ 
+	return this.m_sliceSumC[:]; 
+}
+//#endif
+//private:
   // forward Transform
-  Void xT   (Int bitDepth, UInt uiMode,Pel* pResidual, UInt uiStride, Int* plCoeff, Int iWidth, Int iHeight );
+func (this *TComTrQuant) xT   ( bitDepth int,  uiMode uint,  pResidual []Pel,  uiStride uint, plCoeff []int,  iWidth,  iHeight int){
+}
 
   // skipping Transform
-  Void xTransformSkip (Int bitDepth, Pel* piBlkResi, UInt uiStride, Int* psCoeff, Int width, Int height );
+func (this *TComTrQuant) xTransformSkip ( bitDepth int, piBlkResi []Pel,  uiStride uint, psCoeff []int,  width,  height int){
+}
 
-  Void signBitHidingHDQ( TComDataCU* pcCU, TCoeff* pQCoef, TCoeff* pCoef, UInt const *scan, Int* deltaU, Int width, Int height );
+func (this *TComTrQuant) signBitHidingHDQ( pcCU *TComDataCU, pQCoef []TCoeff, pCoef  []TCoeff, scan *uint, deltaU *int,  width,  height int){
+}
 
   // quantization
-  Void xQuant( TComDataCU* pcCU, 
-               Int*        pSrc, 
-               TCoeff*     pDes, 
-#if ADAPTIVE_QP_SELECTION
-               Int*&       pArlDes,
-#endif
-               Int         iWidth, 
-               Int         iHeight, 
-               UInt&       uiAcSum, 
-               TextType    eTType, 
-               UInt        uiAbsPartIdx );
+func (this *TComTrQuant) xQuant( pcCU *TComDataCU, 
+                      pSrc	[]int, 
+                    pDes []TCoeff, 
+//#if ADAPTIVE_QP_SELECTION
+                     pArlDes *int,
+//#endif
+                        iWidth	int, 
+                        iHeight	int, 
+                      uiAcSum	*uint, 
+                   eTType	TextType, 
+                       uiAbsPartIdx uint){
+}
 
   // RDOQ functions
 
-  Void           xRateDistOptQuant ( TComDataCU*                     pcCU,
-                                     Int*                            plSrcCoeff,
-                                     TCoeff*                         piDstCoeff,
-#if ADAPTIVE_QP_SELECTION
-                                     Int*&                           piArlDstCoeff,
-#endif
-                                     UInt                            uiWidth,
-                                     UInt                            uiHeight,
-                                     UInt&                           uiAbsSum,
-                                     TextType                        eTType,
-                                     UInt                            uiAbsPartIdx );
-__inline UInt              xGetCodedLevel  ( Double&                         rd64CodedCost,
-                                             Double&                         rd64CodedCost0,
-                                             Double&                         rd64CodedCostSig,
-                                             Int                             lLevelDouble,
-                                             UInt                            uiMaxAbsLevel,
-                                             UShort                          ui16CtxNumSig,
-                                             UShort                          ui16CtxNumOne,
-                                             UShort                          ui16CtxNumAbs,
-                                             UShort                          ui16AbsGoRice,
-                                             UInt                            c1Idx,  
-                                             UInt                            c2Idx,  
-                                             Int                             iQBits,
-                                             Double                          dTemp,
-                                             Bool                            bLast        ) const;
-  __inline Double xGetICRateCost   ( UInt                            uiAbsLevel,
-                                     UShort                          ui16CtxNumOne,
-                                     UShort                          ui16CtxNumAbs,
-                                     UShort                          ui16AbsGoRice 
-                                   , UInt                            c1Idx,
-                                     UInt                            c2Idx
-                                     ) const;
-__inline Int xGetICRate  ( UInt                            uiAbsLevel,
-                           UShort                          ui16CtxNumOne,
-                           UShort                          ui16CtxNumAbs,
-                           UShort                          ui16AbsGoRice
-                         , UInt                            c1Idx,
-                           UInt                            c2Idx
-                         ) const;
-  __inline Double xGetRateLast     ( const UInt                      uiPosX,
-                                     const UInt                      uiPosY,
-                                     const UInt                      uiBlkWdth     ) const;
-  __inline Double xGetRateSigCoeffGroup (  UShort                    uiSignificanceCoeffGroup,
-                                     UShort                          ui16CtxNumSig ) const;
-  __inline Double xGetRateSigCoef (  UShort                          uiSignificance,
-                                     UShort                          ui16CtxNumSig ) const;
-  __inline Double xGetICost        ( Double                          dRate         ) const; 
-  __inline Double xGetIEPRate      (                                               ) const;
+func (this *TComTrQuant) xRateDistOptQuant (                     pcCU *TComDataCU,
+                                                                 plSrcCoeff []int,
+                                                              piDstCoeff []TCoeff,
+//#if ADAPTIVE_QP_SELECTION
+                                                               piArlDstCoeff []int,
+//#endif
+                                                                 uiWidth	uint,
+                                                                 uiHeight	uint,
+                                                               uiAbsSum	*uint,
+                                                             eTType TextType,
+                                                                 uiAbsPartIdx uint){
+}
+func (this *TComTrQuant) xGetCodedLevel  (                      rd64CodedCost *float64,
+                                                                rd64CodedCost0 *float64,
+                                                                  rd64CodedCostSig *float64,
+                                                                          lLevelDouble int,
+                                                                         uiMaxAbsLevel uint,
+                                                                       ui16CtxNumSig uint16,
+                                                                       ui16CtxNumOne uint16,
+                                                                       ui16CtxNumAbs uint16,
+                                                                       ui16AbsGoRice uint16,
+                                                                        c1Idx uint,  
+                                                                         c2Idx uint,  
+                                                                          iQBits int,
+                                                                       dTemp float64,
+                                                                         bLast bool) uint{
+   dCurrCostSig   := float64(0); 
+   uiBestAbsLevel := uint(0);
+  
+  if !bLast && uiMaxAbsLevel < 3 {
+    *rd64CodedCostSig    = this.xGetRateSigCoef( 0, ui16CtxNumSig ); 
+    *rd64CodedCost       = *rd64CodedCost0 + *rd64CodedCostSig;
+    if uiMaxAbsLevel == 0 {
+      return uiBestAbsLevel;
+    }
+  }else{
+    *rd64CodedCost       = MAX_DOUBLE;
+  }
+
+  if !bLast {
+    dCurrCostSig        = this.xGetRateSigCoef( 1, ui16CtxNumSig );
+  }
+
+  var uiMinAbsLevel uint;
+  if uiMaxAbsLevel > 1 {
+    uiMinAbsLevel= uiMaxAbsLevel - 1 ;
+  }else{
+  	uiMinAbsLevel= 1 ;
+  }
+  
+  for uiAbsLevel  := int(uiMaxAbsLevel); uiAbsLevel >= int(uiMinAbsLevel) ; uiAbsLevel-- {
+    dErr         := float64( lLevelDouble  - ( uiAbsLevel << uint(iQBits) ) );
+    dCurrCost    := dErr * dErr * dTemp + this.xGetICRateCost( uint(uiAbsLevel), ui16CtxNumOne, ui16CtxNumAbs, ui16AbsGoRice, c1Idx, c2Idx );
+    dCurrCost    += dCurrCostSig;
+
+    if dCurrCost < *rd64CodedCost {
+      uiBestAbsLevel    = uint(uiAbsLevel);
+      *rd64CodedCost     = dCurrCost;
+      *rd64CodedCostSig  = dCurrCostSig;
+    }
+  }
+
+  return uiBestAbsLevel;                                                                         
+}
+func (this *TComTrQuant) xGetICRateCost(                         uiAbsLevel uint,
+                                                               ui16CtxNumOne uint16,
+                                                               ui16CtxNumAbs uint16,
+                                                               ui16AbsGoRice uint16, 
+                                                                 c1Idx uint,
+                                                                 c2Idx uint) float64{
+  iRate := this.xGetIEPRate();
+  var baseLevel uint;
+  if c1Idx < C1FLAG_NUMBER {
+  	baseLevel = 2 + uint(B2U(c2Idx < C2FLAG_NUMBER));
+  }else{
+  	baseLevel = 1;
+  }
+
+  if uiAbsLevel >= baseLevel {    
+    symbol := uiAbsLevel - baseLevel;
+    var length uint;
+    if symbol < (COEF_REMAIN_BIN_REDUCTION << ui16AbsGoRice) {
+      length = symbol>>ui16AbsGoRice;
+      iRate += float64((length+1+uint(ui16AbsGoRice))<< 15);
+    }else{
+      length = uint(ui16AbsGoRice);
+      symbol  = symbol - ( COEF_REMAIN_BIN_REDUCTION << ui16AbsGoRice);
+      for symbol >= (1<<length) {
+        symbol -=  (1<<(length));    
+        length++
+      }
+      iRate += float64((COEF_REMAIN_BIN_REDUCTION+length+1-uint(ui16AbsGoRice)+length)<< 15);
+    }
+    if c1Idx < C1FLAG_NUMBER {
+      iRate += float64(this.m_pcEstBitsSbac.m_greaterOneBits[ ui16CtxNumOne ][ 1 ]);
+
+      if c2Idx < C2FLAG_NUMBER {
+        iRate += float64(this.m_pcEstBitsSbac.m_levelAbsBits[ ui16CtxNumAbs ][ 1 ]);
+      }
+    }
+  }else{
+	  if uiAbsLevel == 1 {
+	    iRate += float64(this.m_pcEstBitsSbac.m_greaterOneBits[ ui16CtxNumOne ][ 0 ]);
+	  }else if uiAbsLevel == 2 {
+	    iRate += float64(this.m_pcEstBitsSbac.m_greaterOneBits[ ui16CtxNumOne ][ 1 ]);
+	    iRate += float64(this.m_pcEstBitsSbac.m_levelAbsBits  [ ui16CtxNumAbs ][ 0 ]);
+	  }else{
+	    //assert (0);
+	  }
+  }
+  return this.xGetICost( iRate );                                                                 
+}
+func (this *TComTrQuant)  xGetICRate  ( uiAbsLevel uint,
+                                                     ui16CtxNumOne uint16,
+                                                     ui16CtxNumAbs uint16,
+                                                     ui16AbsGoRice uint16,
+                                                       c1Idx uint,
+                                                       c2Idx uint) int {
+  iRate := 0;
+  var baseLevel uint;
+  if c1Idx < C1FLAG_NUMBER {
+    baseLevel =2 + uint(B2U(c2Idx < C2FLAG_NUMBER));
+  }else{
+  	baseLevel = 1;
+  }
+  
+  if uiAbsLevel >= baseLevel {
+    uiSymbol     := uiAbsLevel - baseLevel;
+    uiMaxVlc     := G_auiGoRiceRange[ ui16AbsGoRice ];
+    bExpGolomb   := ( uiSymbol > uiMaxVlc );
+
+    if bExpGolomb {
+      uiAbsLevel  = uiSymbol - uiMaxVlc;
+      iEGS    := 1;  
+      for uiMax := uint(2); uiAbsLevel >= uiMax; uiMax <<= 1 {
+      	iEGS += 2
+      }
+      iRate      += iEGS << 15;
+      uiSymbol    = MIN( uiSymbol, ( uiMaxVlc + 1 ) ).(uint);
+    }
+
+    ui16PrefLen := uint16( uiSymbol >> ui16AbsGoRice ) + 1;
+    ui16NumBins := uint16(MIN( ui16PrefLen, G_auiGoRicePrefixLen[ ui16AbsGoRice ] ).(uint)) + ui16AbsGoRice;
+
+    iRate += int(ui16NumBins << 15);
+
+    if c1Idx < C1FLAG_NUMBER {
+      iRate += this.m_pcEstBitsSbac.m_greaterOneBits[ ui16CtxNumOne ][ 1 ];
+
+      if c2Idx < C2FLAG_NUMBER {
+        iRate += this.m_pcEstBitsSbac.m_levelAbsBits[ ui16CtxNumAbs ][ 1 ];
+      }
+    }
+  }else{
+	  if uiAbsLevel == 0 {
+	    return 0;
+	  }else if uiAbsLevel == 1 {
+	    iRate += this.m_pcEstBitsSbac.m_greaterOneBits[ ui16CtxNumOne ][ 0 ];
+	  }else if uiAbsLevel == 2 {
+	    iRate += this.m_pcEstBitsSbac.m_greaterOneBits[ ui16CtxNumOne ][ 1 ];
+	    iRate += this.m_pcEstBitsSbac.m_levelAbsBits[ ui16CtxNumAbs ][ 0 ];
+	  }else{
+	    //assert(0);
+	  }
+  }
+  return iRate;
+}
+func (this *TComTrQuant)  xGetRateLast     ( uiPosX, uiPosY, uiBlkWdth uint    ) float64{
+  uiCtxX   := G_uiGroupIdx[uiPosX];
+  uiCtxY   := G_uiGroupIdx[uiPosY];
+  uiCost   := float64(this.m_pcEstBitsSbac.lastXBits[ uiCtxX ] + this.m_pcEstBitsSbac.lastYBits[ uiCtxY ]);
+  if uiCtxX > 3 {
+    uiCost += float64(this.xGetIEPRate() * float64((uiCtxX-2)>>1));
+  }
+  
+  if uiCtxY > 3 {
+    uiCost += float64(this.xGetIEPRate() * float64((uiCtxY-2)>>1));
+  }
+  return this.xGetICost( uiCost );
+}
+func (this *TComTrQuant)  xGetRateSigCoeffGroup (uiSignificanceCoeffGroup, ui16CtxNumSig uint16 ) float64{
+	return float64(this.xGetICost( float64(this.m_pcEstBitsSbac.significantCoeffGroupBits[ ui16CtxNumSig ][ uiSignificanceCoeffGroup ]) ));
+}
+func (this *TComTrQuant)  xGetRateSigCoef (uiSignificance, ui16CtxNumSig uint16) float64{
+  return float64(this.xGetICost( float64(this.m_pcEstBitsSbac.significantBits[ ui16CtxNumSig ][ uiSignificance ]) ));
+}
+func (this *TComTrQuant)  xGetICost        (                           dRate    float64     ) float64{
+  return this.m_dLambda * dRate;
+} 
+func (this *TComTrQuant)  xGetIEPRate      (                                               ) float64{
+	return 32768;
+}
 
 
   // dequantization
-  Void xDeQuant(Int bitDepth, const TCoeff* pSrc, Int* pDes, Int iWidth, Int iHeight, Int scalingListType );
+func (this *TComTrQuant) xDeQuant( bitDepth int, pSrc []TCoeff, pDes []int,  iWidth,  iHeight,  scalingListType int){
+}
 
   // inverse transform
-  Void xIT    (Int bitDepth, UInt uiMode, Int* plCoef, Pel* pResidual, UInt uiStride, Int iWidth, Int iHeight );
+func (this *TComTrQuant) xIT    ( bitDepth int,  uiMode uint, plCoef []int, pResidual []Pel,  uiStride uint,  iWidth,  iHeight int){
+}
 
   // inverse skipping transform
-  Void xITransformSkip (Int bitDepth, Int* plCoef, Pel* pResidual, UInt uiStride, Int width, Int height );
-*/
+func (this *TComTrQuant) xITransformSkip ( bitDepth int, plCoef []int, pResidual []Pel,  uiStride uint,  width,  height int){
+}
+

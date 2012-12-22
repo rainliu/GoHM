@@ -318,31 +318,37 @@ func (this *TDecSbac)  XReadAeTr ( Value int, pSymbolName string,  traceLevel ui
 
 func (this *TDecSbac) DTRACE_CABAC_F(x float32) {
 	if this.GetTraceFile()!=nil {
+		//fmt.Printf("%f", x)
 		io.WriteString(this.m_pTraceFile, fmt.Sprintf ("%f", x ));
 	}
 }
 func (this *TDecSbac) DTRACE_CABAC_V(x uint)     {
 	if this.GetTraceFile()!=nil {
+		//fmt.Printf ("%d", x )
 		io.WriteString(this.m_pTraceFile, fmt.Sprintf ("%d", x ));
 	}
 }
 func (this *TDecSbac) DTRACE_CABAC_VL(x uint)    {
 	if this.GetTraceFile()!=nil {
+		//fmt.Printf ("%lld", x )
 	 	io.WriteString(this.m_pTraceFile, fmt.Sprintf ("%lld", x ));
 	}
 }
 func (this *TDecSbac) DTRACE_CABAC_T(x string)  {
     if this.GetTraceFile()!=nil {
+    	//fmt.Printf ("%s", x )
    		io.WriteString(this.m_pTraceFile, fmt.Sprintf ("%s", x ));
     }
 }
 func (this *TDecSbac) DTRACE_CABAC_X(x uint)     {
 	if this.GetTraceFile()!=nil {
+		//fmt.Printf ("%x", x )
 		io.WriteString(this.m_pTraceFile, fmt.Sprintf ("%x", x ));
 	}
 }
 func (this *TDecSbac) DTRACE_CABAC_N(){
     if this.GetTraceFile()!=nil {
+    	//fmt.Printf ("\n" )
     	io.WriteString(this.m_pTraceFile, "\n");
     }
 }
@@ -1192,6 +1198,7 @@ func (this *TDecSbac)  ParseTransformSubdivFlag(  ruiSubdivFlag *uint,  uiLog2Tr
 func (this *TDecSbac)  ParseQtCbf         ( pcCU *TLibCommon.TComDataCU,  uiAbsPartIdx uint,  eType TLibCommon.TextType,  uiTrDepth, uiDepth uint  ){
     var uiSymbol uint;
     uiCtx := pcCU.GetCtxQtCbf( eType, uiTrDepth );
+    //fmt.Printf("uiCtx=%d\n",uiCtx);
     if eType!=0 {
         this.m_pcTDecBinIf.DecodeBin( &uiSymbol , this.m_cCUQtCbfSCModel.Get3( 0, TLibCommon.TEXT_CHROMA, uiCtx ) );
     }else{
@@ -1376,7 +1383,8 @@ func (this *TDecSbac)  ParseLastSignificantXY( uiPosLastX *uint, uiPosLastY *uin
     // posX
     for *uiPosLastX = 0; *uiPosLastX < TLibCommon.G_uiGroupIdx[ width - 1 ]; (*uiPosLastX)++ {
       this.m_pcTDecBinIf.DecodeBin( &uiLast, &pCtxX [ blkSizeOffsetX + int(*uiPosLastX >>uint(shiftX))] );
-      if uiLast!=0 {
+      //fmt.Printf("uiLast=%d\n", uiLast);
+      if uiLast==0 {
         break;
       }
     }
@@ -1384,7 +1392,7 @@ func (this *TDecSbac)  ParseLastSignificantXY( uiPosLastX *uint, uiPosLastY *uin
     // posY
     for *uiPosLastY = 0; *uiPosLastY < TLibCommon.G_uiGroupIdx[ height - 1 ]; (*uiPosLastY)++  {
       this.m_pcTDecBinIf.DecodeBin( &uiLast, &pCtxY [ blkSizeOffsetY + int(*uiPosLastY >>uint(shiftY))] );
-      if uiLast!=0 {
+      if uiLast==0 {
         break;
       }
     }
@@ -1471,7 +1479,7 @@ func (this *TDecSbac)  ParseCoeffNxN      ( pcCU *TLibCommon.TComDataCU, pcCoef 
     //===== decode significance flags =====
     uiScanPosLast := uiBlkPosLast;
     scan  := TLibCommon.G_auiSigLastScan[ uiScanIdx ][ uiLog2BlockSize-1 ];
-    for uiScanPosLast := uint(0); uiScanPosLast < uiMaxNumCoeffM1; uiScanPosLast++  {
+    for uiScanPosLast = 0; uiScanPosLast < uiMaxNumCoeffM1; uiScanPosLast++  {
       uiBlkPos := scan[ uiScanPosLast ];
       if uiBlkPosLast == uiBlkPos {
         break;
@@ -1516,7 +1524,7 @@ func (this *TDecSbac)  ParseCoeffNxN      ( pcCU *TLibCommon.TComDataCU, pcCoef 
     }
 
     iScanPosSig := int(uiScanPosLast);
-    for iSubSet := iLastScanSet; iSubSet >= 0; iSubSet-- {
+    for iSubSet := int(iLastScanSet); iSubSet >= 0; iSubSet-- {
       iSubPos := iSubSet << TLibCommon.LOG2_SCAN_SET_SIZE;
       uiGoRiceParam  = 0;
       numNonZero := 0;
@@ -1537,7 +1545,7 @@ func (this *TDecSbac)  ParseCoeffNxN      ( pcCU *TLibCommon.TComDataCU, pcCoef 
       iCGBlkPos := scanCG[ iSubSet ];
       iCGPosY   := iCGBlkPos / uiNumBlkSide;
       iCGPosX   := iCGBlkPos - (iCGPosY * uiNumBlkSide);
-      if iSubSet == iLastScanSet || iSubSet == 0 {
+      if iSubSet == int(iLastScanSet) || iSubSet == 0 {
         uiSigCoeffGroupFlag[ iCGBlkPos ] = 1;
       }else{
         var uiSigCoeffGroup uint;

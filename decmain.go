@@ -17,10 +17,20 @@ func main() {
     // create application decoder class
     cTAppDecTop.Create()
 
+    if true {
+        var args =[]string{"gohm.exe", "test.bin", "test.yuv", "1", "trace.txt"};
+
+        // parse configuration
+        if err := cTAppDecTop.ParseCfg(len(args), args); err != nil {
+            log.Fatal(err)
+            return
+        }
+    }else{
     // parse configuration
     if err := cTAppDecTop.ParseCfg(len(os.Args), os.Args); err != nil {
         log.Fatal(err)
         return
+    }
     }
 
     // starting time

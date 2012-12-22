@@ -431,7 +431,7 @@ func (this *TDecEntropy)   xDecodeTransform        ( pcCU *TLibCommon.TComDataCU
     }
 
     pcCU.SetCbfSubParts4 ( 0, TLibCommon.TEXT_LUMA, uiAbsPartIdx, uiDepth );
-    if pcCU.GetPredictionMode1(uiAbsPartIdx) != TLibCommon.MODE_INTRA && uiDepth == uint(pcCU.GetDepth1( uiAbsPartIdx )) && pcCU.GetCbf3( uiAbsPartIdx, TLibCommon.TEXT_CHROMA_U, 0 )!=0 && pcCU.GetCbf3( uiAbsPartIdx, TLibCommon.TEXT_CHROMA_V, 0 )!=0 {
+    if pcCU.GetPredictionMode1(uiAbsPartIdx) != TLibCommon.MODE_INTRA && uiDepth == uint(pcCU.GetDepth1( uiAbsPartIdx )) && pcCU.GetCbf3( uiAbsPartIdx, TLibCommon.TEXT_CHROMA_U, 0 )==0 && pcCU.GetCbf3( uiAbsPartIdx, TLibCommon.TEXT_CHROMA_V, 0 )==0 {
       pcCU.SetCbfSubParts4( 1 << uiTrDepth, TLibCommon.TEXT_LUMA, uiAbsPartIdx, uiDepth );
     }else{
       this.m_pcEntropyDecoderIf.ParseQtCbf( pcCU, uiAbsPartIdx, TLibCommon.TEXT_LUMA, uiTrDepth, uiDepth );

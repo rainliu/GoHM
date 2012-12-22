@@ -86,7 +86,7 @@ func (this *TAppDecTop) Decode() (err error){
       fmt.Printf("Warning: Attempt to decode an empty NAL unit\n");
       break;
     }else{
-      //fmt.Printf("NalUnit Len=%d ", nalUnit.Len())
+      fmt.Printf("NalUnit Len=%d\n", nalUnit.Len())
       nalu.Read(nalUnit);
       //fmt.Printf("Type=%d\n", nalu.GetNalUnitType())
 
