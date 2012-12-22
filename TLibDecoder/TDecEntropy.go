@@ -259,7 +259,7 @@ func (this *TDecEntropy)   DecodeSplitFlag         		( pcCU *TLibCommon.TComData
 	this.m_pcEntropyDecoderIf.ParseSplitFlag( pcCU, uiAbsPartIdx, uiDepth );
 }
 func (this *TDecEntropy)   DecodeSkipFlag          		( pcCU *TLibCommon.TComDataCU, uiAbsPartIdx, uiDepth uint ){
-	this.m_pcEntropyDecoderIf.ParseCUTransquantBypassFlag( pcCU, uiAbsPartIdx, uiDepth );
+	this.m_pcEntropyDecoderIf.ParseSkipFlag( pcCU, uiAbsPartIdx, uiDepth );
 }
 func (this *TDecEntropy)   DecodeCUTransquantBypassFlag	( pcCU *TLibCommon.TComDataCU, uiAbsPartIdx, uiDepth uint ){
 	this.m_pcEntropyDecoderIf.ParseCUTransquantBypassFlag( pcCU, uiAbsPartIdx, uiDepth );
@@ -326,7 +326,7 @@ func (this *TDecEntropy)   DecodeCoeff             ( pcCU *TLibCommon.TComDataCU
     if !( pcCU.GetPartitionSize1( uiAbsPartIdx) == TLibCommon.SIZE_2Nx2N && pcCU.GetMergeFlag1( uiAbsPartIdx ) ) {
       this.m_pcEntropyDecoderIf.ParseQtRootCbf( pcCU, uiAbsPartIdx, uiDepth, &uiQtRootCbf );
     }
-    if uiQtRootCbf!=0 {
+    if uiQtRootCbf==0 {
       pcCU.SetCbfSubParts( 0, 0, 0, uiAbsPartIdx, uiDepth );
       pcCU.SetTrIdxSubParts( 0 , uiAbsPartIdx, uiDepth );
       return;

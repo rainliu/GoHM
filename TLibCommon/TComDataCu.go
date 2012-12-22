@@ -1319,7 +1319,7 @@ func (this *TComDataCU)  CopyInterPredInfoFrom ( pcCU *TComDataCU,  uiAbsPartIdx
 
     this.m_acCUMvField[ eRefPicList ].LinkToWithOffset( pcCU.GetCUMvField(eRefPicList), int(uiAbsPartIdx) );
 
-    for i:=uint(0); i<this.m_uiNumPartition; {
+    for i:=uint(0); i<this.m_uiNumPartition; i++{
         this.m_uiSliceStartCU[i]=pcCU.m_uiSliceStartCU[i+uiAbsPartIdx];//,sizeof(UInt)*this.m_uiNumPartition);
         this.m_uiDependentSliceStartCU[i]=pcCU.m_uiDependentSliceStartCU[i+uiAbsPartIdx];//,sizeof(UInt)*this.m_uiNumPartition);
     }
@@ -1933,6 +1933,7 @@ func (this *TComDataCU)  SetMergeFlag          (  uiIdx uint,  b bool)    {
 	this.m_pbMergeFlag[uiIdx] = b;
 }
 func (this *TComDataCU)  SetMergeFlagSubParts  (  bMergeFlag bool,  uiAbsPartIdx,  uiPartIdx,  uiDepth uint){
+	this.SetSubPartBool( bMergeFlag, this.m_pbMergeFlag, uiAbsPartIdx, uiDepth, uiPartIdx );
 }
 
 func (this *TComDataCU)  GetMergeIndex         ()                        []byte{
@@ -1945,6 +1946,7 @@ func (this *TComDataCU)  SetMergeIndex         (  uiIdx uint,  uiMergeIndex byte
 	this.m_puhMergeIndex[uiIdx] = uiMergeIndex;
 }
 func (this *TComDataCU)  SetMergeIndexSubParts (  uiMergeIndex,  uiAbsPartIdx,  uiPartIdx,  uiDepth uint){
+	this.SetSubPartByte( byte(uiMergeIndex), this.m_puhMergeIndex, uiAbsPartIdx, uiDepth, uiPartIdx );
 }
 //  template <typename T>
 func (this *TComDataCU)  SetSubPartByte ( uiParameter byte, puhBaseLCU []byte,  uiCUAddr,  uiCUDepth,  uiPUIdx uint){
@@ -2805,42 +2807,74 @@ func (this *TComDataCU)  GetPartIndexAndSizePos(  uiPartIdx uint, ruiPartAddr *u
 }
 
 func (this *TComDataCU)  GetPartIndexAndSize   (  uiPartIdx uint, ruiPartAddr *uint, riWidth, riHeight *int ){
-/*  switch ( m_pePartSize[0] )
-  {
+  switch this.m_pePartSize[0] {
     case SIZE_2NxN:
-      riWidth = getWidth(0);      riHeight = getHeight(0) >> 1; ruiPartAddr = ( uiPartIdx == 0 )? 0 : m_uiNumPartition >> 1;
-      break;
+      *riWidth  = int(this.GetWidth1(0));      
+      *riHeight = int(this.GetHeight1(0)) >> 1; 
+      if  uiPartIdx == 0{
+      	*ruiPartAddr = 0;
+      }else{
+      	*ruiPartAddr = this.m_uiNumPartition >> 1;
+      }
     case SIZE_Nx2N:
-      riWidth = getWidth(0) >> 1; riHeight = getHeight(0);      ruiPartAddr = ( uiPartIdx == 0 )? 0 : m_uiNumPartition >> 2;
-      break;
+      *riWidth  = int(this.GetWidth1(0)) >> 1; 
+      *riHeight = int(this.GetHeight1(0)); 
+      if uiPartIdx == 0 {    
+      	*ruiPartAddr = 0;
+      }else{
+      	*ruiPartAddr = this.m_uiNumPartition >> 2;
+      }
     case SIZE_NxN:
-      riWidth = getWidth(0) >> 1; riHeight = getHeight(0) >> 1; ruiPartAddr = ( m_uiNumPartition >> 2 ) * uiPartIdx;
-      break;
+      *riWidth  = int(this.GetWidth1(0)) >> 1; 
+      *riHeight = int(this.GetHeight1(0)) >> 1; 
+      *ruiPartAddr = ( this.m_uiNumPartition >> 2 ) * uiPartIdx;
+      
     case SIZE_2NxnU:
-      riWidth     = getWidth(0);
-      riHeight    = ( uiPartIdx == 0 ) ?  getHeight(0) >> 2 : ( getHeight(0) >> 2 ) + ( getHeight(0) >> 1 );
-      ruiPartAddr = ( uiPartIdx == 0 ) ? 0 : m_uiNumPartition >> 3;
-      break;
+      *riWidth     = int(this.GetWidth1(0));
+      if uiPartIdx == 0{
+      	*riHeight    = int(this.GetHeight1(0)) >> 2 ;
+      	*ruiPartAddr = 0;
+      }else{
+      	*riHeight    =  int( this.GetHeight1(0) >> 2 ) + int( this.GetHeight1(0) >> 1 );
+      	*ruiPartAddr = this.m_uiNumPartition >> 3;
+      }
     case SIZE_2NxnD:
-      riWidth     = getWidth(0);
-      riHeight    = ( uiPartIdx == 0 ) ?  ( getHeight(0) >> 2 ) + ( getHeight(0) >> 1 ) : getHeight(0) >> 2;
-      ruiPartAddr = ( uiPartIdx == 0 ) ? 0 : (m_uiNumPartition >> 1) + (m_uiNumPartition >> 3);
-      break;
+      *riWidth     = int(this.GetWidth1(0));
+      if uiPartIdx == 0 {
+      	*riHeight    =  int( this.GetHeight1(0) >> 2 ) + int( this.GetHeight1(0) >> 1 ) ;
+      	*ruiPartAddr =  0 ;
+      }else{
+      	*riHeight    =  int(this.GetHeight1(0)) >> 2;
+      	*ruiPartAddr =  (this.m_uiNumPartition >> 1) + (this.m_uiNumPartition >> 3);
+      }
+      
     case SIZE_nLx2N:
-      riWidth     = ( uiPartIdx == 0 ) ? getWidth(0) >> 2 : ( getWidth(0) >> 2 ) + ( getWidth(0) >> 1 );
-      riHeight    = getHeight(0);
-      ruiPartAddr = ( uiPartIdx == 0 ) ? 0 : m_uiNumPartition >> 4;
-      break;
+      *riHeight    = int(this.GetHeight1(0));
+      if uiPartIdx == 0 {
+      	*riWidth     = int(this.GetWidth1(0)) >> 2 ;
+      	*ruiPartAddr = 0;
+      }else{
+      	*riWidth     = int( this.GetWidth1(0) >> 2 ) + int( this.GetWidth1(0) >> 1 );
+      	*ruiPartAddr = this.m_uiNumPartition >> 4;
+      }
+      
     case SIZE_nRx2N:
-      riWidth     = ( uiPartIdx == 0 ) ? ( getWidth(0) >> 2 ) + ( getWidth(0) >> 1 ) : getWidth(0) >> 2;
-      riHeight    = getHeight(0);
-      ruiPartAddr = ( uiPartIdx == 0 ) ? 0 : (m_uiNumPartition >> 2) + (m_uiNumPartition >> 4);
-      break;
+      *riHeight    = int(this.GetHeight1(0));
+      if uiPartIdx == 0 {
+      	*riWidth     = int( this.GetWidth1(0) >> 2 ) + int( this.GetWidth1(0) >> 1 );
+      	*ruiPartAddr = 0 ;
+      }else{
+      	*riWidth     = int(this.GetWidth1(0) >> 2);
+      	*ruiPartAddr = (this.m_uiNumPartition >> 2) + (this.m_uiNumPartition >> 4);
+      }
+      
     default:
-      assert ( m_pePartSize[0] == SIZE_2Nx2N );
-      riWidth = getWidth(0);      riHeight = getHeight(0);      ruiPartAddr = 0;
-      break;
-  } */
+      //assert ( m_pePartSize[0] == SIZE_2Nx2N );
+      *riWidth  = int(this.GetWidth1(0));      
+      *riHeight = int(this.GetHeight1(0));      
+      *ruiPartAddr = 0;
+      
+  } 
 }
 func (this *TComDataCU)  GetNumPartInter       () byte{
   iNumPart := byte(0);
