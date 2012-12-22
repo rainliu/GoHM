@@ -1,6 +1,7 @@
 package TLibDecoder
 
 import (
+	//"fmt"
     "gohm/TLibCommon"
 )
 
@@ -155,6 +156,7 @@ func (this *TDecCu)  xDecodeCU               ( pcCU *TLibCommon.TComDataCU,  uiA
       uiTPelY   = pcCU.GetCUPelY() + TLibCommon.G_auiRasterToPelY[ TLibCommon.G_auiZscanToRaster[uiIdx] ];
       
       bSubInSlice := pcCU.GetSCUAddr()+uiIdx+uiQNumParts>pcSlice.GetDependentSliceCurStartCUAddr();
+      //fmt.Printf("pcCU.GetSCUAddr()%d+uiIdx%d+uiQNumParts%d>pcSlice.GetDependentSliceCurStartCUAddr()%d\n",pcCU.GetSCUAddr(),uiIdx,uiQNumParts,pcSlice.GetDependentSliceCurStartCUAddr());
       if bSubInSlice {
         if ( uiLPelX < pcCU.GetSlice().GetSPS().GetPicWidthInLumaSamples() ) && ( uiTPelY < pcCU.GetSlice().GetSPS().GetPicHeightInLumaSamples() )  {
           this.xDecodeCU( pcCU, uiIdx, uiDepth+1, ruiIsLast );

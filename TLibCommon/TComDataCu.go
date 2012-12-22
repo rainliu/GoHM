@@ -1578,7 +1578,7 @@ func (this *TComDataCU)  GetZorderIdxInCU      ()   uint                     {
 	return this.m_uiAbsIdxInLCU;
 }
 func (this *TComDataCU)  GetSCUAddr            ()	   uint{
-	return 0;
+  return this.GetPic().GetPicSym().GetInverseCUOrderMap(int(this.m_uiCUAddr))*(1<<(this.m_pcSlice.GetSPS().GetMaxCUDepth()<<1))+this.m_uiAbsIdxInLCU; 
 }
 func (this *TComDataCU)  GetCUPelX             ()    uint                    {
 	return this.m_uiCUPelX;

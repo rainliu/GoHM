@@ -13,10 +13,10 @@ type TDecSlice struct {
     m_pcCuDecoder					*TDecCu;
     m_uiCurrSliceIdx 				uint
 
-    m_pcBufferSbacDecoders			[]TDecSbac;   ///< line to store temporary contexts, one per column of tiles.
-    m_pcBufferBinCABACs				[]TDecBinCabac;
-    m_pcBufferLowLatSbacDecoders	[]TDecSbac;   ///< dependent tiles: line to store temporary contexts, one per column of tiles.
-    m_pcBufferLowLatBinCABACs		[]TDecBinCabac;
+    m_pcBufferSbacDecoders			[]*TDecSbac;   ///< line to store temporary contexts, one per column of tiles.
+    m_pcBufferBinCABACs				[]*TDecBinCabac;
+    m_pcBufferLowLatSbacDecoders	[]*TDecSbac;   ///< dependent tiles: line to store temporary contexts, one per column of tiles.
+    m_pcBufferLowLatBinCABACs		[]*TDecBinCabac;
     //#if DEPENDENT_SLICES
     CTXMem							map[int]*TDecSbac;//*list.List;//std::vector<TDecSbac*> 
     //#endif
@@ -80,10 +80,12 @@ func (this *TDecSlice) DecompressSlice   ( pcBitstream *TLibCommon.TComInputBits
     delete [] m_pcBufferBinCABACs;
   }*/
   // allocate new decoders based on tile numbaer
-  this.m_pcBufferSbacDecoders = make([]TDecSbac,	uiTilesAcross);  
-  this.m_pcBufferBinCABACs    = make([]TDecBinCabac,uiTilesAcross);
+  this.m_pcBufferSbacDecoders = make([]*TDecSbac,	uiTilesAcross);  
+  this.m_pcBufferBinCABACs    = make([]*TDecBinCabac,uiTilesAcross);
   for ui := 0; ui < uiTilesAcross; ui++ {
-    this.m_pcBufferSbacDecoders[ui].Init(&this.m_pcBufferBinCABACs[ui]);
+  	this.m_pcBufferBinCABACs   [ui] = NewTDecBinCabac();
+  	this.m_pcBufferSbacDecoders[ui] = NewTDecSbac();
+    this.m_pcBufferSbacDecoders[ui].Init(this.m_pcBufferBinCABACs[ui]);
   }
   //save init. state
   for ui := 0; ui < uiTilesAcross; ui++ {
@@ -99,10 +101,12 @@ func (this *TDecSlice) DecompressSlice   ( pcBitstream *TLibCommon.TComInputBits
   {
     delete [] this.m_pcBufferLowLatBinCABACs;
   }*/
-  this.m_pcBufferLowLatSbacDecoders = make([]TDecSbac,    uiTilesAcross);  
-  this.m_pcBufferLowLatBinCABACs    = make([]TDecBinCabac,uiTilesAcross);
+  this.m_pcBufferLowLatSbacDecoders = make([]*TDecSbac,    uiTilesAcross);  
+  this.m_pcBufferLowLatBinCABACs    = make([]*TDecBinCabac,uiTilesAcross);
   for ui := 0; ui < uiTilesAcross; ui++ {
-    this.m_pcBufferLowLatSbacDecoders[ui].Init(&this.m_pcBufferLowLatBinCABACs[ui]);
+  	this.m_pcBufferLowLatBinCABACs	 [ui] = NewTDecBinCabac();
+  	this.m_pcBufferLowLatSbacDecoders[ui] = NewTDecSbac();
+    this.m_pcBufferLowLatSbacDecoders[ui].Init(this.m_pcBufferLowLatBinCABACs[ui]);
   }
   //save init. state
   for ui := 0; ui < uiTilesAcross; ui++ {
@@ -194,13 +198,13 @@ func (this *TDecSlice) DecompressSlice   ( pcBitstream *TLibCommon.TComInputBits
              ((rpcPic.GetPicSym().GetTileIdxMap( int(pcCUTR.GetAddr()) ) != rpcPic.GetPicSym().GetTileIdxMap(iCUAddr))))) {
 //#if DEPENDENT_SLICES
           if (iCUAddr!=0) && pcCUTR!=nil && ((pcCUTR.GetSCUAddr()+uiMaxParts-1) >= pcSlice.GetSliceCurStartCUAddr()) && bAllowDependence {
-             pcSbacDecoders[uiSubStrm].LoadContexts( &this.m_pcBufferSbacDecoders[uiTileCol] ); 
+             pcSbacDecoders[uiSubStrm].LoadContexts( this.m_pcBufferSbacDecoders[uiTileCol] ); 
           }
 //#endif
           // TR not available.
         }else{
           // TR is available, we use it.
-          pcSbacDecoders[uiSubStrm].LoadContexts( &this.m_pcBufferSbacDecoders[uiTileCol] );
+          pcSbacDecoders[uiSubStrm].LoadContexts( this.m_pcBufferSbacDecoders[uiTileCol] );
         }
       }
       pcSbacDecoder.Load(&pcSbacDecoders[uiSubStrm]);  //this load is used to simplify the code (avoid to change all the call to pcSbacDecoders)
@@ -286,7 +290,7 @@ func (this *TDecSlice) DecompressSlice   ( pcBitstream *TLibCommon.TComInputBits
 //#if DEPENDENT_SLICES
     if uiIsLast!=0 && bAllowDependence {
       if pcSlice.GetPPS().GetEntropyCodingSyncEnabledFlag() {
-         this.CTXMem[1].LoadContexts( &this.m_pcBufferSbacDecoders[uiTileCol] );//ctx 2.LCU
+         this.CTXMem[1].LoadContexts( this.m_pcBufferSbacDecoders[uiTileCol] );//ctx 2.LCU
       }
       this.CTXMem[0].LoadContexts( pcSbacDecoder );//ctx end of dep.slice
       return;
