@@ -1,6 +1,7 @@
 package TLibCommon
 
 import (
+	"fmt"
 	"math"
 )
 
@@ -237,8 +238,8 @@ func (this *TComTrQuant)  InvRecurTransformNxN ( pcCU *TComDataCU, pcYuvPred *TC
   if pcCU.GetCbf3(uiAbsPartIdx, eTxt, uiTrMode)==0 {
 /*#ifdef ENC_DEC_TRACE
     UChar chroma = eTxt!=TEXT_LUMA;
-    UInt blkX    = g_auiRasterToPelX[ g_auiZscanToRaster[ uiAbsPartIdx ] ]>>chroma;
-    UInt blkY    = g_auiRasterToPelY[ g_auiZscanToRaster[ uiAbsPartIdx ] ]>>chroma;
+    UInt blkX    = G_auiRasterToPelX[ G_auiZscanToRaster[ uiAbsPartIdx ] ]>>chroma;
+    UInt blkY    = G_auiRasterToPelY[ G_auiZscanToRaster[ uiAbsPartIdx ] ]>>chroma;
     
     xTraceTUHeader(TRACE_TU);
   
@@ -300,8 +301,8 @@ func (this *TComTrQuant)  InvRecurTransformNxN ( pcCU *TComDataCU, pcYuvPred *TC
     pResi := rpcResidual [ uiAddr:];
 /*#ifdef ENC_DEC_TRACE
     UChar chroma = eTxt!=TEXT_LUMA;
-    UInt blkX = g_auiRasterToPelX[ g_auiZscanToRaster[ uiAbsPartIdx ] ]>>chroma;
-    UInt blkY = g_auiRasterToPelY[ g_auiZscanToRaster[ uiAbsPartIdx ] ]>>chroma;
+    UInt blkX = G_auiRasterToPelX[ G_auiZscanToRaster[ uiAbsPartIdx ] ]>>chroma;
+    UInt blkY = G_auiRasterToPelY[ G_auiZscanToRaster[ uiAbsPartIdx ] ]>>chroma;
   
     xTraceTUHeader(TRACE_TU);
     
@@ -424,8 +425,7 @@ func CalcPatternSigCtx( sigCoeffGroupFlag []uint,  posXCG,  posYCG uint,  width,
   return int(sigRight + (sigLower<<1));
 }
 
-func GetSigCtxInc     (
-                                                                  patternSigCtx int,
+func GetSigCtxInc     (patternSigCtx int,
                                                                  scanIdx uint,
                                                                   posX int,
                                                                   posY int,
@@ -663,15 +663,84 @@ func (this *TComTrQuant) SetScalingListDec   ( scalingList *TComScalingList){
 }
 
 func (this *TComTrQuant) ProcessScalingListEnc( coeff []int, quantcoeff   []int,  quantScales int,  height,  width,  ratio uint,  sizuNum int,  dc uint){
+	fmt.Printf("ProcessScalingListEnc Empty Func\n");
 }
 func (this *TComTrQuant) ProcessScalingListDec( coeff []int, dequantcoeff []int,  invQuantScales int,  height,  width,  ratio uint, sizuNum int,  dc uint){
+  for j:=uint(0);j<height;j++{
+    for i:=uint(0);i<width;i++{
+      dequantcoeff[j*width + i] = invQuantScales * coeff[uint(sizuNum) * (j / ratio) + i / ratio];
+    }
+  }
+  if ratio > 1 {
+    dequantcoeff[0] = invQuantScales * int(dc);
+  }
 }
 //#if ADAPTIVE_QP_SELECTION
 func (this *TComTrQuant) InitSliceQpDelta(){
+  for qp:=0; qp<=MAX_QP; qp++ {
+  	if qp <17 {
+    	this.m_qpDelta[qp] = 0;
+    }else{
+    	this.m_qpDelta[qp] = 1;
+    }
+  }
 }
 func (this *TComTrQuant) StoreSliceQpNext(pcSlice *TComSlice){
+  qpBase := pcSlice.GetSliceQpBase();
+  sliceQpused := pcSlice.GetSliceQp();
+  var sliceQpnext int;
+  var alpha float64;
+  if qpBase < 17 {
+  	alpha = 0.5 ;
+  }else{
+  	alpha = 1;
+  }
+  
+  cnt:=0;
+  for u:=1; u<=LEVEL_RANGE; u++ { 
+    cnt += this.m_sliceNsamples[u] ;
+  }
+
+  if !this.m_useRDOQ {
+    sliceQpused = qpBase;
+    alpha = 0.5;
+  }
+
+  if cnt > 120 {
+    sum := float64(0);
+    k := 0;
+    for u:=1; u<LEVEL_RANGE; u++ {
+      sum += float64(u)*this.m_sliceSumC[u];
+      k += u*u*this.m_sliceNsamples[u];
+    }
+
+    var v int;
+    var q	[MAX_QP+1]float64;
+    for v=0; v<=MAX_QP; v++ {
+      q[v] = float64(G_invQuantScales[v%6] * (1<<uint(v/6)))/64 ;
+    }
+
+    qnext := sum/float64(k) * q[sliceQpused] / (1<<ARL_C_PRECISION);
+
+    for v=0; v<MAX_QP; v++ {
+      if qnext < alpha * q[v] + (1 - alpha) * q[v+1] {
+        break;
+      }
+    }
+    sliceQpnext = CLIP3(sliceQpused - 3, sliceQpused + 3, v).(int);
+  }else{
+    sliceQpnext = sliceQpused;
+  }
+
+  this.m_qpDelta[qpBase] = sliceQpnext - qpBase; 
 }
 func (this *TComTrQuant) ClearSliceARLCnt(){
+  for i:=0; i<LEVEL_RANGE+1; i++{
+  	this.m_sliceSumC[i] =0;
+  	this.m_sliceNsamples[i]=0;
+  }
+  //memset(m_sliceSumC, 0, sizeof(Double)*(LEVEL_RANGE+1));
+  //memset(m_sliceNsamples, 0, sizeof(Int)*(LEVEL_RANGE+1));
 }
 func (this *TComTrQuant) GetQpDelta( qp int) int { 
 	return this.m_qpDelta[qp]; 
@@ -686,13 +755,16 @@ func (this *TComTrQuant) GetSliceSumC() []float64{
 //private:
   // forward Transform
 func (this *TComTrQuant) xT   ( bitDepth int,  uiMode uint,  pResidual []Pel,  uiStride uint, plCoeff []int,  iWidth,  iHeight int){
+	fmt.Printf("xT Empty Func\n");
 }
 
   // skipping Transform
 func (this *TComTrQuant) xTransformSkip ( bitDepth int, piBlkResi []Pel,  uiStride uint, psCoeff []int,  width,  height int){
+	fmt.Printf("xTransformSkip Empty Func\n");
 }
 
 func (this *TComTrQuant) signBitHidingHDQ( pcCU *TComDataCU, pQCoef []TCoeff, pCoef  []TCoeff, scan *uint, deltaU *int,  width,  height int){
+	fmt.Printf("signBitHidingHDQ Empty Func\n");
 }
 
   // quantization
@@ -707,6 +779,7 @@ func (this *TComTrQuant) xQuant( pcCU *TComDataCU,
                       uiAcSum	*uint, 
                    eTType	TextType, 
                        uiAbsPartIdx uint){
+	fmt.Printf("xQuant Empty Func\n");                       
 }
 
   // RDOQ functions
@@ -722,6 +795,7 @@ func (this *TComTrQuant) xRateDistOptQuant (                     pcCU *TComDataC
                                                                uiAbsSum	*uint,
                                                              eTType TextType,
                                                                  uiAbsPartIdx uint){
+	fmt.Printf("xRateDistOptQuant Empty Func\n");                                                                        
 }
 func (this *TComTrQuant) xGetCodedLevel  (                      rd64CodedCost *float64,
                                                                 rd64CodedCost0 *float64,
@@ -904,16 +978,457 @@ func (this *TComTrQuant)  xGetIEPRate      (                                    
 	return 32768;
 }
 
-
   // dequantization
 func (this *TComTrQuant) xDeQuant( bitDepth int, pSrc []TCoeff, pDes []int,  iWidth,  iHeight,  scalingListType int){
+  piQCoef   := pSrc;
+  piCoef    := pDes;
+  
+  if iWidth > int(this.m_uiMaxTrSize) {
+    iWidth  = int(this.m_uiMaxTrSize);
+    iHeight = int(this.m_uiMaxTrSize);
+  }
+  
+  var iShift,iAdd,iCoeffQ int;
+  uiLog2TrSize := int(G_aucConvertToBit[ iWidth ]) + 2;
+
+  iTransformShift := MAX_TR_DYNAMIC_RANGE - bitDepth - uiLog2TrSize;
+
+  iShift = QUANT_IQUANT_SHIFT - QUANT_SHIFT - iTransformShift;
+
+  var clipQCoef TCoeff;
+  bitRange := MIN( 15, int( 12 + uiLog2TrSize + bitDepth - this.m_cQP.m_iPer) ).(int);
+  levelLimit := 1 << uint(bitRange);
+
+  if this.GetUseScalingList() {
+    iShift += 4;
+    if iShift > this.m_cQP.m_iPer {
+      iAdd = 1 << uint(iShift - this.m_cQP.m_iPer - 1);
+    }else{
+      iAdd = 0;
+    }
+    piDequantCoef := this.GetDequantCoeff(uint(scalingListType),uint(this.m_cQP.m_iRem),uint(uiLog2TrSize-2));
+
+    if iShift > this.m_cQP.m_iPer {
+      for n := 0; n < iWidth*iHeight; n++ {
+        clipQCoef = CLIP3( -32768, 32767, piQCoef[n] ).(TCoeff);
+        iCoeffQ = ((int(clipQCoef) * piDequantCoef[n]) + iAdd ) >> uint(iShift -  this.m_cQP.m_iPer);
+        piCoef[n] = CLIP3(-32768,32767,iCoeffQ).(int);
+      }
+    }else{
+      for n := 0; n < iWidth*iHeight; n++ {
+        clipQCoef = CLIP3( -levelLimit, levelLimit - 1, piQCoef[n] ).(TCoeff);
+        iCoeffQ = (int(clipQCoef) * piDequantCoef[n]) << uint(this.m_cQP.m_iPer - iShift);
+        piCoef[n] = CLIP3(-32768,32767,iCoeffQ).(int);
+      }
+    }
+  }else{
+    iAdd = 1 << uint(iShift-1);
+    scale := G_invQuantScales[this.m_cQP.m_iRem] << uint(this.m_cQP.m_iPer);
+
+    for n := 0; n < iWidth*iHeight; n++ {
+      clipQCoef = CLIP3( -32768, 32767, piQCoef[n] ).(TCoeff);
+      iCoeffQ = ( int(clipQCoef) * scale + iAdd ) >> uint(iShift);
+      piCoef[n] = CLIP3(-32768,32767,iCoeffQ).(int);
+    }
+  }
 }
 
+
+func (this *TComTrQuant) fastInverseDst(tmp []int16,block []int16, shift uint) {  // input tmp, output block
+  var i int;
+  var c	[4]int;
+  rnd_factor := 1<<(shift-1);
+  for i=0; i<4; i++ {  
+    // Intermediate Variables
+    c[0] = int(tmp[  i] + tmp[ 8+i]);
+    c[1] = int(tmp[8+i] + tmp[12+i]);
+    c[2] = int(tmp[  i] - tmp[12+i]);
+    c[3] = int(74* tmp[4+i]);
+
+    block[4*i+0] = CLIP3( -32768, 32767, ( 29 * c[0] + 55 * c[1]     + c[3]               + rnd_factor ) >> shift ).(int16);
+    block[4*i+1] = CLIP3( -32768, 32767, ( 55 * c[2] - 29 * c[1]     + c[3]               + rnd_factor ) >> shift ).(int16);
+    block[4*i+2] = CLIP3( -32768, 32767, ( 74 * int(tmp[i] - tmp[8+i]  + tmp[12+i])       + rnd_factor ) >> shift ).(int16);
+    block[4*i+3] = CLIP3( -32768, 32767, ( 55 * c[0] + 29 * c[2]     - c[3]               + rnd_factor ) >> shift ).(int16);
+  }
+}
+
+func (this *TComTrQuant) partialButterflyInverse4(src []int16,dst []int16, shift uint, line int) {
+  var j int;
+  var E	[2]int;
+  var O	[2]int;
+  add := 1<<(shift-1);
+
+  for j=0; j<line; j++ {    
+    /* Utilizing symmetry properties to the maximum to minimize the number of multiplications */    
+    O[0] = int(G_aiT4[1][0]*src[line+j] + G_aiT4[3][0]*src[3*line+j]);
+    O[1] = int(G_aiT4[1][1]*src[line+j] + G_aiT4[3][1]*src[3*line+j]);
+    E[0] = int(G_aiT4[0][0]*src[0   +j] + G_aiT4[2][0]*src[2*line+j]);
+    E[1] = int(G_aiT4[0][1]*src[0   +j] + G_aiT4[2][1]*src[2*line+j]);
+
+    /* Combining even and odd terms at each hierarchy levels to calculate the final spatial domain vector */
+    dst[0+j*4] = CLIP3( -32768, 32767, (E[0] + O[0] + add)>>shift ).(int16);
+    dst[1+j*4] = CLIP3( -32768, 32767, (E[1] + O[1] + add)>>shift ).(int16);
+    dst[2+j*4] = CLIP3( -32768, 32767, (E[1] - O[1] + add)>>shift ).(int16);
+    dst[3+j*4] = CLIP3( -32768, 32767, (E[0] - O[0] + add)>>shift ).(int16);
+            
+    //src ++;
+    //dst += 4;
+  }
+}
+
+
+func (this *TComTrQuant) partialButterfly8(src []int16,dst []int16, shift uint, line int) {
+  var j,k	int;
+  var E	[4]int;
+  var O	[4]int;
+  var EE	[2]int;
+  var EO	[2]int;
+  add := 1<<(shift-1);
+
+  for j=0; j<line; j++{  
+    /* E and O*/
+    for k=0;k<4;k++{
+      E[k] = int(src[k+j*8] + src[7-k+j*8]);
+      O[k] = int(src[k+j*8] - src[7-k+j*8]);
+    }    
+    /* EE and EO */
+    EE[0] = E[0] + E[3];    
+    EO[0] = E[0] - E[3];
+    EE[1] = E[1] + E[2];
+    EO[1] = E[1] - E[2];
+
+    dst[0     +j] = int16((int(G_aiT8[0][0])*EE[0] + int(G_aiT8[0][1])*EE[1] + add)>>shift);
+    dst[4*line+j] = int16((int(G_aiT8[4][0])*EE[0] + int(G_aiT8[4][1])*EE[1] + add)>>shift); 
+    dst[2*line+j] = int16((int(G_aiT8[2][0])*EO[0] + int(G_aiT8[2][1])*EO[1] + add)>>shift);
+    dst[6*line+j] = int16((int(G_aiT8[6][0])*EO[0] + int(G_aiT8[6][1])*EO[1] + add)>>shift); 
+
+    dst[  line+j] = int16((int(G_aiT8[1][0])*O[0] + int(G_aiT8[1][1])*O[1] + int(G_aiT8[1][2])*O[2] + int(G_aiT8[1][3])*O[3] + add)>>shift);
+    dst[3*line+j] = int16((int(G_aiT8[3][0])*O[0] + int(G_aiT8[3][1])*O[1] + int(G_aiT8[3][2])*O[2] + int(G_aiT8[3][3])*O[3] + add)>>shift);
+    dst[5*line+j] = int16((int(G_aiT8[5][0])*O[0] + int(G_aiT8[5][1])*O[1] + int(G_aiT8[5][2])*O[2] + int(G_aiT8[5][3])*O[3] + add)>>shift);
+    dst[7*line+j] = int16((int(G_aiT8[7][0])*O[0] + int(G_aiT8[7][1])*O[1] + int(G_aiT8[7][2])*O[2] + int(G_aiT8[7][3])*O[3] + add)>>shift);
+
+    //src += 8;
+    //dst ++;
+  }
+}
+
+
+func (this *TComTrQuant) partialButterflyInverse8(src []int16,dst []int16, shift uint, line int) {
+  var j,k int;
+  var E	[4]int;
+  var O	[4]int;
+  var EE	[2]int;
+  var EO	[2]int;
+  add := 1<<(shift-1);
+
+  for j=0; j<line; j++ {    
+    /* Utilizing symmetry properties to the maximum to minimize the number of multiplications */
+    for k=0;k<4;k++ {
+      O[k] = int(G_aiT8[ 1][k]*src[line+j] + G_aiT8[ 3][k]*src[3*line+j] + G_aiT8[ 5][k]*src[5*line+j] + G_aiT8[ 7][k]*src[7*line+j]);
+    }
+
+    EO[0] = int(G_aiT8[2][0]*src[ 2*line+j] + G_aiT8[6][0]*src[ 6*line+j]);
+    EO[1] = int(G_aiT8[2][1]*src[ 2*line+j] + G_aiT8[6][1]*src[ 6*line+j]);
+    EE[0] = int(G_aiT8[0][0]*src[ 0     +j] + G_aiT8[4][0]*src[ 4*line+j]);
+    EE[1] = int(G_aiT8[0][1]*src[ 0     +j] + G_aiT8[4][1]*src[ 4*line+j]);
+
+    /* Combining even and odd terms at each hierarchy levels to calculate the final spatial domain vector */ 
+    E[0] = EE[0] + EO[0];
+    E[3] = EE[0] - EO[0];
+    E[1] = EE[1] + EO[1];
+    E[2] = EE[1] - EO[1];
+    for k=0;k<4;k++ {
+      dst[ k   +j*8] = CLIP3( -32768, 32767, (E[k]   + O[k]   + add)>>shift ).(int16);
+      dst[ k+4 +j*8] = CLIP3( -32768, 32767, (E[3-k] - O[3-k] + add)>>shift ).(int16);
+    }   
+    //src ++;
+    //dst += 8;
+  }
+}
+
+
+func (this *TComTrQuant) partialButterfly16(src []int16,dst []int16, shift uint, line int) {
+  var j,k int;
+  var E	[8]int;
+  var O	[8]int;
+  var EE	[4]int;
+  var EO	[4]int;
+  var EEE	[2]int;
+  var EEO	[2]int;
+  add := 1<<(shift-1);
+
+  for j=0; j<line; j++ {    
+    /* E and O*/
+    for k=0;k<8;k++ {
+      E[k] = int(src[k+j*16] + src[15-k+j*16]);
+      O[k] = int(src[k+j*16] - src[15-k+j*16]);
+    } 
+    /* EE and EO */
+    for k=0;k<4;k++ {
+      EE[k] = E[k] + E[7-k];
+      EO[k] = E[k] - E[7-k];
+    }
+    /* EEE and EEO */
+    EEE[0] = EE[0] + EE[3];    
+    EEO[0] = EE[0] - EE[3];
+    EEE[1] = EE[1] + EE[2];
+    EEO[1] = EE[1] - EE[2];
+
+    dst[ 0      +j] = int16((int(G_aiT16[ 0][0])*EEE[0] + int(G_aiT16[ 0][1])*EEE[1] + add)>>shift);        
+    dst[ 8*line +j] = int16((int(G_aiT16[ 8][0])*EEE[0] + int(G_aiT16[ 8][1])*EEE[1] + add)>>shift);    
+    dst[ 4*line +j] = int16((int(G_aiT16[ 4][0])*EEO[0] + int(G_aiT16[ 4][1])*EEO[1] + add)>>shift);        
+    dst[12*line +j] = int16((int(G_aiT16[12][0])*EEO[0] + int(G_aiT16[12][1])*EEO[1] + add)>>shift);
+
+    for k=2;k<16;k+=4 {
+      dst[ k*line +j] = int16((int(G_aiT16[k][0])*EO[0] + int(G_aiT16[k][1])*EO[1] + int(G_aiT16[k][2])*EO[2] + int(G_aiT16[k][3])*EO[3] + add)>>shift);      
+    }
+
+    for k=1;k<16;k+=2 {
+      dst[ k*line +j] = int16((int(G_aiT16[k][0])*O[0] + int(G_aiT16[k][1])*O[1] + int(G_aiT16[k][2])*O[2] + int(G_aiT16[k][3])*O[3] + 
+        int(G_aiT16[k][4])*O[4] + int(G_aiT16[k][5])*O[5] + int(G_aiT16[k][6])*O[6] + int(G_aiT16[k][7])*O[7] + add)>>shift);
+    }
+
+    //src += 16;
+    //dst ++; 
+  }
+}
+
+
+func (this *TComTrQuant) partialButterflyInverse16(src []int16,dst []int16, shift uint, line int) {
+  var j,k int;
+  var E	[8]int;
+  var O	[8]int;
+  var EE	[4]int;
+  var EO	[4]int;
+  var EEE	[2]int;
+  var EEO	[2]int;
+  add := 1<<(shift-1);
+
+  for j=0; j<line; j++ {    
+    /* Utilizing symmetry properties to the maximum to minimize the number of multiplications */
+    for k=0;k<8;k++ {
+      O[k] = int(G_aiT16[ 1][k]*src[ line+j] + G_aiT16[ 3][k]*src[ 3*line+j] + G_aiT16[ 5][k]*src[ 5*line+j] + G_aiT16[ 7][k]*src[ 7*line+j] + 
+        G_aiT16[ 9][k]*src[ 9*line+j] + G_aiT16[11][k]*src[11*line+j] + G_aiT16[13][k]*src[13*line+j] + G_aiT16[15][k]*src[15*line+j]);
+    }
+    for k=0;k<4;k++ {
+      EO[k] = int(G_aiT16[ 2][k]*src[ 2*line+j] + G_aiT16[ 6][k]*src[ 6*line+j] + G_aiT16[10][k]*src[10*line+j] + G_aiT16[14][k]*src[14*line+j]);
+    }
+    EEO[0] = int(G_aiT16[4][0]*src[ 4*line +j] + G_aiT16[12][0]*src[ 12*line +j]);
+    EEE[0] = int(G_aiT16[0][0]*src[ 0      +j] + G_aiT16[ 8][0]*src[ 8*line  +j]);
+    EEO[1] = int(G_aiT16[4][1]*src[ 4*line +j] + G_aiT16[12][1]*src[ 12*line +j]);
+    EEE[1] = int(G_aiT16[0][1]*src[ 0      +j] + G_aiT16[ 8][1]*src[ 8*line  +j]);
+
+    /* Combining even and odd terms at each hierarchy levels to calculate the final spatial domain vector */ 
+    for k=0;k<2;k++ {
+      EE[k] = EEE[k] + EEO[k];
+      EE[k+2] = EEE[1-k] - EEO[1-k];
+    }    
+    for k=0;k<4;k++ {
+      E[k] = EE[k] + EO[k];
+      E[k+4] = EE[3-k] - EO[3-k];
+    }    
+    for k=0;k<8;k++ {
+      dst[k  +j*16] = CLIP3( -32768, 32767, (E[k]   + O[k]   + add)>>shift ).(int16);
+      dst[k+8+j*16] = CLIP3( -32768, 32767, (E[7-k] - O[7-k] + add)>>shift ).(int16);
+    }   
+    //src ++; 
+    //dst += 16;
+  }
+}
+
+
+func (this *TComTrQuant) partialButterfly32(src []int16,dst []int16, shift uint, line int) {
+  var j,k int;
+  var E [16]int;
+  var O [16]int;
+  var EE [8]int;
+  var EO [8]int;
+  var EEE [4]int;
+  var EEO [4]int;
+  var EEEE [2]int;
+  var EEEO [2]int;
+  add := 1<<(shift-1);
+
+  for j=0; j<line; j++{    
+    /* E and O*/
+    for k=0;k<16;k++{
+      E[k] = int(src[k] + src[31-k+j*32]);
+      O[k] = int(src[k] - src[31-k+j*32]);
+    } 
+    /* EE and EO */
+    for k=0;k<8;k++{
+      EE[k] = E[k] + E[15-k];
+      EO[k] = E[k] - E[15-k];
+    }
+    /* EEE and EEO */
+    for k=0;k<4;k++{
+      EEE[k] = EE[k] + EE[7-k];
+      EEO[k] = EE[k] - EE[7-k];
+    }
+    /* EEEE and EEEO */
+    EEEE[0] = EEE[0] + EEE[3];    
+    EEEO[0] = EEE[0] - EEE[3];
+    EEEE[1] = EEE[1] + EEE[2];
+    EEEO[1] = EEE[1] - EEE[2];
+
+    dst[ 0       +j] = int16((int(G_aiT32[ 0][0])*EEEE[0] + int(G_aiT32[ 0][1])*EEEE[1] + add)>>shift);
+    dst[ 16*line +j] = int16((int(G_aiT32[16][0])*EEEE[0] + int(G_aiT32[16][1])*EEEE[1] + add)>>shift);
+    dst[ 8*line  +j] = int16((int(G_aiT32[ 8][0])*EEEO[0] + int(G_aiT32[ 8][1])*EEEO[1] + add)>>shift); 
+    dst[ 24*line +j] = int16((int(G_aiT32[24][0])*EEEO[0] + int(G_aiT32[24][1])*EEEO[1] + add)>>shift);
+    for k=4;k<32;k+=8{
+      dst[ k*line +j] = int16((int(G_aiT32[k][0])*EEO[0] + int(G_aiT32[k][1])*EEO[1] + int(G_aiT32[k][2])*EEO[2] + int(G_aiT32[k][3])*EEO[3] + add)>>shift);
+    }       
+    for k=2;k<32;k+=4{
+      dst[ k*line +j] = int16((int(G_aiT32[k][0])*EO[0] + int(G_aiT32[k][1])*EO[1] + int(G_aiT32[k][2])*EO[2] + int(G_aiT32[k][3])*EO[3] + 
+        					   int(G_aiT32[k][4])*EO[4] + int(G_aiT32[k][5])*EO[5] + int(G_aiT32[k][6])*EO[6] + int(G_aiT32[k][7])*EO[7] + add)>>shift);
+    }       
+    for k=1;k<32;k+=2{
+      dst[ k*line +j] = int16((  int(G_aiT32[k][ 0])*O[ 0] + int(G_aiT32[k][ 1])*O[ 1] + int(G_aiT32[k][ 2])*O[ 2] + int(G_aiT32[k][ 3])*O[ 3] + 
+						         int(G_aiT32[k][ 4])*O[ 4] + int(G_aiT32[k][ 5])*O[ 5] + int(G_aiT32[k][ 6])*O[ 6] + int(G_aiT32[k][ 7])*O[ 7] +
+						         int(G_aiT32[k][ 8])*O[ 8] + int(G_aiT32[k][ 9])*O[ 9] + int(G_aiT32[k][10])*O[10] + int(G_aiT32[k][11])*O[11] + 
+						         int(G_aiT32[k][12])*O[12] + int(G_aiT32[k][13])*O[13] + int(G_aiT32[k][14])*O[14] + int(G_aiT32[k][15])*O[15] + add)>>shift);
+    }
+    //src += 32;
+    //dst ++;
+  }
+}
+
+
+func (this *TComTrQuant) partialButterflyInverse32(src []int16,dst []int16, shift uint, line int) {
+  var j,k int;
+  var E [16]int;
+  var O [16]int;
+  var EE [8]int;
+  var EO [8]int;
+  var EEE [4]int;
+  var EEO [4]int;
+  var EEEE [2]int;
+  var EEEO [2]int;
+  add := 1<<(shift-1);
+
+  for j=0; j<line; j++{    
+    /* Utilizing symmetry properties to the maximum to minimize the number of multiplications */
+    for k=0;k<16;k++ {
+      O[k] = int(G_aiT32[ 1][k]*src[ line    +j] + G_aiT32[ 3][k]*src[ 3*line  +j] + G_aiT32[ 5][k]*src[ 5*line  +j] + G_aiT32[ 7][k]*src[ 7*line  +j] + 
+	         G_aiT32[ 9][k]*src[ 9*line  +j] + G_aiT32[11][k]*src[ 11*line +j] + G_aiT32[13][k]*src[ 13*line +j] + G_aiT32[15][k]*src[ 15*line +j] + 
+	         G_aiT32[17][k]*src[ 17*line +j] + G_aiT32[19][k]*src[ 19*line +j] + G_aiT32[21][k]*src[ 21*line +j] + G_aiT32[23][k]*src[ 23*line +j] + 
+	         G_aiT32[25][k]*src[ 25*line +j] + G_aiT32[27][k]*src[ 27*line +j] + G_aiT32[29][k]*src[ 29*line +j] + G_aiT32[31][k]*src[ 31*line +j]);
+    }
+    for k=0;k<8;k++{
+      EO[k] = int(G_aiT32[ 2][k]*src[ 2*line  +j] + G_aiT32[ 6][k]*src[ 6*line  +j] + G_aiT32[10][k]*src[ 10*line +j] + G_aiT32[14][k]*src[ 14*line +j] + 
+        	  G_aiT32[18][k]*src[ 18*line +j] + G_aiT32[22][k]*src[ 22*line +j] + G_aiT32[26][k]*src[ 26*line +j] + G_aiT32[30][k]*src[ 30*line +j]);
+    }
+    for k=0;k<4;k++{
+      EEO[k] = int(G_aiT32[4][k]*src[ 4*line +j] + G_aiT32[12][k]*src[ 12*line +j] + G_aiT32[20][k]*src[ 20*line +j] + G_aiT32[28][k]*src[ 28*line +j]);
+    }
+    EEEO[0] = int(G_aiT32[8][0]*src[ 8*line +j] + G_aiT32[24][0]*src[ 24*line +j]);
+    EEEO[1] = int(G_aiT32[8][1]*src[ 8*line +j] + G_aiT32[24][1]*src[ 24*line +j]);
+    EEEE[0] = int(G_aiT32[0][0]*src[ 0      +j] + G_aiT32[16][0]*src[ 16*line +j]);    
+    EEEE[1] = int(G_aiT32[0][1]*src[ 0      +j] + G_aiT32[16][1]*src[ 16*line +j]);
+
+    /* Combining even and odd terms at each hierarchy levels to calculate the final spatial domain vector */
+    EEE[0] = EEEE[0] + EEEO[0];
+    EEE[3] = EEEE[0] - EEEO[0];
+    EEE[1] = EEEE[1] + EEEO[1];
+    EEE[2] = EEEE[1] - EEEO[1];    
+    for k=0;k<4;k++{
+      EE[k] = EEE[k] + EEO[k];
+      EE[k+4] = EEE[3-k] - EEO[3-k];
+    }    
+    for k=0;k<8;k++{
+      E[k] = EE[k] + EO[k];
+      E[k+8] = EE[7-k] - EO[7-k];
+    }    
+    for k=0;k<16;k++{
+      dst[k   +j*32] = CLIP3( -32768, 32767, (E[k]    + O[k]    + add)>>shift ).(int16);
+      dst[k+16+j*32] = CLIP3( -32768, 32767, (E[15-k] - O[15-k] + add)>>shift ).(int16);
+    }
+    //src ++;
+    //dst += 32;
+  }
+}
+
+/** MxN inverse transform (2D)
+*  \param coeff input data (transform coefficients)
+*  \param block output data (residual)
+*  \param iWidth input data (width of transform)
+*  \param iHeight input data (height of transform)
+*/
+func (this *TComTrQuant) xITrMxN( bitDepth int, coeff []int16, block []int16,  iWidth,  iHeight int,  uiMode uint){
+  shift_1st := uint(SHIFT_INV_1ST);
+  shift_2nd := uint(SHIFT_INV_2ND - (bitDepth-8));
+
+  var tmp	[64*64]int16;
+  if iWidth == 4 && iHeight == 4 {
+    if uiMode != REG_DCT {
+      this.fastInverseDst(coeff,tmp[:],shift_1st);    // Inverse DST by FAST Algorithm, coeff input, tmp output
+      this.fastInverseDst(tmp[:],block,shift_2nd); // Inverse DST by FAST Algorithm, tmp input, coeff output
+    }else{
+      this.partialButterflyInverse4(coeff,tmp[:],shift_1st,iWidth);
+      this.partialButterflyInverse4(tmp[:],block,shift_2nd,iHeight);
+    }
+  }else if iWidth == 8 && iHeight == 8 {
+    this.partialButterflyInverse8(coeff,tmp[:],shift_1st,iWidth);
+    this.partialButterflyInverse8(tmp[:],block,shift_2nd,iHeight);
+  }else if iWidth == 16 && iHeight == 16 {
+    this.partialButterflyInverse16(coeff,tmp[:],shift_1st,iWidth);
+    this.partialButterflyInverse16(tmp[:],block,shift_2nd,iHeight);
+  }else if iWidth == 32 && iHeight == 32 {
+    this.partialButterflyInverse32(coeff,tmp[:],shift_1st,iWidth);
+    this.partialButterflyInverse32(tmp[:],block,shift_2nd,iHeight);
+  }
+}
   // inverse transform
 func (this *TComTrQuant) xIT    ( bitDepth int,  uiMode uint, plCoef []int, pResidual []Pel,  uiStride uint,  iWidth,  iHeight int){
+/*#if MATRIX_MULT  
+  Int iSize = iWidth;
+  xITr(bitDepth, plCoef,pResidual,uiStride,(UInt)iSize,uiMode);
+#else*/
+  var i, j int; 
+  {
+    var block	[ 64 * 64 ]int16;
+    var coeff	[ 64 * 64 ]int16;
+    for j = 0; j < iHeight * iWidth; j++ {    
+      coeff[j] = int16(plCoef[j]);
+    }
+    this.xITrMxN(bitDepth, coeff[:], block[:], iWidth, iHeight, uiMode );
+    {
+      for j = 0; j < iHeight; j++ {    
+      	for i = 0; i < iWidth; i++ {
+      		pResidual[j*int(uiStride)+i]=Pel(block[j*iWidth+i]);
+      	}
+        //memcpy( pResidual + j * uiStride, block + j * iWidth, iWidth * sizeof(Short) );
+      }
+    }
+    return ;
+  }
+//#endif  
 }
 
   // inverse skipping transform
 func (this *TComTrQuant) xITransformSkip ( bitDepth int, plCoef []int, pResidual []Pel,  uiStride uint,  width,  height int){
+  //assert( width == height );
+  uiLog2TrSize := int(G_aucConvertToBit[ width ]) + 2;
+  shift := uint(MAX_TR_DYNAMIC_RANGE - bitDepth - uiLog2TrSize);
+  var transformSkipShift uint; 
+  var  j,k int;
+  if shift > 0{
+    var offset int;
+    transformSkipShift = shift;
+    offset = (1 << (transformSkipShift -1));
+    for j = 0; j < height; j++ {    
+      for k = 0; k < width; k ++ {
+        pResidual[j * int(uiStride) + k] =  Pel((plCoef[j*width+k] + offset) >> transformSkipShift);
+      } 
+    }
+  }else{
+    //The case when uiBitDepth >= 13
+    transformSkipShift = - shift;
+    for j = 0; j < height; j++ {    
+      for k = 0; k < width; k ++ {
+        pResidual[j * int(uiStride) + k] =  Pel(plCoef[j*width+k] << transformSkipShift);
+      }
+    }
+  }
 }
 
