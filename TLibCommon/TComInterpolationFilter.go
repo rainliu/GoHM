@@ -16,23 +16,28 @@ type TComInterpolationFilter struct {
     m_chromaFilter [8][NTAPS_CHROMA]int16 ///< Chroma filter taps
 }
 
-/*  
-  static Void filterCopy(Int bitDepth, const Pel *src, Int srcStride, Short *dst, Int dstStride, Int width, Int height, Bool isFirst, Bool isLast);
+func NewTComInterpolationFilter() *TComInterpolationFilter{
+	return &TComInterpolationFilter{};
+}
 
+func (this *TComInterpolationFilter) FilterHorLuma  (src []Pel, srcStride int, dst []Pel, dstStride, width, height, frac int,            isLast bool){
+}
+func (this *TComInterpolationFilter) FilterVerLuma  (src []Pel, srcStride int, dst []Pel, dstStride, width, height, frac int,  isFirst,  isLast bool){
+}
+func (this *TComInterpolationFilter) FilterHorChroma(src []Pel, srcStride int, dst []Pel, dstStride, width, height, frac int,            isLast bool){
+}
+func (this *TComInterpolationFilter) FilterVerChroma(src []Pel, srcStride int, dst []Pel, dstStride, width, height, frac int,  isFirst,  isLast bool){
+}
+
+func (this *TComInterpolationFilter) filterCopy( bitDepth int, src []Pel, srcStride int, dst []Pel, dstStride, width, height int, isFirst, isLast bool){
+}
+
+/*
   template<Int N, Bool isVertical, Bool isFirst, Bool isLast>
-  static Void filter(Int bitDepth, Pel const *src, Int srcStride, Short *dst, Int dstStride, Int width, Int height, Short const *coeff);
+func (this *TComInterpolationFilter) filter(Int bitDepth, Pel const *src, Int srcStride, Short *dst, Int dstStride, Int width, Int height, Short const *coeff);
 
   template<Int N>
-  static Void filterHor(Int bitDepth, Pel *src, Int srcStride, Short *dst, Int dstStride, Int width, Int height,               Bool isLast, Short const *coeff);
+func (this *TComInterpolationFilter) filterHor(Int bitDepth, Pel *src, Int srcStride, Short *dst, Int dstStride, Int width, Int height,               Bool isLast, Short const *coeff);
   template<Int N>
-  static Void filterVer(Int bitDepth, Pel *src, Int srcStride, Short *dst, Int dstStride, Int width, Int height, Bool isFirst, Bool isLast, Short const *coeff);
-
-public:
-  TComInterpolationFilter() {}
-  ~TComInterpolationFilter() {}
-
-  Void filterHorLuma  (Pel *src, Int srcStride, Short *dst, Int dstStride, Int width, Int height, Int frac,               Bool isLast );
-  Void filterVerLuma  (Pel *src, Int srcStride, Short *dst, Int dstStride, Int width, Int height, Int frac, Bool isFirst, Bool isLast );
-  Void filterHorChroma(Pel *src, Int srcStride, Short *dst, Int dstStride, Int width, Int height, Int frac,               Bool isLast );
-  Void filterVerChroma(Pel *src, Int srcStride, Short *dst, Int dstStride, Int width, Int height, Int frac, Bool isFirst, Bool isLast );
+func (this *TComInterpolationFilter) filterVer(Int bitDepth, Pel *src, Int srcStride, Short *dst, Int dstStride, Int width, Int height, Bool isFirst, Bool isLast, Short const *coeff);
 */

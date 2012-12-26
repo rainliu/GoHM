@@ -3676,8 +3676,8 @@ func (this *TComSlice) SetWpScaling(wp [2][MAX_NUM_REF][3]wpScalingParam) {
     //memcpy(this.m_weightPredTable, wp, sizeof(wpScalingParam)*2*MAX_NUM_REF*3);
     this.m_weightPredTable = wp
 }
-func (this *TComSlice) GetWpScaling(e RefPicList, iRefIdx int) [3]wpScalingParam {
-	return this.m_weightPredTable[e][iRefIdx];
+func (this *TComSlice) GetWpScaling(e RefPicList, iRefIdx int) []wpScalingParam {
+	return this.m_weightPredTable[e][iRefIdx][:];
 }
 
 func (this *TComSlice) ResetWpScaling(wp [2][MAX_NUM_REF][3]wpScalingParam) {
