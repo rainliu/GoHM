@@ -479,9 +479,9 @@ func (this *TComPattern)  FillReferenceSamples  ( bitDepth int, pcCU *TComDataCU
     piAdiLineTemp = piAdiLine [ :(iNumUnits2*iUnitSize)];
     pbNeighborFlags =bNeighborFlags [:iNumUnits2];
     for j=0; j<iNumUnits2; j++ {
-      if pbNeighborFlags[iNumUnits2-j] {
+      if pbNeighborFlags[iNumUnits2-1-j] {
         for i=0; i<iUnitSize; i++ {
-          piAdiLineTemp[(iNumUnits2*iUnitSize)-i-j*iUnitSize] = piRoiTemp[j*iUnitSize*iPicStride+i*iPicStride];
+          piAdiLineTemp[(iNumUnits2*iUnitSize-1)-i-j*iUnitSize] = piRoiTemp[j*iUnitSize*iPicStride+i*iPicStride];
         }
       }
       //piRoiTemp += iUnitSize*iPicStride;
