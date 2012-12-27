@@ -107,18 +107,18 @@ func (this *TComPattern)  GetPatternLStride()    int   {
 }
 
   // access functions of ADI buffers
-func (this *TComPattern)  GetAdiOrgBuf     ( iCuWidth, iCuHeight int, piAdiBuf []int ) []int{
+func (this *TComPattern)  GetAdiOrgBuf     ( iCuWidth, iCuHeight int, piAdiBuf []Pel ) []Pel{
 	return piAdiBuf;
 }
-func (this *TComPattern)  GetAdiCbBuf      ( iCuWidth, iCuHeight int, piAdiBuf []int ) []int{
+func (this *TComPattern)  GetAdiCbBuf      ( iCuWidth, iCuHeight int, piAdiBuf []Pel ) []Pel{
 	return piAdiBuf;
 }
-func (this *TComPattern)  GetAdiCrBuf      ( iCuWidth, iCuHeight int, piAdiBuf []int ) []int{
+func (this *TComPattern)  GetAdiCrBuf      ( iCuWidth, iCuHeight int, piAdiBuf []Pel ) []Pel{
 	return piAdiBuf[(iCuWidth*2+1)*(iCuHeight*2+1):];
 }
 
-func (this *TComPattern) GetPredictorPtr ( uiDirMode, log2BlkSize uint, piAdiBuf []int)  []int{
-  var piSrc []int;
+func (this *TComPattern) GetPredictorPtr ( uiDirMode, log2BlkSize uint, piAdiBuf []Pel)  []Pel{
+  var piSrc []Pel;
   //assert(log2BlkSize >= 2 && log2BlkSize < 7);
   diff := MIN(ABS(int(uiDirMode) - HOR_IDX).(int), ABS(int(uiDirMode) - VER_IDX).(int)).(int);
   ucFiltIdx :=  diff > int(this.m_aucIntraFilter[log2BlkSize - 2]);

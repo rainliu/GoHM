@@ -320,7 +320,7 @@ func (this *TComTrQuant)  InvRecurTransformNxN ( pcCU *TComDataCU, pcYuvPred *TC
     	scalingListType =  3 + G_eTTable[int(eTxt)];
     }
     //assert(scalingListType < 6);
-    this.InvtransformNxN( pcCU.GetCUTransquantBypass1(uiAbsPartIdx), eTxt, REG_DCT, pResi, uiStride, rpcCoeff, uiWidth, uiHeight, scalingListType, pcCU.GetTransformSkip2(uiAbsPartIdx, eTxt)!=0 );
+    this.InvtransformNxN( pcCU.GetCUTransquantBypass1(uiAbsPartIdx), eTxt, REG_DCT, pResi, uiStride, rpcCoeff, uiWidth, uiHeight, scalingListType, pcCU.GetTransformSkip2(uiAbsPartIdx, eTxt) );
 /*#ifdef ENC_DEC_TRACE
     Pel *piPred = eTxt==TEXT_LUMA     ? pcYuvPred.GetLumaAddr( uiAbsPartIdx ) :
                  (eTxt==TEXT_CHROMA_U ? pcYuvPred.GetCbAddr  ( uiAbsPartIdx ) :

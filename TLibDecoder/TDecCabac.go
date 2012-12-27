@@ -1729,7 +1729,7 @@ func (this *TDecSbac)  ParseTransformSkipFlags ( pcCU *TLibCommon.TComDataCU,  u
     this.DTRACE_CABAC_V( uiAbsPartIdx )
     this.DTRACE_CABAC_T( "\n" )
 
-    pcCU.SetTransformSkipSubParts4( useTransformSkip, eTType, uiAbsPartIdx, uiDepth);
+    pcCU.SetTransformSkipSubParts4( useTransformSkip!=0, eTType, uiAbsPartIdx, uiDepth);
 }
 
 func (this *TDecSbac)  UpdateContextTables(  eSliceType TLibCommon.SliceType,  iQp int ){

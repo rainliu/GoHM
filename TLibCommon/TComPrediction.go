@@ -319,7 +319,7 @@ func (this *TComWeightPrediction)  xWeightedPredictionBi( pcCU *TComDataCU, pcYu
 type TComPrediction struct {
     TComWeightPrediction
     //protected:
-    m_piYuvExt     []int
+    m_piYuvExt     []Pel
     m_iYuvExtStride int
     m_iYuvExtHeight int
 
@@ -352,7 +352,7 @@ func (this *TComPrediction) InitTempBuff(){
     }
     this.m_iYuvExtHeight = int((G_uiMaxCUHeight + 2) << 4);
     this.m_iYuvExtStride = int((G_uiMaxCUWidth  + 8) << 4);
-    this.m_piYuvExt = make([]int, this.m_iYuvExtStride * this.m_iYuvExtHeight );
+    this.m_piYuvExt = make([]Pel, this.m_iYuvExtStride * this.m_iYuvExtHeight );
 
     // new structure
     this.m_acYuvPred[0].Create( G_uiMaxCUWidth, G_uiMaxCUHeight );
@@ -368,7 +368,7 @@ func (this *TComPrediction) InitTempBuff(){
 }
 
 
-func (this *TComPrediction)  xPredIntraAng            ( bitDepth int, pSrc2 []int, srcStride int, rpDst []Pel, dstStride int, 
+func (this *TComPrediction)  xPredIntraAng            ( bitDepth int, pSrc2 []Pel, srcStride int, rpDst []Pel, dstStride int, 
 													    width, height, dirMode uint, blkAboveAvailable, blkLeftAvailable, bFilter bool){
   var k,l int;
   blkSize := int(width);
@@ -505,12 +505,13 @@ func (this *TComPrediction)  xPredIntraAng            ( bitDepth int, pSrc2 []in
     }
   }
 }
-func (this *TComPrediction)  xPredIntraPlanar         ( pSrc []int, srcStride int, rpDst []Pel, dstStride int, width,  height uint){
+func (this *TComPrediction)  xPredIntraPlanar         ( pSrc []Pel, srcStride int, rpDst []Pel, dstStride int, width,  height uint){
   //assert(width == height);
 
-  var k, l, bottomLeft, topRight int;
-  var horPred int;
-  var leftColumn, topRow, bottomRow, rightColumn	[MAX_CU_SIZE]int;
+  var k, l int
+  var bottomLeft, topRight Pel;
+  var horPred Pel;
+  var leftColumn, topRow, bottomRow, rightColumn	[MAX_CU_SIZE]Pel;
   blkSize := int(width);
   offset2D := width;
   shift1D := uint(G_aucConvertToBit[ width ]) + 2;
@@ -534,7 +535,7 @@ func (this *TComPrediction)  xPredIntraPlanar         ( pSrc []int, srcStride in
 
   // Generate prediction signal
   for k=0;k<blkSize;k++ {
-    horPred = leftColumn[k] + int(offset2D);
+    horPred = leftColumn[k] + Pel(offset2D);
     for l=0;l<blkSize;l++ {
       horPred += rightColumn[k];
       topRow[l] += bottomRow[l];
@@ -666,25 +667,25 @@ func (this *TComPrediction)  xWeightedAverage  ( pcCU *TComDataCU, pcYuvSrc0 *TC
   }
 }
 
-func (this *TComPrediction)  xDCPredFiltering( pSrc2 []int, iSrcStride int, rpDst []Pel, iDstStride, iWidth, iHeight int){
+func (this *TComPrediction)  xDCPredFiltering( pSrc2 []Pel, iSrcStride int, rpDst []Pel, iDstStride, iWidth, iHeight int){
   pSrc := pSrc2[iSrcStride+1:]; //ptrSrc[sw+1:]
   pDst := rpDst;
   var x, y, iDstStride2, iSrcStride2 int;
 
   // boundary pixels processing
   //pDst[0] = Pel((pSrc[-iSrcStride] + pSrc[-1] + 2 * int(pDst[0]) + 2) >> 2);
-  pDst[0] = Pel((pSrc2[iSrcStride+1-iSrcStride] + pSrc2[iSrcStride+1-1] + 2 * int(pDst[0]) + 2) >> 2);
+  pDst[0] = Pel((pSrc2[iSrcStride+1-iSrcStride] + pSrc2[iSrcStride+1-1] + 2 * (pDst[0]) + 2) >> 2);
 
 
   for x = 1; x < iWidth; x++ {
     //pDst[x] = Pel((pSrc[x - iSrcStride] +  3 * int(pDst[x]) + 2) >> 2);
-    pDst[x] = Pel((pSrc2[x +iSrcStride+1- iSrcStride] +  3 * int(pDst[x]) + 2) >> 2);
+    pDst[x] = Pel((pSrc2[x +iSrcStride+1- iSrcStride] +  3 * (pDst[x]) + 2) >> 2);
   }
 
   iDstStride2 = iDstStride;
   iSrcStride2 = iSrcStride-1;
   for y = 1; y < iHeight; y++ {
-    pDst[iDstStride2] = Pel((pSrc[iSrcStride2] + 3 * int(pDst[iDstStride2]) + 2) >> 2);
+    pDst[iDstStride2] = Pel((pSrc[iSrcStride2] + 3 * (pDst[iDstStride2]) + 2) >> 2);
     iDstStride2+=iDstStride; 
     iSrcStride2+=iSrcStride;
   }
@@ -772,7 +773,7 @@ func (this *TComPrediction) GetMvPredAMVP              ( pcCU *TComDataCU,  uiPa
   // Angular Intra
 func (this *TComPrediction) PredIntraLumaAng           ( pcTComPattern *TComPattern,  uiDirMode uint, piPred []Pel,  uiStride uint,  iWidth,  iHeight int,  pcCU *TComDataCU,  bAbove,  bLeft bool){
   pDst := piPred;
-  var ptrSrc []int;
+  var ptrSrc []Pel;
 
   //assert( G_aucConvertToBit[ iWidth ] >= 0 ); //   4x  4
   //assert( G_aucConvertToBit[ iWidth ] <= 5 ); // 128x128
@@ -805,7 +806,7 @@ func (this *TComPrediction) PredIntraLumaAng           ( pcTComPattern *TComPatt
 //#endif
   }
 }
-func (this *TComPrediction) PredIntraChromaAng         ( pcTComPattern *TComPattern, piSrc []int,  uiDirMode uint, piPred []Pel,  uiStride uint,  iWidth,  iHeight int, pcCU *TComDataCU,  bAbove,  bLeft bool){
+func (this *TComPrediction) PredIntraChromaAng         ( pcTComPattern *TComPattern, piSrc []Pel,  uiDirMode uint, piPred []Pel,  uiStride uint,  iWidth,  iHeight int, pcCU *TComDataCU,  bAbove,  bLeft bool){
   pDst := piPred;
   ptrSrc := piSrc;
 
@@ -821,19 +822,19 @@ func (this *TComPrediction) PredIntraChromaAng         ( pcTComPattern *TComPatt
   }
 }
 
-func (this *TComPrediction) PredIntraGetPredValDC      ( pSrc2 []int,  iSrcStride int,  iWidth,  iHeight uint,  bAbove,  bLeft bool) Pel{
+func (this *TComPrediction) PredIntraGetPredValDC      ( pSrc2 []Pel,  iSrcStride int,  iWidth,  iHeight uint,  bAbove,  bLeft bool) Pel{
   var iInd int;
   iSum := 0;
   var pDcVal Pel;
 
   if bAbove{
     for iInd = 0;iInd < int(iWidth);iInd++ {
-      iSum += pSrc2[iSrcStride+1+iInd-iSrcStride];
+      iSum += int(pSrc2[iSrcStride+1+iInd-iSrcStride]);
     }
   }
   if bLeft {
     for iInd = 0;iInd < int(iHeight);iInd++ {
-      iSum += pSrc2[iSrcStride+1+iInd*iSrcStride-1];
+      iSum += int(pSrc2[iSrcStride+1+iInd*iSrcStride-1]);
     }
   }
 
@@ -850,7 +851,7 @@ func (this *TComPrediction) PredIntraGetPredValDC      ( pSrc2 []int,  iSrcStrid
   return pDcVal;
 }
 
-func (this *TComPrediction) GetPredicBuf()         []int   { 
+func (this *TComPrediction) GetPredicBuf()         []Pel   { 
 	return this.m_piYuvExt;      
 }
 func (this *TComPrediction) GetPredicBufWidth()     int   { 

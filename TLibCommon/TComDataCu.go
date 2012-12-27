@@ -83,7 +83,7 @@ type TComDataCU struct{
   m_CUTransquantBypass	[]bool;   ///< array of cu_transquant_bypass flags
   m_phQP				[]int8;               ///< array of QP values
   m_puhTrIdx			[]byte;           ///< array of transform indices
-  m_puhTransformSkip  	[3][]byte;///< array of transform skipping flags
+  m_puhTransformSkip  	[3][]bool;///< array of transform skipping flags
   m_puhCbf				[3][]byte;          ///< array of coded block flags (CBF)
   m_acCUMvField			[2]TComCUMvField;     ///< array of motion vectors
   m_pcTrCoeffY			[]TCoeff;         ///< transformed coefficient buffer (Y)
@@ -199,9 +199,9 @@ func (this *TComDataCU)  Create(  uiNumPartition,  uiWidth,  uiHeight uint, bDec
     this.m_puhInterDir        = make([]byte,  uiNumPartition);
 
     this.m_puhTrIdx           = make([]byte,  uiNumPartition);
-    this.m_puhTransformSkip[0] = make([]byte,  uiNumPartition);
-    this.m_puhTransformSkip[1] = make([]byte,  uiNumPartition);
-    this.m_puhTransformSkip[2] = make([]byte,  uiNumPartition);
+    this.m_puhTransformSkip[0] = make([]bool,  uiNumPartition);
+    this.m_puhTransformSkip[1] = make([]bool,  uiNumPartition);
+    this.m_puhTransformSkip[2] = make([]bool,  uiNumPartition);
 
     this.m_puhCbf[0]          = make([]byte,  uiNumPartition);
     this.m_puhCbf[1]          = make([]byte,  uiNumPartition);
@@ -424,9 +424,9 @@ func (this *TComDataCU)  InitCU ( pcPic *TComPic,  iCUAddr uint){
      this.m_CUTransquantBypass [ firstElement+i]= false;
      this.m_puhDepth           [ firstElement+i]= 0;
      this.m_puhTrIdx           [ firstElement+i]= 0;
-     this.m_puhTransformSkip[0][ firstElement+i]= 0;
-     this.m_puhTransformSkip[1][ firstElement+i]= 0;
-     this.m_puhTransformSkip[2][ firstElement+i]= 0;
+     this.m_puhTransformSkip[0][ firstElement+i]= false;
+     this.m_puhTransformSkip[1][ firstElement+i]= false;
+     this.m_puhTransformSkip[2][ firstElement+i]= false;
      this.m_puhWidth           [ firstElement+i]= byte(G_uiMaxCUWidth);
      this.m_puhHeight          [ firstElement+i]= byte(G_uiMaxCUHeight);
      this.m_apiMVPIdx[0]       [ firstElement+i]= -1;
@@ -981,9 +981,9 @@ func (this *TComDataCU)  InitEstData           (  uiDepth uint,  qp int){
       this.m_puhWidth  [ui] = byte(uhWidth);
       this.m_puhHeight [ui] = byte(uhHeight);
       this.m_puhTrIdx  [ui] = 0;
-      this.m_puhTransformSkip[0][ui] = 0;
-      this.m_puhTransformSkip[1][ui] = 0;
-      this.m_puhTransformSkip[2][ui] = 0;
+      this.m_puhTransformSkip[0][ui] = false;
+      this.m_puhTransformSkip[1][ui] = false;
+      this.m_puhTransformSkip[2][ui] = false;
       this.m_skipFlag[ui]   = false;
       this.m_pePartSize[ui] = SIZE_NONE;
       this.m_pePredMode[ui] = MODE_NONE;
@@ -1060,9 +1060,9 @@ func (this *TComDataCU)  InitSubCU             ( pcCU *TComDataCU,  uiPartUnitId
     this.m_puhChromaIntraDir[i]     =  0
     this.m_puhInterDir[i]           =  0
     this.m_puhTrIdx[i]              =  0
-    this.m_puhTransformSkip[0][i]   =  0
-    this.m_puhTransformSkip[1][i]   =  0
-    this.m_puhTransformSkip[2][i]   =  0
+    this.m_puhTransformSkip[0][i]   =  false
+    this.m_puhTransformSkip[1][i]   =  false
+    this.m_puhTransformSkip[2][i]   =  false
     this.m_puhCbf[0][i]             =  0
     this.m_puhCbf[1][i]             =  0
     this.m_puhCbf[2][i]             =  0
@@ -1788,25 +1788,25 @@ func (this *TComDataCU)  SetTrIdxSubParts      (  uiTrIdx,  uiAbsPartIdx,  uiDep
   	//memset( m_puhTrIdx + uiAbsPartIdx, uiTrIdx, sizeof(UChar)*uiCurrPartNumb );
 }
 
-func (this *TComDataCU)  GetTransformSkip1      (  eType TextType)    []byte{
+func (this *TComDataCU)  GetTransformSkip1      (  eType TextType)    []bool{
 	return this.m_puhTransformSkip[G_aucConvertTxtTypeToIdx[eType]];
 }
-func (this *TComDataCU)  GetTransformSkip2      (  uiIdx uint, eType TextType)   byte {
+func (this *TComDataCU)  GetTransformSkip2      (  uiIdx uint, eType TextType)   bool {
 	return this.m_puhTransformSkip[G_aucConvertTxtTypeToIdx[eType]][uiIdx];
 }
-func (this *TComDataCU)  SetTransformSkipSubParts4  (  useTransformSkip uint,  eType TextType,  uiAbsPartIdx,  uiDepth uint){
+func (this *TComDataCU)  SetTransformSkipSubParts4  (  useTransformSkip bool,  eType TextType,  uiAbsPartIdx,  uiDepth uint){
  	uiCurrPartNumb := this.m_pcPic.GetNumPartInCU() >> (uiDepth << 1);
 	for i:=uint(0); i<uiCurrPartNumb; i++{
-		this.m_puhTransformSkip[G_aucConvertTxtTypeToIdx[eType]][i + uiAbsPartIdx] = byte(useTransformSkip)
+		this.m_puhTransformSkip[G_aucConvertTxtTypeToIdx[eType]][i + uiAbsPartIdx] = useTransformSkip
 	}
   	//memset( m_puhTransformSkip[g_aucConvertTxtTypeToIdx[eType]] + uiAbsPartIdx, useTransformSkip, sizeof( UChar ) * uiCurrPartNumb );
 }
-func (this *TComDataCU)  SetTransformSkipSubParts5  (  useTransformSkipY,  useTransformSkipU,  useTransformSkipV,  uiAbsPartIdx,  uiDepth uint ){
+func (this *TComDataCU)  SetTransformSkipSubParts5  (  useTransformSkipY,  useTransformSkipU,  useTransformSkipV bool,  uiAbsPartIdx,  uiDepth uint ){
   	uiCurrPartNumb := this.m_pcPic.GetNumPartInCU() >> (uiDepth << 1);
 	for i:=uint(0); i<uiCurrPartNumb; i++{
-	 	this.m_puhTransformSkip[0][i + uiAbsPartIdx]= byte(useTransformSkipY);//, sizeof( UChar ) * uiCurrPartNumb );
-  		this.m_puhTransformSkip[1][i + uiAbsPartIdx]= byte(useTransformSkipU);//, sizeof( UChar ) * uiCurrPartNumb );
-  		this.m_puhTransformSkip[2][i + uiAbsPartIdx]= byte(useTransformSkipV);//, sizeof( UChar ) * uiCurrPartNumb );
+	 	this.m_puhTransformSkip[0][i + uiAbsPartIdx]= (useTransformSkipY);//, sizeof( UChar ) * uiCurrPartNumb );
+  		this.m_puhTransformSkip[1][i + uiAbsPartIdx]= (useTransformSkipU);//, sizeof( UChar ) * uiCurrPartNumb );
+  		this.m_puhTransformSkip[2][i + uiAbsPartIdx]= (useTransformSkipV);//, sizeof( UChar ) * uiCurrPartNumb );
 	}
 
 }

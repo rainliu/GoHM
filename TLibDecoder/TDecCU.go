@@ -243,7 +243,7 @@ func (this *TDecCu)  xDecodeCU               ( pcCU *TLibCommon.TComDataCU,  uiA
   {
     pcCU.SetPredModeSubParts( MODE_INTRA, uiAbsPartIdx, uiDepth );
     pcCU.SetPartSizeSubParts( SIZE_2Nx2N, uiAbsPartIdx, uiDepth );
-    pcCU.SetSizeSubParts( g_uiMaxCUWidth>>uiDepth, g_uiMaxCUHeight>>uiDepth, uiAbsPartIdx, uiDepth ); 
+    pcCU.SetSizeSubParts( TLibCommon.G_uiMaxCUWidth>>uiDepth, TLibCommon.G_uiMaxCUHeight>>uiDepth, uiAbsPartIdx, uiDepth ); 
     pcCU.SetTrIdxSubParts( 0, uiAbsPartIdx, uiDepth );
   }
 #else*/
@@ -318,37 +318,609 @@ func (this *TDecCu)  xDecodeSliceEnd         ( pcCU *TLibCommon.TComDataCU,     
       pcSlice.SetSliceCurEndCUAddr(pcCU.GetSCUAddr()+uiAbsPartIdx+uiCurNumParts);
       pcSlice.SetDependentSliceCurEndCUAddr(pcCU.GetSCUAddr()+uiAbsPartIdx+uiCurNumParts);
     }
-  }
+  } 
 
   return uiIsLast>0;
 }
 func (this *TDecCu)  xDecompressCU           ( pcCU *TLibCommon.TComDataCU, pcCUCur *TLibCommon.TComDataCU,   uiAbsPartIdx,  uiDepth uint){
+  pcPic := pcCU.GetPic();
+  
+  bBoundary := false;
+  uiLPelX   := pcCU.GetCUPelX() + TLibCommon.G_auiRasterToPelX[ TLibCommon.G_auiZscanToRaster[uiAbsPartIdx] ];
+  uiRPelX   := uiLPelX + (TLibCommon.G_uiMaxCUWidth>>uiDepth)  - 1;
+  uiTPelY   := pcCU.GetCUPelY() + TLibCommon.G_auiRasterToPelY[ TLibCommon.G_auiZscanToRaster[uiAbsPartIdx] ];
+  uiBPelY   := uiTPelY + (TLibCommon.G_uiMaxCUHeight>>uiDepth) - 1;
+  
+  uiCurNumParts  := pcPic.GetNumPartInCU() >> (uiDepth<<1);
+  pcSlice := pcCU.GetPic().GetSlice(pcCU.GetPic().GetCurrSliceIdx());
+  bStartInCU := pcCU.GetSCUAddr()+uiAbsPartIdx+uiCurNumParts>pcSlice.GetDependentSliceCurStartCUAddr()&&pcCU.GetSCUAddr()+uiAbsPartIdx<pcSlice.GetDependentSliceCurStartCUAddr();
+  if bStartInCU||( uiRPelX >= pcSlice.GetSPS().GetPicWidthInLumaSamples() ) || ( uiBPelY >= pcSlice.GetSPS().GetPicHeightInLumaSamples() ) {
+    bBoundary = true;
+  }
+  
+  if ( ( uiDepth < uint(pcCU.GetDepth1( uiAbsPartIdx )) ) && ( uiDepth < TLibCommon.G_uiMaxCUDepth - TLibCommon.G_uiAddCUDepth ) ) || bBoundary {
+    uiNextDepth := uiDepth + 1;
+    uiQNumParts := pcCU.GetTotalNumPart() >> (uiNextDepth<<1);
+    uiIdx := uiAbsPartIdx;
+    for uiPartIdx := 0; uiPartIdx < 4; uiPartIdx++ {
+      uiLPelX = pcCU.GetCUPelX() + TLibCommon.G_auiRasterToPelX[ TLibCommon.G_auiZscanToRaster[uiIdx] ];
+      uiTPelY = pcCU.GetCUPelY() + TLibCommon.G_auiRasterToPelY[ TLibCommon.G_auiZscanToRaster[uiIdx] ];
+      
+      binSlice := (pcCU.GetSCUAddr()+uiIdx+uiQNumParts>pcSlice.GetDependentSliceCurStartCUAddr())&&(pcCU.GetSCUAddr()+uiIdx<pcSlice.GetDependentSliceCurEndCUAddr());
+      if binSlice&&( uiLPelX < pcSlice.GetSPS().GetPicWidthInLumaSamples() ) && ( uiTPelY < pcSlice.GetSPS().GetPicHeightInLumaSamples() ) {
+        this.xDecompressCU(pcCU, this.m_ppcCU[uiNextDepth], uiIdx, uiNextDepth );
+      }
+      
+      uiIdx += uiQNumParts;
+    }
+    return;
+  }
+  
+  // Residual reconstruction
+  this.m_ppcYuvResi[uiDepth].Clear();
+  
+  this.m_ppcCU[uiDepth].CopySubCU( pcCU, uiAbsPartIdx, uiDepth );
+
+/*#ifdef ENC_DEC_TRACE
+  xTraceCUHeader(m_ppcCU[uiDepth], TRACE_CU);
+
+  xReadAeTr(m_ppcCU[uiDepth].GetCUPelX(),              "cu_x",                      TRACE_CU);
+  xReadAeTr(m_ppcCU[uiDepth].GetCUPelY(),              "cu_y",                      TRACE_CU);
+  xReadAeTr(m_ppcCU[uiDepth].GetWidth(0),              "cu_size",                   TRACE_CU);
+  xReadAeTr(m_ppcCU[uiDepth].GetPredictionMode(0),     "cu_type",                   TRACE_CU);
+  
+  if(m_ppcCU[uiDepth].GetSlice().GetPPS().GetTransquantBypassEnableFlag()){
+    xReadAeTr(m_ppcCU[uiDepth].GetCUTransquantBypass(0), "cu_transquant_bypass_flag", TRACE_CU);
+  }
+
+  if(m_ppcCU[uiDepth].GetPredictionMode(0)==MODE_INTRA){
+    xReadAeTr(m_ppcCU[uiDepth].GetIPCMFlag(0),           "cu_pcm_skip_flag",        TRACE_CU);
+        
+	  for( UInt iPartIdx = 0; iPartIdx < m_ppcCU[uiDepth].GetNumPartInter(); iPartIdx++ ){
+      Int  iWidth, iHeight, iPosX, iPosY;
+      UInt uiPartAddr;
+
+      m_ppcCU[uiDepth].GetPartIndexAndSizePos( iPartIdx, uiPartAddr, iWidth, iHeight, iPosX, iPosY );
+  
+      xTracePUHeader(TRACE_PU);
+
+      xReadAeTr(iPosX,                                          "pu_x",                      TRACE_PU);
+      xReadAeTr(iPosY,                                          "pu_y",                      TRACE_PU);
+      xReadAeTr(iWidth,                                         "pu_width",                  TRACE_PU);
+      xReadAeTr(iHeight,                                        "pu_height",                 TRACE_PU);
+      xReadAeTr(m_ppcCU[uiDepth].GetPartitionSize(0),          "pu_shape",                  TRACE_PU);
+      xReadAeTr(m_ppcCU[uiDepth].GetLumaIntraDir(uiPartAddr),  "pu_intra_pred_mode_luma",   TRACE_PU);
+      xReadAeTr(m_ppcCU[uiDepth].GetChromaIntraDir(0),         "pu_intra_pred_mode_chroma", TRACE_PU);
+	  }
+  }else{
+    xReadAeTr(m_ppcCU[uiDepth].GetSkipFlag(0),           "cu_pcm_skip_flag",        TRACE_CU);
+
+    for ( UInt iPartIdx = 0; iPartIdx < m_ppcCU[uiDepth].GetNumPartInter(); iPartIdx++ ){
+      Int  iWidth, iHeight, iPosX, iPosY;
+      UInt uiPartAddr;
+
+      m_ppcCU[uiDepth].GetPartIndexAndSizePos( iPartIdx, uiPartAddr, iWidth, iHeight, iPosX, iPosY );
+
+      xTracePUHeader(TRACE_PU);
+      
+      xReadAeTr(iPosX,                                          "pu_x",                      TRACE_PU);
+      xReadAeTr(iPosY,                                          "pu_y",                      TRACE_PU);
+      xReadAeTr(iWidth,                                         "pu_width",                  TRACE_PU);
+      xReadAeTr(iHeight,                                        "pu_height",                 TRACE_PU);
+      xReadAeTr(m_ppcCU[uiDepth].GetPartitionSize(0),          "pu_shape",                  TRACE_PU);
+      if(m_ppcCU[uiDepth].GetCUMvField(REF_PIC_LIST_0).GetRefIdx(uiPartAddr) >= 0 && 
+         m_ppcCU[uiDepth].GetCUMvField(REF_PIC_LIST_1).GetRefIdx(uiPartAddr) >= 0){
+        xReadAeTr(2,                                            "pu_inter_pred_mode",        TRACE_PU);
+        
+        Int refIdx = m_ppcCU[uiDepth].GetCUMvField(REF_PIC_LIST_0).GetRefIdx(uiPartAddr);
+        TComMv cMv = m_ppcCU[uiDepth].GetCUMvField(REF_PIC_LIST_0).GetMv(    uiPartAddr);
+        m_ppcCU[uiDepth]->clipMv(cMv);
+        xReadAeTr(refIdx,                                       "pu_ref_id",      TRACE_PU);
+        xReadAeTr(cMv.getHor(),                                 "pu_mv_x",        TRACE_PU);
+        xReadAeTr(cMv.getVer(),                                 "pu_mv_y",        TRACE_PU);
+
+            refIdx = m_ppcCU[uiDepth].GetCUMvField(REF_PIC_LIST_1).GetRefIdx(uiPartAddr);
+               cMv = m_ppcCU[uiDepth].GetCUMvField(REF_PIC_LIST_1).GetMv(    uiPartAddr);
+        m_ppcCU[uiDepth]->clipMv(cMv);
+        xReadAeTr(refIdx,                                       "pu_ref_id",      TRACE_PU);
+        xReadAeTr(cMv.getHor(),                                 "pu_mv_x",        TRACE_PU);
+        xReadAeTr(cMv.getVer(),                                 "pu_mv_y",        TRACE_PU);
+      }else if(m_ppcCU[uiDepth].GetCUMvField(REF_PIC_LIST_0).GetRefIdx(uiPartAddr) >= 0){
+        xReadAeTr(0,                                            "pu_inter_pred_mode",        TRACE_PU);
+        
+        Int refIdx = m_ppcCU[uiDepth].GetCUMvField(REF_PIC_LIST_0).GetRefIdx(uiPartAddr);
+        TComMv cMv = m_ppcCU[uiDepth].GetCUMvField(REF_PIC_LIST_0).GetMv(    uiPartAddr);
+        m_ppcCU[uiDepth]->clipMv(cMv);
+        xReadAeTr(refIdx,                                       "pu_ref_id",      TRACE_PU);
+        xReadAeTr(cMv.getHor(),                                 "pu_mv_x",        TRACE_PU);
+        xReadAeTr(cMv.getVer(),                                 "pu_mv_y",        TRACE_PU);
+      }else if(m_ppcCU[uiDepth].GetCUMvField(REF_PIC_LIST_1).GetRefIdx(uiPartAddr) >= 0){
+        xReadAeTr(1,                                            "pu_inter_pred_mode",        TRACE_PU);
+        
+        Int refIdx = m_ppcCU[uiDepth].GetCUMvField(REF_PIC_LIST_1).GetRefIdx(uiPartAddr);
+        TComMv cMv = m_ppcCU[uiDepth].GetCUMvField(REF_PIC_LIST_1).GetMv(    uiPartAddr);
+        m_ppcCU[uiDepth]->clipMv(cMv);
+        xReadAeTr(refIdx,                                       "pu_ref_id",      TRACE_PU);
+        xReadAeTr(cMv.getHor(),                                 "pu_mv_x",        TRACE_PU);
+        xReadAeTr(cMv.getVer(),                                 "pu_mv_y",        TRACE_PU);
+      }else{
+        assert(0);
+      }
+    }
+  }
+#endif*/
+
+  switch this.m_ppcCU[uiDepth].GetPredictionMode1(0) {
+    case TLibCommon.MODE_INTER:
+      this.xReconInter( this.m_ppcCU[uiDepth], uiAbsPartIdx, uiDepth );
+      //break;
+    case TLibCommon.MODE_INTRA:
+      this.xReconIntraQT( this.m_ppcCU[uiDepth], uiAbsPartIdx, uiDepth );
+      //break;
+    default:
+      //assert(0);
+      //break;
+  }
+  if this.m_ppcCU[uiDepth].IsLosslessCoded(0) && (this.m_ppcCU[uiDepth].GetIPCMFlag1(0) == false) {
+    this.xFillPCMBuffer(this.m_ppcCU[uiDepth], uiAbsPartIdx, uiDepth);    
+  }
+  
+  this.xCopyToPic( this.m_ppcCU[uiDepth], pcPic, uiAbsPartIdx, uiDepth );
 }
 
 func (this *TDecCu)  xReconInter             ( pcCU *TLibCommon.TComDataCU, uiAbsPartIdx,  uiDepth uint ){
+  // inter prediction
+  this.m_pcPrediction.MotionCompensation( pcCU, this.m_ppcYuvReco[uiDepth], TLibCommon.REF_PIC_LIST_X, -1 );
+  
+  // inter recon
+  this.xDecodeInterTexture( pcCU, this.m_ppcYuvReco[uiDepth], 0, uiDepth );
+  
+  // clip for only non-zero cbp case
+  if ( pcCU.GetCbf2( 0, TLibCommon.TEXT_LUMA )!=0 ) || ( pcCU.GetCbf2( 0, TLibCommon.TEXT_CHROMA_U )!=0 ) || ( pcCU.GetCbf2(0, TLibCommon.TEXT_CHROMA_V )!=0 ) {
+    this.m_ppcYuvReco[uiDepth].AddClip( this.m_ppcYuvReco[uiDepth], this.m_ppcYuvResi[uiDepth], 0, uint(pcCU.GetWidth1( 0 )) );
+  }else{
+    this.m_ppcYuvReco[uiDepth].CopyPartToPartYuv( this.m_ppcYuvReco[uiDepth],0, uint(pcCU.GetWidth1(0)), uint(pcCU.GetHeight1( 0 )) );
+  }
 }
 
 func (this *TDecCu)  xReconIntraQT           ( pcCU *TLibCommon.TComDataCU, uiAbsPartIdx,  uiDepth uint ){
+  var uiInitTrDepth uint;
+  if pcCU.GetPartitionSize1(0) == TLibCommon.SIZE_2Nx2N {
+  	uiInitTrDepth = 0;
+  }else{
+  	uiInitTrDepth = 1;
+  }
+  uiNumPart     := uint(pcCU.GetNumPartInter());
+  uiNumQParts   := pcCU.GetTotalNumPart() >> 2;
+  
+  if pcCU.GetIPCMFlag1(0) {
+    this.xReconPCM( pcCU, uiAbsPartIdx, uiDepth );
+    return;
+  }
+
+  for uiPU := uint(0); uiPU < uiNumPart; uiPU++ {
+    this.xIntraLumaRecQT( pcCU, uiInitTrDepth, uiPU * uiNumQParts, this.m_ppcYuvReco[uiDepth], this.m_ppcYuvReco[uiDepth], this.m_ppcYuvResi[uiDepth] );
+  }  
+
+  for uiPU := uint(0); uiPU < uiNumPart; uiPU++ {
+    this.xIntraChromaRecQT( pcCU, uiInitTrDepth, uiPU * uiNumQParts, this.m_ppcYuvReco[uiDepth], this.m_ppcYuvReco[uiDepth], this.m_ppcYuvResi[uiDepth] );
+  }
 }
 func (this *TDecCu)  xIntraRecLumaBlk        ( pcCU *TLibCommon.TComDataCU, uiTrDepth,  uiAbsPartIdx uint, pcRecoYuv *TLibCommon.TComYuv, pcPredYuv *TLibCommon.TComYuv, pcResiYuv *TLibCommon.TComYuv){
+  uiWidth           := uint(pcCU     .GetWidth1   ( 0 )) >> uiTrDepth;
+  uiHeight          := uint(pcCU     .GetHeight1  ( 0 )) >> uiTrDepth;
+  uiStride          := pcRecoYuv.GetStride  ();
+  piReco            := pcRecoYuv.GetLumaAddr1( uiAbsPartIdx );
+  piPred            := pcPredYuv.GetLumaAddr1( uiAbsPartIdx );
+  piResi            := pcResiYuv.GetLumaAddr1( uiAbsPartIdx );
+  
+  uiNumCoeffInc     := ( pcCU.GetSlice().GetSPS().GetMaxCUWidth() * pcCU.GetSlice().GetSPS().GetMaxCUHeight() ) >> ( pcCU.GetSlice().GetSPS().GetMaxCUDepth() << 1 );
+  pcCoeff           := pcCU.GetCoeffY() [ ( uiNumCoeffInc * uiAbsPartIdx ):];
+  
+  uiLumaPredMode    := pcCU.GetLumaIntraDir1     ( uiAbsPartIdx );
+
+/*#ifdef ENC_DEC_TRACE
+  Int blkX = TLibCommon.G_auiRasterToPelX[ TLibCommon.G_auiZscanToRaster[ uiAbsPartIdx ] ];
+  Int blkY = TLibCommon.G_auiRasterToPelY[ TLibCommon.G_auiZscanToRaster[ uiAbsPartIdx ] ];
+
+  xTraceTUHeader(TRACE_TU);
+  
+  xReadAeTr(0,                         "tu_color",  TRACE_TU);
+  xReadAeTr(blkX,                      "tu_x",		  TRACE_TU);
+  xReadAeTr(blkY,                      "tu_y",	  	TRACE_TU);
+  xReadAeTr(uiWidth,		               "tu_width",	TRACE_TU);
+  xReadAeTr(uiHeight,		               "tu_height",	TRACE_TU);
+#endif*/
+
+  uiZOrder          := pcCU.GetZorderIdxInCU() + uiAbsPartIdx;
+  piRecIPred        := pcCU.GetPic().GetPicYuvRec().GetLumaAddr2( int(pcCU.GetAddr()), int(uiZOrder) );
+  uiRecIPredStride  := uint(pcCU.GetPic().GetPicYuvRec().GetStride  ());
+  useTransformSkip  := pcCU.GetTransformSkip2(uiAbsPartIdx, TLibCommon.TEXT_LUMA);
+  //===== init availability pattern =====
+  bAboveAvail := false;
+  bLeftAvail  := false;
+  pcCU.GetPattern().InitPattern3  ( pcCU, uiTrDepth, uiAbsPartIdx );
+  pcCU.GetPattern().InitAdiPattern( pcCU, uiAbsPartIdx, uiTrDepth, 
+                                     this.m_pcPrediction.GetPredicBuf       (),
+                                     this.m_pcPrediction.GetPredicBufWidth  (),
+                                     this.m_pcPrediction.GetPredicBufHeight (),
+                                     &bAboveAvail, &bLeftAvail, false ); 
+  
+  //===== get prediction signal =====
+  this.m_pcPrediction.PredIntraLumaAng( pcCU.GetPattern(), uint(uiLumaPredMode), piPred, uiStride, int(uiWidth), int(uiHeight), pcCU, bAboveAvail, bLeftAvail );
+  
+  //===== inverse transform =====
+  this.m_pcTrQuant.SetQPforQuant  ( int(pcCU.GetQP1(0)), TLibCommon.TEXT_LUMA, pcCU.GetSlice().GetSPS().GetQpBDOffsetY(), 0 );
+
+  var scalingListType int;
+  if pcCU.IsIntra(uiAbsPartIdx) {
+  	scalingListType =  0 + TLibCommon.G_eTTable[TLibCommon.TEXT_LUMA];
+  }else{
+  	scalingListType =  3 + TLibCommon.G_eTTable[TLibCommon.TEXT_LUMA];
+  }
+  //assert(scalingListType < 6);
+  this.m_pcTrQuant.InvtransformNxN( pcCU.GetCUTransquantBypass1(uiAbsPartIdx), TLibCommon.TEXT_LUMA, uint(pcCU.GetLumaIntraDir1( uiAbsPartIdx )), piResi, uiStride, pcCoeff, uiWidth, uiHeight, scalingListType, useTransformSkip );
+
+/*#ifdef ENC_DEC_TRACE
+  {
+    xTracePredHeader(TRACE_PRED);
+    
+    Pel *pPred = piPred;
+    for( UInt uiY = 0; uiY < uiHeight; uiY++ )
+    {
+      xReadPredTr(pPred, uiWidth, TRACE_PRED);
+      pPred += uiStride;
+    }
+  }
+
+  xTraceRecoHeader(TRACE_RECON);
+#endif*/
+  //===== reconstruction =====
+  pPred      := piPred;
+  pResi      := piResi;
+  pReco      := piReco;
+  pRecIPred  := piRecIPred;
+  for uiY := uint(0); uiY < uiHeight; uiY++ {
+    for uiX := uint(0); uiX < uiWidth; uiX++ {
+      pReco    [ uiY*uiStride+uiX ]  = TLibCommon.ClipY( pPred[ uiY*uiStride+uiX ] + pResi[ uiY*uiStride+uiX ] );
+      pRecIPred[ uiY*uiRecIPredStride+uiX ] = pReco[ uiY*uiStride+uiX ];
+    }
+/*#ifdef ENC_DEC_TRACE
+    xReadRecoTr(pReco, uiWidth, TRACE_RECON);
+#endif*/
+    /*pPred     += uiStride;
+    pResi     += uiStride;
+    pReco     += uiStride;
+    pRecIPred += uiRecIPredStride;*/
+  }
 }
 func (this *TDecCu)  xIntraRecChromaBlk      ( pcCU *TLibCommon.TComDataCU, uiTrDepth,  uiAbsPartIdx uint, pcRecoYuv *TLibCommon.TComYuv, pcPredYuv *TLibCommon.TComYuv, pcResiYuv *TLibCommon.TComYuv,  uiChromaId uint){
+  uiFullDepth  := uint(pcCU.GetDepth1( 0 )) + uiTrDepth;
+  uiLog2TrSize := TLibCommon.G_aucConvertToBit[ pcCU.GetSlice().GetSPS().GetMaxCUWidth() >> uiFullDepth ] + 2;
+
+  if uiLog2TrSize == 2 {
+    //assert( uiTrDepth > 0 );
+    uiTrDepth--;
+    uiQPDiv := pcCU.GetPic().GetNumPartInCU() >> ( ( uint(pcCU.GetDepth1( 0 )) + uiTrDepth ) << 1 );
+    bFirstQ := ( ( uiAbsPartIdx % uiQPDiv ) == 0 );
+    if !bFirstQ {
+      return;
+    }
+  }
+  
+  uiWidth           := uint(pcCU.GetWidth1   ( 0 )) >> ( uiTrDepth + 1 );
+  uiHeight          := uint(pcCU.GetHeight1  ( 0 )) >> ( uiTrDepth + 1 );
+  uiStride          := pcRecoYuv.GetCStride ();
+  uiNumCoeffInc     := ( ( pcCU.GetSlice().GetSPS().GetMaxCUWidth() * pcCU.GetSlice().GetSPS().GetMaxCUHeight() ) >> ( pcCU.GetSlice().GetSPS().GetMaxCUDepth() << 1 ) ) >> 2;
+  
+  var eText TLibCommon.TextType;
+  var piReco, piPred, piResi []TLibCommon.Pel;
+  var pcCoeff []TLibCommon.TCoeff; 
+  if uiChromaId > 0 {
+	  eText             = TLibCommon.TEXT_CHROMA_V;
+	  piReco            = pcRecoYuv.GetCrAddr1( uiAbsPartIdx ) ;
+	  piPred            = pcPredYuv.GetCrAddr1( uiAbsPartIdx ) ;
+	  piResi            = pcResiYuv.GetCrAddr1( uiAbsPartIdx ) ;
+      pcCoeff      		= pcCU.GetCoeffCr()  [ ( uiNumCoeffInc * uiAbsPartIdx ):];
+  }else{
+	  eText             = TLibCommon.TEXT_CHROMA_U;
+	  piReco            = pcRecoYuv.GetCbAddr1( uiAbsPartIdx ) ;
+	  piPred            = pcPredYuv.GetCbAddr1( uiAbsPartIdx ) ;
+	  piResi            = pcResiYuv.GetCbAddr1( uiAbsPartIdx ) ;
+	  pcCoeff       	= pcCU.GetCoeffCb()  [ ( uiNumCoeffInc * uiAbsPartIdx ):];
+  }
+  uiChromaPredMode  := pcCU.GetChromaIntraDir1( 0 );
+
+/*#ifdef ENC_DEC_TRACE
+  //if(uiChromaId==1){
+    Int blkX = TLibCommon.G_auiRasterToPelX[ TLibCommon.G_auiZscanToRaster[ uiAbsPartIdx ] ]>>1;
+    Int blkY = TLibCommon.G_auiRasterToPelY[ TLibCommon.G_auiZscanToRaster[ uiAbsPartIdx ] ]>>1;
+
+    xTraceTUHeader(TRACE_TU);
+  
+    xReadAeTr(uiChromaId+1,              "tu_color",  TRACE_TU);
+    xReadAeTr(blkX,                      "tu_x",		  TRACE_TU);
+    xReadAeTr(blkY,                      "tu_y",		  TRACE_TU);
+    xReadAeTr(uiWidth,			             "tu_width",	TRACE_TU);
+    xReadAeTr(uiHeight,		               "tu_height",	TRACE_TU);
+  //}
+#endif*/
+  
+  uiZOrder          := pcCU.GetZorderIdxInCU() + uiAbsPartIdx;
+  var piRecIPred []TLibCommon.Pel;
+  if uiChromaId > 0 {
+  	piRecIPred = pcCU.GetPic().GetPicYuvRec().GetCrAddr2( int(pcCU.GetAddr()), int(uiZOrder) );
+  }else{
+  	piRecIPred = pcCU.GetPic().GetPicYuvRec().GetCbAddr2( int(pcCU.GetAddr()), int(uiZOrder) ) ;
+  }
+  uiRecIPredStride  := uint(pcCU.GetPic().GetPicYuvRec().GetCStride());
+  useTransformSkipChroma := pcCU.GetTransformSkip2(uiAbsPartIdx,eText);
+  //===== init availability pattern =====
+  bAboveAvail := false;
+  bLeftAvail  := false;
+  pcCU.GetPattern().InitPattern3         ( pcCU, uiTrDepth, uiAbsPartIdx );
+
+  pcCU.GetPattern().InitAdiPatternChroma( pcCU, uiAbsPartIdx, uiTrDepth,
+                                           this.m_pcPrediction.GetPredicBuf       (),
+                                           this.m_pcPrediction.GetPredicBufWidth  (),
+                                           this.m_pcPrediction.GetPredicBufHeight (),
+                                           &bAboveAvail, &bLeftAvail );
+  var pPatChroma []TLibCommon.Pel;
+  if uiChromaId > 0 {
+   	pPatChroma = pcCU.GetPattern().GetAdiCrBuf( int(uiWidth), int(uiHeight), this.m_pcPrediction.GetPredicBuf() );
+  }else{
+  	pPatChroma = pcCU.GetPattern().GetAdiCbBuf( int(uiWidth), int(uiHeight), this.m_pcPrediction.GetPredicBuf() ) ;
+  }
+  //===== get prediction signal =====
+  {
+    if uiChromaPredMode == TLibCommon.DM_CHROMA_IDX {
+      uiChromaPredMode = pcCU.GetLumaIntraDir1( 0 );
+    }
+    this.m_pcPrediction.PredIntraChromaAng( pcCU.GetPattern(), pPatChroma, uint(uiChromaPredMode), piPred, uiStride, int(uiWidth), int(uiHeight), pcCU, bAboveAvail, bLeftAvail );  
+  }
+
+  //===== inverse transform =====
+  var curChromaQpOffset int;
+  if eText == TLibCommon.TEXT_CHROMA_U {
+    curChromaQpOffset = pcCU.GetSlice().GetPPS().GetChromaCbQpOffset() + pcCU.GetSlice().GetSliceQpDeltaCb();
+  }else{
+    curChromaQpOffset = pcCU.GetSlice().GetPPS().GetChromaCrQpOffset() + pcCU.GetSlice().GetSliceQpDeltaCr();
+  }
+  this.m_pcTrQuant.SetQPforQuant  ( int(pcCU.GetQP1(0)), eText, pcCU.GetSlice().GetSPS().GetQpBDOffsetC(), curChromaQpOffset );
+
+  var scalingListType int;
+  if pcCU.IsIntra(uiAbsPartIdx) {
+  	scalingListType = 0 + TLibCommon.G_eTTable[eText];
+  }else{
+  	scalingListType = 3 + TLibCommon.G_eTTable[eText];
+  }
+  //assert(scalingListType < 6);
+  this.m_pcTrQuant.InvtransformNxN( pcCU.GetCUTransquantBypass1(uiAbsPartIdx), eText, TLibCommon.REG_DCT, piResi, uiStride, pcCoeff, uiWidth, uiHeight, scalingListType, useTransformSkipChroma );
+
+/*#ifdef ENC_DEC_TRACE
+  {
+    xTracePredHeader(TRACE_PRED);
+    
+    Pel *pPred = piPred;
+    for( UInt uiY = 0; uiY < uiHeight; uiY++ )
+    {
+      xReadPredTr(pPred, uiWidth, TRACE_PRED);
+      pPred += uiStride;
+    }
+  }
+
+  xTraceRecoHeader(TRACE_RECON);
+#endif*/
+  //===== reconstruction =====
+  pPred      := piPred;
+  pResi      := piResi;
+  pReco      := piReco;
+  pRecIPred  := piRecIPred;
+  for uiY := uint(0); uiY < uiHeight; uiY++ {
+    for uiX := uint(0); uiX < uiWidth; uiX++ {
+      pReco    [ uiY*uiStride+uiX ] = TLibCommon.ClipC( pPred[ uiY*uiStride+uiX ] + pResi[ uiY*uiStride+uiX ] );
+      pRecIPred[ uiY*uiRecIPredStride+uiX ] = pReco[ uiY*uiStride+uiX ];
+    }
+/*#ifdef ENC_DEC_TRACE
+    xReadRecoTr(pReco, uiWidth, TRACE_RECON);
+#endif*/
+    /*pPred     += uiStride;
+    pResi     += uiStride;
+    pReco     += uiStride;
+    pRecIPred += uiRecIPredStride;*/
+  }
 }
 
 func (this *TDecCu)  xReconPCM               ( pcCU *TLibCommon.TComDataCU, uiAbsPartIdx,  uiDepth uint ){
+  // Luma
+  uiWidth  := (TLibCommon.G_uiMaxCUWidth >> uiDepth);
+  uiHeight := (TLibCommon.G_uiMaxCUHeight >> uiDepth);
+
+  piPcmY  := pcCU.GetPCMSampleY();
+  piRecoY := this.m_ppcYuvReco[uiDepth].GetLumaAddr2(0, uiWidth);
+
+  uiStride := this.m_ppcYuvResi[uiDepth].GetStride();
+
+/*#ifdef ENC_DEC_TRACE
+  UInt blkX = 0;//TLibCommon.G_auiRasterToPelX[ TLibCommon.G_auiZscanToRaster[ uiAbsPartIdx ] ];
+  UInt blkY = 0;//TLibCommon.G_auiRasterToPelY[ TLibCommon.G_auiZscanToRaster[ uiAbsPartIdx ] ];
+  
+  xTraceTUHeader(TRACE_TU);
+  
+  xReadAeTr(0,                         "tu_color",  TRACE_TU);
+  xReadAeTr(blkX,                      "tu_x",		  TRACE_TU);
+  xReadAeTr(blkY,                      "tu_y",	  	TRACE_TU);
+  xReadAeTr(uiWidth,		               "tu_width",	TRACE_TU);
+  xReadAeTr(uiHeight,		               "tu_height",	TRACE_TU);
+#endif*/
+  
+  this.xDecodePCMTexture( pcCU, 0, piPcmY, piRecoY, uiStride, uiWidth, uiHeight, TLibCommon.TEXT_LUMA);
+
+  // Cb and Cr
+  uiCWidth  := (uiWidth>>1);
+  uiCHeight := (uiHeight>>1);
+
+  piPcmCb := pcCU.GetPCMSampleCb();
+  piPcmCr := pcCU.GetPCMSampleCr();
+  pRecoCb := this.m_ppcYuvReco[uiDepth].GetCbAddr();
+  pRecoCr := this.m_ppcYuvReco[uiDepth].GetCrAddr();
+
+  uiCStride := this.m_ppcYuvReco[uiDepth].GetCStride();
+
+/*#ifdef ENC_DEC_TRACE
+  UInt CblkX = 0;//TLibCommon.G_auiRasterToPelX[ TLibCommon.G_auiZscanToRaster[ uiAbsPartIdx ] ]>>1;
+  UInt CblkY = 0;//TLibCommon.G_auiRasterToPelY[ TLibCommon.G_auiZscanToRaster[ uiAbsPartIdx ] ]>>1;
+  
+  xTraceTUHeader(TRACE_TU);
+  
+  xReadAeTr(1,                         "tu_color",  TRACE_TU);
+  xReadAeTr(CblkX,                     "tu_x",		  TRACE_TU);
+  xReadAeTr(CblkY,                     "tu_y",	  	TRACE_TU);
+  xReadAeTr(uiCWidth,		               "tu_width",	TRACE_TU);
+  xReadAeTr(uiCHeight,		             "tu_height",	TRACE_TU);
+#endif*/
+  
+  this.xDecodePCMTexture( pcCU, 0, piPcmCb, pRecoCb, uiCStride, uiCWidth, uiCHeight, TLibCommon.TEXT_CHROMA_U);
+  
+/*#ifdef ENC_DEC_TRACE
+  xTraceTUHeader(TRACE_TU);
+  
+  xReadAeTr(2,                         "tu_color",  TRACE_TU);
+  xReadAeTr(CblkX,                     "tu_x",		  TRACE_TU);
+  xReadAeTr(CblkY,                     "tu_y",	  	TRACE_TU);
+  xReadAeTr(uiCWidth,		               "tu_width",	TRACE_TU);
+  xReadAeTr(uiCHeight,		             "tu_height",	TRACE_TU);
+#endif*/
+  this.xDecodePCMTexture( pcCU, 0, piPcmCr, pRecoCr, uiCStride, uiCWidth, uiCHeight, TLibCommon.TEXT_CHROMA_V);
 }
 
-func (this *TDecCu)  xDecodeInterTexture     ( pcCU *TLibCommon.TComDataCU, uiAbsPartIdx,  uiDepth uint ){
+func (this *TDecCu)  xDecodeInterTexture     ( pcCU *TLibCommon.TComDataCU, pcYuvPred *TLibCommon.TComYuv, uiAbsPartIdx,  uiDepth uint ){
+  uiWidth    := uint(pcCU.GetWidth1 ( uiAbsPartIdx ));
+  uiHeight   := uint(pcCU.GetHeight1( uiAbsPartIdx ));
+  var piCoeff []TLibCommon.TCoeff;
+  
+  var pResi []TLibCommon.Pel;
+  trMode := uint(pcCU.GetTransformIdx1( uiAbsPartIdx ));
+  
+  // Y
+  piCoeff = pcCU.GetCoeffY();
+  pResi = this.m_ppcYuvResi[uiDepth].GetLumaAddr();
+
+  this.m_pcTrQuant.SetQPforQuant( int(pcCU.GetQP1( uiAbsPartIdx )), TLibCommon.TEXT_LUMA, pcCU.GetSlice().GetSPS().GetQpBDOffsetY(), 0 );
+
+  this.m_pcTrQuant.InvRecurTransformNxN ( pcCU, pcYuvPred, 0, TLibCommon.TEXT_LUMA, pResi, 0, this.m_ppcYuvResi[uiDepth].GetStride(), uiWidth, uiHeight, trMode, 0, piCoeff );
+  
+  // Cb and Cr
+  curChromaQpOffset := pcCU.GetSlice().GetPPS().GetChromaCbQpOffset() + pcCU.GetSlice().GetSliceQpDeltaCb();
+  this.m_pcTrQuant.SetQPforQuant( int(pcCU.GetQP1( uiAbsPartIdx )), TLibCommon.TEXT_CHROMA, pcCU.GetSlice().GetSPS().GetQpBDOffsetC(), curChromaQpOffset );
+
+  uiWidth  >>= 1;
+  uiHeight >>= 1;
+  piCoeff = pcCU.GetCoeffCb(); pResi = this.m_ppcYuvResi[uiDepth].GetCbAddr();
+  this.m_pcTrQuant.InvRecurTransformNxN ( pcCU, pcYuvPred, 0, TLibCommon.TEXT_CHROMA_U, pResi, 0, this.m_ppcYuvResi[uiDepth].GetCStride(), uiWidth, uiHeight, trMode, 0, piCoeff );
+
+  curChromaQpOffset = pcCU.GetSlice().GetPPS().GetChromaCrQpOffset() + pcCU.GetSlice().GetSliceQpDeltaCr();
+  this.m_pcTrQuant.SetQPforQuant( int(pcCU.GetQP1( uiAbsPartIdx )), TLibCommon.TEXT_CHROMA, pcCU.GetSlice().GetSPS().GetQpBDOffsetC(), curChromaQpOffset );
+
+  piCoeff = pcCU.GetCoeffCr(); pResi = this.m_ppcYuvResi[uiDepth].GetCrAddr();
+  this.m_pcTrQuant.InvRecurTransformNxN ( pcCU, pcYuvPred, 0, TLibCommon.TEXT_CHROMA_V, pResi, 0, this.m_ppcYuvResi[uiDepth].GetCStride(), uiWidth, uiHeight, trMode, 0, piCoeff );
 }
-func (this *TDecCu)  xDecodePCMTexture       ( pcCU *TLibCommon.TComDataCU,  uiPartIdx uint, piPCM *TLibCommon.Pel, piReco *TLibCommon.Pel,  uiStride,  uiWidth,  uiHeight uint,  ttText TLibCommon.TextType){
+func (this *TDecCu)  xDecodePCMTexture       ( pcCU *TLibCommon.TComDataCU,  uiPartIdx uint, piPCM, piReco []TLibCommon.Pel,  uiStride,  uiWidth,  uiHeight uint,  ttText TLibCommon.TextType){
+  var uiX, uiY uint;
+  var piPicReco []TLibCommon.Pel;
+  var uiPicStride,uiPcmLeftShiftBit uint; 
+  
+/* #ifdef ENC_DEC_TRACE
+  xTraceCoefHeader(TRACE_COEF);
+  
+  TCoeff coeffs[64];
+  for( uiY = 0; uiY < uiHeight; uiY++ )
+  {
+    for( uiX = 0; uiX < uiWidth; uiX++ )
+      coeffs[uiX] = (TCoeff)piPCM[uiY*uiWidth+uiX];
+      
+    xReadCeofTr(coeffs, uiWidth, TRACE_COEF);
+  }
+  
+  xTraceResiHeader(TRACE_RESI);
+  
+  for( uiY = 0; uiY < uiHeight; uiY++ )
+  {
+    xReadResiTr(&piPCM[uiY*uiWidth], uiWidth, TRACE_RESI);
+  }
+
+  xTracePredHeader(TRACE_PRED);
+
+  for( uiY = 0; uiY < uiHeight; uiY++ )
+  {
+    xReadPredTr(NULL, uiWidth, TRACE_PRED);
+  }
+
+  xTraceRecoHeader(TRACE_RECON);
+  for( uiY = 0; uiY < uiHeight; uiY++ )
+  {
+    xReadRecoTr(&piPCM[uiY*uiWidth], uiWidth, TRACE_RECON);
+  }
+#endif*/
+  
+  if ttText == TLibCommon.TEXT_LUMA {
+    uiPicStride = uint(pcCU.GetPic().GetPicYuvRec().GetStride());
+    piPicReco = pcCU.GetPic().GetPicYuvRec().GetLumaAddr2(int(pcCU.GetAddr()), int(pcCU.GetZorderIdxInCU()+uiPartIdx));
+    uiPcmLeftShiftBit = uint(TLibCommon.G_bitDepthY) - pcCU.GetSlice().GetSPS().GetPCMBitDepthLuma();
+  }else{
+    uiPicStride = uint(pcCU.GetPic().GetPicYuvRec().GetCStride());
+
+    if ttText == TLibCommon.TEXT_CHROMA_U {
+      piPicReco = pcCU.GetPic().GetPicYuvRec().GetCbAddr2(int(pcCU.GetAddr()), int(pcCU.GetZorderIdxInCU()+uiPartIdx));
+    }else{
+      piPicReco = pcCU.GetPic().GetPicYuvRec().GetCrAddr2(int(pcCU.GetAddr()), int(pcCU.GetZorderIdxInCU()+uiPartIdx));
+    }
+    uiPcmLeftShiftBit = uint(TLibCommon.G_bitDepthC) - pcCU.GetSlice().GetSPS().GetPCMBitDepthChroma();
+  }
+
+  for uiY = 0; uiY < uiHeight; uiY++ {
+    for uiX = 0; uiX < uiWidth; uiX++ {
+      piReco[uiY*uiStride+uiX] = (piPCM[uiY*uiWidth+uiX] << uiPcmLeftShiftBit);
+      piPicReco[uiY*uiPicStride+uiX] = piReco[uiY*uiStride+uiX];
+    }
+    /*piPCM += uiWidth;
+    piReco += uiStride;
+    piPicReco += uiPicStride;*/
+  }
 }
 
 func (this *TDecCu)  xCopyToPic              ( pcCU *TLibCommon.TComDataCU, pcPic *TLibCommon.TComPic,  uiZorderIdx,  uiDepth uint){
+  uiCUAddr := pcCU.GetAddr();
+  
+  this.m_ppcYuvReco[uiDepth].CopyToPicYuv  ( pcPic.GetPicYuvRec (), uiCUAddr, uiZorderIdx, 0, 0 );
+  
+  return;
 }
 
 func (this *TDecCu)  xIntraLumaRecQT         ( pcCU *TLibCommon.TComDataCU,  uiTrDepth,  uiAbsPartIdx uint, pcRecoYuv *TLibCommon.TComYuv, pcPredYuv *TLibCommon.TComYuv, pcResiYuv *TLibCommon.TComYuv ){
+  uiFullDepth  := uint(pcCU.GetDepth1(0)) + uiTrDepth;
+  uiTrMode     := uint(pcCU.GetTransformIdx1( uiAbsPartIdx ));
+  if uiTrMode == uiTrDepth {
+    this.xIntraRecLumaBlk  ( pcCU, uiTrDepth, uiAbsPartIdx, pcRecoYuv, pcPredYuv, pcResiYuv );
+  }else{
+    uiNumQPart  := pcCU.GetPic().GetNumPartInCU() >> ( ( uiFullDepth + 1 ) << 1 );
+    for uiPart := uint(0); uiPart < 4; uiPart++ {
+      this.xIntraLumaRecQT( pcCU, uiTrDepth + 1, uiAbsPartIdx + uiPart * uiNumQPart, pcRecoYuv, pcPredYuv, pcResiYuv );
+    }
+  }
 }
 func (this *TDecCu)  xIntraChromaRecQT       ( pcCU *TLibCommon.TComDataCU,  uiTrDepth,  uiAbsPartIdx uint, pcRecoYuv *TLibCommon.TComYuv, pcPredYuv *TLibCommon.TComYuv, pcResiYuv *TLibCommon.TComYuv ){
+  uiFullDepth  := uint(pcCU.GetDepth1(0)) + uiTrDepth;
+  uiTrMode     := uint(pcCU.GetTransformIdx1( uiAbsPartIdx ));
+  if uiTrMode == uiTrDepth {
+    this.xIntraRecChromaBlk( pcCU, uiTrDepth, uiAbsPartIdx, pcRecoYuv, pcPredYuv, pcResiYuv, 0 );
+    this.xIntraRecChromaBlk( pcCU, uiTrDepth, uiAbsPartIdx, pcRecoYuv, pcPredYuv, pcResiYuv, 1 );
+  }else{
+    uiNumQPart  := pcCU.GetPic().GetNumPartInCU() >> ( ( uiFullDepth + 1 ) << 1 );
+    for uiPart := uint(0); uiPart < 4; uiPart++ {
+      this.xIntraChromaRecQT( pcCU, uiTrDepth + 1, uiAbsPartIdx + uiPart * uiNumQPart, pcRecoYuv, pcPredYuv, pcResiYuv );
+    }
+  }
 }
 
 func (this *TDecCu) GetdQPFlag               ()         bool               {
@@ -358,4 +930,42 @@ func (this *TDecCu) SetdQPFlag               (  b bool)                {
 	this.m_bDecodeDQP = b;
 }
 func (this *TDecCu) xFillPCMBuffer           ( pCU *TLibCommon.TComDataCU,  absPartIdx,  depth uint){
+  // Luma
+  width  := (TLibCommon.G_uiMaxCUWidth >> depth);
+  height := (TLibCommon.G_uiMaxCUHeight >> depth);
+
+  pPcmY  := pCU.GetPCMSampleY();
+  pRecoY := this.m_ppcYuvReco[depth].GetLumaAddr2(0, width);
+
+  stride := this.m_ppcYuvReco[depth].GetStride();
+
+  for y := uint(0); y < height; y++ {
+    for x := uint(0); x < width; x++ {
+      pPcmY[y*width+x] = pRecoY[y*stride+x];
+    }
+    //pPcmY += width;
+    //pRecoY += stride;
+  }
+
+  // Cb and Cr
+  widthC  := (width>>1);
+  heightC := (height>>1);
+
+  pPcmCb  := pCU.GetPCMSampleCb();
+  pPcmCr  := pCU.GetPCMSampleCr();
+  pRecoCb := this.m_ppcYuvReco[depth].GetCbAddr();
+  pRecoCr := this.m_ppcYuvReco[depth].GetCrAddr();
+
+  strideC := this.m_ppcYuvReco[depth].GetCStride();
+
+  for y := uint(0); y < heightC; y++ {
+    for x := uint(0); x < widthC; x++ {
+      pPcmCb[y*widthC+x] = pRecoCb[y*strideC+x];
+      pPcmCr[y*widthC+x] = pRecoCr[y*strideC+x];
+    }
+    /*pPcmCr += widthC;
+    pPcmCb += widthC;
+    pRecoCb += strideC;
+    pRecoCr += strideC;*/
+  }
 }
