@@ -13,6 +13,20 @@ import (
 type TDecEntropyIf interface {
     //public:
       //  Virtual list for SBAC/CAVLC
+    XTraceLCUHeader  (traceLevel uint);
+    XTraceCUHeader   (traceLevel uint);
+    XTracePUHeader   (traceLevel uint);
+    XTraceTUHeader   (traceLevel uint);
+    XTraceCoefHeader (traceLevel uint);
+    XTraceResiHeader (traceLevel uint);
+    XTracePredHeader (traceLevel uint);
+    XTraceRecoHeader (traceLevel uint);
+    XReadAeTr ( Value int, pSymbolName string,  traceLevel uint);
+    XReadCeofTr (pCoeff []TLibCommon.TCoeff,  uiWidth, traceLevel uint);
+    XReadResiTr (pPel   []TLibCommon.Pel,     uiWidth, traceLevel uint);
+    XReadPredTr (pPel   []TLibCommon.Pel,     uiWidth, traceLevel uint);
+    XReadRecoTr (pPel   []TLibCommon.Pel,     uiWidth, traceLevel uint)
+      
 	DTRACE_CABAC_F(x float32);
 	DTRACE_CABAC_V(x uint);
 	DTRACE_CABAC_VL(x uint);

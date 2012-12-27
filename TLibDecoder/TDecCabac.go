@@ -266,53 +266,91 @@ func (this *TDecSbac)  XTraceLCUHeader (traceLevel uint){
   }
 }
 
-func (this *TDecSbac)  xTraceCUHeader (traceLevel uint){
+func (this *TDecSbac)  XTraceCUHeader (traceLevel uint){
   if this.GetTraceFile()!=nil && (traceLevel & TLibCommon.TRACE_LEVEL) !=0 {
   	io.WriteString(this.m_pTraceFile, "========= CU Parameter Set ================================================\n");//, pCU.GetCUPelX(), pCU.GetCUPelY());
   }
 }
 
-func (this *TDecSbac)  xTracePUHeader (traceLevel uint){
+func (this *TDecSbac)  XTracePUHeader (traceLevel uint){
   if this.GetTraceFile()!=nil && (traceLevel & TLibCommon.TRACE_LEVEL) !=0 {
     io.WriteString(this.m_pTraceFile, "========= PU Parameter Set ================================================\n");//, pCU.GetCUPelX(), pCU.GetCUPelY());
   }
 }
 
-func (this *TDecSbac)  xTraceTUHeader (traceLevel uint){
+func (this *TDecSbac)  XTraceTUHeader (traceLevel uint){
   if this.GetTraceFile()!=nil && (traceLevel & TLibCommon.TRACE_LEVEL) !=0 {
     io.WriteString(this.m_pTraceFile, "========= TU Parameter Set ================================================\n");//, pCU.GetCUPelX(), pCU.GetCUPelY());
   }
 }
 
-func (this *TDecSbac)  xTraceCoefHeader (traceLevel uint){
+func (this *TDecSbac)  XTraceCoefHeader (traceLevel uint){
   if this.GetTraceFile()!=nil && (traceLevel & TLibCommon.TRACE_LEVEL) !=0 {
     io.WriteString(this.m_pTraceFile, "========= Coefficient Parameter Set =======================================\n");//, pCU.GetCUPelX(), pCU.GetCUPelY());
   }
 }
 
-func (this *TDecSbac)  xTraceResiHeader (traceLevel uint){
+func (this *TDecSbac)  XTraceResiHeader (traceLevel uint){
   if this.GetTraceFile()!=nil && (traceLevel & TLibCommon.TRACE_LEVEL) !=0 {
     io.WriteString(this.m_pTraceFile, "========= Residual Parameter Set ==========================================\n");//, pCU.GetCUPelX(), pCU.GetCUPelY());
   }
 }
 
-func (this *TDecSbac) xTracePredHeader (traceLevel uint){
+func (this *TDecSbac) XTracePredHeader (traceLevel uint){
   if this.GetTraceFile()!=nil && (traceLevel & TLibCommon.TRACE_LEVEL) !=0 {
     io.WriteString(this.m_pTraceFile, "========= Prediction Parameter Set ========================================\n");//, pCU.GetCUPelX(), pCU.GetCUPelY());
   }
 }
 
-func (this *TDecSbac)  xTraceRecoHeader (traceLevel uint){
+func (this *TDecSbac) XTraceRecoHeader (traceLevel uint){
   if this.GetTraceFile()!=nil && (traceLevel & TLibCommon.TRACE_LEVEL) !=0 {
     io.WriteString(this.m_pTraceFile, "========= Reconstruction Parameter Set ====================================\n");//, pCU.GetCUPelX(), pCU.GetCUPelY());
   }
 }
 
-func (this *TDecSbac)  XReadAeTr ( Value int, pSymbolName string,  traceLevel uint){
+func (this *TDecSbac) XReadAeTr ( Value int, pSymbolName string,  traceLevel uint){
   if this.GetTraceFile()!=nil && (traceLevel & TLibCommon.TRACE_LEVEL) !=0 {
     //fprintf( g_hTrace, "%8lld  ", g_nSymbolCounter++ );
     io.WriteString(this.m_pTraceFile, fmt.Sprintf ("%-62s ae(v) : %4d\n", pSymbolName, Value ));
     //fflush ( g_hTrace );
+  }
+}
+
+
+func (this *TDecSbac) XReadCeofTr (pCoeff []TLibCommon.TCoeff,  uiWidth, traceLevel uint) {
+  if this.GetTraceFile()!=nil && (traceLevel & TLibCommon.TRACE_LEVEL)!=0 {
+    for i:=uint(0); i<uiWidth; i++ {
+      io.WriteString(this.m_pTraceFile, fmt.Sprintf ("%04x ", pCoeff[i]));
+    }
+    io.WriteString(this.m_pTraceFile, "\n");
+  }
+}
+
+func (this *TDecSbac) XReadResiTr (pPel []TLibCommon.Pel, uiWidth, traceLevel uint) {
+  if this.GetTraceFile()!=nil && (traceLevel & TLibCommon.TRACE_LEVEL)!=0 {
+    for i:=uint(0); i<uiWidth; i++ {
+      io.WriteString(this.m_pTraceFile, fmt.Sprintf ("%04x ", pPel[i]));
+    }
+    io.WriteString(this.m_pTraceFile, "\n");
+  }
+}
+
+func (this *TDecSbac) XReadPredTr (pPel []TLibCommon.Pel, uiWidth, traceLevel uint){
+  if this.GetTraceFile()!=nil && (traceLevel & TLibCommon.TRACE_LEVEL)!=0 {
+    for i:=uint(0); i<uiWidth; i++ {
+      io.WriteString(this.m_pTraceFile, fmt.Sprintf ("%02x ", TLibCommon.Pxl(pPel[i]) ));
+    }
+    io.WriteString(this.m_pTraceFile, "\n");
+  }
+}
+
+
+func (this *TDecSbac) XReadRecoTr (pPel []TLibCommon.Pel, uiWidth, traceLevel uint){
+  if this.GetTraceFile()!=nil && (traceLevel & TLibCommon.TRACE_LEVEL)!=0 {
+    for i:=uint(0); i<uiWidth; i++ {
+      io.WriteString(this.m_pTraceFile, fmt.Sprintf ("%02x ", TLibCommon.Pxl(pPel[i]) ));
+    }
+    io.WriteString(this.m_pTraceFile, "\n");
   }
 }
 
