@@ -1,6 +1,6 @@
 package TLibCommon
 
-import ()
+import ("fmt")
 
 // ====================================================================================================================
 // Class definition
@@ -426,18 +426,23 @@ func (this *TComPrediction)  xPredIntraAng            ( bitDepth int, pSrc2 []Pe
         refLeft[k+blkSize-1]  = Pel(pSrc2[srcStride+1+(k-1)*srcStride-1]);//Pel(pSrc[(k-1)*srcStride-1]);
       }
       if modeVer{
-      	refMain = refAbove [ (blkSize-1):];
-      	refSide = refLeft  [ (blkSize-1):];
+      	refMain = refAbove [:];// (blkSize-1):];
+      	refSide = refLeft  [:];// (blkSize-1):];
 	  }else{
-	  	refMain = refLeft  [ (blkSize-1):];
-      	refSide = refAbove [ (blkSize-1):];
+	  	refMain = refLeft  [:];// (blkSize-1):];
+      	refSide = refAbove [:];// (blkSize-1):];
 	  }
       // Extend the Main reference to the left.
       invAngleSum := 128;       // rounding for (shift by 8)
       for k=-1; k>blkSize*intraPredAngle>>5; k-- {
         invAngleSum += invAngle;
-        refMain[k] = refSide[invAngleSum>>8];
+        refMain[(blkSize-1)+k] = refSide[(blkSize-1)+(invAngleSum>>8)];
       }
+      
+      for k=0;k<(blkSize-1)+blkSize+1;k++ {
+        fmt.Printf("%x ", refMain[k]);
+      }
+      fmt.Printf("\n");
     }else{
       for k=0;k<2*blkSize+1;k++{
         refAbove[k] = Pel(pSrc2[srcStride+1+k-srcStride-1]);//Pel(pSrc[k-srcStride-1]);
@@ -465,10 +470,32 @@ func (this *TComPrediction)  xPredIntraAng            ( bitDepth int, pSrc2 []Pe
 
       if bFilter {
         for k=0;k<blkSize;k++ {
-          pDst[k*dstStride] = CLIP3(0, (1<<uint(bitDepth))-1, pDst[k*dstStride] + (( refSide[k+1] - refSide[0] ) >> 1) ).(Pel);
+          pDst[k*dstStride] = CLIP3(Pel(0), Pel((1<<uint(bitDepth))-1), pDst[k*dstStride] + (( refSide[k+1] - refSide[0] ) >> 1) ).(Pel);
         }
       }
-    }else{
+    }else if intraPredAngle < 0 {
+      deltaPos:=0;
+      var deltaInt,deltaFract,refMainIndex int;
+
+      for k=0;k<blkSize;k++ {
+        deltaPos += intraPredAngle;
+        deltaInt   = deltaPos >> 5;
+        deltaFract = deltaPos & (32 - 1);
+
+        if deltaFract!=0{
+          // Do linear filtering
+          for l=0;l<blkSize;l++ {
+            refMainIndex        = l+deltaInt+1;
+            pDst[k*dstStride+l] = Pel( ((32-deltaFract)*int(refMain[(blkSize-1)+refMainIndex])+deltaFract*int(refMain[(blkSize-1)+refMainIndex+1])+16) >> 5 );
+          }
+        }else{
+          // Just copy the integer samples
+          for l=0;l<blkSize;l++ {
+            pDst[k*dstStride+l] = refMain[(blkSize-1)+l+deltaInt+1];
+          }
+        }
+      }
+    }else{//intraPredAngle > 0
       deltaPos:=0;
       var deltaInt,deltaFract,refMainIndex int;
 
@@ -488,7 +515,7 @@ func (this *TComPrediction)  xPredIntraAng            ( bitDepth int, pSrc2 []Pe
           for l=0;l<blkSize;l++ {
             pDst[k*dstStride+l] = refMain[l+deltaInt+1];
           }
-        }
+        }      	
       }
     }
 

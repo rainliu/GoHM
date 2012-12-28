@@ -1,7 +1,7 @@
 package TLibCommon
 
 import (
-	//"fmt"
+	"fmt"
 )
 
 
@@ -260,15 +260,19 @@ func (this *TComPattern)  InitAdiPattern ( pcCU *TComDataCU, uiZorderIdxInPart,u
   for i = 0; i < int(uiCuHeight2); i++ {
     piFilterBuf[l] = piAdiTemp[uiWidth * (uiCuHeight2 - uint(i))];
   	l++
+  	fmt.Printf("%x ", piAdiTemp[uiWidth * (uiCuHeight2 - uint(i))]);
   }
   // top left corner
   piFilterBuf[l] = piAdiTemp[0];
   l++;
+  fmt.Printf("%x ", piAdiTemp[0]);
   // above border from left to right
   for i=0; i < int(uiCuWidth2); i++{
     piFilterBuf[l] = piAdiTemp[1 + i];
     l++
+    fmt.Printf("%x ", piAdiTemp[1+i]);
   }
+  fmt.Printf("\n");
 
 //#if STRONG_INTRA_SMOOTHING
   if pcCU.GetSlice().GetSPS().GetUseStrongIntraSmoothing() {
@@ -323,13 +327,17 @@ func (this *TComPattern)  InitAdiPattern ( pcCU *TComDataCU, uiZorderIdxInPart,u
   for i = 0; i < int(uiCuHeight2); i++ {
     piFilteredBuf1[uiWidth * (uiCuHeight2 - uint(i))] = piFilterBufN[l];
     l++;
+    fmt.Printf("%x ", piFilteredBuf1[uiWidth * (uiCuHeight2 - uint(i))]);
   }
   piFilteredBuf1[0] = piFilterBufN[l];
+  fmt.Printf("%x ", piFilteredBuf1[0]); 
   l++
   for i = 0; i < int(uiCuWidth2); i++ {
     piFilteredBuf1[1 + i] = piFilterBufN[l];
     l++
+    fmt.Printf("%x ", piFilteredBuf1[1 + i]);
   }
+  fmt.Printf("\n");
 }
   
   /// set chroma parameters from CU data for accessing ADI data
