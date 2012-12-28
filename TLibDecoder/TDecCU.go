@@ -559,7 +559,22 @@ func (this *TDecCu)  xIntraRecLumaBlk        ( pcCU *TLibCommon.TComDataCU, uiTr
   	scalingListType =  3 + TLibCommon.G_eTTable[TLibCommon.TEXT_LUMA];
   }
   //assert(scalingListType < 6);
+  
+/*#ifdef ENC_DEC_TRACE*/
+  this.m_pcEntropyDecoder.m_pcEntropyDecoderIf.XTraceCoefHeader(TLibCommon.TRACE_COEF);
+  
+  for k := uint(0); k<uiHeight; k++ {
+    this.m_pcEntropyDecoder.m_pcEntropyDecoderIf.XReadCeofTr(pcCoeff[k*uiWidth:], uiWidth, TLibCommon.TRACE_COEF);
+  }
+/*#endif*/  
   this.m_pcTrQuant.InvtransformNxN( pcCU.GetCUTransquantBypass1(uiAbsPartIdx), TLibCommon.TEXT_LUMA, uint(pcCU.GetLumaIntraDir1( uiAbsPartIdx )), piResi, uiStride, pcCoeff, uiWidth, uiHeight, scalingListType, useTransformSkip );
+/*#ifdef ENC_DEC_TRACE*/
+  this.m_pcEntropyDecoder.m_pcEntropyDecoderIf.XTraceResiHeader(TLibCommon.TRACE_RESI);
+  
+  for k := uint(0); k<uiHeight; k++ {
+    this.m_pcEntropyDecoder.m_pcEntropyDecoderIf.XReadResiTr(piResi[k*uiStride:], uiWidth, TLibCommon.TRACE_RESI);
+  }
+/*#endif*/
 
 /*#ifdef ENC_DEC_TRACE*/
   {
@@ -585,7 +600,7 @@ func (this *TDecCu)  xIntraRecLumaBlk        ( pcCU *TLibCommon.TComDataCU, uiTr
       pRecIPred[ uiY*uiRecIPredStride+uiX ] = pReco[ uiY*uiStride+uiX ];
     }
 /*#ifdef ENC_DEC_TRACE*/
-    this.m_pcEntropyDecoder.m_pcEntropyDecoderIf.XReadRecoTr(pReco, uiWidth, TLibCommon.TRACE_RECON);
+    this.m_pcEntropyDecoder.m_pcEntropyDecoderIf.XReadRecoTr(pReco[uiY*uiStride:], uiWidth, TLibCommon.TRACE_RECON);
 /*#endif*/
     /*pPred     += uiStride;
     pResi     += uiStride;
@@ -694,8 +709,21 @@ func (this *TDecCu)  xIntraRecChromaBlk      ( pcCU *TLibCommon.TComDataCU, uiTr
   	scalingListType = 3 + TLibCommon.G_eTTable[eText];
   }
   //assert(scalingListType < 6);
+ /*#ifdef ENC_DEC_TRACE*/
+  this.m_pcEntropyDecoder.m_pcEntropyDecoderIf.XTraceCoefHeader(TLibCommon.TRACE_COEF);
+  
+  for k := uint(0); k<uiHeight; k++ {
+    this.m_pcEntropyDecoder.m_pcEntropyDecoderIf.XReadCeofTr(pcCoeff[k*uiWidth:], uiWidth, TLibCommon.TRACE_COEF);
+  }
+/*#endif*/ 
   this.m_pcTrQuant.InvtransformNxN( pcCU.GetCUTransquantBypass1(uiAbsPartIdx), eText, TLibCommon.REG_DCT, piResi, uiStride, pcCoeff, uiWidth, uiHeight, scalingListType, useTransformSkipChroma );
-
+/*#ifdef ENC_DEC_TRACE*/
+  this.m_pcEntropyDecoder.m_pcEntropyDecoderIf.XTraceResiHeader(TLibCommon.TRACE_RESI);
+  
+  for k := uint(0); k<uiHeight; k++ {
+    this.m_pcEntropyDecoder.m_pcEntropyDecoderIf.XReadResiTr(piResi[k*uiStride:], uiWidth, TLibCommon.TRACE_RESI);
+  }
+/*#endif*/
 /*#ifdef ENC_DEC_TRACE*/
   {
     this.m_pcEntropyDecoder.m_pcEntropyDecoderIf.XTracePredHeader(TLibCommon.TRACE_PRED);

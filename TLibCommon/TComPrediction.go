@@ -505,7 +505,7 @@ func (this *TComPrediction)  xPredIntraAng            ( bitDepth int, pSrc2 []Pe
     }
   }
 }
-func (this *TComPrediction)  xPredIntraPlanar         ( pSrc []Pel, srcStride int, rpDst []Pel, dstStride int, width,  height uint){
+func (this *TComPrediction)  xPredIntraPlanar         ( pSrc2 []Pel, srcStride int, rpDst []Pel, dstStride int, width,  height uint){
   //assert(width == height);
 
   var k, l int
@@ -519,8 +519,8 @@ func (this *TComPrediction)  xPredIntraPlanar         ( pSrc []Pel, srcStride in
 
   // Get left and above reference column and row
   for k=0;k<blkSize+1;k++ {
-    topRow[k] = pSrc[k-srcStride];
-    leftColumn[k] = pSrc[k*srcStride-1];
+    topRow[k] = pSrc2[srcStride+1+k-srcStride];
+    leftColumn[k] = pSrc2[srcStride+1+k*srcStride-1];
   }
 
   // Prepare intermediate variables used in interpolation
@@ -786,7 +786,8 @@ func (this *TComPrediction) PredIntraLumaAng           ( pcTComPattern *TComPatt
 
   // Create the prediction
   if uiDirMode == PLANAR_IDX {
-    this.xPredIntraPlanar( ptrSrc[sw+1:], sw, pDst, int(uiStride), uint(iWidth), uint(iHeight) );
+    //this.xPredIntraPlanar( ptrSrc[sw+1:], sw, pDst, int(uiStride), uint(iWidth), uint(iHeight) );
+  	this.xPredIntraPlanar( ptrSrc, sw, pDst, int(uiStride), uint(iWidth), uint(iHeight) );
   }else{
 //#if RESTRICT_INTRA_BOUNDARY_SMOOTHING
     if (iWidth > 16) || (iHeight > 16) {
@@ -814,7 +815,8 @@ func (this *TComPrediction) PredIntraChromaAng         ( pcTComPattern *TComPatt
   sw := 2 * iWidth + 1;
 
   if uiDirMode == PLANAR_IDX {
-    this.xPredIntraPlanar( ptrSrc[sw+1:], sw, pDst, int(uiStride), uint(iWidth), uint(iHeight) );
+    //this.xPredIntraPlanar( ptrSrc[sw+1:], sw, pDst, int(uiStride), uint(iWidth), uint(iHeight) );
+    this.xPredIntraPlanar( ptrSrc, sw, pDst, int(uiStride), uint(iWidth), uint(iHeight) );
   }else{
     // Create the prediction
     //this.xPredIntraAng(G_bitDepthC, ptrSrc[sw+1:], sw, pDst, int(uiStride), uint(iWidth), uint(iHeight), uiDirMode, bAbove, bLeft, false );

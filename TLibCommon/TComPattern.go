@@ -1,7 +1,7 @@
 package TLibCommon
 
 import (
-
+	//"fmt"
 )
 
 
@@ -236,8 +236,10 @@ func (this *TComPattern)  InitAdiPattern ( pcCU *TComDataCU, uiZorderIdxInPart,u
     return;
   }
   
-  offsetY:=pcCU.GetPic().GetPicYuvRec().m_cuOffsetY[pcCU.GetAddr()]+pcCU.GetPic().GetPicYuvRec().m_buOffsetY[G_auiZscanToRaster[pcCU.GetZorderIdxInCU()+uiZorderIdxInPart]];
-  piRoiOrigin = pcCU.GetPic().GetPicYuvRec().GetLumaAddr()[offsetY-iPicStride-1:];
+  pPicYuvRec := pcCU.GetPic().GetPicYuvRec();
+  offsetY:=pPicYuvRec.m_cuOffsetY[pcCU.GetAddr()]+pPicYuvRec.m_buOffsetY[G_auiZscanToRaster[pcCU.GetZorderIdxInCU()+uiZorderIdxInPart]];
+  //fmt.Printf("offsetY=%d\n", offsetY);
+  piRoiOrigin = pPicYuvRec.GetBufY()[pPicYuvRec.m_iLumaMarginY*pPicYuvRec.GetStride()+pPicYuvRec.m_iLumaMarginX + offsetY-iPicStride-1:];
   piAdiTemp   = piAdiBuf;
 
   this.FillReferenceSamples (G_bitDepthY, pcCU, piRoiOrigin, piAdiTemp, bNeighborFlags[:], iNumIntraNeighbor, iUnitSize, iNumUnitsInCu, iTotalUnits, uint(uiCuWidth), uint(uiCuHeight), uiWidth, uiHeight, iPicStride, bLMmode);
@@ -274,9 +276,9 @@ func (this *TComPattern)  InitAdiPattern ( pcCU *TComDataCU, uiZorderIdxInPart,u
     bottomLeft := piFilterBuf[0];
     topLeft := piFilterBuf[uiCuHeight2];
     topRight := piFilterBuf[iBufSize-1];
-    threshold := 1 << uint(G_bitDepthY - 5);
-    bilinearLeft := ABS(bottomLeft+topLeft-2*piFilterBuf[uiCuHeight]).(int) < threshold;
-    bilinearAbove := ABS(topLeft+topRight-2*piFilterBuf[uiCuHeight2+uiCuHeight]).(int) < threshold;
+    threshold := Pel(1 << uint(G_bitDepthY - 5));
+    bilinearLeft := ABS(bottomLeft+topLeft-2*piFilterBuf[uiCuHeight]).(Pel) < threshold;
+    bilinearAbove := ABS(topLeft+topRight-2*piFilterBuf[uiCuHeight2+uiCuHeight]).(Pel) < threshold;
   
     if uiCuWidth>=blkSize && (bilinearLeft && bilinearAbove) {
       shift := G_aucConvertToBit[uiCuWidth] + 3;  // log2(uiCuHeight2)
@@ -375,16 +377,18 @@ func (this *TComPattern)  InitAdiPatternChroma  ( pcCU *TComDataCU, uiZorderIdxI
     return;
   }
   
+  
+  pPicYuvRec := pcCU.GetPic().GetPicYuvRec();
   // get Cb pattern
-  offsetU:=pcCU.GetPic().GetPicYuvRec().m_cuOffsetC[pcCU.GetAddr()]+pcCU.GetPic().GetPicYuvRec().m_buOffsetC[G_auiZscanToRaster[pcCU.GetZorderIdxInCU()+uiZorderIdxInPart]];
-  piRoiOrigin = pcCU.GetPic().GetPicYuvRec().GetCbAddr()[offsetU-iPicStride-1:];
+  offsetU:=pPicYuvRec.m_cuOffsetC[pcCU.GetAddr()]+pPicYuvRec.m_buOffsetC[G_auiZscanToRaster[pcCU.GetZorderIdxInCU()+uiZorderIdxInPart]];
+  piRoiOrigin = pPicYuvRec.GetCbAddr()[pPicYuvRec.m_iChromaMarginY*pPicYuvRec.GetCStride()+pPicYuvRec.m_iChromaMarginX+offsetU-iPicStride-1:];
   piAdiTemp   = piAdiBuf;
 
   this.FillReferenceSamples (G_bitDepthC, pcCU, piRoiOrigin, piAdiTemp, bNeighborFlags[:], iNumIntraNeighbor, iUnitSize, iNumUnitsInCu, iTotalUnits, uiCuWidth, uiCuHeight, uiWidth, uiHeight, iPicStride, false);
   
   // get Cr pattern
-  offsetV:=pcCU.GetPic().GetPicYuvRec().m_cuOffsetC[pcCU.GetAddr()]+pcCU.GetPic().GetPicYuvRec().m_buOffsetC[G_auiZscanToRaster[pcCU.GetZorderIdxInCU()+uiZorderIdxInPart]];
-  piRoiOrigin = pcCU.GetPic().GetPicYuvRec().GetCrAddr()[offsetV-iPicStride-1:];
+  offsetV:=pPicYuvRec.m_cuOffsetC[pcCU.GetAddr()]+pPicYuvRec.m_buOffsetC[G_auiZscanToRaster[pcCU.GetZorderIdxInCU()+uiZorderIdxInPart]];
+  piRoiOrigin = pPicYuvRec.GetCrAddr()[pPicYuvRec.m_iChromaMarginY*pPicYuvRec.GetCStride()+pPicYuvRec.m_iChromaMarginX+offsetV-iPicStride-1:];
   piAdiTemp   = piAdiBuf[uiWidth*uiHeight:];
   
   this.FillReferenceSamples (G_bitDepthC, pcCU, piRoiOrigin, piAdiTemp, bNeighborFlags[:], iNumIntraNeighbor, iUnitSize, iNumUnitsInCu, iTotalUnits, uiCuWidth, uiCuHeight, uiWidth, uiHeight, iPicStride, false);

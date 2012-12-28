@@ -80,7 +80,7 @@ func (this *QpParam)  GetQp() int{
 
 /// transform and quantization class
 type TComTrQuant struct {
-    //protected:
+	//protected:
     //#if ADAPTIVE_QP_SELECTION
     m_qpDelta       [MAX_QP + 1]int
     m_sliceNsamples [LEVEL_RANGE + 1]int
@@ -1026,7 +1026,7 @@ func (this *TComTrQuant) xDeQuant( bitDepth int, pSrc []TCoeff, pDes []int,  iWi
     scale := G_invQuantScales[this.m_cQP.m_iRem] << uint(this.m_cQP.m_iPer);
 
     for n := 0; n < iWidth*iHeight; n++ {
-      clipQCoef = CLIP3( -32768, 32767, piQCoef[n] ).(TCoeff);
+      clipQCoef = CLIP3( TCoeff(-32768), TCoeff(32767), piQCoef[n] ).(TCoeff);
       iCoeffQ = ( int(clipQCoef) * scale + iAdd ) >> uint(iShift);
       piCoef[n] = CLIP3(-32768,32767,iCoeffQ).(int);
     }
@@ -1040,15 +1040,15 @@ func (this *TComTrQuant) fastInverseDst(tmp []int16,block []int16, shift uint) {
   rnd_factor := 1<<(shift-1);
   for i=0; i<4; i++ {  
     // Intermediate Variables
-    c[0] = int(tmp[  i] + tmp[ 8+i]);
-    c[1] = int(tmp[8+i] + tmp[12+i]);
-    c[2] = int(tmp[  i] - tmp[12+i]);
-    c[3] = int(74* tmp[4+i]);
+    c[0] = int(tmp[  i]) + int(tmp[ 8+i]);
+    c[1] = int(tmp[8+i]) + int(tmp[12+i]);
+    c[2] = int(tmp[  i]) - int(tmp[12+i]);
+    c[3] = 74* int(tmp[4+i]);
 
-    block[4*i+0] = CLIP3( -32768, 32767, ( 29 * c[0] + 55 * c[1]     + c[3]               + rnd_factor ) >> shift ).(int16);
-    block[4*i+1] = CLIP3( -32768, 32767, ( 55 * c[2] - 29 * c[1]     + c[3]               + rnd_factor ) >> shift ).(int16);
-    block[4*i+2] = CLIP3( -32768, 32767, ( 74 * int(tmp[i] - tmp[8+i]  + tmp[12+i])       + rnd_factor ) >> shift ).(int16);
-    block[4*i+3] = CLIP3( -32768, 32767, ( 55 * c[0] + 29 * c[2]     - c[3]               + rnd_factor ) >> shift ).(int16);
+    block[4*i+0] = int16(CLIP3( -32768, 32767, ( 29 * c[0] + 55 * c[1]     + c[3]               + rnd_factor ) >> shift ).(int));
+    block[4*i+1] = int16(CLIP3( -32768, 32767, ( 55 * c[2] - 29 * c[1]     + c[3]               + rnd_factor ) >> shift ).(int));
+    block[4*i+2] = int16(CLIP3( -32768, 32767, ( 74 * (int(tmp[i])-int(tmp[8+i])+int(tmp[12+i]))+ rnd_factor ) >> shift ).(int));
+    block[4*i+3] = int16(CLIP3( -32768, 32767, ( 55 * c[0] + 29 * c[2]     - c[3]               + rnd_factor ) >> shift ).(int));
   }
 }
 
@@ -1066,10 +1066,10 @@ func (this *TComTrQuant) partialButterflyInverse4(src []int16,dst []int16, shift
     E[1] = int(G_aiT4[0][1]*src[0   +j] + G_aiT4[2][1]*src[2*line+j]);
 
     /* Combining even and odd terms at each hierarchy levels to calculate the final spatial domain vector */
-    dst[0+j*4] = CLIP3( -32768, 32767, (E[0] + O[0] + add)>>shift ).(int16);
-    dst[1+j*4] = CLIP3( -32768, 32767, (E[1] + O[1] + add)>>shift ).(int16);
-    dst[2+j*4] = CLIP3( -32768, 32767, (E[1] - O[1] + add)>>shift ).(int16);
-    dst[3+j*4] = CLIP3( -32768, 32767, (E[0] - O[0] + add)>>shift ).(int16);
+    dst[0+j*4] = int16(CLIP3( -32768, 32767, (E[0] + O[0] + add)>>shift ).(int));
+    dst[1+j*4] = int16(CLIP3( -32768, 32767, (E[1] + O[1] + add)>>shift ).(int));
+    dst[2+j*4] = int16(CLIP3( -32768, 32767, (E[1] - O[1] + add)>>shift ).(int));
+    dst[3+j*4] = int16(CLIP3( -32768, 32767, (E[0] - O[0] + add)>>shift ).(int));
             
     //src ++;
     //dst += 4;
@@ -1138,8 +1138,8 @@ func (this *TComTrQuant) partialButterflyInverse8(src []int16,dst []int16, shift
     E[1] = EE[1] + EO[1];
     E[2] = EE[1] - EO[1];
     for k=0;k<4;k++ {
-      dst[ k   +j*8] = CLIP3( -32768, 32767, (E[k]   + O[k]   + add)>>shift ).(int16);
-      dst[ k+4 +j*8] = CLIP3( -32768, 32767, (E[3-k] - O[3-k] + add)>>shift ).(int16);
+      dst[ k   +j*8] = int16(CLIP3( -32768, 32767, (E[k]   + O[k]   + add)>>shift ).(int));
+      dst[ k+4 +j*8] = int16(CLIP3( -32768, 32767, (E[3-k] - O[3-k] + add)>>shift ).(int));
     }   
     //src ++;
     //dst += 8;
@@ -1228,8 +1228,8 @@ func (this *TComTrQuant) partialButterflyInverse16(src []int16,dst []int16, shif
       E[k+4] = EE[3-k] - EO[3-k];
     }    
     for k=0;k<8;k++ {
-      dst[k  +j*16] = CLIP3( -32768, 32767, (E[k]   + O[k]   + add)>>shift ).(int16);
-      dst[k+8+j*16] = CLIP3( -32768, 32767, (E[7-k] - O[7-k] + add)>>shift ).(int16);
+      dst[k  +j*16] = int16(CLIP3( -32768, 32767, (E[k]   + O[k]   + add)>>shift ).(int));
+      dst[k+8+j*16] = int16(CLIP3( -32768, 32767, (E[7-k] - O[7-k] + add)>>shift ).(int));
     }   
     //src ++; 
     //dst += 16;
@@ -1340,8 +1340,8 @@ func (this *TComTrQuant) partialButterflyInverse32(src []int16,dst []int16, shif
       E[k+8] = EE[7-k] - EO[7-k];
     }    
     for k=0;k<16;k++{
-      dst[k   +j*32] = CLIP3( -32768, 32767, (E[k]    + O[k]    + add)>>shift ).(int16);
-      dst[k+16+j*32] = CLIP3( -32768, 32767, (E[15-k] - O[15-k] + add)>>shift ).(int16);
+      dst[k   +j*32] = int16(CLIP3( -32768, 32767, (E[k]    + O[k]    + add)>>shift ).(int));
+      dst[k+16+j*32] = int16(CLIP3( -32768, 32767, (E[15-k] - O[15-k] + add)>>shift ).(int));
     }
     //src ++;
     //dst += 32;

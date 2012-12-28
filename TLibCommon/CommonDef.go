@@ -201,7 +201,7 @@ func ABS(a interface{}) interface{} {
     switch a.(type) {
     case Pel:
         if a.(Pel) < 0 {
-            return -a.(Pxl);
+            return -a.(Pel);
         }
     case TCoeff:
         if a.(TCoeff) < 0 {

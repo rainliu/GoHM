@@ -320,7 +320,7 @@ func (this *TDecSbac) XReadAeTr ( Value int, pSymbolName string,  traceLevel uin
 func (this *TDecSbac) XReadCeofTr (pCoeff []TLibCommon.TCoeff,  uiWidth, traceLevel uint) {
   if this.GetTraceFile()!=nil && (traceLevel & TLibCommon.TRACE_LEVEL)!=0 {
     for i:=uint(0); i<uiWidth; i++ {
-      io.WriteString(this.m_pTraceFile, fmt.Sprintf ("%04x ", pCoeff[i]));
+      io.WriteString(this.m_pTraceFile, fmt.Sprintf ("%04x ", uint16(pCoeff[i])));
     }
     io.WriteString(this.m_pTraceFile, "\n");
   }
@@ -329,7 +329,7 @@ func (this *TDecSbac) XReadCeofTr (pCoeff []TLibCommon.TCoeff,  uiWidth, traceLe
 func (this *TDecSbac) XReadResiTr (pPel []TLibCommon.Pel, uiWidth, traceLevel uint) {
   if this.GetTraceFile()!=nil && (traceLevel & TLibCommon.TRACE_LEVEL)!=0 {
     for i:=uint(0); i<uiWidth; i++ {
-      io.WriteString(this.m_pTraceFile, fmt.Sprintf ("%04x ", pPel[i]));
+      io.WriteString(this.m_pTraceFile, fmt.Sprintf ("%04x ", uint16(pPel[i])));
     }
     io.WriteString(this.m_pTraceFile, "\n");
   }
