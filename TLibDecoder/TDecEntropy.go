@@ -1,6 +1,7 @@
 package TLibDecoder
 
 import (
+    //"fmt"
 	"io"
     "gohm/TLibCommon"
 )
@@ -26,7 +27,7 @@ type TDecEntropyIf interface {
     XReadResiTr (pPel   []TLibCommon.Pel,     uiWidth, traceLevel uint);
     XReadPredTr (pPel   []TLibCommon.Pel,     uiWidth, traceLevel uint);
     XReadRecoTr (pPel   []TLibCommon.Pel,     uiWidth, traceLevel uint);
-      
+
 	DTRACE_CABAC_F(x float32);
 	DTRACE_CABAC_V(x uint);
 	DTRACE_CABAC_VL(x uint);
@@ -154,6 +155,7 @@ func (this *TDecEntropy) DecodePUWise       ( pcCU *TLibCommon.TComDataCU, uiAbs
       this.DecodeInterDirPU( pcCU, uiSubPartIdx, uiDepth, uiPartIdx );
       for uiRefListIdx := 0; uiRefListIdx < 2; uiRefListIdx++ {
         if pcCU.GetSlice().GetNumRefIdx( TLibCommon.RefPicList( uiRefListIdx ) ) > 0 {
+          //fmt.Printf("%d \n",uiRefListIdx);
           this.DecodeRefFrmIdxPU( pcCU,    uiSubPartIdx,              uiDepth, uiPartIdx, TLibCommon.RefPicList( uiRefListIdx ) );
           this.DecodeMvdPU      ( pcCU,    uiSubPartIdx,              uiDepth, uiPartIdx, TLibCommon.RefPicList( uiRefListIdx ) );
           this.DecodeMVPIdxPU   ( pcSubCU, uiSubPartIdx-uiAbsPartIdx, uiDepth, uiPartIdx, TLibCommon.RefPicList( uiRefListIdx ) );
@@ -186,17 +188,21 @@ func (this *TDecEntropy) DecodeInterDirPU   ( pcCU *TLibCommon.TComDataCU, uiAbs
 func (this *TDecEntropy) DecodeRefFrmIdxPU  ( pcCU *TLibCommon.TComDataCU, uiAbsPartIdx, uiDepth, uiPartIdx uint,  eRefList TLibCommon.RefPicList){
   iRefFrmIdx := 0;
   iParseRefFrmIdx := pcCU.GetInterDir1( uiAbsPartIdx ) & ( 1 << uint(eRefList) );
+  //fmt.Printf("iParseRefFrmIdx=%d\n", iParseRefFrmIdx);
 
   if pcCU.GetSlice().GetNumRefIdx( eRefList ) > 1 && iParseRefFrmIdx!=0 {
     this.m_pcEntropyDecoderIf.ParseRefFrmIdx( pcCU, &iRefFrmIdx, uiAbsPartIdx, uiDepth, eRefList );
-  }else if iParseRefFrmIdx!=0 {
+    //fmt.Printf("0iRefFrmIdx=%d\n", iRefFrmIdx);
+  }else if iParseRefFrmIdx==0 {
     iRefFrmIdx = TLibCommon.NOT_VALID;
+    //fmt.Printf("1iRefFrmIdx=%d\n", iRefFrmIdx);
   }else{
     iRefFrmIdx = 0;
+    //fmt.Printf("2iRefFrmIdx=%d\n", iRefFrmIdx);
   }
 
   ePartSize := pcCU.GetPartitionSize1( uiAbsPartIdx );
-  pcCU.GetCUMvField( eRefList ).SetAllRefIdx( iRefFrmIdx, ePartSize, int(uiAbsPartIdx), uiDepth, int(uiPartIdx) );
+  pcCU.GetCUMvField( eRefList ).SetAllRefIdx( int8(iRefFrmIdx), ePartSize, int(uiAbsPartIdx), uiDepth, int(uiPartIdx) );
 }
 func (this *TDecEntropy) DecodeMvdPU        ( pcCU *TLibCommon.TComDataCU, uiAbsPartIdx, uiDepth, uiPartIdx uint,   eRefList TLibCommon.RefPicList){
   if (pcCU.GetInterDir1( uiAbsPartIdx ) & ( 1 << eRefList ))!=0 {

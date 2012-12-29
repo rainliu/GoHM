@@ -1,6 +1,8 @@
 package TLibCommon
 
-import ("fmt")
+import (
+    //"fmt"
+)
 
 // ====================================================================================================================
 // Class definition
@@ -110,15 +112,15 @@ func (this *TComWeightPrediction)  AddWeightBi( pcYuvSrc0, pcYuvSrc1 *TComYuv, i
   pSrcY0  := pcYuvSrc0.GetLumaAddr1( iPartUnitIdx );
   pSrcU0  := pcYuvSrc0.GetCbAddr1  ( iPartUnitIdx );
   pSrcV0  := pcYuvSrc0.GetCrAddr1  ( iPartUnitIdx );
-  
+
   pSrcY1  := pcYuvSrc1.GetLumaAddr1( iPartUnitIdx );
   pSrcU1  := pcYuvSrc1.GetCbAddr1  ( iPartUnitIdx );
   pSrcV1  := pcYuvSrc1.GetCrAddr1  ( iPartUnitIdx );
-  
+
   pDstY   := rpcYuvDst.GetLumaAddr1( iPartUnitIdx );
   pDstU   := rpcYuvDst.GetCbAddr1  ( iPartUnitIdx );
   pDstV   := rpcYuvDst.GetCrAddr1  ( iPartUnitIdx );
-  
+
   // Luma : --------------------------------------------
   w0       := wp0[0].w;
   offset   := wp0[0].offset;
@@ -146,7 +148,7 @@ func (this *TComWeightPrediction)  AddWeightBi( pcYuvSrc0, pcYuvSrc1 *TComYuv, i
     //pDstY  += iDstStride;
   }
 
-  
+
   // Chroma U : --------------------------------------------
   w0      = wp0[1].w;
   offset  = wp0[1].offset;
@@ -162,10 +164,10 @@ func (this *TComWeightPrediction)  AddWeightBi( pcYuvSrc0, pcYuvSrc1 *TComYuv, i
   iSrc0Stride = int(pcYuvSrc0.GetCStride());
   iSrc1Stride = int(pcYuvSrc1.GetCStride());
   iDstStride  = int(rpcYuvDst.GetCStride());
-  
+
   iWidth  >>=1;
   iHeight >>=1;
-  
+
   for y = iHeight-1; y >= 0; y-- {
     for x = iWidth-1; x >= 0; x-=2{
       // note: chroma min width is 2
@@ -201,15 +203,15 @@ func (this *TComWeightPrediction)  AddWeightBi( pcYuvSrc0, pcYuvSrc1 *TComYuv, i
 }
 func (this *TComWeightPrediction)  AddWeightUni( pcYuvSrc0 *TComYuv, iPartUnitIdx uint, iWidth, iHeight int, wp0 []wpScalingParam, rpcYuvDst *TComYuv){
   var x, y int;
-  
+
   pSrcY0  := pcYuvSrc0.GetLumaAddr1( iPartUnitIdx );
   pSrcU0  := pcYuvSrc0.GetCbAddr1  ( iPartUnitIdx );
   pSrcV0  := pcYuvSrc0.GetCrAddr1  ( iPartUnitIdx );
-  
+
   pDstY   := rpcYuvDst.GetLumaAddr1( iPartUnitIdx );
   pDstU   := rpcYuvDst.GetCbAddr1  ( iPartUnitIdx );
   pDstV   := rpcYuvDst.GetCrAddr1  ( iPartUnitIdx );
-  
+
   // Luma : --------------------------------------------
   w0       := wp0[0].w;
   offset   := wp0[0].offset;
@@ -219,10 +221,10 @@ func (this *TComWeightPrediction)  AddWeightUni( pcYuvSrc0 *TComYuv, iPartUnitId
   if shift!=0{
   	round   = (1<<uint(shift-1));
   }
-  
+
   iSrc0Stride := int(pcYuvSrc0.GetStride());
   iDstStride  := int(rpcYuvDst.GetStride());
-  
+
   for y = iHeight-1; y >= 0; y-- {
     for x = iWidth-1; x >= 0; x-=4{
       // note: luma min width is 4
@@ -234,7 +236,7 @@ func (this *TComWeightPrediction)  AddWeightUni( pcYuvSrc0 *TComYuv, iPartUnitId
     //pSrcY0 += iSrc0Stride;
     //pDstY  += iDstStride;
   }
-  
+
   // Chroma U : --------------------------------------------
   w0      = wp0[1].w;
   offset  = wp0[1].offset;
@@ -248,10 +250,10 @@ func (this *TComWeightPrediction)  AddWeightUni( pcYuvSrc0 *TComYuv, iPartUnitId
 
   iSrc0Stride = int(pcYuvSrc0.GetCStride());
   iDstStride  = int(rpcYuvDst.GetCStride());
-  
+
   iWidth  >>=1;
   iHeight >>=1;
-  
+
   for y = iHeight-1; y >= 0; y-- {
     for x = iWidth-1; x >= 0; x-=2{
       // note: chroma min width is 2
@@ -341,7 +343,7 @@ func NewTComPrediction() *TComPrediction{
 
 func (this *TComPrediction) InitTempBuff(){
   if this.m_piYuvExt == nil {
-    extWidth  := G_uiMaxCUWidth + 16; 
+    extWidth  := G_uiMaxCUWidth + 16;
     extHeight := G_uiMaxCUHeight + 1;
     var i, j int;
     for i = 0; i < 4; i++ {
@@ -368,7 +370,7 @@ func (this *TComPrediction) InitTempBuff(){
 }
 
 
-func (this *TComPrediction)  xPredIntraAng            ( bitDepth int, pSrc2 []Pel, srcStride int, rpDst []Pel, dstStride int, 
+func (this *TComPrediction)  xPredIntraAng            ( bitDepth int, pSrc2 []Pel, srcStride int, rpDst []Pel, dstStride int,
 													    width, height, dirMode uint, blkAboveAvailable, blkLeftAvailable, bFilter bool){
   var k,l int;
   blkSize := int(width);
@@ -384,7 +386,7 @@ func (this *TComPrediction)  xPredIntraAng            ( bitDepth int, pSrc2 []Pe
   if modeVer {
   	intraPredAngle = int(dirMode) - VER_IDX;
   }else if modeHor {
-  	intraPredAngle = -(int(dirMode) - HOR_IDX) 
+  	intraPredAngle = -(int(dirMode) - HOR_IDX)
   }else{
   	intraPredAngle = 0;
   }
@@ -438,11 +440,11 @@ func (this *TComPrediction)  xPredIntraAng            ( bitDepth int, pSrc2 []Pe
         invAngleSum += invAngle;
         refMain[(blkSize-1)+k] = refSide[(blkSize-1)+(invAngleSum>>8)];
       }
-      
-      for k=0;k<(blkSize-1)+blkSize+1;k++ {
+
+      /*for k=0;k<(blkSize-1)+blkSize+1;k++ {
         fmt.Printf("%x ", refMain[k]);
       }
-      fmt.Printf("\n");
+      fmt.Printf("\n");*/
     }else{
       for k=0;k<2*blkSize+1;k++{
         refAbove[k] = Pel(pSrc2[srcStride+1+k-srcStride-1]);//Pel(pSrc[k-srcStride-1]);
@@ -450,7 +452,7 @@ func (this *TComPrediction)  xPredIntraAng            ( bitDepth int, pSrc2 []Pe
       for k=0;k<2*blkSize+1;k++{
         refLeft[k]  = Pel(pSrc2[srcStride+1+(k-1)*srcStride-1]);//Pel(pSrc[(k-1)*srcStride-1]);
       }
-      
+
       if modeVer{
       	refMain = refAbove [:];
       	refSide = refLeft  [:];
@@ -515,7 +517,7 @@ func (this *TComPrediction)  xPredIntraAng            ( bitDepth int, pSrc2 []Pe
           for l=0;l<blkSize;l++ {
             pDst[k*dstStride+l] = refMain[l+deltaInt+1];
           }
-        }      	
+        }
       }
     }
 
@@ -532,23 +534,32 @@ func (this *TComPrediction)  xPredIntraAng            ( bitDepth int, pSrc2 []Pe
     }
   }
 }
-func (this *TComPrediction)  xPredIntraPlanar         ( pSrc2 []Pel, srcStride int, rpDst []Pel, dstStride int, width,  height uint){
+func (this *TComPrediction)  xPredIntraPlanar         ( pSrc2 []Pel, srcStride int, rpDst []Pel, dstStride int, width, height uint){
   //assert(width == height);
 
   var k, l int
-  var bottomLeft, topRight Pel;
-  var horPred Pel;
-  var leftColumn, topRow, bottomRow, rightColumn	[MAX_CU_SIZE]Pel;
-  blkSize := int(width);
+  var bottomLeft, topRight int;
+  var horPred int;
+  var leftColumn, topRow, bottomRow, rightColumn	[MAX_CU_SIZE]int;
+  blkSize  := int(width);
   offset2D := width;
-  shift1D := uint(G_aucConvertToBit[ width ]) + 2;
-  shift2D := shift1D + 1;
+  shift1D  := uint(G_aucConvertToBit[ width ]) + 2;
+  shift2D  := shift1D + 1;
 
   // Get left and above reference column and row
   for k=0;k<blkSize+1;k++ {
-    topRow[k] = pSrc2[srcStride+1+k-srcStride];
-    leftColumn[k] = pSrc2[srcStride+1+k*srcStride-1];
+    topRow[k]     = int(pSrc2[srcStride+1+k-srcStride]);
+    leftColumn[k] = int(pSrc2[srcStride+1+k*srcStride-1]);
   }
+  /*fmt.Printf("2: ");
+  for k=blkSize*2-1; k>=0; k--{
+    fmt.Printf("%2x ", pSrc2[srcStride+1+k*srcStride-1]);
+  }
+  fmt.Printf("%2x ",   pSrc2[srcStride+1-srcStride-1]);
+  for k=0;k<blkSize*2;k++ {
+    fmt.Printf("%2x ", pSrc2[srcStride+1+k-srcStride]);
+  }
+  fmt.Printf("\n");*/
 
   // Prepare intermediate variables used in interpolation
   bottomLeft = leftColumn[blkSize];
@@ -562,9 +573,9 @@ func (this *TComPrediction)  xPredIntraPlanar         ( pSrc2 []Pel, srcStride i
 
   // Generate prediction signal
   for k=0;k<blkSize;k++ {
-    horPred = leftColumn[k] + Pel(offset2D);
+    horPred = leftColumn[k] + int(offset2D);
     for l=0;l<blkSize;l++ {
-      horPred += rightColumn[k];
+      horPred   += rightColumn[k];
       topRow[l] += bottomRow[l];
       rpDst[k*dstStride+l] = Pel( (horPred + topRow[l]) >> shift2D );
     }
@@ -590,7 +601,7 @@ func (this *TComPrediction)  xPredInterBi             ( pcCU *TComDataCU, uiPart
     }else{
     	eRefPicList = REF_PIC_LIST_0;
     }
-    
+
     iRefIdx[iRefList] = int(pcCU.GetCUMvField( eRefPicList ).GetRefIdx( int(uiPartAddr) ));
 
     if iRefIdx[iRefList] < 0 {
@@ -603,7 +614,7 @@ func (this *TComPrediction)  xPredInterBi             ( pcCU *TComDataCU, uiPart
     if pcCU.GetCUMvField( REF_PIC_LIST_0 ).GetRefIdx( int(uiPartAddr) ) >= 0 && pcCU.GetCUMvField( REF_PIC_LIST_1 ).GetRefIdx( int(uiPartAddr) ) >= 0 {
       this.xPredInterUni ( pcCU, uiPartAddr, iWidth, iHeight, eRefPicList, pcMbYuv, iPartIdx, true );
     }else{
-      if   ( pcCU.GetSlice().GetPPS().GetUseWP()    && pcCU.GetSlice().GetSliceType() == P_SLICE ) || 
+      if   ( pcCU.GetSlice().GetPPS().GetUseWP()    && pcCU.GetSlice().GetSliceType() == P_SLICE ) ||
            ( pcCU.GetSlice().GetPPS().GetWPBiPred() && pcCU.GetSlice().GetSliceType() == B_SLICE ) {
         this.xPredInterUni ( pcCU, uiPartAddr, iWidth, iHeight, eRefPicList, pcMbYuv, iPartIdx, true );
       }else{
@@ -615,19 +626,19 @@ func (this *TComPrediction)  xPredInterBi             ( pcCU *TComDataCU, uiPart
   if pcCU.GetSlice().GetPPS().GetWPBiPred() && pcCU.GetSlice().GetSliceType() == B_SLICE {
     this.xWeightedPredictionBi( pcCU, &this.m_acYuvPred[0], &this.m_acYuvPred[1], iRefIdx[0], iRefIdx[1], uiPartAddr, iWidth, iHeight, rpcYuvPred );
   }else if pcCU.GetSlice().GetPPS().GetUseWP() && pcCU.GetSlice().GetSliceType() == P_SLICE {
-    this.xWeightedPredictionUni( pcCU, &this.m_acYuvPred[0], uiPartAddr, iWidth, iHeight, REF_PIC_LIST_0, rpcYuvPred, iPartIdx, -1 ); 
+    this.xWeightedPredictionUni( pcCU, &this.m_acYuvPred[0], uiPartAddr, iWidth, iHeight, REF_PIC_LIST_0, rpcYuvPred, iPartIdx, -1 );
   }else{
     this.xWeightedAverage( pcCU, &this.m_acYuvPred[0], &this.m_acYuvPred[1], iRefIdx[0], iRefIdx[1], uiPartAddr, uint(iWidth), uint(iHeight), rpcYuvPred );
   }
 }
 func (this *TComPrediction)  xPredInterLumaBlk  ( cu *TComDataCU, refPic *TComPicYuv, partAddr uint, mv *TComMv, width, height int, dstPic *TComYuv, bi bool){
-  refStride := refPic.GetStride();  
+  refStride := refPic.GetStride();
   refOffset := int( mv.GetHor() >> 2 ) + int( mv.GetVer() >> 2 ) * refStride;
   ref      := refPic.GetLumaAddr2( int(cu.GetAddr()), int(cu.GetZorderIdxInCU() + partAddr) )[ refOffset:];
-  
+
   dstStride := int(dstPic.GetStride());
   dst       := dstPic.GetLumaAddr1( partAddr );
-  
+
   xFrac := int(mv.GetHor() & 0x3);
   yFrac := int(mv.GetVer() & 0x3);
 
@@ -643,45 +654,45 @@ func (this *TComPrediction)  xPredInterLumaBlk  ( cu *TComDataCU, refPic *TComPi
     halfFilterSize := ( filterSize >> 1 );
 
     this.m_if.FilterHorLuma(ref [- (halfFilterSize-1)*refStride:], refStride, tmp, tmpStride, width, height+filterSize-1, xFrac, false     );
-    this.m_if.FilterVerLuma(tmp [ (halfFilterSize-1)*tmpStride:], tmpStride, dst, dstStride, width, height,              yFrac, false, !bi);    
+    this.m_if.FilterVerLuma(tmp [ (halfFilterSize-1)*tmpStride:], tmpStride, dst, dstStride, width, height,              yFrac, false, !bi);
   }
 }
 func (this *TComPrediction)  xPredInterChromaBlk( cu *TComDataCU, refPic *TComPicYuv, partAddr uint, mv *TComMv, width, height int, dstPic *TComYuv, bi bool){
   refStride  := refPic.GetCStride();
   dstStride  := int(dstPic.GetCStride());
-  
+
   refOffset  := int(mv.GetHor() >> 3) + int(mv.GetVer() >> 3) * refStride;
-  
+
   refCb     := refPic.GetCbAddr2( int(cu.GetAddr()), int(cu.GetZorderIdxInCU() + partAddr) ) [refOffset:];
   refCr     := refPic.GetCrAddr2( int(cu.GetAddr()), int(cu.GetZorderIdxInCU() + partAddr) ) [refOffset:];
-  
+
   dstCb := dstPic.GetCbAddr1( partAddr );
   dstCr := dstPic.GetCrAddr1( partAddr );
-  
+
   xFrac  := int(mv.GetHor() & 0x7);
   yFrac  := int(mv.GetVer() & 0x7);
   cxWidth  := width  >> 1;
   cxHeight := height >> 1;
-  
+
   extStride := int(this.m_filteredBlockTmp[0].GetStride());
   extY      := this.m_filteredBlockTmp[0].GetLumaAddr();
-  
+
   filterSize := NTAPS_CHROMA;
-  
+
   halfFilterSize := (filterSize>>1);
-  
+
   if yFrac == 0 {
-    this.m_if.FilterHorChroma(refCb, refStride, dstCb,  dstStride, cxWidth, cxHeight, xFrac, !bi);    
-    this.m_if.FilterHorChroma(refCr, refStride, dstCr,  dstStride, cxWidth, cxHeight, xFrac, !bi);    
+    this.m_if.FilterHorChroma(refCb, refStride, dstCb,  dstStride, cxWidth, cxHeight, xFrac, !bi);
+    this.m_if.FilterHorChroma(refCr, refStride, dstCr,  dstStride, cxWidth, cxHeight, xFrac, !bi);
   }else if xFrac == 0 {
-    this.m_if.FilterVerChroma(refCb, refStride, dstCb, dstStride, cxWidth, cxHeight, yFrac, true, !bi);    
-    this.m_if.FilterVerChroma(refCr, refStride, dstCr, dstStride, cxWidth, cxHeight, yFrac, true, !bi);    
+    this.m_if.FilterVerChroma(refCb, refStride, dstCb, dstStride, cxWidth, cxHeight, yFrac, true, !bi);
+    this.m_if.FilterVerChroma(refCr, refStride, dstCr, dstStride, cxWidth, cxHeight, yFrac, true, !bi);
   }else{
     this.m_if.FilterHorChroma(refCb [- (halfFilterSize-1)*refStride:], refStride, extY,  extStride, cxWidth, cxHeight+filterSize-1, xFrac, false);
     this.m_if.FilterVerChroma(extY  [  (halfFilterSize-1)*extStride:], extStride, dstCb, dstStride, cxWidth, cxHeight  , yFrac, false, !bi);
-    
+
     this.m_if.FilterHorChroma(refCr [- (halfFilterSize-1)*refStride:], refStride, extY,  extStride, cxWidth, cxHeight+filterSize-1, xFrac, false);
-    this.m_if.FilterVerChroma(extY  [  (halfFilterSize-1)*extStride:], extStride, dstCr, dstStride, cxWidth, cxHeight  , yFrac, false, !bi);    
+    this.m_if.FilterVerChroma(extY  [  (halfFilterSize-1)*extStride:], extStride, dstCr, dstStride, cxWidth, cxHeight  , yFrac, false, !bi);
   }
 }
 func (this *TComPrediction)  xWeightedAverage  ( pcCU *TComDataCU, pcYuvSrc0 *TComYuv, pcYuvSrc1 *TComYuv, iRefIdx0, iRefIdx1 int, uiPartIdx uint, iWidth, iHeight uint, rpcYuvDst *TComYuv){
@@ -713,7 +724,7 @@ func (this *TComPrediction)  xDCPredFiltering( pSrc2 []Pel, iSrcStride int, rpDs
   iSrcStride2 = iSrcStride-1;
   for y = 1; y < iHeight; y++ {
     pDst[iDstStride2] = Pel((pSrc[iSrcStride2] + 3 * (pDst[iDstStride2]) + 2) >> 2);
-    iDstStride2+=iDstStride; 
+    iDstStride2+=iDstStride;
     iSrcStride2+=iSrcStride;
   }
 
@@ -824,7 +835,7 @@ func (this *TComPrediction) PredIntraLumaAng           ( pcTComPattern *TComPatt
 //#endif
       //this.xPredIntraAng(G_bitDepthY, ptrSrc[sw+1:], sw, pDst, int(uiStride), uint(iWidth), uint(iHeight), uiDirMode, bAbove, bLeft, true );
       this.xPredIntraAng(G_bitDepthY, ptrSrc, sw, pDst, int(uiStride), uint(iWidth), uint(iHeight), uiDirMode, bAbove, bLeft, true );
-      		
+
       if (uiDirMode == DC_IDX ) && bAbove && bLeft {
         //this.xDCPredFiltering( ptrSrc[sw+1:], sw, pDst, int(uiStride), iWidth, iHeight);
         this.xDCPredFiltering( ptrSrc, sw, pDst, int(uiStride), iWidth, iHeight);
@@ -876,18 +887,17 @@ func (this *TComPrediction) PredIntraGetPredValDC      ( pSrc2 []Pel,  iSrcStrid
   }else{
     pDcVal = Pel(pSrc2[iSrcStride+1-1]); // Default DC value already calculated and placed in the prediction array if no neighbors are available
   }
-  
+
   return pDcVal;
 }
 
-func (this *TComPrediction) GetPredicBuf()         []Pel   { 
-	return this.m_piYuvExt;      
+func (this *TComPrediction) GetPredicBuf()         []Pel   {
+	return this.m_piYuvExt;
 }
-func (this *TComPrediction) GetPredicBufWidth()     int   { 
-	return this.m_iYuvExtStride; 
+func (this *TComPrediction) GetPredicBufWidth()     int   {
+	return this.m_iYuvExtStride;
 }
-func (this *TComPrediction) GetPredicBufHeight()    int   { 
-	return this.m_iYuvExtHeight; 
+func (this *TComPrediction) GetPredicBufHeight()    int   {
+	return this.m_iYuvExtHeight;
 }
-
 

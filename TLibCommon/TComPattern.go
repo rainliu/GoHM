@@ -1,7 +1,7 @@
 package TLibCommon
 
 import (
-	"fmt"
+	//"fmt"
 )
 
 
@@ -19,19 +19,19 @@ type TComPatternParam struct{
   m_iOffsetAbove		int;
   m_iOffsetBottom		int;
   m_piPatternOrigin	[]Pel;
-  
+
 //public:
   m_iROIWidth			int;
   m_iROIHeight		int;
   m_iPatternStride	int;
 }
 
-  
+
   /// return starting position of buffer
-func (this *TComPatternParam) GetPatternOrigin()    []Pel    { 
-	return  this.m_piPatternOrigin; 
+func (this *TComPatternParam) GetPatternOrigin()    []Pel    {
+	return  this.m_piPatternOrigin;
 }
-  
+
   /// return starting position of ROI (ROI = &pattern[AboveOffset][LeftOffset])
 func (this *TComPatternParam) GetROIOrigin() []Pel{
     return  this.m_piPatternOrigin [this.m_iPatternStride * this.m_iOffsetAbove + this.m_iOffsetLeft:];
@@ -48,19 +48,19 @@ func (this *TComPatternParam) SetPatternParamPel ( piTexture []Pel, iRoiWidth,iR
   this.m_iOffsetRight    = iOffsetRight;
   this.m_iOffsetBottom   = iOffsetBottom;
 }
-  
+
   /// set parameters of one color component from CU data for accessing neighbouring pixels
 func (this *TComPatternParam) SetPatternParamCU  ( pcCU *TComDataCU, iComp byte, iRoiWidth, iRoiHeight int, iOffsetLeft, iOffsetRight, iOffsetAbove, iOffsetBottom int, uiPartDepth, uiAbsPartIdx uint){
   this.m_iOffsetLeft   = iOffsetLeft;
   this.m_iOffsetRight  = iOffsetRight;
   this.m_iOffsetAbove  = iOffsetAbove;
   this.m_iOffsetBottom = iOffsetBottom;
-  
+
   this.m_iROIWidth     = iRoiWidth;
   this.m_iROIHeight    = iRoiHeight;
-  
+
   uiAbsZorderIdx := pcCU.GetZorderIdxInCU() + uiAbsPartIdx;
-  
+
   if iComp == 0 {
     this.m_iPatternStride  = pcCU.GetPic().GetStride();
     offsetY:=pcCU.GetPic().GetPicYuvRec().m_cuOffsetY[pcCU.GetAddr()]+pcCU.GetPic().GetPicYuvRec().m_buOffsetY[G_auiZscanToRaster[uiAbsZorderIdx]];
@@ -77,33 +77,46 @@ func (this *TComPatternParam) SetPatternParamCU  ( pcCU *TComDataCU, iComp byte,
   }
 }
 
+
+// ====================================================================================================================
+// Tables
+// ====================================================================================================================
+
+var  m_aucIntraFilter = [5]byte{
+  10, //4x4
+  7, //8x8
+  1, //16x16
+  0, //32x32
+  10, //64x64
+};
+
 /// neighbouring pixel access class for all components
 type TComPattern struct{
 //private:
   m_cPatternY	TComPatternParam;
   m_cPatternCb	TComPatternParam;
   m_cPatternCr	TComPatternParam;
-  
-  m_aucIntraFilter	[5]byte;
+
+  //m_aucIntraFilter	[5]byte;
 }
 
 func NewTComPattern() *TComPattern{
 	return &TComPattern{};
 }
 
-  
+
   // ROI & pattern information, (ROI = &pattern[AboveOffset][LeftOffset])
-func (this *TComPattern)  GetROIY()             []Pel  { 
-	return this.m_cPatternY.GetROIOrigin();    
+func (this *TComPattern)  GetROIY()             []Pel  {
+	return this.m_cPatternY.GetROIOrigin();
 }
-func (this *TComPattern)  GetROIYWidth()         int   { 
-	return this.m_cPatternY.m_iROIWidth;       
+func (this *TComPattern)  GetROIYWidth()         int   {
+	return this.m_cPatternY.m_iROIWidth;
 }
-func (this *TComPattern)  GetROIYHeight()        int   { 
-	return this.m_cPatternY.m_iROIHeight;      
+func (this *TComPattern)  GetROIYHeight()        int   {
+	return this.m_cPatternY.m_iROIHeight;
 }
-func (this *TComPattern)  GetPatternLStride()    int   { 
-	return this.m_cPatternY.m_iPatternStride;  
+func (this *TComPattern)  GetPatternLStride()    int   {
+	return this.m_cPatternY.m_iPatternStride;
 }
 
   // access functions of ADI buffers
@@ -121,7 +134,7 @@ func (this *TComPattern) GetPredictorPtr ( uiDirMode, log2BlkSize uint, piAdiBuf
   var piSrc []Pel;
   //assert(log2BlkSize >= 2 && log2BlkSize < 7);
   diff := MIN(ABS(int(uiDirMode) - HOR_IDX).(int), ABS(int(uiDirMode) - VER_IDX).(int)).(int);
-  ucFiltIdx :=  diff > int(this.m_aucIntraFilter[log2BlkSize - 2]);
+  ucFiltIdx :=  diff > int(m_aucIntraFilter[log2BlkSize - 2]);
 
   if uiDirMode == DC_IDX {
     ucFiltIdx = false; //no smoothing for DC or LM chroma
@@ -131,14 +144,15 @@ func (this *TComPattern) GetPredictorPtr ( uiDirMode, log2BlkSize uint, piAdiBuf
 
   width  := 1 << log2BlkSize;
   height := 1 << log2BlkSize;
-  
+
   piSrc = this.GetAdiOrgBuf( width, height, piAdiBuf );
 
   if ucFiltIdx {
+    //fmt.Printf("hit\n");
     return piSrc [ (2 * width + 1) * (2 * height + 1) :];
   }
 
-  return piSrc;	
+  return piSrc;
 }
   // -------------------------------------------------------------------------------------------------------------------
   // initialization functions
@@ -149,32 +163,32 @@ func (this *TComPattern) InitPattern (piY []Pel, piCb []Pel, piCr []Pel,
   this.m_cPatternY. SetPatternParamPel( piY,  iRoiWidth,      iRoiHeight,      iStride,      iOffsetLeft,      iOffsetRight,      iOffsetAbove,      iOffsetBottom );
   this.m_cPatternCb.SetPatternParamPel( piCb, iRoiWidth >> 1, iRoiHeight >> 1, iStride >> 1, iOffsetLeft >> 1, iOffsetRight >> 1, iOffsetAbove >> 1, iOffsetBottom >> 1 );
   this.m_cPatternCr.SetPatternParamPel( piCr, iRoiWidth >> 1, iRoiHeight >> 1, iStride >> 1, iOffsetLeft >> 1, iOffsetRight >> 1, iOffsetAbove >> 1, iOffsetBottom >> 1 );
-  
+
   return;
 }
-  
+
   /// set parameters from CU data for accessing neighbouring pixels
 func (this *TComPattern)  InitPattern3 ( pcCU *TComDataCU, uiPartDepth,uiAbsPartIdx uint){
   uiOffsetLeft  := 0;
   uiOffsetRight := 0;
   uiOffsetAbove := 0;
-  
+
   pcPic            := pcCU.GetPic();
   uiWidth          := uint(pcCU.GetWidth1 (0))>>uiPartDepth;
   uiHeight         := uint(pcCU.GetHeight1(0))>>uiPartDepth;
-  
+
   uiAbsZorderIdx   := pcCU.GetZorderIdxInCU() + uiAbsPartIdx;
   uiCurrPicPelX    := pcCU.GetCUPelX() + G_auiRasterToPelX[ G_auiZscanToRaster[uiAbsZorderIdx] ];
   uiCurrPicPelY    := pcCU.GetCUPelY() + G_auiRasterToPelY[ G_auiZscanToRaster[uiAbsZorderIdx] ];
-  
+
   if uiCurrPicPelX != 0 {
     uiOffsetLeft = 1;
   }
-  
+
   if uiCurrPicPelY != 0 {
     uiNumPartInWidth := ( uiWidth/pcPic.GetMinCUWidth() );
     uiOffsetAbove = 1;
-    
+
     if uiCurrPicPelX + uiWidth < pcCU.GetSlice().GetSPS().GetPicWidthInLumaSamples() {
       if ( G_auiZscanToRaster[uiAbsZorderIdx] + uiNumPartInWidth ) % pcPic.GetNumPartInWidth() !=0 { // Not CU boundary
         if G_auiRasterToZscan[ int(G_auiZscanToRaster[uiAbsZorderIdx]) - int(pcPic.GetNumPartInWidth()) + int(uiNumPartInWidth) ] < uiAbsZorderIdx {
@@ -187,12 +201,12 @@ func (this *TComPattern)  InitPattern3 ( pcCU *TComDataCU, uiPartDepth,uiAbsPart
       }
     }
   }
-  
+
   this.m_cPatternY .SetPatternParamCU( pcCU, 0, int(uiWidth),      int(uiHeight),      uiOffsetLeft, uiOffsetRight, uiOffsetAbove, 0, uiPartDepth, uiAbsPartIdx );
   this.m_cPatternCb.SetPatternParamCU( pcCU, 1, int(uiWidth) >> 1, int(uiHeight) >> 1, uiOffsetLeft, uiOffsetRight, uiOffsetAbove, 0, uiPartDepth, uiAbsPartIdx );
   this.m_cPatternCr.SetPatternParamCU( pcCU, 2, int(uiWidth) >> 1, int(uiHeight) >> 1, uiOffsetLeft, uiOffsetRight, uiOffsetAbove, 0, uiPartDepth, uiAbsPartIdx );
 }
-  
+
   /// set luma parameters from CU data for accessing ADI data
 func (this *TComPattern)  InitAdiPattern ( pcCU *TComDataCU, uiZorderIdxInPart,uiPartDepth uint, piAdiBuf []Pel, iOrgBufStride,iOrgBufHeight int,
                                            bAbove, bLeft *bool, bLMmode bool){
@@ -209,12 +223,12 @@ func (this *TComPattern)  InitAdiPattern ( pcCU *TComDataCU, uiZorderIdxInPart,u
   iTotalUnits := 0;
   var bNeighborFlags	[4 * MAX_NUM_SPU_W + 1]bool;
   iNumIntraNeighbor := 0;
-  
+
   var uiPartIdxLT, uiPartIdxRT, uiPartIdxLB uint;
 
   pcCU.DeriveLeftRightTopIdxAdi( &uiPartIdxLT, &uiPartIdxRT, uiZorderIdxInPart, uiPartDepth );
   pcCU.DeriveLeftBottomIdxAdi  ( &uiPartIdxLB,               uiZorderIdxInPart, uiPartDepth );
-  
+
   iUnitSize      = int(G_uiMaxCUWidth >> G_uiMaxCUDepth);
   iNumUnitsInCu  = int(uiCuWidth) / iUnitSize;
   iTotalUnits    = (iNumUnitsInCu << 2) + 1;
@@ -225,17 +239,17 @@ func (this *TComPattern)  InitAdiPattern ( pcCU *TComDataCU, uiZorderIdxInPart,u
   iNumIntraNeighbor  += this.IsAboveRightAvailable( pcCU, uiPartIdxLT, uiPartIdxRT, bNeighborFlags[(iNumUnitsInCu*3)+1:] );
   iNumIntraNeighbor  += this.IsLeftAvailable      ( pcCU, uiPartIdxLT, uiPartIdxLB, bNeighborFlags[iNumUnitsInCu:(iNumUnitsInCu*2)], iNumUnitsInCu );
   iNumIntraNeighbor  += this.IsBelowLeftAvailable ( pcCU, uiPartIdxLT, uiPartIdxLB, bNeighborFlags[0            : iNumUnitsInCu   ], iNumUnitsInCu );
-  
+
   *bAbove = true;
   *bLeft  = true;
 
   uiWidth =uint(uiCuWidth2)+1;
   uiHeight=uint(uiCuHeight2)+1;
-  
+
   if ((uiWidth<<2)>uint(iOrgBufStride))||((uiHeight<<2)>uint(iOrgBufHeight)) {
     return;
   }
-  
+
   pPicYuvRec := pcCU.GetPic().GetPicYuvRec();
   offsetY:=pPicYuvRec.m_cuOffsetY[pcCU.GetAddr()]+pPicYuvRec.m_buOffsetY[G_auiZscanToRaster[pcCU.GetZorderIdxInCU()+uiZorderIdxInPart]];
   //fmt.Printf("offsetY=%d\n", offsetY);
@@ -243,7 +257,7 @@ func (this *TComPattern)  InitAdiPattern ( pcCU *TComDataCU, uiZorderIdxInPart,u
   piAdiTemp   = piAdiBuf;
 
   this.FillReferenceSamples (G_bitDepthY, pcCU, piRoiOrigin, piAdiTemp, bNeighborFlags[:], iNumIntraNeighbor, iUnitSize, iNumUnitsInCu, iTotalUnits, uint(uiCuWidth), uint(uiCuHeight), uiWidth, uiHeight, iPicStride, bLMmode);
-  
+
   var   i int;
   // generate filtered intra prediction samples
   iBufSize := uiCuHeight2 + uiCuWidth2 + 1;  // left and left above border + above and above right border + top left corner = length of 3. filter buffer
@@ -260,19 +274,19 @@ func (this *TComPattern)  InitAdiPattern ( pcCU *TComDataCU, uiZorderIdxInPart,u
   for i = 0; i < int(uiCuHeight2); i++ {
     piFilterBuf[l] = piAdiTemp[uiWidth * (uiCuHeight2 - uint(i))];
   	l++
-  	fmt.Printf("%x ", piAdiTemp[uiWidth * (uiCuHeight2 - uint(i))]);
+  	//fmt.Printf("%x ", piAdiTemp[uiWidth * (uiCuHeight2 - uint(i))]);
   }
   // top left corner
   piFilterBuf[l] = piAdiTemp[0];
   l++;
-  fmt.Printf("%x ", piAdiTemp[0]);
+  //fmt.Printf("%x ", piAdiTemp[0]);
   // above border from left to right
   for i=0; i < int(uiCuWidth2); i++{
     piFilterBuf[l] = piAdiTemp[1 + i];
     l++
-    fmt.Printf("%x ", piAdiTemp[1+i]);
+    //fmt.Printf("%x ", piAdiTemp[1+i]);
   }
-  fmt.Printf("\n");
+  //fmt.Printf("\n");
 
 //#if STRONG_INTRA_SMOOTHING
   if pcCU.GetSlice().GetSPS().GetUseStrongIntraSmoothing() {
@@ -283,7 +297,7 @@ func (this *TComPattern)  InitAdiPattern ( pcCU *TComDataCU, uiZorderIdxInPart,u
     threshold := Pel(1 << uint(G_bitDepthY - 5));
     bilinearLeft := ABS(bottomLeft+topLeft-2*piFilterBuf[uiCuHeight]).(Pel) < threshold;
     bilinearAbove := ABS(topLeft+topRight-2*piFilterBuf[uiCuHeight2+uiCuHeight]).(Pel) < threshold;
-  
+
     if uiCuWidth>=blkSize && (bilinearLeft && bilinearAbove) {
       shift := G_aucConvertToBit[uiCuWidth] + 3;  // log2(uiCuHeight2)
       piFilterBufN[0] = piFilterBuf[0];
@@ -292,7 +306,7 @@ func (this *TComPattern)  InitAdiPattern ( pcCU *TComDataCU, uiZorderIdxInPart,u
       for i = 1; i < int(uiCuHeight2); i++ {
         piFilterBufN[i] = Pel(((int(uiCuHeight2)-i)*int(bottomLeft) + i*int(topLeft) + int(uiCuHeight)) >> uint(shift));
       }
-  
+
       for i = 1; i < int(uiCuWidth2); i++ {
         piFilterBufN[int(uiCuHeight2) + i] = Pel(((int(uiCuWidth2)-i)*int(topLeft) + i*int(topRight) + int(uiCuWidth)) >> uint(shift));
       }
@@ -322,27 +336,28 @@ func (this *TComPattern)  InitAdiPattern ( pcCU *TComDataCU, uiZorderIdxInPart,u
   }
 #endif*/
 
+  //fmt.Printf("1: ");
   // fill 1. filter buffer with filtered values
   l=0;
   for i = 0; i < int(uiCuHeight2); i++ {
     piFilteredBuf1[uiWidth * (uiCuHeight2 - uint(i))] = piFilterBufN[l];
     l++;
-    fmt.Printf("%x ", piFilteredBuf1[uiWidth * (uiCuHeight2 - uint(i))]);
+    //fmt.Printf("%x ", piFilteredBuf1[uiWidth * (uiCuHeight2 - uint(i))]);
   }
   piFilteredBuf1[0] = piFilterBufN[l];
-  fmt.Printf("%x ", piFilteredBuf1[0]); 
+  //fmt.Printf("%x ", piFilteredBuf1[0]);
   l++
   for i = 0; i < int(uiCuWidth2); i++ {
     piFilteredBuf1[1 + i] = piFilterBufN[l];
     l++
-    fmt.Printf("%x ", piFilteredBuf1[1 + i]);
+    //fmt.Printf("%x ", piFilteredBuf1[1 + i]);
   }
-  fmt.Printf("\n");
+  //fmt.Printf("\n");
 }
-  
+
   /// set chroma parameters from CU data for accessing ADI data
 func (this *TComPattern)  InitAdiPatternChroma  ( pcCU *TComDataCU, uiZorderIdxInPart,uiPartDepth uint, piAdiBuf []Pel,iOrgBufStride,iOrgBufHeight int,
-                               bAbove, bLeft *bool){
+                               bAbove, bLeft *bool, uiChromaId uint){
   var  piRoiOrigin []Pel;
   var  piAdiTemp   []Pel;
   uiCuWidth  := uint(pcCU.GetWidth1 (0)) >> uiPartDepth;
@@ -355,12 +370,12 @@ func (this *TComPattern)  InitAdiPatternChroma  ( pcCU *TComDataCU, uiZorderIdxI
   iTotalUnits := 0;
   var bNeighborFlags	[4 * MAX_NUM_SPU_W + 1]bool;
   iNumIntraNeighbor := 0;
-  
-  var uiPartIdxLT, uiPartIdxRT, uiPartIdxLB uint; 
-  
+
+  var uiPartIdxLT, uiPartIdxRT, uiPartIdxLB uint;
+
   pcCU.DeriveLeftRightTopIdxAdi( &uiPartIdxLT, &uiPartIdxRT, uiZorderIdxInPart, uiPartDepth );
   pcCU.DeriveLeftBottomIdxAdi  ( &uiPartIdxLB,               uiZorderIdxInPart, uiPartDepth );
-  
+
   iUnitSize      = int(G_uiMaxCUWidth >> G_uiMaxCUDepth) >> 1; // for chroma
   iNumUnitsInCu  = (int(uiCuWidth) / iUnitSize) >> 1;            // for chroma
   iTotalUnits    = (iNumUnitsInCu << 2) + 1;
@@ -369,45 +384,66 @@ func (this *TComPattern)  InitAdiPatternChroma  ( pcCU *TComDataCU, uiZorderIdxI
   iNumIntraNeighbor  += int(B2U(bNeighborFlags[iNumUnitsInCu*2]));
   iNumIntraNeighbor  += this.IsAboveAvailable     ( pcCU, uiPartIdxLT, uiPartIdxRT, bNeighborFlags[(iNumUnitsInCu*2)+1:] );
   iNumIntraNeighbor  += this.IsAboveRightAvailable( pcCU, uiPartIdxLT, uiPartIdxRT, bNeighborFlags[(iNumUnitsInCu*3)+1:] );
-  iNumIntraNeighbor  += this.IsLeftAvailable      ( pcCU, uiPartIdxLT, uiPartIdxLB, bNeighborFlags[:(iNumUnitsInCu*2)], iNumUnitsInCu );
-  iNumIntraNeighbor  += this.IsBelowLeftAvailable ( pcCU, uiPartIdxLT, uiPartIdxLB, bNeighborFlags[: iNumUnitsInCu   ], iNumUnitsInCu );
-  
+  iNumIntraNeighbor  += this.IsLeftAvailable      ( pcCU, uiPartIdxLT, uiPartIdxLB, bNeighborFlags[iNumUnitsInCu:(iNumUnitsInCu*2)], iNumUnitsInCu );
+  iNumIntraNeighbor  += this.IsBelowLeftAvailable ( pcCU, uiPartIdxLT, uiPartIdxLB, bNeighborFlags[0            : iNumUnitsInCu   ], iNumUnitsInCu );
+
   *bAbove = true;
   *bLeft  = true;
-  
-  uiCuWidth=uiCuWidth>>1;  // for chroma
+
+  uiCuWidth =uiCuWidth>>1;  // for chroma
   uiCuHeight=uiCuHeight>>1;  // for chroma
-  
-  uiWidth=uiCuWidth*2+1;
+
+  uiWidth =uiCuWidth*2+1;
   uiHeight=uiCuHeight*2+1;
-  
+
   if (4*uiWidth>uint(iOrgBufStride))||(4*uiHeight>uint(iOrgBufHeight)) {
     return;
   }
-  
-  
-  pPicYuvRec := pcCU.GetPic().GetPicYuvRec();
-  // get Cb pattern
-  offsetU:=pPicYuvRec.m_cuOffsetC[pcCU.GetAddr()]+pPicYuvRec.m_buOffsetC[G_auiZscanToRaster[pcCU.GetZorderIdxInCU()+uiZorderIdxInPart]];
-  piRoiOrigin = pPicYuvRec.GetCbAddr()[pPicYuvRec.m_iChromaMarginY*pPicYuvRec.GetCStride()+pPicYuvRec.m_iChromaMarginX+offsetU-iPicStride-1:];
-  piAdiTemp   = piAdiBuf;
 
-  this.FillReferenceSamples (G_bitDepthC, pcCU, piRoiOrigin, piAdiTemp, bNeighborFlags[:], iNumIntraNeighbor, iUnitSize, iNumUnitsInCu, iTotalUnits, uiCuWidth, uiCuHeight, uiWidth, uiHeight, iPicStride, false);
-  
-  // get Cr pattern
-  offsetV:=pPicYuvRec.m_cuOffsetC[pcCU.GetAddr()]+pPicYuvRec.m_buOffsetC[G_auiZscanToRaster[pcCU.GetZorderIdxInCU()+uiZorderIdxInPart]];
-  piRoiOrigin = pPicYuvRec.GetCrAddr()[pPicYuvRec.m_iChromaMarginY*pPicYuvRec.GetCStride()+pPicYuvRec.m_iChromaMarginX+offsetV-iPicStride-1:];
-  piAdiTemp   = piAdiBuf[uiWidth*uiHeight:];
-  
-  this.FillReferenceSamples (G_bitDepthC, pcCU, piRoiOrigin, piAdiTemp, bNeighborFlags[:], iNumIntraNeighbor, iUnitSize, iNumUnitsInCu, iTotalUnits, uiCuWidth, uiCuHeight, uiWidth, uiHeight, iPicStride, false);
+  pPicYuvRec := pcCU.GetPic().GetPicYuvRec();
+
+  if uiChromaId==0 {
+    // get Cb pattern
+    offsetU:=pPicYuvRec.m_cuOffsetC[pcCU.GetAddr()]+pPicYuvRec.m_buOffsetC[G_auiZscanToRaster[pcCU.GetZorderIdxInCU()+uiZorderIdxInPart]];
+    piRoiOrigin = pPicYuvRec.GetBufU()[pPicYuvRec.m_iChromaMarginY*pPicYuvRec.GetCStride()+pPicYuvRec.m_iChromaMarginX+offsetU-iPicStride-1:];
+    piAdiTemp   = piAdiBuf;
+
+    this.FillReferenceSamples (G_bitDepthC, pcCU, piRoiOrigin, piAdiTemp, bNeighborFlags[:], iNumIntraNeighbor, iUnitSize, iNumUnitsInCu, iTotalUnits, uiCuWidth, uiCuHeight, uiWidth, uiHeight, iPicStride, false);
+
+    /*  fmt.Printf("1: ");
+      for i:=uint(0); i<uiWidth; i++ {
+        fmt.Printf("%x ", piAdiTemp[i]);
+      }
+      for i:=uint(1); i<uiHeight; i++ {
+        fmt.Printf("%x ", piAdiTemp[i*uiWidth]);
+      }
+      fmt.Printf("\n");*/
+
+  }else{
+    // get Cr pattern
+    offsetV:=pPicYuvRec.m_cuOffsetC[pcCU.GetAddr()]+pPicYuvRec.m_buOffsetC[G_auiZscanToRaster[pcCU.GetZorderIdxInCU()+uiZorderIdxInPart]];
+    piRoiOrigin = pPicYuvRec.GetBufV()[pPicYuvRec.m_iChromaMarginY*pPicYuvRec.GetCStride()+pPicYuvRec.m_iChromaMarginX+offsetV-iPicStride-1:];
+    piAdiTemp   = piAdiBuf[uiWidth*uiHeight:];
+
+    this.FillReferenceSamples (G_bitDepthC, pcCU, piRoiOrigin, piAdiTemp, bNeighborFlags[:], iNumIntraNeighbor, iUnitSize, iNumUnitsInCu, iTotalUnits, uiCuWidth, uiCuHeight, uiWidth, uiHeight, iPicStride, false);
+
+    /*fmt.Printf("1: ");
+    for i:=uint(0); i<uiWidth; i++ {
+      fmt.Printf("%x ", piAdiTemp[i]);
+    }
+    for i:=uint(1); i<uiHeight; i++ {
+      fmt.Printf("%x ", piAdiTemp[i*uiWidth]);
+    }
+    fmt.Printf("\n");*/
+  }
 }
 
   /// padding of unavailable reference samples for intra prediction
-func (this *TComPattern)  FillReferenceSamples  ( bitDepth int, pcCU *TComDataCU, piRoiOrigin2 []Pel, piAdiTemp []Pel, bNeighborFlags []bool, 
-												  iNumIntraNeighbor, iUnitSize, iNumUnitsInCu, iTotalUnits int, 
+func (this *TComPattern)  FillReferenceSamples  ( bitDepth int, pcCU *TComDataCU, piRoiOrigin2 []Pel, piAdiTemp []Pel, bNeighborFlags []bool,
+												  iNumIntraNeighbor, iUnitSize, iNumUnitsInCu, iTotalUnits int,
 												  uiCuWidth, uiCuHeight, uiWidth, uiHeight uint, iPicStride int, bLMmode bool){
   //piRoiOrigin := piRoiOrigin2[iPicStride+1:];
-  
+
   var piRoiTemp []Pel;
   iDCValue := Pel(1 << uint(bitDepth - 1));
 
@@ -439,7 +475,7 @@ func (this *TComPattern)  FillReferenceSamples  ( bitDepth int, pcCU *TComDataCU
     }
 
 	piRoiTemp = piRoiOrigin2[iPicStride+int(uiCuHeight)*iPicStride:]
-	
+
     // Fill below left border with rec. samples
     for i=0; i<uiCuHeight; i++ {
       piAdiTemp[(1+uiCuHeight+i)*uiWidth] = piRoiTemp[i*uint(iPicStride)];
@@ -451,7 +487,7 @@ func (this *TComPattern)  FillReferenceSamples  ( bitDepth int, pcCU *TComDataCU
     for i=0; i<uiCuWidth; i++ {
       piAdiTemp[1+i] = piRoiTemp[i];
     }
-    
+
     // Fill top right border with rec. samples
     piRoiTemp = piRoiOrigin2[1 + uiCuWidth:];
     for i=0; i<uiCuWidth; i++ {
@@ -462,7 +498,7 @@ func (this *TComPattern)  FillReferenceSamples  ( bitDepth int, pcCU *TComDataCU
     iNumUnits2 := iNumUnitsInCu<<1;
     iTotalSamples := iTotalUnits*iUnitSize;
     var piAdiLine	[5 * MAX_CU_SIZE]Pel;
-    var piAdiLineTemp []Pel; 
+    var piAdiLineTemp []Pel;
     var pbNeighborFlags []bool;
     var iNext, iCurr int;
     piRef := Pel(0);
@@ -471,7 +507,7 @@ func (this *TComPattern)  FillReferenceSamples  ( bitDepth int, pcCU *TComDataCU
     for i=0; i<iTotalSamples; i++ {
       piAdiLine[i] = iDCValue;
     }
-    
+
     // Fill top-left sample
     piRoiTemp = piRoiOrigin2[:];
     piAdiLineTemp = piAdiLine [ (iNumUnits2*iUnitSize):];
@@ -560,7 +596,7 @@ func (this *TComPattern)  FillReferenceSamples  ( bitDepth int, pcCU *TComDataCU
     }
   }
 }
-  
+
 
   /// constrained intra prediction
 func (this *TComPattern)  IsAboveLeftAvailable  ( pcCU *TComDataCU, uiPartIdxLT uint) bool{

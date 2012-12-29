@@ -160,6 +160,10 @@ func MAX(a, b interface{}) interface{} {
         if a.(TCoeff) < b.(TCoeff) {
             return b
         }
+    case int16:
+    	if a.(int16) < b.(int16) {
+            return b
+        }
     case int:
     	if a.(int) < b.(int) {
             return b
@@ -185,6 +189,10 @@ func MIN(a, b interface{}) interface{} {
         if a.(TCoeff) > b.(TCoeff) {
             return b
         }
+    case int16:
+        if a.(int16) > b.(int16) {
+            return b
+        }
     case int:
         if a.(int) > b.(int) {
             return b
@@ -206,6 +214,10 @@ func ABS(a interface{}) interface{} {
     case TCoeff:
         if a.(TCoeff) < 0 {
             return  -a.(TCoeff);
+        }
+    case int16:
+        if a.(int16) < 0 {
+            return  -a.(int16);
         }
     case int:
         if a.(int) < 0 {

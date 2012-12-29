@@ -1,7 +1,7 @@
 package TLibDecoder
 
 import (
-	//"fmt"
+	"fmt"
     "gohm/TLibCommon"
 )
 
@@ -118,13 +118,13 @@ func (this *TDecCu)  xDecodeCU               ( pcCU *TLibCommon.TComDataCU,  uiA
   pcPic := pcCU.GetPic();
   uiCurNumParts := pcPic.GetNumPartInCU() >> (uiDepth<<1);
   uiQNumParts   := uiCurNumParts>>2;
-  
+
   bBoundary := false;
   uiLPelX   := pcCU.GetCUPelX() + TLibCommon.G_auiRasterToPelX[ TLibCommon.G_auiZscanToRaster[uiAbsPartIdx] ];
   uiRPelX   := uiLPelX + (TLibCommon.G_uiMaxCUWidth>>uiDepth)  - 1;
   uiTPelY   := pcCU.GetCUPelY() + TLibCommon.G_auiRasterToPelY[ TLibCommon.G_auiZscanToRaster[uiAbsPartIdx] ];
   uiBPelY   := uiTPelY + (TLibCommon.G_uiMaxCUHeight>>uiDepth) - 1;
-  
+
   pcSlice := pcCU.GetPic().GetSlice(pcCU.GetPic().GetCurrSliceIdx());
   bStartInCU := pcCU.GetSCUAddr()+uiAbsPartIdx+uiCurNumParts>pcSlice.GetDependentSliceCurStartCUAddr()&&pcCU.GetSCUAddr()+uiAbsPartIdx<pcSlice.GetDependentSliceCurStartCUAddr();
   if (!bStartInCU) && ( uiRPelX < pcSlice.GetSPS().GetPicWidthInLumaSamples() ) && ( uiBPelY < pcSlice.GetSPS().GetPicHeightInLumaSamples() ) {
@@ -143,7 +143,7 @@ func (this *TDecCu)  xDecodeCU               ( pcCU *TLibCommon.TComDataCU,  uiA
   }else{
     bBoundary = true;
   }
-  
+
   if ( ( uiDepth < uint(pcCU.GetDepth1( uiAbsPartIdx )) ) && ( uiDepth < TLibCommon.G_uiMaxCUDepth - TLibCommon.G_uiAddCUDepth ) ) || bBoundary {
     uiIdx := uiAbsPartIdx;
     if (TLibCommon.G_uiMaxCUWidth>>uiDepth) == pcCU.GetSlice().GetPPS().GetMinCuDQPSize() && pcCU.GetSlice().GetPPS().GetUseDQP() {
@@ -154,7 +154,7 @@ func (this *TDecCu)  xDecodeCU               ( pcCU *TLibCommon.TComDataCU,  uiA
     for uiPartUnitIdx := uint(0); uiPartUnitIdx < 4; uiPartUnitIdx++ {
       uiLPelX   = pcCU.GetCUPelX() + TLibCommon.G_auiRasterToPelX[ TLibCommon.G_auiZscanToRaster[uiIdx] ];
       uiTPelY   = pcCU.GetCUPelY() + TLibCommon.G_auiRasterToPelY[ TLibCommon.G_auiZscanToRaster[uiIdx] ];
-      
+
       bSubInSlice := pcCU.GetSCUAddr()+uiIdx+uiQNumParts>pcSlice.GetDependentSliceCurStartCUAddr();
       //fmt.Printf("pcCU.GetSCUAddr()%d+uiIdx%d+uiQNumParts%d>pcSlice.GetDependentSliceCurStartCUAddr()%d\n",pcCU.GetSCUAddr(),uiIdx,uiQNumParts,pcSlice.GetDependentSliceCurStartCUAddr());
       if bSubInSlice {
@@ -167,7 +167,7 @@ func (this *TDecCu)  xDecodeCU               ( pcCU *TLibCommon.TComDataCU,  uiA
       if *ruiIsLast!=0 {
         break;
       }
-      
+
       uiIdx += uiQNumParts;
     }
     if (TLibCommon.G_uiMaxCUWidth>>uiDepth) == pcCU.GetSlice().GetPPS().GetMinCuDQPSize() && pcCU.GetSlice().GetPPS().GetUseDQP() {
@@ -183,7 +183,7 @@ func (this *TDecCu)  xDecodeCU               ( pcCU *TLibCommon.TComDataCU,  uiA
     }
     return;
   }
-  
+
   if (TLibCommon.G_uiMaxCUWidth>>uiDepth) >= pcCU.GetSlice().GetPPS().GetMinCuDQPSize() && pcCU.GetSlice().GetPPS().GetUseDQP() {
     this.SetdQPFlag(true);
     pcCU.SetQPSubParts( int(pcCU.GetRefQP(uiAbsPartIdx)), uiAbsPartIdx, uiDepth ); // set QP to default QP
@@ -196,7 +196,7 @@ func (this *TDecCu)  xDecodeCU               ( pcCU *TLibCommon.TComDataCU,  uiA
 //#endif
     this.m_pcEntropyDecoder.DecodeCUTransquantBypassFlag( pcCU, uiAbsPartIdx, uiDepth );
   }
-  
+
   // decode CU mode and the partition size
 //#if !REMOVE_BURST_IPCM
 //  if( !pcCU.GetSlice()->isIntra() && pcCU.GetNumSucIPCM() == 0 )
@@ -205,7 +205,7 @@ func (this *TDecCu)  xDecodeCU               ( pcCU *TLibCommon.TComDataCU,  uiA
 //#endif
     this.m_pcEntropyDecoder.DecodeSkipFlag( pcCU, uiAbsPartIdx, uiDepth );
   }
- 
+
   if pcCU.IsSkipped(uiAbsPartIdx) {
     this.m_ppcCU[uiDepth].CopyInterPredInfoFrom( pcCU, uiAbsPartIdx, TLibCommon.REF_PIC_LIST_0 );
     this.m_ppcCU[uiDepth].CopyInterPredInfoFrom( pcCU, uiAbsPartIdx, TLibCommon.REF_PIC_LIST_1 );
@@ -221,7 +221,7 @@ func (this *TDecCu)  xDecodeCU               ( pcCU *TLibCommon.TComDataCU,  uiA
     pcCU.SetInterDirSubParts( uint(uhInterDirNeighbours[uiMergeIndex]), uiAbsPartIdx, 0, uiDepth );
 
     cTmpMv := TLibCommon.NewTComMv( 0, 0 );
-    for uiRefListIdx := 0; uiRefListIdx < 2; uiRefListIdx++ {        
+    for uiRefListIdx := 0; uiRefListIdx < 2; uiRefListIdx++ {
       if pcCU.GetSlice().GetNumRefIdx( TLibCommon.RefPicList( uiRefListIdx ) ) > 0 {
         pcCU.SetMVPIdxSubParts( 0, TLibCommon.RefPicList( uiRefListIdx ), uiAbsPartIdx, 0, uiDepth);
         pcCU.SetMVPNumSubParts( 0, TLibCommon.RefPicList( uiRefListIdx ), uiAbsPartIdx, 0, uiDepth);
@@ -234,7 +234,7 @@ func (this *TDecCu)  xDecodeCU               ( pcCU *TLibCommon.TComDataCU,  uiA
   }
 
 /*#if !REMOVE_BURST_IPCM
-  if( pcCU.GetNumSucIPCM() == 0 ) 
+  if( pcCU.GetNumSucIPCM() == 0 )
   {
     m_pcEntropyDecoder->decodePredMode( pcCU, uiAbsPartIdx, uiDepth );
     m_pcEntropyDecoder->decodePartSize( pcCU, uiAbsPartIdx, uiDepth );
@@ -243,7 +243,7 @@ func (this *TDecCu)  xDecodeCU               ( pcCU *TLibCommon.TComDataCU,  uiA
   {
     pcCU.SetPredModeSubParts( MODE_INTRA, uiAbsPartIdx, uiDepth );
     pcCU.SetPartSizeSubParts( SIZE_2Nx2N, uiAbsPartIdx, uiDepth );
-    pcCU.SetSizeSubParts( TLibCommon.G_uiMaxCUWidth>>uiDepth, TLibCommon.G_uiMaxCUHeight>>uiDepth, uiAbsPartIdx, uiDepth ); 
+    pcCU.SetSizeSubParts( TLibCommon.G_uiMaxCUWidth>>uiDepth, TLibCommon.G_uiMaxCUHeight>>uiDepth, uiAbsPartIdx, uiDepth );
     pcCU.SetTrIdxSubParts( 0, uiAbsPartIdx, uiDepth );
   }
 #else*/
@@ -262,10 +262,10 @@ func (this *TDecCu)  xDecodeCU               ( pcCU *TLibCommon.TComDataCU,  uiA
 
   uiCurrWidth      := pcCU.GetWidth1 ( uiAbsPartIdx );
   uiCurrHeight     := pcCU.GetHeight1( uiAbsPartIdx );
-  
+
   // prediction mode ( Intra : direction mode, Inter : Mv, reference idx )
   this.m_pcEntropyDecoder.DecodePredInfo( pcCU, uiAbsPartIdx, uiDepth, this.m_ppcCU[uiDepth]);
-  
+
   // Coefficient decoding
   bCodeDQP := this.GetdQPFlag();
   this.m_pcEntropyDecoder.DecodeCoeff( pcCU, uiAbsPartIdx, uiDepth, uint(uiCurrWidth), uint(uiCurrHeight), &bCodeDQP );
@@ -318,26 +318,26 @@ func (this *TDecCu)  xDecodeSliceEnd         ( pcCU *TLibCommon.TComDataCU,     
       pcSlice.SetSliceCurEndCUAddr(pcCU.GetSCUAddr()+uiAbsPartIdx+uiCurNumParts);
       pcSlice.SetDependentSliceCurEndCUAddr(pcCU.GetSCUAddr()+uiAbsPartIdx+uiCurNumParts);
     }
-  } 
+  }
 
   return uiIsLast>0;
 }
 func (this *TDecCu)  xDecompressCU           ( pcCU *TLibCommon.TComDataCU, pcCUCur *TLibCommon.TComDataCU,   uiAbsPartIdx,  uiDepth uint){
   pcPic := pcCU.GetPic();
-  
+
   bBoundary := false;
   uiLPelX   := pcCU.GetCUPelX() + TLibCommon.G_auiRasterToPelX[ TLibCommon.G_auiZscanToRaster[uiAbsPartIdx] ];
   uiRPelX   := uiLPelX + (TLibCommon.G_uiMaxCUWidth>>uiDepth)  - 1;
   uiTPelY   := pcCU.GetCUPelY() + TLibCommon.G_auiRasterToPelY[ TLibCommon.G_auiZscanToRaster[uiAbsPartIdx] ];
   uiBPelY   := uiTPelY + (TLibCommon.G_uiMaxCUHeight>>uiDepth) - 1;
-  
+
   uiCurNumParts  := pcPic.GetNumPartInCU() >> (uiDepth<<1);
   pcSlice := pcCU.GetPic().GetSlice(pcCU.GetPic().GetCurrSliceIdx());
   bStartInCU := pcCU.GetSCUAddr()+uiAbsPartIdx+uiCurNumParts>pcSlice.GetDependentSliceCurStartCUAddr()&&pcCU.GetSCUAddr()+uiAbsPartIdx<pcSlice.GetDependentSliceCurStartCUAddr();
   if bStartInCU||( uiRPelX >= pcSlice.GetSPS().GetPicWidthInLumaSamples() ) || ( uiBPelY >= pcSlice.GetSPS().GetPicHeightInLumaSamples() ) {
     bBoundary = true;
   }
-  
+
   if ( ( uiDepth < uint(pcCU.GetDepth1( uiAbsPartIdx )) ) && ( uiDepth < TLibCommon.G_uiMaxCUDepth - TLibCommon.G_uiAddCUDepth ) ) || bBoundary {
     uiNextDepth := uiDepth + 1;
     uiQNumParts := pcCU.GetTotalNumPart() >> (uiNextDepth<<1);
@@ -345,20 +345,20 @@ func (this *TDecCu)  xDecompressCU           ( pcCU *TLibCommon.TComDataCU, pcCU
     for uiPartIdx := 0; uiPartIdx < 4; uiPartIdx++ {
       uiLPelX = pcCU.GetCUPelX() + TLibCommon.G_auiRasterToPelX[ TLibCommon.G_auiZscanToRaster[uiIdx] ];
       uiTPelY = pcCU.GetCUPelY() + TLibCommon.G_auiRasterToPelY[ TLibCommon.G_auiZscanToRaster[uiIdx] ];
-      
+
       binSlice := (pcCU.GetSCUAddr()+uiIdx+uiQNumParts>pcSlice.GetDependentSliceCurStartCUAddr())&&(pcCU.GetSCUAddr()+uiIdx<pcSlice.GetDependentSliceCurEndCUAddr());
       if binSlice&&( uiLPelX < pcSlice.GetSPS().GetPicWidthInLumaSamples() ) && ( uiTPelY < pcSlice.GetSPS().GetPicHeightInLumaSamples() ) {
         this.xDecompressCU(pcCU, this.m_ppcCU[uiNextDepth], uiIdx, uiNextDepth );
       }
-      
+
       uiIdx += uiQNumParts;
     }
     return;
   }
-  
+
   // Residual reconstruction
   this.m_ppcYuvResi[uiDepth].Clear();
-  
+
   this.m_ppcCU[uiDepth].CopySubCU( pcCU, uiAbsPartIdx, uiDepth );
 
 /*#ifdef ENC_DEC_TRACE*/
@@ -368,22 +368,22 @@ func (this *TDecCu)  xDecompressCU           ( pcCU *TLibCommon.TComDataCU, pcCU
   this.m_pcEntropyDecoder.m_pcEntropyDecoderIf.XReadAeTr(int(this.m_ppcCU[uiDepth].GetCUPelY()),              "cu_y",                      TLibCommon.TRACE_CU);
   this.m_pcEntropyDecoder.m_pcEntropyDecoderIf.XReadAeTr(int(this.m_ppcCU[uiDepth].GetWidth1(0)),             "cu_size",                   TLibCommon.TRACE_CU);
   this.m_pcEntropyDecoder.m_pcEntropyDecoderIf.XReadAeTr(int(this.m_ppcCU[uiDepth].GetPredictionMode1(0)),    "cu_type",                   TLibCommon.TRACE_CU);
-  
+
   if this.m_ppcCU[uiDepth].GetSlice().GetPPS().GetTransquantBypassEnableFlag() {
     this.m_pcEntropyDecoder.m_pcEntropyDecoderIf.XReadAeTr(int(TLibCommon.B2U(this.m_ppcCU[uiDepth].GetCUTransquantBypass1(0))), "cu_transquant_bypass_flag", TLibCommon.TRACE_CU);
   }
 
   if this.m_ppcCU[uiDepth].GetPredictionMode1(0)==TLibCommon.MODE_INTRA {
     this.m_pcEntropyDecoder.m_pcEntropyDecoderIf.XReadAeTr(int(TLibCommon.B2U(this.m_ppcCU[uiDepth].GetIPCMFlag1(0))),           "cu_pcm_skip_flag",        TLibCommon.TRACE_CU);
-        
+
 	  for iPartIdx := byte(0); iPartIdx < this.m_ppcCU[uiDepth].GetNumPartInter(); iPartIdx++ {
 	      var  iWidth, iHeight, iPosX, iPosY int;
 	      var  uiPartAddr uint;
-	
+
 	      this.m_ppcCU[uiDepth].GetPartIndexAndSizePos( uint(iPartIdx), &uiPartAddr, &iWidth, &iHeight, &iPosX, &iPosY );
-	  
+
 	      this.m_pcEntropyDecoder.m_pcEntropyDecoderIf.XTracePUHeader(TLibCommon.TRACE_PU);
-	
+
 	      this.m_pcEntropyDecoder.m_pcEntropyDecoderIf.XReadAeTr(iPosX,                                          "pu_x",                      TLibCommon.TRACE_PU);
 	      this.m_pcEntropyDecoder.m_pcEntropyDecoderIf.XReadAeTr(iPosY,                                          "pu_y",                      TLibCommon.TRACE_PU);
 	      this.m_pcEntropyDecoder.m_pcEntropyDecoderIf.XReadAeTr(iWidth,                                         "pu_width",                  TLibCommon.TRACE_PU);
@@ -402,16 +402,18 @@ func (this *TDecCu)  xDecompressCU           ( pcCU *TLibCommon.TComDataCU, pcCU
       this.m_ppcCU[uiDepth].GetPartIndexAndSizePos( uint(iPartIdx), &uiPartAddr, &iWidth, &iHeight, &iPosX, &iPosY );
 
       this.m_pcEntropyDecoder.m_pcEntropyDecoderIf.XTracePUHeader(TLibCommon.TRACE_PU);
-      
+
       this.m_pcEntropyDecoder.m_pcEntropyDecoderIf.XReadAeTr(iPosX,                                          "pu_x",                      TLibCommon.TRACE_PU);
       this.m_pcEntropyDecoder.m_pcEntropyDecoderIf.XReadAeTr(iPosY,                                          "pu_y",                      TLibCommon.TRACE_PU);
       this.m_pcEntropyDecoder.m_pcEntropyDecoderIf.XReadAeTr(iWidth,                                         "pu_width",                  TLibCommon.TRACE_PU);
       this.m_pcEntropyDecoder.m_pcEntropyDecoderIf.XReadAeTr(iHeight,                                        "pu_height",                 TLibCommon.TRACE_PU);
-      this.m_pcEntropyDecoder.m_pcEntropyDecoderIf.XReadAeTr(int(this.m_ppcCU[uiDepth].GetPartitionSize1(0)),          "pu_shape",                  TLibCommon.TRACE_PU);
-      if this.m_ppcCU[uiDepth].GetCUMvField(TLibCommon.REF_PIC_LIST_0).GetRefIdx(int(uiPartAddr)) >= 0 && 
+      this.m_pcEntropyDecoder.m_pcEntropyDecoderIf.XReadAeTr(int(this.m_ppcCU[uiDepth].GetPartitionSize1(0)),"pu_shape",                  TLibCommon.TRACE_PU);
+
+      //fmt.Printf("(%d,%d)\n", this.m_ppcCU[uiDepth].GetCUMvField(TLibCommon.REF_PIC_LIST_0).GetRefIdx(int(uiPartAddr)), this.m_ppcCU[uiDepth].GetCUMvField(TLibCommon.REF_PIC_LIST_1).GetRefIdx(int(uiPartAddr)));
+      if this.m_ppcCU[uiDepth].GetCUMvField(TLibCommon.REF_PIC_LIST_0).GetRefIdx(int(uiPartAddr)) >= 0 &&
          this.m_ppcCU[uiDepth].GetCUMvField(TLibCommon.REF_PIC_LIST_1).GetRefIdx(int(uiPartAddr)) >= 0 {
         this.m_pcEntropyDecoder.m_pcEntropyDecoderIf.XReadAeTr(2,                                            "pu_inter_pred_mode",        TLibCommon.TRACE_PU);
-        
+
         refIdx := this.m_ppcCU[uiDepth].GetCUMvField(TLibCommon.REF_PIC_LIST_0).GetRefIdx(int(uiPartAddr));
            cMv := this.m_ppcCU[uiDepth].GetCUMvField(TLibCommon.REF_PIC_LIST_0).GetMv(    int(uiPartAddr));
         this.m_ppcCU[uiDepth].ClipMv(cMv);
@@ -427,7 +429,7 @@ func (this *TDecCu)  xDecompressCU           ( pcCU *TLibCommon.TComDataCU, pcCU
         this.m_pcEntropyDecoder.m_pcEntropyDecoderIf.XReadAeTr(int(cMv.GetVer()),                                 "pu_mv_y",        TLibCommon.TRACE_PU);
       }else if this.m_ppcCU[uiDepth].GetCUMvField(TLibCommon.REF_PIC_LIST_0).GetRefIdx(int(uiPartAddr)) >= 0 {
         this.m_pcEntropyDecoder.m_pcEntropyDecoderIf.XReadAeTr(0,                                            "pu_inter_pred_mode",        TLibCommon.TRACE_PU);
-        
+
         refIdx := this.m_ppcCU[uiDepth].GetCUMvField(TLibCommon.REF_PIC_LIST_0).GetRefIdx(int(uiPartAddr));
            cMv := this.m_ppcCU[uiDepth].GetCUMvField(TLibCommon.REF_PIC_LIST_0).GetMv(    int(uiPartAddr));
         this.m_ppcCU[uiDepth].ClipMv(cMv);
@@ -436,7 +438,7 @@ func (this *TDecCu)  xDecompressCU           ( pcCU *TLibCommon.TComDataCU, pcCU
         this.m_pcEntropyDecoder.m_pcEntropyDecoderIf.XReadAeTr(int(cMv.GetVer()),                                 "pu_mv_y",        TLibCommon.TRACE_PU);
       }else if this.m_ppcCU[uiDepth].GetCUMvField(TLibCommon.REF_PIC_LIST_1).GetRefIdx(int(uiPartAddr)) >= 0 {
         this.m_pcEntropyDecoder.m_pcEntropyDecoderIf.XReadAeTr(1,                                            "pu_inter_pred_mode",        TLibCommon.TRACE_PU);
-        
+
         refIdx := this.m_ppcCU[uiDepth].GetCUMvField(TLibCommon.REF_PIC_LIST_1).GetRefIdx(int(uiPartAddr));
            cMv := this.m_ppcCU[uiDepth].GetCUMvField(TLibCommon.REF_PIC_LIST_1).GetMv(    int(uiPartAddr));
         this.m_ppcCU[uiDepth].ClipMv(cMv);
@@ -445,6 +447,7 @@ func (this *TDecCu)  xDecompressCU           ( pcCU *TLibCommon.TComDataCU, pcCU
         this.m_pcEntropyDecoder.m_pcEntropyDecoderIf.XReadAeTr(int(cMv.GetVer()),                                 "pu_mv_y",        TLibCommon.TRACE_PU);
       }else{
         //assert(0);
+        fmt.Printf("pu_inter_pred_mode error\n");
       }
     }
   }
@@ -462,19 +465,19 @@ func (this *TDecCu)  xDecompressCU           ( pcCU *TLibCommon.TComDataCU, pcCU
       //break;
   }
   if this.m_ppcCU[uiDepth].IsLosslessCoded(0) && (this.m_ppcCU[uiDepth].GetIPCMFlag1(0) == false) {
-    this.xFillPCMBuffer(this.m_ppcCU[uiDepth], uiAbsPartIdx, uiDepth);    
+    this.xFillPCMBuffer(this.m_ppcCU[uiDepth], uiAbsPartIdx, uiDepth);
   }
-  
+
   this.xCopyToPic( this.m_ppcCU[uiDepth], pcPic, uiAbsPartIdx, uiDepth );
 }
 
 func (this *TDecCu)  xReconInter             ( pcCU *TLibCommon.TComDataCU, uiAbsPartIdx,  uiDepth uint ){
   // inter prediction
   this.m_pcPrediction.MotionCompensation( pcCU, this.m_ppcYuvReco[uiDepth], TLibCommon.REF_PIC_LIST_X, -1 );
-  
+
   // inter recon
   this.xDecodeInterTexture( pcCU, this.m_ppcYuvReco[uiDepth], 0, uiDepth );
-  
+
   // clip for only non-zero cbp case
   if ( pcCU.GetCbf2( 0, TLibCommon.TEXT_LUMA )!=0 ) || ( pcCU.GetCbf2( 0, TLibCommon.TEXT_CHROMA_U )!=0 ) || ( pcCU.GetCbf2(0, TLibCommon.TEXT_CHROMA_V )!=0 ) {
     this.m_ppcYuvReco[uiDepth].AddClip( this.m_ppcYuvReco[uiDepth], this.m_ppcYuvResi[uiDepth], 0, uint(pcCU.GetWidth1( 0 )) );
@@ -492,7 +495,7 @@ func (this *TDecCu)  xReconIntraQT           ( pcCU *TLibCommon.TComDataCU, uiAb
   }
   uiNumPart     := uint(pcCU.GetNumPartInter());
   uiNumQParts   := pcCU.GetTotalNumPart() >> 2;
-  
+
   if pcCU.GetIPCMFlag1(0) {
     this.xReconPCM( pcCU, uiAbsPartIdx, uiDepth );
     return;
@@ -500,7 +503,7 @@ func (this *TDecCu)  xReconIntraQT           ( pcCU *TLibCommon.TComDataCU, uiAb
 
   for uiPU := uint(0); uiPU < uiNumPart; uiPU++ {
     this.xIntraLumaRecQT( pcCU, uiInitTrDepth, uiPU * uiNumQParts, this.m_ppcYuvReco[uiDepth], this.m_ppcYuvReco[uiDepth], this.m_ppcYuvResi[uiDepth] );
-  }  
+  }
 
   for uiPU := uint(0); uiPU < uiNumPart; uiPU++ {
     this.xIntraChromaRecQT( pcCU, uiInitTrDepth, uiPU * uiNumQParts, this.m_ppcYuvReco[uiDepth], this.m_ppcYuvReco[uiDepth], this.m_ppcYuvResi[uiDepth] );
@@ -513,10 +516,10 @@ func (this *TDecCu)  xIntraRecLumaBlk        ( pcCU *TLibCommon.TComDataCU, uiTr
   piReco            := pcRecoYuv.GetLumaAddr1( uiAbsPartIdx );
   piPred            := pcPredYuv.GetLumaAddr1( uiAbsPartIdx );
   piResi            := pcResiYuv.GetLumaAddr1( uiAbsPartIdx );
-  
+
   uiNumCoeffInc     := ( pcCU.GetSlice().GetSPS().GetMaxCUWidth() * pcCU.GetSlice().GetSPS().GetMaxCUHeight() ) >> ( pcCU.GetSlice().GetSPS().GetMaxCUDepth() << 1 );
   pcCoeff           := pcCU.GetCoeffY() [ ( uiNumCoeffInc * uiAbsPartIdx ):];
-  
+
   uiLumaPredMode    := pcCU.GetLumaIntraDir1     ( uiAbsPartIdx );
 
 /*#ifdef ENC_DEC_TRACE*/
@@ -524,7 +527,7 @@ func (this *TDecCu)  xIntraRecLumaBlk        ( pcCU *TLibCommon.TComDataCU, uiTr
   blkY := int(TLibCommon.G_auiRasterToPelY[ TLibCommon.G_auiZscanToRaster[ uiAbsPartIdx ] ]);
 
   this.m_pcEntropyDecoder.m_pcEntropyDecoderIf.XTraceTUHeader(TLibCommon.TRACE_TU);
-  
+
   this.m_pcEntropyDecoder.m_pcEntropyDecoderIf.XReadAeTr(0,                         "tu_color",  	TLibCommon.TRACE_TU);
   this.m_pcEntropyDecoder.m_pcEntropyDecoderIf.XReadAeTr(blkX,                      "tu_x",		  	TLibCommon.TRACE_TU);
   this.m_pcEntropyDecoder.m_pcEntropyDecoderIf.XReadAeTr(blkY,                      "tu_y",	  		TLibCommon.TRACE_TU);
@@ -540,15 +543,15 @@ func (this *TDecCu)  xIntraRecLumaBlk        ( pcCU *TLibCommon.TComDataCU, uiTr
   bAboveAvail := false;
   bLeftAvail  := false;
   pcCU.GetPattern().InitPattern3  ( pcCU, uiTrDepth, uiAbsPartIdx );
-  pcCU.GetPattern().InitAdiPattern( pcCU, uiAbsPartIdx, uiTrDepth, 
+  pcCU.GetPattern().InitAdiPattern( pcCU, uiAbsPartIdx, uiTrDepth,
                                      this.m_pcPrediction.GetPredicBuf       (),
                                      this.m_pcPrediction.GetPredicBufWidth  (),
                                      this.m_pcPrediction.GetPredicBufHeight (),
-                                     &bAboveAvail, &bLeftAvail, false ); 
-  
+                                     &bAboveAvail, &bLeftAvail, false );
+
   //===== get prediction signal =====
   this.m_pcPrediction.PredIntraLumaAng( pcCU.GetPattern(), uint(uiLumaPredMode), piPred, uiStride, int(uiWidth), int(uiHeight), pcCU, bAboveAvail, bLeftAvail );
-  
+
   //===== inverse transform =====
   this.m_pcTrQuant.SetQPforQuant  ( int(pcCU.GetQP1(0)), TLibCommon.TEXT_LUMA, pcCU.GetSlice().GetSPS().GetQpBDOffsetY(), 0 );
 
@@ -559,18 +562,18 @@ func (this *TDecCu)  xIntraRecLumaBlk        ( pcCU *TLibCommon.TComDataCU, uiTr
   	scalingListType =  3 + TLibCommon.G_eTTable[TLibCommon.TEXT_LUMA];
   }
   //assert(scalingListType < 6);
-  
+
 /*#ifdef ENC_DEC_TRACE*/
   this.m_pcEntropyDecoder.m_pcEntropyDecoderIf.XTraceCoefHeader(TLibCommon.TRACE_COEF);
-  
+
   for k := uint(0); k<uiHeight; k++ {
     this.m_pcEntropyDecoder.m_pcEntropyDecoderIf.XReadCeofTr(pcCoeff[k*uiWidth:], uiWidth, TLibCommon.TRACE_COEF);
   }
-/*#endif*/  
+/*#endif*/
   this.m_pcTrQuant.InvtransformNxN( pcCU.GetCUTransquantBypass1(uiAbsPartIdx), TLibCommon.TEXT_LUMA, uint(pcCU.GetLumaIntraDir1( uiAbsPartIdx )), piResi, uiStride, pcCoeff, uiWidth, uiHeight, scalingListType, useTransformSkip );
 /*#ifdef ENC_DEC_TRACE*/
   this.m_pcEntropyDecoder.m_pcEntropyDecoderIf.XTraceResiHeader(TLibCommon.TRACE_RESI);
-  
+
   for k := uint(0); k<uiHeight; k++ {
     this.m_pcEntropyDecoder.m_pcEntropyDecoderIf.XReadResiTr(piResi[k*uiStride:], uiWidth, TLibCommon.TRACE_RESI);
   }
@@ -579,7 +582,7 @@ func (this *TDecCu)  xIntraRecLumaBlk        ( pcCU *TLibCommon.TComDataCU, uiTr
 /*#ifdef ENC_DEC_TRACE*/
   {
     this.m_pcEntropyDecoder.m_pcEntropyDecoderIf.XTracePredHeader(TLibCommon.TRACE_PRED);
-    
+
     pPred := piPred;
     for uiY := uint(0); uiY < uiHeight; uiY++ {
       this.m_pcEntropyDecoder.m_pcEntropyDecoderIf.XReadPredTr(pPred[uiY*uiStride:], uiWidth, TLibCommon.TRACE_PRED);
@@ -621,15 +624,15 @@ func (this *TDecCu)  xIntraRecChromaBlk      ( pcCU *TLibCommon.TComDataCU, uiTr
       return;
     }
   }
-  
+
   uiWidth           := uint(pcCU.GetWidth1   ( 0 )) >> ( uiTrDepth + 1 );
   uiHeight          := uint(pcCU.GetHeight1  ( 0 )) >> ( uiTrDepth + 1 );
   uiStride          := pcRecoYuv.GetCStride ();
   uiNumCoeffInc     := ( ( pcCU.GetSlice().GetSPS().GetMaxCUWidth() * pcCU.GetSlice().GetSPS().GetMaxCUHeight() ) >> ( pcCU.GetSlice().GetSPS().GetMaxCUDepth() << 1 ) ) >> 2;
-  
+
   var eText TLibCommon.TextType;
   var piReco, piPred, piResi []TLibCommon.Pel;
-  var pcCoeff []TLibCommon.TCoeff; 
+  var pcCoeff []TLibCommon.TCoeff;
   if uiChromaId > 0 {
 	  eText             = TLibCommon.TEXT_CHROMA_V;
 	  piReco            = pcRecoYuv.GetCrAddr1( uiAbsPartIdx ) ;
@@ -651,7 +654,7 @@ func (this *TDecCu)  xIntraRecChromaBlk      ( pcCU *TLibCommon.TComDataCU, uiTr
     blkY := int(TLibCommon.G_auiRasterToPelY[ TLibCommon.G_auiZscanToRaster[ uiAbsPartIdx ] ])>>1;
 
     this.m_pcEntropyDecoder.m_pcEntropyDecoderIf.XTraceTUHeader(TLibCommon.TRACE_TU);
-  
+
     this.m_pcEntropyDecoder.m_pcEntropyDecoderIf.XReadAeTr(int(uiChromaId)+1,         "tu_color",   TLibCommon.TRACE_TU);
     this.m_pcEntropyDecoder.m_pcEntropyDecoderIf.XReadAeTr(blkX,                      "tu_x",       TLibCommon.TRACE_TU);
     this.m_pcEntropyDecoder.m_pcEntropyDecoderIf.XReadAeTr(blkY,                      "tu_y",	    TLibCommon.TRACE_TU);
@@ -659,7 +662,7 @@ func (this *TDecCu)  xIntraRecChromaBlk      ( pcCU *TLibCommon.TComDataCU, uiTr
     this.m_pcEntropyDecoder.m_pcEntropyDecoderIf.XReadAeTr(int(uiHeight),		      "tu_height",	TLibCommon.TRACE_TU);
   //}
 /*#endif*/
-  
+
   uiZOrder          := pcCU.GetZorderIdxInCU() + uiAbsPartIdx;
   var piRecIPred []TLibCommon.Pel;
   if uiChromaId > 0 {
@@ -678,7 +681,7 @@ func (this *TDecCu)  xIntraRecChromaBlk      ( pcCU *TLibCommon.TComDataCU, uiTr
                                            this.m_pcPrediction.GetPredicBuf       (),
                                            this.m_pcPrediction.GetPredicBufWidth  (),
                                            this.m_pcPrediction.GetPredicBufHeight (),
-                                           &bAboveAvail, &bLeftAvail );
+                                           &bAboveAvail, &bLeftAvail, uiChromaId);
   var pPatChroma []TLibCommon.Pel;
   if uiChromaId > 0 {
    	pPatChroma = pcCU.GetPattern().GetAdiCrBuf( int(uiWidth), int(uiHeight), this.m_pcPrediction.GetPredicBuf() );
@@ -690,7 +693,7 @@ func (this *TDecCu)  xIntraRecChromaBlk      ( pcCU *TLibCommon.TComDataCU, uiTr
     if uiChromaPredMode == TLibCommon.DM_CHROMA_IDX {
       uiChromaPredMode = pcCU.GetLumaIntraDir1( 0 );
     }
-    this.m_pcPrediction.PredIntraChromaAng( pcCU.GetPattern(), pPatChroma, uint(uiChromaPredMode), piPred, uiStride, int(uiWidth), int(uiHeight), pcCU, bAboveAvail, bLeftAvail );  
+    this.m_pcPrediction.PredIntraChromaAng( pcCU.GetPattern(), pPatChroma, uint(uiChromaPredMode), piPred, uiStride, int(uiWidth), int(uiHeight), pcCU, bAboveAvail, bLeftAvail );
   }
 
   //===== inverse transform =====
@@ -711,15 +714,15 @@ func (this *TDecCu)  xIntraRecChromaBlk      ( pcCU *TLibCommon.TComDataCU, uiTr
   //assert(scalingListType < 6);
  /*#ifdef ENC_DEC_TRACE*/
   this.m_pcEntropyDecoder.m_pcEntropyDecoderIf.XTraceCoefHeader(TLibCommon.TRACE_COEF);
-  
+
   for k := uint(0); k<uiHeight; k++ {
     this.m_pcEntropyDecoder.m_pcEntropyDecoderIf.XReadCeofTr(pcCoeff[k*uiWidth:], uiWidth, TLibCommon.TRACE_COEF);
   }
-/*#endif*/ 
+/*#endif*/
   this.m_pcTrQuant.InvtransformNxN( pcCU.GetCUTransquantBypass1(uiAbsPartIdx), eText, TLibCommon.REG_DCT, piResi, uiStride, pcCoeff, uiWidth, uiHeight, scalingListType, useTransformSkipChroma );
 /*#ifdef ENC_DEC_TRACE*/
   this.m_pcEntropyDecoder.m_pcEntropyDecoderIf.XTraceResiHeader(TLibCommon.TRACE_RESI);
-  
+
   for k := uint(0); k<uiHeight; k++ {
     this.m_pcEntropyDecoder.m_pcEntropyDecoderIf.XReadResiTr(piResi[k*uiStride:], uiWidth, TLibCommon.TRACE_RESI);
   }
@@ -727,7 +730,7 @@ func (this *TDecCu)  xIntraRecChromaBlk      ( pcCU *TLibCommon.TComDataCU, uiTr
 /*#ifdef ENC_DEC_TRACE*/
   {
     this.m_pcEntropyDecoder.m_pcEntropyDecoderIf.XTracePredHeader(TLibCommon.TRACE_PRED);
-    
+
     pPred := piPred;
     for uiY := uint(0); uiY < uiHeight; uiY++ {
       this.m_pcEntropyDecoder.m_pcEntropyDecoderIf.XReadPredTr(pPred[uiY*uiStride:], uiWidth, TLibCommon.TRACE_PRED);
@@ -770,16 +773,16 @@ func (this *TDecCu)  xReconPCM               ( pcCU *TLibCommon.TComDataCU, uiAb
 /*#ifdef ENC_DEC_TRACE*/
   blkX := 0;//TLibCommon.G_auiRasterToPelX[ TLibCommon.G_auiZscanToRaster[ uiAbsPartIdx ] ];
   blkY := 0;//TLibCommon.G_auiRasterToPelY[ TLibCommon.G_auiZscanToRaster[ uiAbsPartIdx ] ];
-  
+
   this.m_pcEntropyDecoder.m_pcEntropyDecoderIf.XTraceTUHeader(TLibCommon.TRACE_TU);
-  
+
   this.m_pcEntropyDecoder.m_pcEntropyDecoderIf.XReadAeTr(0,                         "tu_color",   TLibCommon.TRACE_TU);
   this.m_pcEntropyDecoder.m_pcEntropyDecoderIf.XReadAeTr(blkX,                      "tu_x",		  TLibCommon.TRACE_TU);
   this.m_pcEntropyDecoder.m_pcEntropyDecoderIf.XReadAeTr(blkY,                      "tu_y",	  	  TLibCommon.TRACE_TU);
   this.m_pcEntropyDecoder.m_pcEntropyDecoderIf.XReadAeTr(int(uiWidth),	            "tu_width",	  TLibCommon.TRACE_TU);
   this.m_pcEntropyDecoder.m_pcEntropyDecoderIf.XReadAeTr(int(uiHeight),	            "tu_height",  TLibCommon.TRACE_TU);
 /*#endif*/
-  
+
   this.xDecodePCMTexture( pcCU, 0, piPcmY, piRecoY, uiStride, uiWidth, uiHeight, TLibCommon.TEXT_LUMA);
 
   // Cb and Cr
@@ -796,21 +799,21 @@ func (this *TDecCu)  xReconPCM               ( pcCU *TLibCommon.TComDataCU, uiAb
 /*#ifdef ENC_DEC_TRACE*/
   CblkX := 0;//TLibCommon.G_auiRasterToPelX[ TLibCommon.G_auiZscanToRaster[ uiAbsPartIdx ] ]>>1;
   CblkY := 0;//TLibCommon.G_auiRasterToPelY[ TLibCommon.G_auiZscanToRaster[ uiAbsPartIdx ] ]>>1;
-  
+
   this.m_pcEntropyDecoder.m_pcEntropyDecoderIf.XTraceTUHeader(TLibCommon.TRACE_TU);
-  
+
   this.m_pcEntropyDecoder.m_pcEntropyDecoderIf.XReadAeTr(1,                         "tu_color",  	TLibCommon.TRACE_TU);
   this.m_pcEntropyDecoder.m_pcEntropyDecoderIf.XReadAeTr(CblkX,                     "tu_x",		  	TLibCommon.TRACE_TU);
   this.m_pcEntropyDecoder.m_pcEntropyDecoderIf.XReadAeTr(CblkY,                     "tu_y",	  		TLibCommon.TRACE_TU);
   this.m_pcEntropyDecoder.m_pcEntropyDecoderIf.XReadAeTr(int(uiCWidth),		        "tu_width",		TLibCommon.TRACE_TU);
   this.m_pcEntropyDecoder.m_pcEntropyDecoderIf.XReadAeTr(int(uiCHeight),            "tu_height",	TLibCommon.TRACE_TU);
 /*#endif*/
-  
+
   this.xDecodePCMTexture( pcCU, 0, piPcmCb, pRecoCb, uiCStride, uiCWidth, uiCHeight, TLibCommon.TEXT_CHROMA_U);
-  
+
 /*#ifdef ENC_DEC_TRACE*/
   this.m_pcEntropyDecoder.m_pcEntropyDecoderIf.XTraceTUHeader(TLibCommon.TRACE_TU);
-  
+
   this.m_pcEntropyDecoder.m_pcEntropyDecoderIf.XReadAeTr(2,                         "tu_color",     TLibCommon.TRACE_TU);
   this.m_pcEntropyDecoder.m_pcEntropyDecoderIf.XReadAeTr(CblkX,                     "tu_x",		    TLibCommon.TRACE_TU);
   this.m_pcEntropyDecoder.m_pcEntropyDecoderIf.XReadAeTr(CblkY,                     "tu_y",	  	    TLibCommon.TRACE_TU);
@@ -824,10 +827,10 @@ func (this *TDecCu)  xDecodeInterTexture     ( pcCU *TLibCommon.TComDataCU, pcYu
   uiWidth    := uint(pcCU.GetWidth1 ( uiAbsPartIdx ));
   uiHeight   := uint(pcCU.GetHeight1( uiAbsPartIdx ));
   var piCoeff []TLibCommon.TCoeff;
-  
+
   var pResi []TLibCommon.Pel;
   trMode := uint(pcCU.GetTransformIdx1( uiAbsPartIdx ));
-  
+
   // Y
   piCoeff = pcCU.GetCoeffY();
   pResi = this.m_ppcYuvResi[uiDepth].GetLumaAddr();
@@ -835,7 +838,7 @@ func (this *TDecCu)  xDecodeInterTexture     ( pcCU *TLibCommon.TComDataCU, pcYu
   this.m_pcTrQuant.SetQPforQuant( int(pcCU.GetQP1( uiAbsPartIdx )), TLibCommon.TEXT_LUMA, pcCU.GetSlice().GetSPS().GetQpBDOffsetY(), 0 );
 
   this.m_pcTrQuant.InvRecurTransformNxN ( pcCU, pcYuvPred, 0, TLibCommon.TEXT_LUMA, pResi, 0, this.m_ppcYuvResi[uiDepth].GetStride(), uiWidth, uiHeight, trMode, 0, piCoeff );
-  
+
   // Cb and Cr
   curChromaQpOffset := pcCU.GetSlice().GetPPS().GetChromaCbQpOffset() + pcCU.GetSlice().GetSliceQpDeltaCb();
   this.m_pcTrQuant.SetQPforQuant( int(pcCU.GetQP1( uiAbsPartIdx )), TLibCommon.TEXT_CHROMA, pcCU.GetSlice().GetSPS().GetQpBDOffsetC(), curChromaQpOffset );
@@ -854,21 +857,21 @@ func (this *TDecCu)  xDecodeInterTexture     ( pcCU *TLibCommon.TComDataCU, pcYu
 func (this *TDecCu)  xDecodePCMTexture       ( pcCU *TLibCommon.TComDataCU,  uiPartIdx uint, piPCM, piReco []TLibCommon.Pel,  uiStride,  uiWidth,  uiHeight uint,  ttText TLibCommon.TextType){
   var uiX, uiY uint;
   var piPicReco []TLibCommon.Pel;
-  var uiPicStride,uiPcmLeftShiftBit uint; 
-  
+  var uiPicStride,uiPcmLeftShiftBit uint;
+
 /* #ifdef ENC_DEC_TRACE*/
   this.m_pcEntropyDecoder.m_pcEntropyDecoderIf.XTraceCoefHeader(TLibCommon.TRACE_COEF);
-  
+
   var coeffs	[64]TLibCommon.TCoeff;
   for uiY = 0; uiY < uiHeight; uiY++ {
     for uiX = 0; uiX < uiWidth; uiX++ {
       coeffs[uiX] = TLibCommon.TCoeff(piPCM[uiY*uiWidth+uiX]);
-    }  
+    }
     this.m_pcEntropyDecoder.m_pcEntropyDecoderIf.XReadCeofTr(coeffs[:], uiWidth, TLibCommon.TRACE_COEF);
   }
-  
+
   this.m_pcEntropyDecoder.m_pcEntropyDecoderIf.XTraceResiHeader(TLibCommon.TRACE_RESI);
-  
+
   for uiY = 0; uiY < uiHeight; uiY++ {
     this.m_pcEntropyDecoder.m_pcEntropyDecoderIf.XReadResiTr(piPCM[uiY*uiWidth:], uiWidth, TLibCommon.TRACE_RESI);
   }
@@ -888,7 +891,7 @@ func (this *TDecCu)  xDecodePCMTexture       ( pcCU *TLibCommon.TComDataCU,  uiP
     this.m_pcEntropyDecoder.m_pcEntropyDecoderIf.XReadRecoTr(piPCM[uiY*uiWidth:], uiWidth, TLibCommon.TRACE_RECON);
   }
 /*#endif*/
-  
+
   if ttText == TLibCommon.TEXT_LUMA {
     uiPicStride = uint(pcCU.GetPic().GetPicYuvRec().GetStride());
     piPicReco = pcCU.GetPic().GetPicYuvRec().GetLumaAddr2(int(pcCU.GetAddr()), int(pcCU.GetZorderIdxInCU()+uiPartIdx));
@@ -917,9 +920,9 @@ func (this *TDecCu)  xDecodePCMTexture       ( pcCU *TLibCommon.TComDataCU,  uiP
 
 func (this *TDecCu)  xCopyToPic              ( pcCU *TLibCommon.TComDataCU, pcPic *TLibCommon.TComPic,  uiZorderIdx,  uiDepth uint){
   uiCUAddr := pcCU.GetAddr();
-  
+
   this.m_ppcYuvReco[uiDepth].CopyToPicYuv  ( pcPic.GetPicYuvRec (), uiCUAddr, uiZorderIdx, 0, 0 );
-  
+
   return;
 }
 

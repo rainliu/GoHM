@@ -1578,7 +1578,7 @@ func (this *TComDataCU)  GetZorderIdxInCU      ()   uint                     {
 	return this.m_uiAbsIdxInLCU;
 }
 func (this *TComDataCU)  GetSCUAddr            ()	   uint{
-  return this.GetPic().GetPicSym().GetInverseCUOrderMap(int(this.m_uiCUAddr))*(1<<(this.m_pcSlice.GetSPS().GetMaxCUDepth()<<1))+this.m_uiAbsIdxInLCU; 
+  return this.GetPic().GetPicSym().GetInverseCUOrderMap(int(this.m_uiCUAddr))*(1<<(this.m_pcSlice.GetSPS().GetMaxCUDepth()<<1))+this.m_uiAbsIdxInLCU;
 }
 func (this *TComDataCU)  GetCUPelX             ()    uint                    {
 	return this.m_uiCUPelX;
@@ -2802,33 +2802,32 @@ func (this *TComDataCU)  GetPartIndexAndSizePos(  uiPartIdx uint, ruiPartAddr *u
       *ruiPartAddr = 0;
       *rPosX = 0;
       *rPosY = 0;
-
   }
 }
 
 func (this *TComDataCU)  GetPartIndexAndSize   (  uiPartIdx uint, ruiPartAddr *uint, riWidth, riHeight *int ){
   switch this.m_pePartSize[0] {
     case SIZE_2NxN:
-      *riWidth  = int(this.GetWidth1(0));      
-      *riHeight = int(this.GetHeight1(0)) >> 1; 
+      *riWidth  = int(this.GetWidth1(0));
+      *riHeight = int(this.GetHeight1(0)) >> 1;
       if  uiPartIdx == 0{
       	*ruiPartAddr = 0;
       }else{
       	*ruiPartAddr = this.m_uiNumPartition >> 1;
       }
     case SIZE_Nx2N:
-      *riWidth  = int(this.GetWidth1(0)) >> 1; 
-      *riHeight = int(this.GetHeight1(0)); 
-      if uiPartIdx == 0 {    
+      *riWidth  = int(this.GetWidth1(0)) >> 1;
+      *riHeight = int(this.GetHeight1(0));
+      if uiPartIdx == 0 {
       	*ruiPartAddr = 0;
       }else{
       	*ruiPartAddr = this.m_uiNumPartition >> 2;
       }
     case SIZE_NxN:
-      *riWidth  = int(this.GetWidth1(0)) >> 1; 
-      *riHeight = int(this.GetHeight1(0)) >> 1; 
+      *riWidth  = int(this.GetWidth1(0)) >> 1;
+      *riHeight = int(this.GetHeight1(0)) >> 1;
       *ruiPartAddr = ( this.m_uiNumPartition >> 2 ) * uiPartIdx;
-      
+
     case SIZE_2NxnU:
       *riWidth     = int(this.GetWidth1(0));
       if uiPartIdx == 0{
@@ -2847,7 +2846,7 @@ func (this *TComDataCU)  GetPartIndexAndSize   (  uiPartIdx uint, ruiPartAddr *u
       	*riHeight    =  int(this.GetHeight1(0)) >> 2;
       	*ruiPartAddr =  (this.m_uiNumPartition >> 1) + (this.m_uiNumPartition >> 3);
       }
-      
+
     case SIZE_nLx2N:
       *riHeight    = int(this.GetHeight1(0));
       if uiPartIdx == 0 {
@@ -2857,7 +2856,7 @@ func (this *TComDataCU)  GetPartIndexAndSize   (  uiPartIdx uint, ruiPartAddr *u
       	*riWidth     = int( this.GetWidth1(0) >> 2 ) + int( this.GetWidth1(0) >> 1 );
       	*ruiPartAddr = this.m_uiNumPartition >> 4;
       }
-      
+
     case SIZE_nRx2N:
       *riHeight    = int(this.GetHeight1(0));
       if uiPartIdx == 0 {
@@ -2867,14 +2866,14 @@ func (this *TComDataCU)  GetPartIndexAndSize   (  uiPartIdx uint, ruiPartAddr *u
       	*riWidth     = int(this.GetWidth1(0) >> 2);
       	*ruiPartAddr = (this.m_uiNumPartition >> 2) + (this.m_uiNumPartition >> 4);
       }
-      
+
     default:
       //assert ( m_pePartSize[0] == SIZE_2Nx2N );
-      *riWidth  = int(this.GetWidth1(0));      
-      *riHeight = int(this.GetHeight1(0));      
+      *riWidth  = int(this.GetWidth1(0));
+      *riHeight = int(this.GetHeight1(0));
       *ruiPartAddr = 0;
-      
-  } 
+
+  }
 }
 func (this *TComDataCU)  GetNumPartInter       () byte{
   iNumPart := byte(0);
@@ -3162,11 +3161,11 @@ func (this *TComDataCU)  SetMVPNumSubParts     ( iMVPNum int,  eRefPicList RefPi
 func (this *TComDataCU)  ClipMv                ( rcMv  *TComMv   ){
   iMvShift := uint(2);
   iOffset := 8;
-  iHorMax := ( this.m_pcSlice.GetSPS().GetPicWidthInLumaSamples() + uint(iOffset) - this.m_uiCUPelX - 1 ) << iMvShift;
-  iHorMin := (       - int(G_uiMaxCUWidth) - iOffset - int(this.m_uiCUPelX) + 1 ) << iMvShift;
+  iHorMax := int16( this.m_pcSlice.GetSPS().GetPicWidthInLumaSamples() + uint(iOffset) - this.m_uiCUPelX - 1 ) << iMvShift;
+  iHorMin := int16(       - int(G_uiMaxCUWidth) - iOffset - int(this.m_uiCUPelX) + 1 ) << iMvShift;
 
-  iVerMax := ( this.m_pcSlice.GetSPS().GetPicHeightInLumaSamples() + uint(iOffset) - this.m_uiCUPelY - 1 ) << iMvShift;
-  iVerMin := (       - int(G_uiMaxCUHeight) - iOffset - int(this.m_uiCUPelY) + 1 ) << iMvShift;
+  iVerMax := int16( this.m_pcSlice.GetSPS().GetPicHeightInLumaSamples() + uint(iOffset) - this.m_uiCUPelY - 1 ) << iMvShift;
+  iVerMin := int16(       - int(G_uiMaxCUHeight) - iOffset - int(this.m_uiCUPelY) + 1 ) << iMvShift;
 
   rcMv.SetHor( MIN (iHorMax, MAX (iHorMin, rcMv.GetHor()).(int16)).(int16) );
   rcMv.SetVer( MIN (iVerMax, MAX (iVerMin, rcMv.GetVer()).(int16)).(int16) );
@@ -3218,7 +3217,7 @@ func (this *TComDataCU)  GetPULeft          ( uiLPartUnitIdx *uint,
   uiAbsZorderCUIdx   := G_auiZscanToRaster[this.m_uiAbsIdxInLCU];
   uiNumPartInCUWidth := this.m_pcPic.GetNumPartInWidth();
   //fmt.Printf("uiNumPartInCUWidth=%d\n %v", uiNumPartInCUWidth, IsZeroCol( int(uiAbsPartIdx), int(uiNumPartInCUWidth) ));
-  
+
   if  !IsZeroCol( int(uiAbsPartIdx), int(uiNumPartInCUWidth) ) {
     *uiLPartUnitIdx = G_auiRasterToZscan[ uiAbsPartIdx - 1 ];
     if IsEqualCol( int(uiAbsPartIdx), int(uiAbsZorderCUIdx), int(uiNumPartInCUWidth) ) {
@@ -4390,7 +4389,7 @@ func (this *TComDataCU)  GetCtxSplitFlag                 (    uiAbsPartIdx,  uiD
 //#else
 //  pcTempCU = this.GetPUAbove( uiTempPartIdx, this.m_uiAbsIdxInLCU + uiAbsPartIdx );
 //#endif
-  
+
   if pcTempCU!=nil{
   	if uint(pcTempCU.GetDepth1( uiTempPartIdx )) > uiDepth {
   		uiCtx += 1

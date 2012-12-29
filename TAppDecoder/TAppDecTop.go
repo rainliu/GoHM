@@ -62,7 +62,8 @@ func (this *TAppDecTop) Decode() (err error){
   recon_opened := false; // reconstruction file not yet opened. (must be performed after SPS is seen)
   eof := false
   bNewPicture := false;
-  for !eof {// (!!bitstreamFile)
+  iDecodedFrameNum := 0;
+  for !eof || bNewPicture {// (!!bitstreamFile)
     /* location serves to work around a design fault in the decoder, whereby
      * the process of reading a new slice that is the first slice of a new frame
      * requires the TDecTop::decode() method to be called again with the same
@@ -86,7 +87,7 @@ func (this *TAppDecTop) Decode() (err error){
       fmt.Printf("Warning: Attempt to decode an empty NAL unit\n");
       break;
     }else{
-      fmt.Printf("NalUnit Len=%d\n", nalUnit.Len())
+      //fmt.Printf("NalUnit Len=%d\n", nalUnit.Len())
       nalu.Read(nalUnit);
       //fmt.Printf("Type=%d\n", nalu.GetNalUnitType())
 
@@ -130,6 +131,11 @@ func (this *TAppDecTop) Decode() (err error){
       // write reconstruction to file
       if bNewPicture {
         this.xWriteOutput( pcListPic, nalu.GetTemporalId() );
+
+        iDecodedFrameNum++;
+        if iDecodedFrameNum >= this.m_iFrameNum {
+            break;
+        }
       }
     }
   }
