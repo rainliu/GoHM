@@ -190,9 +190,13 @@ func (this *TComPattern)  InitPattern3 ( pcCU *TComDataCU, uiPartDepth,uiAbsPart
     uiOffsetAbove = 1;
 
     if uiCurrPicPelX + uiWidth < pcCU.GetSlice().GetSPS().GetPicWidthInLumaSamples() {
+      //fmt.Printf("uiAbsPartIdx=%d,uiAbsZorderIdx=%d (%d-%d-%d)\n", uiAbsPartIdx,uiAbsZorderIdx, G_auiZscanToRaster[uiAbsZorderIdx],pcPic.GetNumPartInWidth(), uiNumPartInWidth);
+        
       if ( G_auiZscanToRaster[uiAbsZorderIdx] + uiNumPartInWidth ) % pcPic.GetNumPartInWidth() !=0 { // Not CU boundary
-        if G_auiRasterToZscan[ int(G_auiZscanToRaster[uiAbsZorderIdx]) - int(pcPic.GetNumPartInWidth()) + int(uiNumPartInWidth) ] < uiAbsZorderIdx {
-          uiOffsetRight = 1;
+        if int(G_auiZscanToRaster[uiAbsZorderIdx]) - int(pcPic.GetNumPartInWidth()) + int(uiNumPartInWidth) >=0 {
+        	if G_auiRasterToZscan[ int(G_auiZscanToRaster[uiAbsZorderIdx]) - int(pcPic.GetNumPartInWidth()) + int(uiNumPartInWidth) ] < uiAbsZorderIdx {
+          		uiOffsetRight = 1;
+        	}
         }
       }else{ // if it is CU boundary
         if G_auiZscanToRaster[uiAbsZorderIdx] < pcPic.GetNumPartInWidth() && (uiCurrPicPelX+uiWidth) < uint(pcPic.GetPicYuvRec().GetWidth()) { // first line

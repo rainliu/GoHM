@@ -1,6 +1,8 @@
 package TLibCommon
 
-import ("fmt")
+import (
+	//"fmt"
+)
 
 const NTAPS_LUMA = 8                                   ///< Number of taps for luma
 const NTAPS_CHROMA = 4                                 ///< Number of taps for chroma
@@ -128,7 +130,7 @@ func (this *TComInterpolationFilter) filterCopy( bitDepth int, src []Pel, srcStr
   }
 }
 
-func (this *TComInterpolationFilter) filter(N int, isVertical, isFirst, isLast bool, bitDepth int, src []Pel, srcStride int, dst []Pel, dstStride, width, height int, coeff []Pel){
+func (this *TComInterpolationFilter) filter(N int, isVertical, isFirst, isLast bool, bitDepth int, src2 []Pel, srcStride int, dst []Pel, dstStride, width, height int, coeff []Pel){
   var row, col int;
   
   var c	[8]Pel;
@@ -154,8 +156,9 @@ func (this *TComInterpolationFilter) filter(N int, isVertical, isFirst, isLast b
   	cStride = 1;
   }
 
-  src = src[-( N/2 - 1 ) * cStride:];
-  fmt.Printf("How to handle src -= ( N/2 - 1 ) * cStride?\n");
+  src := src2[-( N/2 - 1 ) * cStride:];
+  //src := src2[( N/2 - 1 ) * cStride-( N/2 - 1 ) * cStride:];
+  //fmt.Printf("How to handle src -= ( N/2 - 1 ) * cStride?\n");
   
   var offset int;
   var maxVal int;

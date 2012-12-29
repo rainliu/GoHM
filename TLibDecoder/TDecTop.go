@@ -78,8 +78,8 @@ func NewTDecTop() *TDecTop {
     	m_cSbacDecoder    :NewTDecSbac(),
     	m_cBinCabac       :NewTDecBinCabac(),
     	m_cSeiReader      :NewTDecSeiReader(),
-    	m_cLoopFilter     :nil,//TLibCommon.NewTComLoopFilter(),
-    	m_cSAO            :nil}//TLibCommon.NewTComSampleAdaptiveOffset()}
+    	m_cLoopFilter     :TLibCommon.NewTComLoopFilter(),
+    	m_cSAO            :TLibCommon.NewTComSampleAdaptiveOffset()}
 }
 
 func (this *TDecTop) Create(pchTraceFile string) {

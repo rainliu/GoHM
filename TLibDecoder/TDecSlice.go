@@ -1,6 +1,7 @@
 package TLibDecoder
 
 import (
+	"fmt"
 	//"container/list"
     "gohm/TLibCommon"
 )
@@ -151,6 +152,8 @@ func (this *TDecSlice) DecompressSlice   ( pcBitstream *TLibCommon.TComInputBits
     pcCU := rpcPic.GetCU( uint(iCUAddr) );
     pcCU.InitCU( rpcPic, uint(iCUAddr) );
 
+	fmt.Printf("%d ", iCUAddr);
+	
 //#ifdef ENC_DEC_TRACE
     pcSbacDecoder.XTraceLCUHeader(TLibCommon.TRACE_LCU);
     pcSbacDecoder.XReadAeTr (iCUAddr, "lcu_address", TLibCommon.TRACE_LCU);

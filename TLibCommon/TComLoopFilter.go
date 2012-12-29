@@ -80,7 +80,7 @@ func (this *TComLoopFilter) Destroy() {
 
 
 //#if USE_PIC_CHROMA_QP_OFFSETS_IN_DEBLOCKING
-func (this *TComLoopFilter)  QpUV(iQpY int) int{
+func (this *TComLoopFilter) QpUV(iQpY int) int{
 	if iQpY < 0 {
 		return iQpY;
 	}else if iQpY > 57 {
@@ -421,7 +421,7 @@ func (this *TComLoopFilter) xGetBoundaryStrengthSingle ( pcCU *TComDataCU,  uiAb
   this.m_aapucBS[iDir][uiAbsPartIdx] = byte(uiBs);
 }
 
-func (this *TComLoopFilter)   xCalcBsIdx           ( pcCU *TComDataCU,  uiAbsZorderIdx uint,  iDir,  iEdgeIdx,  iBaseUnitIdx int) uint{
+func (this *TComLoopFilter) xCalcBsIdx           ( pcCU *TComDataCU,  uiAbsZorderIdx uint,  iDir,  iEdgeIdx,  iBaseUnitIdx int) uint{
     pcPic := pcCU.GetPic();
     uiLCUWidthInBaseUnits := pcPic.GetNumPartInWidth();
     if iDir == 0 {
@@ -460,8 +460,14 @@ func (this *TComLoopFilter) xSetEdgefilterMultiple( pcCU *TComDataCU,  uiScanIdx
 
 func (this *TComLoopFilter) xEdgeFilterLuma            ( pcCU *TComDataCU,  uiAbsZorderIdx,  uiDepth uint,  iDir,  iEdge int){
   pcPicYuvRec := pcCU.GetPic().GetPicYuvRec();
-  piSrc    := pcPicYuvRec.GetLumaAddr2( int(pcCU.GetAddr()), int(uiAbsZorderIdx) );
-  piTmpSrc := piSrc;
+  
+  //piSrc    := pcPicYuvRec.GetLumaAddr2( int(pcCU.GetAddr()), int(uiAbsZorderIdx) );
+  //piTmpSrc := piSrc;
+  //iTmpSrcOffset := 0;
+  
+  piSrc    := pcPicYuvRec.GetBufY()
+  offsetY:=pcPicYuvRec.m_cuOffsetY[pcCU.GetAddr()]+pcPicYuvRec.m_buOffsetY[G_auiZscanToRaster[uiAbsZorderIdx]];
+  iTmpSrcOffset := pcPicYuvRec.m_iLumaMarginY*pcPicYuvRec.GetStride()+pcPicYuvRec.m_iLumaMarginX + offsetY;
   
   iStride := pcPicYuvRec.GetStride();
   iQP := 0;
@@ -487,11 +493,11 @@ func (this *TComLoopFilter) xEdgeFilterLuma            ( pcCU *TComDataCU,  uiAb
   if iDir == EDGE_VER {
     iOffset = 1;
     iSrcStep = iStride;
-    piTmpSrc = piTmpSrc[ iEdge*int(uiPelsInPart):];
+    iTmpSrcOffset += iEdge*int(uiPelsInPart)//piTmpSrc = piTmpSrc[ iEdge*int(uiPelsInPart):];
   }else{  // (iDir == EDGE_HOR)
     iOffset = iStride;
     iSrcStep = 1;
-    piTmpSrc = piTmpSrc[ iEdge*int(uiPelsInPart)*iStride:];
+    iTmpSrcOffset += iEdge*int(uiPelsInPart)*iStride;//piTmpSrc = piTmpSrc[ iEdge*int(uiPelsInPart)*iStride:];
   }
   
   for iIdx := uint(0); iIdx < uiNumParts; iIdx++ {
@@ -530,10 +536,10 @@ func (this *TComLoopFilter) xEdgeFilterLuma            ( pcCU *TComDataCU,  uiAb
       	uiBlocksInPart = 1;
       }
       for iBlkIdx := uint(0); iBlkIdx<uiBlocksInPart; iBlkIdx ++{
-        dp0 := this.xCalcDP( piTmpSrc[iSrcStep*int(iIdx*uiPelsInPart+iBlkIdx*4+0):], iOffset);
-        dq0 := this.xCalcDQ( piTmpSrc[iSrcStep*int(iIdx*uiPelsInPart+iBlkIdx*4+0):], iOffset);
-        dp3 := this.xCalcDP( piTmpSrc[iSrcStep*int(iIdx*uiPelsInPart+iBlkIdx*4+3):], iOffset);
-        dq3 := this.xCalcDQ( piTmpSrc[iSrcStep*int(iIdx*uiPelsInPart+iBlkIdx*4+3):], iOffset);
+        dp0 := this.xCalcDP( piSrc[iTmpSrcOffset+iSrcStep*int(iIdx*uiPelsInPart+iBlkIdx*4+0)-iOffset*3:], iOffset);
+        dq0 := this.xCalcDQ( piSrc[iTmpSrcOffset+iSrcStep*int(iIdx*uiPelsInPart+iBlkIdx*4+0):], iOffset);
+        dp3 := this.xCalcDP( piSrc[iTmpSrcOffset+iSrcStep*int(iIdx*uiPelsInPart+iBlkIdx*4+3)-iOffset*3:], iOffset);
+        dq3 := this.xCalcDQ( piSrc[iTmpSrcOffset+iSrcStep*int(iIdx*uiPelsInPart+iBlkIdx*4+3):], iOffset);
         d0 := dp0 + dq0;
         d3 := dp3 + dq3;
         
@@ -555,11 +561,11 @@ func (this *TComLoopFilter) xEdgeFilterLuma            ( pcCU *TComDataCU,  uiAb
           bFilterP := (int(dp) < iSideThreshold);
           bFilterQ := (int(dq) < iSideThreshold);
           
-          sw := this.xUseStrongFiltering( iOffset, 2*int(d0), iBeta, iTc, piTmpSrc[uint(iSrcStep)*(iIdx*uiPelsInPart+iBlkIdx*4+0):]) &&
-                this.xUseStrongFiltering( iOffset, 2*int(d3), iBeta, iTc, piTmpSrc[uint(iSrcStep)*(iIdx*uiPelsInPart+iBlkIdx*4+3):]);
+          sw := this.xUseStrongFiltering( iOffset, 2*int(d0), iBeta, iTc, piSrc[iTmpSrcOffset+iSrcStep*int(iIdx*uiPelsInPart+iBlkIdx*4+0)-iOffset*4:]) &&
+                this.xUseStrongFiltering( iOffset, 2*int(d3), iBeta, iTc, piSrc[iTmpSrcOffset+iSrcStep*int(iIdx*uiPelsInPart+iBlkIdx*4+3)-iOffset*4:]);
           
           for i := uint(0); i < DEBLOCK_SMALLEST_BLOCK/2; i++ {
-            this.xPelFilterLuma( piTmpSrc[uint(iSrcStep)*(iIdx*uiPelsInPart+iBlkIdx*4+i):], iOffset, int(d), iBeta, iTc, sw, bPartPNoFilter, bPartQNoFilter, iThrCut, bFilterP, bFilterQ);
+            this.xPelFilterLuma( piSrc[iTmpSrcOffset+iSrcStep*int(iIdx*uiPelsInPart+iBlkIdx*4+i)-iOffset*4:], iOffset, int(d), iBeta, iTc, sw, bPartPNoFilter, bPartQNoFilter, iThrCut, bFilterP, bFilterQ);
           }
         }
       }
@@ -569,8 +575,15 @@ func (this *TComLoopFilter) xEdgeFilterLuma            ( pcCU *TComDataCU,  uiAb
 func (this *TComLoopFilter) xEdgeFilterChroma          ( pcCU *TComDataCU,  uiAbsZorderIdx,  uiDepth uint,  iDir,  iEdge int){
   pcPicYuvRec := pcCU.GetPic().GetPicYuvRec();
   iStride     := pcPicYuvRec.GetCStride();
-  piSrcCb     := pcPicYuvRec.GetCbAddr2( int(pcCU.GetAddr()), int(uiAbsZorderIdx) );
-  piSrcCr     := pcPicYuvRec.GetCrAddr2( int(pcCU.GetAddr()), int(uiAbsZorderIdx) );
+  //piSrcCb     := pcPicYuvRec.GetCbAddr2( int(pcCU.GetAddr()), int(uiAbsZorderIdx) );
+  //piSrcCr     := pcPicYuvRec.GetCrAddr2( int(pcCU.GetAddr()), int(uiAbsZorderIdx) );
+  
+  piSrcCb := pcPicYuvRec.GetBufU();
+  piSrcCr := pcPicYuvRec.GetBufV();
+  
+  offsetChroma:=pcPicYuvRec.m_cuOffsetC[pcCU.GetAddr()]+pcPicYuvRec.m_buOffsetC[G_auiZscanToRaster[uiAbsZorderIdx]];
+  piTmpSrcOffsetChroma := pcPicYuvRec.m_iChromaMarginY*pcPicYuvRec.GetCStride()+pcPicYuvRec.m_iChromaMarginX+offsetChroma;
+      
   iQP   := 0;
   iQP_P := 0;
   iQP_Q := 0;
@@ -602,20 +615,20 @@ func (this *TComLoopFilter) xEdgeFilterChroma          ( pcCU *TComDataCU,  uiAb
   var  uiBsAbsIdx uint;
   var ucBs byte;
   
-  piTmpSrcCb := piSrcCb;
-  piTmpSrcCr := piSrcCr;
+  //piTmpSrcCb := piSrcCb;
+  //piTmpSrcCr := piSrcCr;
   
   
   if iDir == EDGE_VER {
     iOffset   = 1;
     iSrcStep  = iStride;
-    piTmpSrcCb =piTmpSrcCb[ uint(iEdge)*uiPelsInPartChroma:];
-    piTmpSrcCr =piTmpSrcCr[ uint(iEdge)*uiPelsInPartChroma:];
+    piTmpSrcOffsetChroma += iEdge*int(uiPelsInPartChroma);//piTmpSrcCb =piTmpSrcCb[ uint(iEdge)*uiPelsInPartChroma:];
+    //piTmpSrcCr =piTmpSrcCr[ uint(iEdge)*uiPelsInPartChroma:];
   }else{  // (iDir == EDGE_HOR)
     iOffset   = iStride;
     iSrcStep  = 1;
-    piTmpSrcCb =piTmpSrcCb[ iEdge*iStride*int(uiPelsInPartChroma):];
-    piTmpSrcCr =piTmpSrcCr[ iEdge*iStride*int(uiPelsInPartChroma):];
+    piTmpSrcOffsetChroma += iEdge*iStride*int(uiPelsInPartChroma); //piTmpSrcCb =piTmpSrcCb[ iEdge*iStride*int(uiPelsInPartChroma):];
+    //piTmpSrcCr =piTmpSrcCr[ iEdge*iStride*int(uiPelsInPartChroma):];
   }
   
   for iIdx := uint(0); iIdx < uiNumParts; iIdx++ {
@@ -664,10 +677,10 @@ func (this *TComLoopFilter) xEdgeFilterChroma          ( pcCU *TComDataCU,  uiAb
         
         if chromaIdx == 0 {
         	chromaQPOffset = pcCU.GetSlice().GetPPS().GetChromaCbQpOffset() 
-        	piTmpSrcChroma =piTmpSrcCb;
+        	piTmpSrcChroma =piSrcCb;//piTmpSrcCb;
         }else {
 			chromaQPOffset = pcCU.GetSlice().GetPPS().GetChromaCrQpOffset();
-			piTmpSrcChroma =piTmpSrcCr;
+			piTmpSrcChroma =piSrcCr;//piTmpSrcCr;
 		}
 
         iQP = this.QpUV( ((iQP_P + iQP_Q + 1) >> 1) + chromaQPOffset );
@@ -677,7 +690,7 @@ func (this *TComLoopFilter) xEdgeFilterChroma          ( pcCU *TComDataCU,  uiAb
         iTc :=  int(tctable_8x8[iIndexTC])*iBitdepthScale;
 
         for uiStep := uint(0); uiStep < uiPelsInPartChroma; uiStep++ {
-          this.xPelFilterChroma( piTmpSrcChroma [ uint(iSrcStep)*(uiStep+iIdx*uiPelsInPartChroma):], iOffset, iTc , bPartPNoFilter, bPartQNoFilter);
+          this.xPelFilterChroma( piTmpSrcChroma [piTmpSrcOffsetChroma+iSrcStep*int(uiStep+iIdx*uiPelsInPartChroma)-iOffset*2:], iOffset, iTc , bPartPNoFilter, bPartQNoFilter);
         }
       }
 /*#else
@@ -691,91 +704,91 @@ func (this *TComLoopFilter) xEdgeFilterChroma          ( pcCU *TComDataCU,  uiAb
   }
 }
 
-func (this *TComLoopFilter) xPelFilterLuma( piSrc []Pel,  iOffset,  d,  beta,  tc int,  sw,  bPartPNoFilter,  bPartQNoFilter bool,  iThrCut int,  bFilterSecondP,  bFilterSecondQ bool){
+func (this *TComLoopFilter) xPelFilterLuma( piSrc2 []Pel,  iOffset,  d,  beta,  tc int,  sw,  bPartPNoFilter,  bPartQNoFilter bool,  iThrCut int,  bFilterSecondP,  bFilterSecondQ bool){
   var delta int;
   
-  m4  := piSrc[0];
-  m3  := piSrc[-iOffset];
-  m5  := piSrc[ iOffset];
-  m2  := piSrc[-iOffset*2];
-  m6  := piSrc[ iOffset*2];
-  m1  := piSrc[-iOffset*3];
-  m7  := piSrc[ iOffset*3];
-  m0  := piSrc[-iOffset*4];
+  m4  := piSrc2[iOffset*4+0];
+  m3  := piSrc2[iOffset*4-iOffset];
+  m5  := piSrc2[iOffset*4+iOffset];
+  m2  := piSrc2[iOffset*4-iOffset*2];
+  m6  := piSrc2[iOffset*4+iOffset*2];
+  m1  := piSrc2[iOffset*4-iOffset*3];
+  m7  := piSrc2[iOffset*4+iOffset*3];
+  m0  := piSrc2[iOffset*4-iOffset*4];
 
   if sw {
-    piSrc[-iOffset]   = CLIP3(m3-2*Pel(tc), m3+2*Pel(tc), ((m1 + 2*m2 + 2*m3 + 2*m4 + m5 + 4) >> 3)).(Pel);
-    piSrc[0]          = CLIP3(m4-2*Pel(tc), m4+2*Pel(tc), ((m2 + 2*m3 + 2*m4 + 2*m5 + m6 + 4) >> 3)).(Pel);
-    piSrc[-iOffset*2] = CLIP3(m2-2*Pel(tc), m2+2*Pel(tc), ((m1 + m2 + m3 + m4 + 2)>>2)).(Pel);
-    piSrc[ iOffset]   = CLIP3(m5-2*Pel(tc), m5+2*Pel(tc), ((m3 + m4 + m5 + m6 + 2)>>2)).(Pel);
-    piSrc[-iOffset*3] = CLIP3(m1-2*Pel(tc), m1+2*Pel(tc), ((2*m0 + 3*m1 + m2 + m3 + m4 + 4 )>>3)).(Pel);
-    piSrc[ iOffset*2] = CLIP3(m6-2*Pel(tc), m6+2*Pel(tc), ((m3 + m4 + m5 + 3*m6 + 2*m7 +4 )>>3)).(Pel);
+    piSrc2[iOffset*4-iOffset]   = CLIP3(m3-2*Pel(tc), m3+2*Pel(tc), ((m1 + 2*m2 + 2*m3 + 2*m4 + m5 + 4) >> 3)).(Pel);
+    piSrc2[iOffset*4+0]         = CLIP3(m4-2*Pel(tc), m4+2*Pel(tc), ((m2 + 2*m3 + 2*m4 + 2*m5 + m6 + 4) >> 3)).(Pel);
+    piSrc2[iOffset*4-iOffset*2] = CLIP3(m2-2*Pel(tc), m2+2*Pel(tc), ((m1 + m2 + m3 + m4 + 2)>>2)).(Pel);
+    piSrc2[iOffset*4+iOffset]   = CLIP3(m5-2*Pel(tc), m5+2*Pel(tc), ((m3 + m4 + m5 + m6 + 2)>>2)).(Pel);
+    piSrc2[iOffset*4-iOffset*3] = CLIP3(m1-2*Pel(tc), m1+2*Pel(tc), ((2*m0 + 3*m1 + m2 + m3 + m4 + 4 )>>3)).(Pel);
+    piSrc2[iOffset*4+iOffset*2] = CLIP3(m6-2*Pel(tc), m6+2*Pel(tc), ((m3 + m4 + m5 + 3*m6 + 2*m7 +4 )>>3)).(Pel);
   }else{
     /* Weak filter */
     delta = int(9*(m4-m3) -3*(m5-m2) + 8)>>4 ;
 
     if ABS(delta).(int) < iThrCut {
       delta = CLIP3(-tc, tc, delta).(int);        
-      piSrc[-iOffset] = ClipY((m3+Pel(delta)));
-      piSrc[0] = ClipY((m4-Pel(delta)));
+      piSrc2[iOffset*4-iOffset] = ClipY((m3+Pel(delta)));
+      piSrc2[iOffset*4+0] = ClipY((m4-Pel(delta)));
 
       tc2 := tc>>1;
       if bFilterSecondP {
         delta1 := CLIP3(-tc2, tc2, (( int(((m1+m3+1)>>1)- m2)+delta)>>1)).(int);
-        piSrc[-iOffset*2] = ClipY((m2+Pel(delta1)));
+        piSrc2[iOffset*4-iOffset*2] = ClipY((m2+Pel(delta1)));
       }
       
       if bFilterSecondQ {
         delta2 := CLIP3(-tc2, tc2, (( int(((m6+m4+1)>>1)- m5)-delta)>>1)).(int);
-        piSrc[ iOffset] = ClipY((m5+Pel(delta2)));
+        piSrc2[iOffset*4+iOffset] = ClipY((m5+Pel(delta2)));
       }
     }
   }
 
   if bPartPNoFilter {
-    piSrc[-iOffset] = m3;
-    piSrc[-iOffset*2] = m2;
-    piSrc[-iOffset*3] = m1;
+    piSrc2[iOffset*4-iOffset] = m3;
+    piSrc2[iOffset*4-iOffset*2] = m2;
+    piSrc2[iOffset*4-iOffset*3] = m1;
   }
   if bPartQNoFilter {
-    piSrc[0] = m4;
-    piSrc[ iOffset] = m5;
-    piSrc[ iOffset*2] = m6;
+    piSrc2[iOffset*4+0] = m4;
+    piSrc2[iOffset*4+iOffset] = m5;
+    piSrc2[iOffset*4+iOffset*2] = m6;
   }
 }
-func (this *TComLoopFilter) xPelFilterChroma( piSrc []Pel,  iOffset,  tc int,  bPartPNoFilter,  bPartQNoFilter bool){
+func (this *TComLoopFilter) xPelFilterChroma( piSrc2 []Pel,  iOffset,  tc int,  bPartPNoFilter,  bPartQNoFilter bool){
   var delta int;
   
-  m4  := piSrc[0];
-  m3  := piSrc[-iOffset];
-  m5  := piSrc[ iOffset];
-  m2  := piSrc[-iOffset*2];
+  m4  := piSrc2[iOffset*2+0];
+  m3  := piSrc2[iOffset*2-iOffset];
+  m5  := piSrc2[iOffset*2+iOffset];
+  m2  := piSrc2[iOffset*2-iOffset*2];
   
   delta = CLIP3(-tc,tc, int(((( m4 - m3 ) << 2 ) + m2 - m5 + 4 ) >> 3) ).(int);
-  piSrc[-iOffset] = ClipC(m3+Pel(delta));
-  piSrc[0] = ClipC(m4-Pel(delta));
+  piSrc2[iOffset*2-iOffset] = ClipC(m3+Pel(delta));
+  piSrc2[iOffset*2+0] = ClipC(m4-Pel(delta));
 
   if bPartPNoFilter {
-    piSrc[-iOffset] = m3;
+    piSrc2[iOffset*2-iOffset] = m3;
   }
   if bPartQNoFilter {
-    piSrc[0] = m4;
+    piSrc2[iOffset*2+0] = m4;
   }
 }
 
-func (this *TComLoopFilter) xUseStrongFiltering(  offset,  d,  beta,  tc int, piSrc []Pel) bool {
-  m4  := piSrc[0];
-  m3  := piSrc[-offset];
-  m7  := piSrc[ offset*3];
-  m0  := piSrc[-offset*4];
+func (this *TComLoopFilter) xUseStrongFiltering(  offset,  d,  beta,  tc int, piSrc2 []Pel) bool {
+  m4  := piSrc2[offset*4+0];
+  m3  := piSrc2[offset*4-offset];
+  m7  := piSrc2[offset*4+offset*3];
+  m0  := piSrc2[offset*4-offset*4];
 
   d_strong := int(ABS(m0-m3).(Pel) + ABS(m7-m4).(Pel));
 
   return  (d_strong < (beta>>3)) && (d<(beta>>2)) && ( int(ABS(m3-m4).(Pel)) < ((tc*5+1)>>1)) ;
 
 }
-func (this *TComLoopFilter) xCalcDP( piSrc []Pel, iOffset int) Pel{
-	return ABS( piSrc[-iOffset*3] - 2*piSrc[-iOffset*2] + piSrc[-iOffset] ).(Pel) ;
+func (this *TComLoopFilter) xCalcDP( piSrc2 []Pel, iOffset int) Pel{
+	return ABS( piSrc2[iOffset*3-iOffset*3] - 2*piSrc2[iOffset*3-iOffset*2] + piSrc2[iOffset*3-iOffset] ).(Pel) ;
 }
 func (this *TComLoopFilter) xCalcDQ( piSrc []Pel, iOffset int) Pel{
 	return ABS( piSrc[0] - 2*piSrc[iOffset] + piSrc[iOffset*2] ).(Pel);
