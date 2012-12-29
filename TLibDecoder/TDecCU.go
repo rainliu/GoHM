@@ -30,14 +30,14 @@ func NewTDecCu() *TDecCu{
 }
 
   /// initialize access channels
-func (this *TDecCu) Init  ( pcEntropyDecoder *TDecEntropy, pcTrQuant *TLibCommon.TComTrQuant, pcPrediction *TLibCommon.TComPrediction){
+func (this *TDecCu)  Init  ( pcEntropyDecoder *TDecEntropy, pcTrQuant *TLibCommon.TComTrQuant, pcPrediction *TLibCommon.TComPrediction){
   this.m_pcEntropyDecoder  = pcEntropyDecoder;
   this.m_pcTrQuant         = pcTrQuant;
   this.m_pcPrediction      = pcPrediction;
 }
 
   /// create internal buffers
-func (this *TDecCu) Create  (  uiMaxDepth,  uiMaxWidth,  uiMaxHeight uint){
+func (this *TDecCu)  Create  (  uiMaxDepth,  uiMaxWidth,  uiMaxHeight uint){
   this.m_uiMaxDepth = uiMaxDepth+1;
 
   this.m_ppcYuvResi = make([]*TLibCommon.TComYuv, 	  this.m_uiMaxDepth-1);
@@ -73,7 +73,7 @@ func (this *TDecCu) Create  (  uiMaxDepth,  uiMaxWidth,  uiMaxHeight uint){
 }
 
 /// destroy internal buffers
-func (this *TDecCu) Destroy() {
+func (this *TDecCu)  Destroy() {
   for ui := uint(0); ui < this.m_uiMaxDepth-1; ui++ {
     this.m_ppcYuvResi[ui].Destroy();
     //delete m_ppcYuvResi[ui];
@@ -837,7 +837,7 @@ func (this *TDecCu)  xDecodeInterTexture     ( pcCU *TLibCommon.TComDataCU, pcYu
 
   this.m_pcTrQuant.SetQPforQuant( int(pcCU.GetQP1( uiAbsPartIdx )), TLibCommon.TEXT_LUMA, pcCU.GetSlice().GetSPS().GetQpBDOffsetY(), 0 );
 
-  this.m_pcTrQuant.InvRecurTransformNxN ( pcCU, pcYuvPred, 0, TLibCommon.TEXT_LUMA, pResi, 0, this.m_ppcYuvResi[uiDepth].GetStride(), uiWidth, uiHeight, trMode, 0, piCoeff );
+  this.InvRecurTransformNxN ( pcCU, pcYuvPred, 0, TLibCommon.TEXT_LUMA, pResi, 0, this.m_ppcYuvResi[uiDepth].GetStride(), uiWidth, uiHeight, trMode, 0, piCoeff );
 
   // Cb and Cr
   curChromaQpOffset := pcCU.GetSlice().GetPPS().GetChromaCbQpOffset() + pcCU.GetSlice().GetSliceQpDeltaCb();
@@ -846,13 +846,13 @@ func (this *TDecCu)  xDecodeInterTexture     ( pcCU *TLibCommon.TComDataCU, pcYu
   uiWidth  >>= 1;
   uiHeight >>= 1;
   piCoeff = pcCU.GetCoeffCb(); pResi = this.m_ppcYuvResi[uiDepth].GetCbAddr();
-  this.m_pcTrQuant.InvRecurTransformNxN ( pcCU, pcYuvPred, 0, TLibCommon.TEXT_CHROMA_U, pResi, 0, this.m_ppcYuvResi[uiDepth].GetCStride(), uiWidth, uiHeight, trMode, 0, piCoeff );
+  this.InvRecurTransformNxN ( pcCU, pcYuvPred, 0, TLibCommon.TEXT_CHROMA_U, pResi, 0, this.m_ppcYuvResi[uiDepth].GetCStride(), uiWidth, uiHeight, trMode, 0, piCoeff );
 
   curChromaQpOffset = pcCU.GetSlice().GetPPS().GetChromaCrQpOffset() + pcCU.GetSlice().GetSliceQpDeltaCr();
   this.m_pcTrQuant.SetQPforQuant( int(pcCU.GetQP1( uiAbsPartIdx )), TLibCommon.TEXT_CHROMA, pcCU.GetSlice().GetSPS().GetQpBDOffsetC(), curChromaQpOffset );
 
   piCoeff = pcCU.GetCoeffCr(); pResi = this.m_ppcYuvResi[uiDepth].GetCrAddr();
-  this.m_pcTrQuant.InvRecurTransformNxN ( pcCU, pcYuvPred, 0, TLibCommon.TEXT_CHROMA_V, pResi, 0, this.m_ppcYuvResi[uiDepth].GetCStride(), uiWidth, uiHeight, trMode, 0, piCoeff );
+  this.InvRecurTransformNxN ( pcCU, pcYuvPred, 0, TLibCommon.TEXT_CHROMA_V, pResi, 0, this.m_ppcYuvResi[uiDepth].GetCStride(), uiWidth, uiHeight, trMode, 0, piCoeff );
 }
 func (this *TDecCu)  xDecodePCMTexture       ( pcCU *TLibCommon.TComDataCU,  uiPartIdx uint, piPCM, piReco []TLibCommon.Pel,  uiStride,  uiWidth,  uiHeight uint,  ttText TLibCommon.TextType){
   var uiX, uiY uint;
@@ -952,13 +952,13 @@ func (this *TDecCu)  xIntraChromaRecQT       ( pcCU *TLibCommon.TComDataCU,  uiT
   }
 }
 
-func (this *TDecCu) GetdQPFlag               ()         bool               {
+func (this *TDecCu)  GetdQPFlag               ()         bool               {
 	return this.m_bDecodeDQP;
 }
-func (this *TDecCu) SetdQPFlag               (  b bool)                {
+func (this *TDecCu)  SetdQPFlag               (  b bool)                {
 	this.m_bDecodeDQP = b;
 }
-func (this *TDecCu) xFillPCMBuffer           ( pCU *TLibCommon.TComDataCU,  absPartIdx,  depth uint){
+func (this *TDecCu)  xFillPCMBuffer           ( pCU *TLibCommon.TComDataCU,  absPartIdx,  depth uint){
   // Luma
   width  := (TLibCommon.G_uiMaxCUWidth >> depth);
   height := (TLibCommon.G_uiMaxCUHeight >> depth);
@@ -996,5 +996,181 @@ func (this *TDecCu) xFillPCMBuffer           ( pCU *TLibCommon.TComDataCU,  absP
     pPcmCb += widthC;
     pRecoCb += strideC;
     pRecoCr += strideC;*/
+  }
+}
+
+func (this *TDecCu)  InvRecurTransformNxN ( pcCU *TLibCommon.TComDataCU, pcYuvPred *TLibCommon.TComYuv,  uiAbsPartIdx uint,  eTxt TLibCommon.TextType, rpcResidual []TLibCommon.Pel,  
+											uiAddr, uiStride,  uiWidth,  uiHeight, uiMaxTrMode, uiTrMode uint, rpcCoeff []TLibCommon.TCoeff){
+  if pcCU.GetCbf3(uiAbsPartIdx, eTxt, uiTrMode)==0 {
+/*#ifdef ENC_DEC_TRACE*/
+    chroma := eTxt!=TLibCommon.TEXT_LUMA;
+    blkX   := int(TLibCommon.G_auiRasterToPelX[ TLibCommon.G_auiZscanToRaster[ uiAbsPartIdx ] ])>>TLibCommon.B2U(chroma);
+    blkY   := int(TLibCommon.G_auiRasterToPelY[ TLibCommon.G_auiZscanToRaster[ uiAbsPartIdx ] ])>>TLibCommon.B2U(chroma);
+
+    this.m_pcEntropyDecoder.m_pcEntropyDecoderIf.XTraceTUHeader(TLibCommon.TRACE_TU);
+
+	if eTxt!=TLibCommon.TEXT_LUMA {
+    	this.m_pcEntropyDecoder.m_pcEntropyDecoderIf.XReadAeTr(int(eTxt)-1, "tu_color",     TLibCommon.TRACE_TU);
+    }else{
+    	this.m_pcEntropyDecoder.m_pcEntropyDecoderIf.XReadAeTr(0,       	"tu_color",     TLibCommon.TRACE_TU);
+    }
+    this.m_pcEntropyDecoder.m_pcEntropyDecoderIf.XReadAeTr(blkX,        	"tu_x",			TLibCommon.TRACE_TU);
+    this.m_pcEntropyDecoder.m_pcEntropyDecoderIf.XReadAeTr(blkY,        	"tu_y",	  		TLibCommon.TRACE_TU);
+    this.m_pcEntropyDecoder.m_pcEntropyDecoderIf.XReadAeTr(int(uiWidth),	"tu_width",		TLibCommon.TRACE_TU);
+    this.m_pcEntropyDecoder.m_pcEntropyDecoderIf.XReadAeTr(int(uiHeight),	"tu_height",	TLibCommon.TRACE_TU);
+
+    this.m_pcEntropyDecoder.m_pcEntropyDecoderIf.XTraceCoefHeader(TLibCommon.TRACE_COEF);
+    
+    var piCoef [64]TLibCommon.TCoeff;
+    for k:=uint(0); k<uiHeight; k++{
+    	for i:=uint(0); i<uiWidth; i++{
+    		piCoef[i] = 0;
+    	}
+      	this.m_pcEntropyDecoder.m_pcEntropyDecoderIf.XReadCeofTr(piCoef[:], uiWidth, TLibCommon.TRACE_COEF);
+	}
+    this.m_pcEntropyDecoder.m_pcEntropyDecoderIf.XTraceResiHeader(TLibCommon.TRACE_RESI);
+
+	var piResi [64]TLibCommon.Pel;
+    for k:=uint(0); k<uiHeight; k++{
+      	for i:=uint(0); i<uiWidth; i++{
+    		piResi[i] = 0;
+    	}
+      	this.m_pcEntropyDecoder.m_pcEntropyDecoderIf.XReadResiTr(piResi[:], uiWidth, TLibCommon.TRACE_RESI);
+	}
+	
+    var piPred []TLibCommon.Pel;
+    var uiPredStride uint;
+    if eTxt==TLibCommon.TEXT_LUMA {
+    	piPred = pcYuvPred.GetLumaAddr1( uiAbsPartIdx );
+    	uiPredStride = pcYuvPred.GetStride();
+    }else if eTxt==TLibCommon.TEXT_CHROMA_U {
+    	piPred = pcYuvPred.GetCbAddr1  ( uiAbsPartIdx );
+    	uiPredStride = pcYuvPred.GetCStride();
+    }else{
+        piPred = pcYuvPred.GetCrAddr1  ( uiAbsPartIdx );
+        uiPredStride = pcYuvPred.GetCStride();
+    }
+
+    this.m_pcEntropyDecoder.m_pcEntropyDecoderIf.XTracePredHeader(TLibCommon.TRACE_PRED);
+
+    pPred := piPred;
+    for k:=uint(0); k<uiHeight; k++ {
+      this.m_pcEntropyDecoder.m_pcEntropyDecoderIf.XReadPredTr(pPred[k*uiPredStride:], uiWidth, TLibCommon.TRACE_PRED);
+      //pPred += uiStride;
+    }
+
+    this.m_pcEntropyDecoder.m_pcEntropyDecoderIf.XTraceRecoHeader(TLibCommon.TRACE_RECON);
+
+    pReco := piPred;
+    for k:=uint(0); k<uiHeight; k++ {
+      this.m_pcEntropyDecoder.m_pcEntropyDecoderIf.XReadRecoTr(pReco[k*uiPredStride:], uiWidth, TLibCommon.TRACE_RECON);
+      //pReco += uiStride;
+    }
+/*#endif*/
+    return;
+  }
+  stopTrMode := uint(pcCU.GetTransformIdx1( uiAbsPartIdx ));
+
+  if uiTrMode == stopTrMode {
+    uiDepth      := uint(pcCU.GetDepth1( uiAbsPartIdx )) + uiTrMode;
+    uiLog2TrSize := TLibCommon.G_aucConvertToBit[ pcCU.GetSlice().GetSPS().GetMaxCUWidth() >> uiDepth ] + 2;
+    if eTxt != TLibCommon.TEXT_LUMA && uiLog2TrSize == 2 {
+      uiQPDiv := pcCU.GetPic().GetNumPartInCU() >> ( ( uiDepth - 1 ) << 1 );
+      if ( uiAbsPartIdx % uiQPDiv ) != 0 {
+        return;
+      }
+      uiWidth  <<= 1;
+      uiHeight <<= 1;
+    }
+    pResi := rpcResidual [ uiAddr:];
+/*#ifdef ENC_DEC_TRACE*/
+    chroma := eTxt!=TLibCommon.TEXT_LUMA;
+    blkX := int(TLibCommon.G_auiRasterToPelX[ TLibCommon.G_auiZscanToRaster[ uiAbsPartIdx ] ])>>TLibCommon.B2U(chroma);
+    blkY := int(TLibCommon.G_auiRasterToPelY[ TLibCommon.G_auiZscanToRaster[ uiAbsPartIdx ] ])>>TLibCommon.B2U(chroma);
+
+    this.m_pcEntropyDecoder.m_pcEntropyDecoderIf.XTraceTUHeader(TLibCommon.TRACE_TU);
+	
+	if eTxt!=TLibCommon.TEXT_LUMA{
+    	this.m_pcEntropyDecoder.m_pcEntropyDecoderIf.XReadAeTr(int(eTxt)-1, "tu_color",  	TLibCommon.TRACE_TU);
+    }else{
+    	this.m_pcEntropyDecoder.m_pcEntropyDecoderIf.XReadAeTr(0,  			"tu_color",  	TLibCommon.TRACE_TU);
+    }
+    this.m_pcEntropyDecoder.m_pcEntropyDecoderIf.XReadAeTr(blkX,        	"tu_x",		  	TLibCommon.TRACE_TU);
+    this.m_pcEntropyDecoder.m_pcEntropyDecoderIf.XReadAeTr(blkY,        	"tu_y",	  		TLibCommon.TRACE_TU);
+    this.m_pcEntropyDecoder.m_pcEntropyDecoderIf.XReadAeTr(int(uiWidth),	"tu_width",		TLibCommon.TRACE_TU);
+    this.m_pcEntropyDecoder.m_pcEntropyDecoderIf.XReadAeTr(int(uiHeight),	"tu_height",	TLibCommon.TRACE_TU);
+/*#endif*/
+
+    var scalingListType int;
+    if pcCU.IsIntra(uiAbsPartIdx) {
+    	scalingListType =  0 + TLibCommon.G_eTTable[int(eTxt)];
+    }else{
+    	scalingListType =  3 + TLibCommon.G_eTTable[int(eTxt)];
+    }
+    //assert(scalingListType < 6);
+/*#ifdef ENC_DEC_TRACE*/
+  	this.m_pcEntropyDecoder.m_pcEntropyDecoderIf.XTraceCoefHeader(TLibCommon.TRACE_COEF);
+
+  	for k := uint(0); k<uiHeight; k++{
+    	this.m_pcEntropyDecoder.m_pcEntropyDecoderIf.XReadCeofTr(rpcCoeff[k*uiWidth:], uiWidth, TLibCommon.TRACE_COEF);
+  	}
+/*#endif*/    
+  	this.m_pcTrQuant.InvtransformNxN( pcCU.GetCUTransquantBypass1(uiAbsPartIdx), eTxt, TLibCommon.REG_DCT, pResi, uiStride, rpcCoeff, uiWidth, uiHeight, scalingListType, pcCU.GetTransformSkip2(uiAbsPartIdx, eTxt) );
+/*#ifdef ENC_DEC_TRACE*/
+  	this.m_pcEntropyDecoder.m_pcEntropyDecoderIf.XTraceResiHeader(TLibCommon.TRACE_RESI);
+
+  	for k := uint(0); k<uiHeight; k++{
+    	this.m_pcEntropyDecoder.m_pcEntropyDecoderIf.XReadResiTr(pResi[k*uiStride:], uiWidth, TLibCommon.TRACE_RESI);
+  	}
+/*#endif*/
+/*#ifdef ENC_DEC_TRACE*/
+    var piPred []TLibCommon.Pel;
+    if eTxt==TLibCommon.TEXT_LUMA {
+    	piPred = pcYuvPred.GetLumaAddr1( uiAbsPartIdx );
+    }else if eTxt==TLibCommon.TEXT_CHROMA_U {
+    	piPred = pcYuvPred.GetCbAddr1  ( uiAbsPartIdx );
+    }else{
+        piPred = pcYuvPred.GetCrAddr1  ( uiAbsPartIdx );
+    }
+    this.m_pcEntropyDecoder.m_pcEntropyDecoderIf.XTracePredHeader(TLibCommon.TRACE_PRED);
+
+    pPred := piPred;
+    for k:=uint(0); k<uiHeight; k++{
+      this.m_pcEntropyDecoder.m_pcEntropyDecoderIf.XReadPredTr(pPred[k*uiStride:], uiWidth, TLibCommon.TRACE_PRED);
+      //pPred += uiStride;
+    }
+
+    this.m_pcEntropyDecoder.m_pcEntropyDecoderIf.XTraceRecoHeader(TLibCommon.TRACE_RECON);
+
+    var pReco	[64]TLibCommon.Pel;
+    for k:=uint(0); k<uiHeight; k++{
+      for j:=uint(0); j<uiWidth; j++{
+        if !chroma {
+          pReco[j] = TLibCommon.Pel( TLibCommon.ClipY(piPred[k*uiStride+j]+pResi[k*uiStride+j]));
+        }else{
+          pReco[j] = TLibCommon.Pel( TLibCommon.ClipC(piPred[k*uiStride+j]+pResi[k*uiStride+j]));
+        }
+      }
+      this.m_pcEntropyDecoder.m_pcEntropyDecoderIf.XReadRecoTr(pReco[:], uiWidth, TLibCommon.TRACE_RECON);
+    }
+/*#endif*/
+  }else{
+    uiTrMode++;
+    uiWidth  >>= 1;
+    uiHeight >>= 1;
+    trWidth := uiWidth;
+    trHeight := uiHeight;
+    uiAddrOffset := trHeight * uiStride;
+    uiCoefOffset := trWidth * trHeight;
+    uiPartOffset := pcCU.GetTotalNumPart() >> ( uiTrMode << 1 );
+    {
+      this.InvRecurTransformNxN( pcCU, pcYuvPred, uiAbsPartIdx, eTxt, rpcResidual, uiAddr                         , uiStride, uiWidth, uiHeight, uiMaxTrMode, uiTrMode, rpcCoeff );
+       uiAbsPartIdx += uiPartOffset;//rpcCoeff += uiCoefOffset;
+      this.InvRecurTransformNxN( pcCU, pcYuvPred, uiAbsPartIdx, eTxt, rpcResidual, uiAddr + trWidth               , uiStride, uiWidth, uiHeight, uiMaxTrMode, uiTrMode, rpcCoeff[uiCoefOffset  :] );
+       uiAbsPartIdx += uiPartOffset;//rpcCoeff += uiCoefOffset;
+      this.InvRecurTransformNxN( pcCU, pcYuvPred, uiAbsPartIdx, eTxt, rpcResidual, uiAddr + uiAddrOffset          , uiStride, uiWidth, uiHeight, uiMaxTrMode, uiTrMode, rpcCoeff[uiCoefOffset*2:] );
+       uiAbsPartIdx += uiPartOffset;//rpcCoeff += uiCoefOffset;
+      this.InvRecurTransformNxN( pcCU, pcYuvPred, uiAbsPartIdx, eTxt, rpcResidual, uiAddr + uiAddrOffset + trWidth, uiStride, uiWidth, uiHeight, uiMaxTrMode, uiTrMode, rpcCoeff[uiCoefOffset*3:] );
+    }
   }
 }
