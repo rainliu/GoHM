@@ -87,7 +87,7 @@ func (this *TAppDecTop) Decode() (err error){
       fmt.Printf("Warning: Attempt to decode an empty NAL unit\n");
       break;
     }else{
-      //fmt.Printf("NalUnit Len=%d\n", nalUnit.Len())
+      fmt.Printf("NalUnit Len=%d\n", nalUnit.Len())
       nalu.Read(nalUnit);
       //fmt.Printf("Type=%d\n", nalu.GetNalUnitType())
 
@@ -219,6 +219,8 @@ func (this *TAppDecTop) xFlushOutput( pcListPic *list.List ) {
   if pcListPic==nil {
     return;
   }
+  
+  fmt.Printf("list len=%d\n", pcListPic.Len());
 
   for e := pcListPic.Front(); e != nil; e = e.Next() {
 	pcPic := e.Value.(*TLibCommon.TComPic)
@@ -256,10 +258,10 @@ func (this *TAppDecTop) xFlushOutput( pcListPic *list.List ) {
       pcPic = nil;
     }
 //#endif
-	pcListPic.Remove(e)
+	//pcListPic.Remove(e)
   }
 
-  //pcListPic.Clear();
+  pcListPic.Init();
   this.m_iPOCLastDisplay = - TLibCommon.MAX_INT;
 }
 

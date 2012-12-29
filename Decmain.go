@@ -18,7 +18,7 @@ func main() {
     cTAppDecTop.Create()
 
     if len(os.Args)==1 {
-        var args =[]string{"gohm.exe", "test.bin", "test.yuv", "1", "trace.txt"};
+        var args =[]string{"gohm.exe", "test.bin", "test.yuv", "100", "trace.txt"};
 
         // parse configuration
         if err := cTAppDecTop.ParseCfg(len(args), args); err != nil {
