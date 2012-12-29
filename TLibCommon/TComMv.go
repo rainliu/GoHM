@@ -70,55 +70,43 @@ func (this *TComMv)     GetAbsVer () int16 {
   // ------------------------------------------------------------------------------------------------------------------
   // operations
   // ------------------------------------------------------------------------------------------------------------------
- /*
-  const TComMv& operator += (const TComMv& rcMv)
-  {
-    m_iHor += rcMv.m_iHor;
-    m_iVer += rcMv.m_iVer;
-    return  *this;
+ 
+func (this *TComMv) AddMv(rcMv *TComMv){
+    this.m_iHor += rcMv.m_iHor;
+    this.m_iVer += rcMv.m_iVer;
+}
+
+func (this *TComMv) SubMv(rcMv *TComMv){
+    this.m_iHor -= rcMv.m_iHor;
+    this.m_iVer -= rcMv.m_iVer;
+}
+
+func (this *TComMv) RightShift (i uint){
+    this.m_iHor >>= i;
+    this.m_iVer >>= i;
+}
+
+func (this *TComMv) LeftShift (i uint){
+    this.m_iHor <<= i;
+    this.m_iVer <<= i;
+}
+
+func SubMvs(lcMv, rcMv *TComMv ) *TComMv{
+    return &TComMv{ lcMv.m_iHor - rcMv.m_iHor, lcMv.m_iVer - rcMv.m_iVer };
   }
 
-  const TComMv& operator-= (const TComMv& rcMv)
-  {
-    m_iHor -= rcMv.m_iHor;
-    m_iVer -= rcMv.m_iVer;
-    return  *this;
-  }
+func AddMvs (lcMv, rcMv *TComMv) *TComMv{
+    return &TComMv{ lcMv.m_iHor + rcMv.m_iHor, lcMv.m_iVer + rcMv.m_iVer };
+}
 
-  const TComMv& operator>>= (const Int i)
-  {
-    m_iHor >>= i;
-    m_iVer >>= i;
-    return  *this;
-  }
+func EqualMvs(lcMv, rcMv *TComMv) bool{
+    return (lcMv.m_iHor==rcMv.m_iHor && lcMv.m_iVer==rcMv.m_iVer);
+}
 
-  const TComMv& operator<<= (const Int i)
-  {
-    m_iHor <<= i;
-    m_iVer <<= i;
-    return  *this;
-  }
-
-  const TComMv operator - ( const TComMv& rcMv ) const
-  {
-    return TComMv( m_iHor - rcMv.m_iHor, m_iVer - rcMv.m_iVer );
-  }
-
-  const TComMv operator + ( const TComMv& rcMv ) const
-  {
-    return TComMv( m_iHor + rcMv.m_iHor, m_iVer + rcMv.m_iVer );
-  }
-
-  Bool operator== ( const TComMv& rcMv ) const
-  {
-    return (m_iHor==rcMv.m_iHor && m_iVer==rcMv.m_iVer);
-  }
-
-  Bool operator!= ( const TComMv& rcMv ) const
-  {
-    return (m_iHor!=rcMv.m_iHor || m_iVer!=rcMv.m_iVer);
-  }
-  */
+func NotEqualMvs(lcMv, rcMv *TComMv) bool{
+    return (lcMv.m_iHor!=rcMv.m_iHor || lcMv.m_iVer!=rcMv.m_iVer);
+}
+  
 func (this *TComMv) ScaleMv(  iScale int) *TComMv{
     mvx := (iScale * int(this.GetHor()) + 127 + int(B2U(iScale * int(this.GetHor()) < 0))) >> 8;
 
