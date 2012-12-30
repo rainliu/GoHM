@@ -1,6 +1,8 @@
 package TLibCommon
 
-import ()
+import (
+	//"fmt"
+)
 
 const DEBLOCK_SMALLEST_BLOCK = 8
 
@@ -178,11 +180,13 @@ func (this *TComLoopFilter) xDeblockCU                 ( pcCU *TComDataCU,  uiAb
   uiPelsInPart := G_uiMaxCUWidth >> G_uiMaxCUDepth;
   var PartIdxIncr uint;
   
-  if uiPelsInPart!=0 {
-  	PartIdxIncr = DEBLOCK_SMALLEST_BLOCK /  (DEBLOCK_SMALLEST_BLOCK / uiPelsInPart);
+  if DEBLOCK_SMALLEST_BLOCK / uiPelsInPart!=0 {
+  	PartIdxIncr = DEBLOCK_SMALLEST_BLOCK / uiPelsInPart;
   }else{
-  	PartIdxIncr = DEBLOCK_SMALLEST_BLOCK /  1 ;
+  	PartIdxIncr = 1 ;
   }
+  
+  //fmt.Printf("PartIdxIncr=%d ", PartIdxIncr);
   
   uiSizeInPU := pcPic.GetNumPartInWidth()>>(uiDepth);
   
@@ -465,9 +469,11 @@ func (this *TComLoopFilter) xEdgeFilterLuma            ( pcCU *TComDataCU,  uiAb
   //piTmpSrc := piSrc;
   //iTmpSrcOffset := 0;
   
-  piSrc    := pcPicYuvRec.GetBufY()
-  offsetY:=pcPicYuvRec.m_cuOffsetY[pcCU.GetAddr()]+pcPicYuvRec.m_buOffsetY[G_auiZscanToRaster[uiAbsZorderIdx]];
+  piSrc  := pcPicYuvRec.GetBufY()
+  offsetY:= pcPicYuvRec.m_cuOffsetY[pcCU.GetAddr()]+pcPicYuvRec.m_buOffsetY[G_auiZscanToRaster[uiAbsZorderIdx]];
   iTmpSrcOffset := pcPicYuvRec.m_iLumaMarginY*pcPicYuvRec.GetStride()+pcPicYuvRec.m_iLumaMarginX + offsetY;
+  
+  //fmt.Printf("(%d,%d)--%x--\n", pcCU.GetAddr(), uiAbsZorderIdx, piSrc[iTmpSrcOffset]);
   
   iStride := pcPicYuvRec.GetStride();
   iQP := 0;
@@ -716,6 +722,8 @@ func (this *TComLoopFilter) xPelFilterLuma( piSrc2 []Pel,  iOffset,  d,  beta,  
   m7  := piSrc2[iOffset*4+iOffset*3];
   m0  := piSrc2[iOffset*4-iOffset*4];
 
+  //fmt.Printf("%x %x %x %x %x %x %x %x\n", m0, m1, m2, m3, m4, m5, m6, m7);
+  	
   if sw {
     piSrc2[iOffset*4-iOffset]   = CLIP3(m3-2*Pel(tc), m3+2*Pel(tc), ((m1 + 2*m2 + 2*m3 + 2*m4 + m5 + 4) >> 3)).(Pel);
     piSrc2[iOffset*4+0]         = CLIP3(m4-2*Pel(tc), m4+2*Pel(tc), ((m2 + 2*m3 + 2*m4 + 2*m5 + m6 + 4) >> 3)).(Pel);
