@@ -3037,6 +3037,12 @@ func (this *TComDataCU)  FillMvpCand           (  uiPartIdx,  uiPartAddr uint,  
       pInfo.MvCand[pInfo.IN].Set(0,0);
       pInfo.IN++;
   }
+  
+  /*for i:=0; i<pInfo.IN; i++ {
+    fmt.Printf("(%d,%d) ",pInfo.MvCand[i].GetHor(),pInfo.MvCand[i].GetVer());
+  }
+  fmt.Printf("\n");*/
+  
   return ;
 }
 func (this *TComDataCU)  IsDiffMER             (  xN,  yN,  xP,  yP int) bool{

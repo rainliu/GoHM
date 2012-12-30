@@ -229,8 +229,9 @@ func (this *TDecEntropy) DecodeMVPIdxPU     ( pcSubCU *TLibCommon.TComDataCU, ui
   pcSubCU.SetMVPNumSubParts(pAMVPInfo.IN, eRefList, uiPartAddr, uiPartIdx, uiDepth);
   pcSubCU.SetMVPIdxSubParts( iMVPIdx, eRefList, uiPartAddr, uiPartIdx, uiDepth );
   if iRefIdx >= 0 {
-    this.m_pcPrediction.GetMvPredAMVP( pcSubCU, uiPartIdx, uiPartAddr, eRefList, iRefIdx, cMv);
+    cMv = this.m_pcPrediction.GetMvPredAMVP( pcSubCU, uiPartIdx, uiPartAddr, eRefList, iRefIdx);
     cMvd := pcSubCUMvField.GetMvd( int(uiPartAddr) );
+    //fmt.Printf("%d=(%d,%d)=(%d,%d)\n", iRefIdx, cMv.GetHor(), cMv.GetVer(), cMvd.GetHor(), cMvd.GetVer());
     cMv.Set(cMv.GetHor()+cMvd.GetHor(), cMv.GetVer()+cMvd.GetVer())
   }
 
