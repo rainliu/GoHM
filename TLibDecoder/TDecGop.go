@@ -147,7 +147,7 @@ func (this *TDecGop) FilterPicture(rpcPic *TLibCommon.TComPic) {
   // deblocking filter
   bLFCrossTileBoundary := pcSlice.GetPPS().GetLoopFilterAcrossTilesEnabledFlag();
   this.m_pcLoopFilter.SetCfg(bLFCrossTileBoundary);
-  //this.m_pcLoopFilter.LoopFilterPic( rpcPic );
+  this.m_pcLoopFilter.LoopFilterPic( rpcPic );
 
   pcSlice = rpcPic.GetSlice(0);
   if pcSlice.GetSPS().GetUseSAO() {

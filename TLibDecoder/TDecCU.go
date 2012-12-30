@@ -455,7 +455,7 @@ func (this *TDecCu)  xDecompressCU           ( pcCU *TLibCommon.TComDataCU, pcCU
 
   switch this.m_ppcCU[uiDepth].GetPredictionMode1(0) {
     case TLibCommon.MODE_INTER:
-      //this.xReconInter( this.m_ppcCU[uiDepth], uiAbsPartIdx, uiDepth );
+      this.xReconInter( this.m_ppcCU[uiDepth], uiAbsPartIdx, uiDepth );
       //break;
     case TLibCommon.MODE_INTRA:
       this.xReconIntraQT( this.m_ppcCU[uiDepth], uiAbsPartIdx, uiDepth );
