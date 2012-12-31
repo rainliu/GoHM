@@ -331,8 +331,8 @@ func (this *TComPicSym)  XCalculateNxtCUAddr( uiCurrCUAddr uint ) uint{
 }
 
 func (this *TComPicSym) AllocSaoParam(sao *TComSampleAdaptiveOffset) {
-  //this.m_saoParam = new(SAOParam);
-  //sao.AllocSaoParam(this.m_saoParam);
+  this.m_saoParam = &SAOParam{};
+  sao.AllocSaoParam(this.m_saoParam);
 }
 
 func (this *TComPicSym) GetSaoParam() *SAOParam {
