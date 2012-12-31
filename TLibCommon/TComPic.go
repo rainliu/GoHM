@@ -218,7 +218,7 @@ func (this *TComPic)  GetCroppingWindow() *CroppingWindow        {
 	return this.m_croppingWindow; 
 }
 
-func (this *TComPic)  CreateNonDBFilterInfo   (sliceStartAddress *list.List, sliceGranularityDepth int, LFCrossSliceBoundary *list.List, numTiles int, bNDBFilterCrossTileBoundary bool){
+func (this *TComPic)  CreateNonDBFilterInfo   (sliceStartAddress map[int]int, sliceGranularityDepth int, LFCrossSliceBoundary map[int]bool, numTiles int, bNDBFilterCrossTileBoundary bool){
 }
 func (this *TComPic)  CreateNonDBFilterInfoLCU(tileID, sliceID int, pcCU *TComDataCU, startSU, endSU uint, sliceGranularyDepth int, picWidth, picHeight uint){
 }
@@ -237,9 +237,9 @@ func (this *TComPic)  GetIndependentTileBoundaryForNDBFilter         ()         
 func (this *TComPic)  GetYuvPicBufferForIndependentBoundaryProcessing() *TComPicYuv            {
 	return this.m_pNDBFilterYuvTmp;
 }
-func (this *TComPic)  GetOneSliceCUDataForNDBFilter      (sliceID int) *list.List{ 
+/*func (this *TComPic)  GetOneSliceCUDataForNDBFilter      (sliceID int) *list.List{ 
 	return nil;//this.m_vSliceCUDataLink[sliceID];
-}
+}*/
 
   // transfer ownership of seis to this picture
 func (this *TComPic)  SetSEIs(seis *SEImessages) { 

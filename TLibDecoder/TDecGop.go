@@ -32,13 +32,13 @@ type TDecGop struct {
     m_decodedPictureHashSEIEnabled int ///< Checksum(3)/CRC(2)/MD5(1)/disable(0) acting on decoded picture hash SEI message
 
     //! list that contains the CU address of each slice plus the end address 
-    m_sliceStartCUAddress      *list.List
-    m_LFCrossSliceBoundaryFlag *list.List
+    m_sliceStartCUAddress      map[int]int;//*list.List
+    m_LFCrossSliceBoundaryFlag map[int]bool;//*list.List
 }
 
 //public:
 func NewTDecGop() *TDecGop {
-    return &TDecGop{m_sliceStartCUAddress:list.New(), m_LFCrossSliceBoundaryFlag:list.New()}
+    return &TDecGop{m_sliceStartCUAddress:make(map[int]int), m_LFCrossSliceBoundaryFlag:make(map[int]bool)}
 }
 
 func (this *TDecGop) Init(pcEntropyDecoder *TDecEntropy,
@@ -75,7 +75,9 @@ func (this *TDecGop) DecompressSlice(pcBitstream *TLibCommon.TComInputBitstream,
 
   uiSliceStartCuAddr := pcSlice.GetSliceCurStartCUAddr();
   if uiSliceStartCuAddr == uiStartCUAddr {
-    this.m_sliceStartCUAddress.PushBack(uiSliceStartCuAddr);
+  	l := len(this.m_sliceStartCUAddress);
+  	this.m_sliceStartCUAddress[l] = int(uiSliceStartCuAddr);
+    //this.m_sliceStartCUAddress.PushBack(uiSliceStartCuAddr);
   }
 
   this.m_pcSbacDecoder.Init( this.m_pcBinCABAC );//(TDecBinIf*)
@@ -117,7 +119,9 @@ func (this *TDecGop) DecompressSlice(pcBitstream *TLibCommon.TComInputBitstream,
   this.m_pcEntropyDecoder.ResetEntropy      (pcSlice);
 
   if uiSliceStartCuAddr == uiStartCUAddr {
-    this.m_LFCrossSliceBoundaryFlag.PushBack( pcSlice.GetLFCrossSliceBoundaryFlag());
+  	l := len(this.m_LFCrossSliceBoundaryFlag);
+  	this.m_LFCrossSliceBoundaryFlag[l] = pcSlice.GetLFCrossSliceBoundaryFlag();
+    //this.m_LFCrossSliceBoundaryFlag.PushBack( pcSlice.GetLFCrossSliceBoundaryFlag());
   }
   this.m_pcSbacDecoders[0].Load(this.m_pcSbacDecoder);
   this.m_pcSliceDecoder.DecompressSlice( pcBitstream, ppcSubstreams, rpcPic, this.m_pcSbacDecoder, this.m_pcSbacDecoders);
@@ -151,7 +155,9 @@ func (this *TDecGop) FilterPicture(rpcPic *TLibCommon.TComPic) {
 
   pcSlice = rpcPic.GetSlice(0);
   if pcSlice.GetSPS().GetUseSAO() {
-    this.m_sliceStartCUAddress.PushBack(rpcPic.GetNumCUsInFrame()* rpcPic.GetNumPartInCU());
+  	l := len(this.m_sliceStartCUAddress);
+  	this.m_sliceStartCUAddress[l] = int(rpcPic.GetNumCUsInFrame()* rpcPic.GetNumPartInCU());
+    ///this.m_sliceStartCUAddress.PushBack(rpcPic.GetNumCUsInFrame()* rpcPic.GetNumPartInCU());
     rpcPic.CreateNonDBFilterInfo(this.m_sliceStartCUAddress, 0, this.m_LFCrossSliceBoundaryFlag, rpcPic.GetPicSym().GetNumTiles(), bLFCrossTileBoundary);
   }
 
@@ -161,7 +167,7 @@ func (this *TDecGop) FilterPicture(rpcPic *TLibCommon.TComPic) {
       saoParam.SaoFlag[0] = pcSlice.GetSaoEnabledFlag();
       saoParam.SaoFlag[1] = pcSlice.GetSaoEnabledFlagChroma();
       this.m_pcSAO.SetSaoLcuBasedOptimization(true);
-      this.m_pcSAO.CreatePicSaoInfo(rpcPic, this.m_sliceStartCUAddress.Len() - 1);
+      this.m_pcSAO.CreatePicSaoInfo(rpcPic, len(this.m_sliceStartCUAddress) - 1);
       this.m_pcSAO.SAOProcess(saoParam);
       this.m_pcSAO.PCMLFDisableProcess(rpcPic);
       this.m_pcSAO.DestroyPicSaoInfo();
@@ -213,8 +219,25 @@ func (this *TDecGop) FilterPicture(rpcPic *TLibCommon.TComPic) {
   rpcPic.SetOutputMark(true);
   rpcPic.SetReconMark(true);
   
-  this.m_sliceStartCUAddress.Init();
-  this.m_LFCrossSliceBoundaryFlag.Init();
+  //this.m_sliceStartCUAddress.Init();
+  //this.m_LFCrossSliceBoundaryFlag.Init();
+  slicesize:=len(this.m_sliceStartCUAddress);
+  
+  for i:=0; i<slicesize; i++ { 
+  	delete(this.m_sliceStartCUAddress, i);
+  }
+  if len(this.m_sliceStartCUAddress)!=0{
+  	fmt.Printf("clear this.m_sliceStartCUAddress error\n");
+  }
+  
+  lfsize:=len(this.m_LFCrossSliceBoundaryFlag);
+  
+  for i:=0; i<lfsize; i++ { 
+  	delete(this.m_LFCrossSliceBoundaryFlag, i);
+  }
+  if len(this.m_LFCrossSliceBoundaryFlag)!=0{
+  	fmt.Printf("clear this.m_LFCrossSliceBoundaryFlag error\n");
+  }
 }
 func (this *TDecGop) SetGopSize(i int) {
     this.m_iGopSize = i
