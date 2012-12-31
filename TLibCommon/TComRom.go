@@ -36,7 +36,7 @@ const TRACE_PRED   = 0x0100
 const TRACE_RECON  = 0x0200
 
 const TRACE_LEVEL  = 0x0FFF //0x007F     //
-const TRACE_CABAC  = true
+const TRACE_CABAC  = false
 
 const COUNTER_START    = 1
 const COUNTER_END      = 0 //( UInt64(1) << 63 )
