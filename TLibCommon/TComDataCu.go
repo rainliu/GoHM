@@ -645,6 +645,7 @@ func (this *TComDataCU)  xAddMVPCandOrder      ( pInfo *AMVPInfo,  eRefPicList R
 	      rcMv = cMvPred;
 	    }else{
 	      iScale := this.xGetDistScaleFactor( iCurrPOC, int(iCurrRefPOC), iNeibPOC, iNeibRefPOC );
+	      //fmt.Printf("xAddMVPCandOrder1:(%d,%d,%d,%d)=%d",iCurrPOC, int(iCurrRefPOC), iNeibPOC, iNeibRefPOC,iScale);
 	      if iScale == 4096 {
 	        rcMv = cMvPred;
 	      }else{
@@ -671,6 +672,7 @@ func (this *TComDataCU)  xAddMVPCandOrder      ( pInfo *AMVPInfo,  eRefPicList R
 	      if iScale == 4096 {
 	        rcMv = cMvPred;
 	      }else{
+	      	//fmt.Printf("xAddMVPCandOrder2:%d",iScale);
 	        rcMv = cMvPred.ScaleMv( iScale );
 	      }
 	    }
@@ -802,6 +804,7 @@ func (this *TComDataCU)  xGetColMVP(  eRefPicList RefPicList,  uiCUAddr,  uiPart
     if iScale == 4096 {
       rcMv = cColMv;
     }else{
+      //fmt.Printf("xGetColMVP:%d",iScale);	
       rcMv = cColMv.ScaleMv( iScale );
     }
   }
@@ -861,9 +864,10 @@ func (this *TComDataCU)  xGetDistScaleFactor   (  iCurrPOC,  iCurrRefPOC,  iColP
     iScale = (iTDB * iX + 32) >> 6;
     if iScale < -4096{
   		iScale = -4096;
-  	}else if iScale > 127{
+  	}else if iScale > 4095{
   		iScale = 4095;
   	}
+  	return iScale;
   }
 
   return 4096;
@@ -956,6 +960,7 @@ func (this *TComDataCU)  xGetCenterCol(  uiPartIdx uint,  eRefPicList RefPicList
     if iScale == 4096 {
       pcMv[0] = *cColMv;
     }else{
+      //fmt.Printf("xGetCenterCol:%d",iScale);		
       pcMv[0] = *cColMv.ScaleMv( iScale );
     }
   }

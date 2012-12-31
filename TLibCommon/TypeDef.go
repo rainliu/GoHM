@@ -284,7 +284,7 @@ type SAOQTPart struct{
   //---- encoder only start -----//
   bProcessed	bool;
   dMinCost		float64;
-  iMinDist		int64;
+  iMinDist		int;
   iMinRate		int;
   //---- encoder only end -----//
 } ;
@@ -302,7 +302,7 @@ type SaoLcuParam struct{
 
 type SAOParam struct{
   SaoFlag			[2]bool;
-  SaoPart			[3]*SAOQTPart;
+  SaoPart			[3][]SAOQTPart;
   MaxSplitLevel		int;
   OneUnitFlag		[3]bool;
   SaoLcuParam		[3][]SaoLcuParam;
