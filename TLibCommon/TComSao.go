@@ -508,7 +508,7 @@ func (this *TComSampleAdaptiveOffset) ProcessSaoCu( iAddr,  iSaoType,  iYCbCr in
 
       posOffset = yPos* uint(stride) + xPos;
 
-      this.ProcessSaoBlock(pPicDec[posOffset:], pPicRest[posOffset:], stride, iSaoType, int(width), int(height), pbBorderAvail, iYCbCr);
+      this.ProcessSaoBlock(pPicDec[:], int(posOffset), pPicRest[posOffset:], stride, iSaoType, int(width), int(height), pbBorderAvail, iYCbCr);
     }
   }
 }
@@ -756,7 +756,7 @@ func (this *TComSampleAdaptiveOffset) CreatePicSaoInfo(pcPic *TComPic,  numSlice
 func (this *TComSampleAdaptiveOffset) DestroyPicSaoInfo(){
 	//do nothing
 }
-func (this *TComSampleAdaptiveOffset) ProcessSaoBlock(pDec []Pel, pRest []Pel,  stride,  saoType int,  width,  height int, pbBorderAvail []bool,  iYCbCr int){ 
+func (this *TComSampleAdaptiveOffset) ProcessSaoBlock(pDec2 []Pel, posOffset int, pRest []Pel,  stride,  saoType int,  width,  height int, pbBorderAvail []bool,  iYCbCr int){ 
   //variables
   var startX, startY, endX, endY, x, y int;
   var signLeft,signRight,signDown,signDown1 int;
@@ -775,6 +775,8 @@ func (this *TComSampleAdaptiveOffset) ProcessSaoBlock(pDec []Pel, pRest []Pel,  
   
   switch saoType {
   case SAO_EO_0: // dir: -
+  	  pDec := pDec2[posOffset:];
+  	  
   	  if pbBorderAvail[SGU_L]{
       	startX =  0;
       }else{
@@ -785,6 +787,7 @@ func (this *TComSampleAdaptiveOffset) ProcessSaoBlock(pDec []Pel, pRest []Pel,  
       }else{	
       	endX   = (width -1);
       }
+      
       for y=0; y< height; y++{
         signLeft = this.xSign(int(pDec[y*stride+startX] - pDec[y*stride+startX-1]));
         for x=startX; x< endX; x++{
@@ -798,6 +801,8 @@ func (this *TComSampleAdaptiveOffset) ProcessSaoBlock(pDec []Pel, pRest []Pel,  
         //pRest += stride;
       }
   case SAO_EO_1: // dir: |
+  	  pDec := pDec2[posOffset:];
+  	  
   	  if pbBorderAvail[SGU_T]{
       	startY = 0;
       }else{
@@ -827,6 +832,7 @@ func (this *TComSampleAdaptiveOffset) ProcessSaoBlock(pDec []Pel, pRest []Pel,  
         //pRest += stride;
       }
   case SAO_EO_2: // dir: 135
+      pDec := pDec2[posOffset:];
       posShift := stride + 1;
 
 	  if pbBorderAvail[SGU_L] {
@@ -841,21 +847,20 @@ func (this *TComSampleAdaptiveOffset) ProcessSaoBlock(pDec []Pel, pRest []Pel,  
       }
 
       //prepare 2nd line upper sign
-      pDec2 := pDec[ stride:];
       for x=startX; x< endX+1; x++ {
-        this.m_iUpBuff1[1+x] = this.xSign(int(pDec2[x] - pDec2[x- posShift]));
+        this.m_iUpBuff1[1+x] = this.xSign(int(pDec[stride+x] - pDec2[posOffset+ stride+x- posShift]));
       }
 
       //1st line
       //pDec -= stride;
       if pbBorderAvail[SGU_TL] {
         x= 0;
-        edgeType =  uint(this.xSign(int(pDec[x] - pDec[x- posShift])) - this.m_iUpBuff1[1+x+1] + 2);
+        edgeType =  uint(this.xSign(int(pDec[x] - pDec2[posOffset+x- posShift])) - this.m_iUpBuff1[1+x+1] + 2);
         pRest[x] = pClipTbl[int(pDec[x]) + this.m_iOffsetEo[edgeType]];
       }
       if pbBorderAvail[SGU_T] {
         for x= 1; x< endX; x++ {
-          edgeType = uint(this.xSign(int(pDec[x] - pDec[x- posShift])) - this.m_iUpBuff1[1+x+1] + 2);
+          edgeType = uint(this.xSign(int(pDec[x] - pDec2[posOffset+x- posShift])) - this.m_iUpBuff1[1+x+1] + 2);
           pRest[x] = pClipTbl[int(pDec[x]) + this.m_iOffsetEo[edgeType]];
         }
       }
@@ -881,6 +886,8 @@ func (this *TComSampleAdaptiveOffset) ProcessSaoBlock(pDec []Pel, pRest []Pel,  
         //pDec  += stride;
         //pRest += stride;
       }
+      pDec  = pDec[(height-2)*stride:];
+      pRest = pRest[(height-2)*stride:];
 
       //last line
       if pbBorderAvail[SGU_B] {
@@ -895,6 +902,7 @@ func (this *TComSampleAdaptiveOffset) ProcessSaoBlock(pDec []Pel, pRest []Pel,  
         pRest[x] = pClipTbl[int(pDec[x]) + this.m_iOffsetEo[edgeType]];
       }
   case SAO_EO_3: // dir: 45
+  	  pDec := pDec2[posOffset:];
       posShift := stride - 1;
       if pbBorderAvail[SGU_L]{
       	startX = 0;
@@ -908,9 +916,8 @@ func (this *TComSampleAdaptiveOffset) ProcessSaoBlock(pDec []Pel, pRest []Pel,  
       }
 
       //prepare 2nd line upper sign
-      pDec2 := pDec[stride:];
       for x=startX-1; x< endX; x++{
-        this.m_iUpBuff1[1+x] = this.xSign(int(pDec2[x] - pDec[stride+x- posShift]));
+        this.m_iUpBuff1[1+x] = this.xSign(int(pDec[stride+x] - pDec2[posOffset+ stride+x- posShift]));
       }
 
       //first line
@@ -943,6 +950,8 @@ func (this *TComSampleAdaptiveOffset) ProcessSaoBlock(pDec []Pel, pRest []Pel,  
         //pDec  += stride;
         //pRest += stride;
       }
+      pDec  = pDec[(height-2)*stride:];
+      pRest = pRest[(height-2)*stride:];
 
       //last line
       if pbBorderAvail[SGU_BL] {
@@ -958,6 +967,7 @@ func (this *TComSampleAdaptiveOffset) ProcessSaoBlock(pDec []Pel, pRest []Pel,  
         }
       }  
   case SAO_BO:
+  	  pDec := pDec2[posOffset:];
       for y=0; y< height; y++ {
         for x=0; x< width; x++ {
           pRest[y*stride+x] = Pel(pOffsetBo[pDec[y*stride+x]]);
