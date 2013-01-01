@@ -34,7 +34,7 @@ type TComPic struct {
     m_numReorderPics				[MAX_TLAYER]int;
   	m_croppingWindow				*CroppingWindow;
   
-    m_vSliceCUDataLink                      *list.List //std::vector<std::vector<TComDataCU*> > ;
+    m_vSliceCUDataLink                      map[int]*list.List //std::vector<std::vector<TComDataCU*> > ;
 
     m_SEIs		*SEImessages; ///< Any SEI messages that have been received.  If !NULL we own the object.
 }
@@ -219,10 +219,271 @@ func (this *TComPic)  GetCroppingWindow() *CroppingWindow        {
 }
 
 func (this *TComPic)  CreateNonDBFilterInfo   (sliceStartAddress map[int]int, sliceGranularityDepth int, LFCrossSliceBoundary map[int]bool, numTiles int, bNDBFilterCrossTileBoundary bool){
+  maxNumSUInLCU := this.GetNumPartInCU();
+  numLCUInPic   := this.GetNumCUsInFrame();
+  picWidth      := this.GetSlice(0).GetSPS().GetPicWidthInLumaSamples();
+  picHeight     := this.GetSlice(0).GetSPS().GetPicHeightInLumaSamples();
+  numLCUsInPicWidth := this.GetFrameWidthInCU();
+  numLCUsInPicHeight:= this.GetFrameHeightInCU();
+  maxNumSUInLCUWidth := this.GetNumPartInWidth();
+  maxNumSUInLCUHeight:= this.GetNumPartInHeight();
+  numSlices := len(sliceStartAddress) - 1;
+  this.m_bIndependentSliceBoundaryForNDBFilter = false;
+  if numSlices > 1 {
+    for s:=0; s< numSlices; s++ {
+      if LFCrossSliceBoundary[s] == false {
+        this.m_bIndependentSliceBoundaryForNDBFilter = true;
+      }
+    }
+  }
+  this.m_sliceGranularityForNDBFilter = sliceGranularityDepth;
+  if bNDBFilterCrossTileBoundary {
+  	this.m_bIndependentTileBoundaryForNDBFilter  = false;
+  }else if numTiles > 1 {
+  	this.m_bIndependentTileBoundaryForNDBFilter  = true;
+  }else{
+  	this.m_bIndependentTileBoundaryForNDBFilter  = false;
+  }
+
+  this.m_pbValidSlice = make([]bool, numSlices);
+  for s:=0; s< numSlices; s++ {
+    this.m_pbValidSlice[s] = true;
+  }
+  this.m_pSliceSUMap = make([]int, maxNumSUInLCU * numLCUInPic);
+
+  //initialization
+  for i:=uint(0); i< maxNumSUInLCU * numLCUInPic; i++ {
+    this.m_pSliceSUMap[i] = -1;
+  }
+  for CUAddr := uint(0); CUAddr < numLCUInPic ; CUAddr++ {
+    pcCU := this.GetCU( CUAddr );
+    pcCU.SetSliceSUMap(this.m_pSliceSUMap, int(CUAddr* maxNumSUInLCU)); 
+    pcCU.GetNDBFilterBlocks().Init();
+  }
+  //this.m_vSliceCUDataLink.clear();
+  //this.m_vSliceCUDataLink.resize(numSlices);
+  this.m_vSliceCUDataLink =  make(map[int]*list.List);
+
+  var startAddr, endAddr, firstCUInStartLCU, startLCU, endLCU, lastCUInEndLCU, uiAddr uint;
+  var LPelX, TPelY, LCUX, LCUY uint;
+  var currSU, startSU, endSU uint;
+
+  for s:=0; s< numSlices; s++ {
+    this.m_vSliceCUDataLink[s] = list.New();
+    
+    //1st step: decide the real start address
+    startAddr = uint(sliceStartAddress[s]);
+    endAddr   = uint(sliceStartAddress[s+1] -1);
+
+    startLCU            = startAddr / maxNumSUInLCU;
+    firstCUInStartLCU   = startAddr % maxNumSUInLCU;
+
+    endLCU              = endAddr   / maxNumSUInLCU;
+    lastCUInEndLCU      = endAddr   % maxNumSUInLCU;   
+
+    uiAddr = this.m_apcPicSym.GetCUOrderMap(int(startLCU));
+
+    LCUX      = this.GetCU(uiAddr).GetCUPelX();
+    LCUY      = this.GetCU(uiAddr).GetCUPelY();
+    LPelX     = LCUX + G_auiRasterToPelX[ G_auiZscanToRaster[firstCUInStartLCU] ];
+    TPelY     = LCUY + G_auiRasterToPelY[ G_auiZscanToRaster[firstCUInStartLCU] ];
+    currSU    = firstCUInStartLCU;
+
+    bMoveToNextLCU := false;
+    bSliceInOneLCU := (startLCU == endLCU);
+
+    for !( LPelX < picWidth ) || !( TPelY < picHeight ) {
+      currSU ++;
+
+      if bSliceInOneLCU {
+        if currSU > lastCUInEndLCU {
+          this.m_pbValidSlice[s] = false;
+          break;
+        }
+      }
+
+      if currSU >= maxNumSUInLCU {
+        bMoveToNextLCU = true;
+        break;
+      }
+
+      LPelX = LCUX + G_auiRasterToPelX[ G_auiZscanToRaster[currSU] ];
+      TPelY = LCUY + G_auiRasterToPelY[ G_auiZscanToRaster[currSU] ];
+    }
+
+    if !this.m_pbValidSlice[s] {
+      continue;
+    }
+
+    if currSU != firstCUInStartLCU {
+      if !bMoveToNextLCU {
+        firstCUInStartLCU = currSU;
+      }else{
+        startLCU++;
+        firstCUInStartLCU = 0;
+        //assert( startLCU < this.GetNumCUsInFrame());
+      }
+      //assert(startLCU*maxNumSUInLCU + firstCUInStartLCU < endAddr);
+    }
+
+
+    //2nd step: assign NonDBFilterInfo to each processing block
+    for i:= uint(startLCU); i <= endLCU; i++ {
+      if i == startLCU {
+      	startSU = firstCUInStartLCU;
+      }else{
+      	startSU = 0;
+      }
+      if i == endLCU {
+      	endSU   = lastCUInEndLCU;
+      }else{
+      	endSU   = maxNumSUInLCU -1;
+      }
+
+      uiAddr = this.m_apcPicSym.GetCUOrderMap(int(i));
+      iTileID := this.m_apcPicSym.GetTileIdxMap(int(uiAddr));
+
+      pcCU := this.GetCU(uiAddr);
+      this.m_vSliceCUDataLink[s].PushBack(pcCU);
+
+      this.CreateNonDBFilterInfoLCU(int(iTileID), s, pcCU, startSU, endSU, this.m_sliceGranularityForNDBFilter, picWidth, picHeight);
+    }
+  }
+
+  //step 3: border availability
+  for s:=0; s< numSlices; s++ {
+    if !this.m_pbValidSlice[s] {
+      continue;
+    }
+
+    for e:=this.m_vSliceCUDataLink[s].Front(); e!=nil; e=e.Next() {
+      pcCU := e.Value.(*TComDataCU);//this.m_vSliceCUDataLink[s][i];
+      uiAddr = pcCU.GetAddr();
+
+      if pcCU.GetPic()==nil {
+        continue;
+      }
+      iTileID := this.m_apcPicSym.GetTileIdxMap(int(uiAddr));
+      bTopTileBoundary := false;
+      bDownTileBoundary:= false;
+      bLeftTileBoundary:= false;
+      bRightTileBoundary:= false;
+
+      if this.m_bIndependentTileBoundaryForNDBFilter {
+        //left
+        if uiAddr % numLCUsInPicWidth != 0 {
+          bLeftTileBoundary = ( this.m_apcPicSym.GetTileIdxMap(int(uiAddr) -1) != iTileID );
+        }
+        //right
+        if (uiAddr % numLCUsInPicWidth) != (numLCUsInPicWidth -1) {
+          bRightTileBoundary = ( this.m_apcPicSym.GetTileIdxMap(int(uiAddr) +1) != iTileID);
+        }
+        //top
+        if uiAddr >= numLCUsInPicWidth {
+          bTopTileBoundary = (this.m_apcPicSym.GetTileIdxMap(int(uiAddr - numLCUsInPicWidth)) !=  iTileID );
+        }
+        //down
+        if uiAddr + numLCUsInPicWidth < numLCUInPic {
+          bDownTileBoundary = (this.m_apcPicSym.GetTileIdxMap(int(uiAddr + numLCUsInPicWidth)) != iTileID);
+        }
+
+      }
+
+      pcCU.SetNDBFilterBlockBorderAvailability(numLCUsInPicWidth, numLCUsInPicHeight, maxNumSUInLCUWidth, maxNumSUInLCUHeight,picWidth, picHeight, LFCrossSliceBoundary,
+         bTopTileBoundary, bDownTileBoundary, bLeftTileBoundary, bRightTileBoundary,this.m_bIndependentTileBoundaryForNDBFilter);
+    }
+
+  }
+
+  if this.m_bIndependentSliceBoundaryForNDBFilter || this.m_bIndependentTileBoundaryForNDBFilter {
+    this.m_pNDBFilterYuvTmp = NewTComPicYuv();
+    this.m_pNDBFilterYuvTmp.Create(int(picWidth), int(picHeight), G_uiMaxCUWidth, G_uiMaxCUHeight, G_uiMaxCUDepth);
+  }
 }
 func (this *TComPic)  CreateNonDBFilterInfoLCU(tileID, sliceID int, pcCU *TComDataCU, startSU, endSU uint, sliceGranularyDepth int, picWidth, picHeight uint){
+  LCUX          := pcCU.GetCUPelX();
+  LCUY          := pcCU.GetCUPelY();
+  pCUSliceMap, iCUSliceMapAddr   := pcCU.GetSliceSUMap();
+  maxNumSUInLCU := this.GetNumPartInCU();
+  maxNumSUInSGU := maxNumSUInLCU >> uint(sliceGranularyDepth << 1);
+  maxNumSUInLCUWidth := this.GetNumPartInWidth();
+  var LPelX, TPelY, currSU uint;
+
+  //get the number of valid NBFilterBLock
+  currSU   = startSU;
+  for currSU <= endSU {
+    LPelX = LCUX + G_auiRasterToPelX[ G_auiZscanToRaster[currSU] ];
+    TPelY = LCUY + G_auiRasterToPelY[ G_auiZscanToRaster[currSU] ];
+
+    for !( LPelX < picWidth ) || !( TPelY < picHeight ) {
+      currSU += maxNumSUInSGU;
+      if currSU >= maxNumSUInLCU || currSU > endSU {
+        break;
+      }
+      LPelX = LCUX + G_auiRasterToPelX[ G_auiZscanToRaster[currSU] ];
+      TPelY = LCUY + G_auiRasterToPelY[ G_auiZscanToRaster[currSU] ];
+    }
+
+    if currSU >= maxNumSUInLCU || currSU > endSU {
+      break;
+    }
+
+    var NDBFBlock NDBFBlockInfo;
+
+    NDBFBlock.tileID  = tileID;
+    NDBFBlock.sliceID = sliceID;
+    NDBFBlock.posY    = TPelY;
+    NDBFBlock.posX    = LPelX;
+    NDBFBlock.startSU = currSU;
+
+    uiLastValidSU  := currSU;
+    var uiIdx, uiLPelX_su, uiTPelY_su uint;
+    for uiIdx = currSU; uiIdx < currSU + maxNumSUInSGU; uiIdx++ {
+      if uiIdx > endSU {
+        break;        
+      }
+      uiLPelX_su   = LCUX + G_auiRasterToPelX[ G_auiZscanToRaster[uiIdx] ];
+      uiTPelY_su   = LCUY + G_auiRasterToPelY[ G_auiZscanToRaster[uiIdx] ];
+      if !(uiLPelX_su < picWidth ) || !( uiTPelY_su < picHeight ) {
+        continue;
+      }
+      pCUSliceMap[iCUSliceMapAddr+int(uiIdx)] = sliceID;
+      uiLastValidSU = uiIdx;
+    }
+    NDBFBlock.endSU = uiLastValidSU;
+
+    rTLSU := G_auiZscanToRaster[ NDBFBlock.startSU ];
+    rBRSU := G_auiZscanToRaster[ NDBFBlock.endSU   ];
+    NDBFBlock.widthSU  = (rBRSU % maxNumSUInLCUWidth) - (rTLSU % maxNumSUInLCUWidth)+ 1;
+    NDBFBlock.heightSU = uint(rBRSU / maxNumSUInLCUWidth) - uint(rTLSU / maxNumSUInLCUWidth)+ 1;
+    NDBFBlock.width    = NDBFBlock.widthSU  * this.GetMinCUWidth();
+    NDBFBlock.height   = NDBFBlock.heightSU * this.GetMinCUHeight();
+
+    pcCU.GetNDBFilterBlocks().PushBack(NDBFBlock);
+
+    currSU += maxNumSUInSGU;
+  }
 }
 func (this *TComPic)  DestroyNonDBFilterInfo(){
+  if this.m_pbValidSlice != nil {
+    //delete[] this.m_pbValidSlice;
+    this.m_pbValidSlice = nil;
+  }
+
+  if this.m_pSliceSUMap != nil {
+    //delete[] this.m_pSliceSUMap;
+    this.m_pSliceSUMap = nil;
+  }
+  for CUAddr := uint(0); CUAddr < this.GetNumCUsInFrame() ; CUAddr++ {
+    pcCU := this.GetCU( CUAddr );
+    pcCU.GetNDBFilterBlocks().Init();
+  }
+
+  if this.m_bIndependentSliceBoundaryForNDBFilter || this.m_bIndependentTileBoundaryForNDBFilter {
+    this.m_pNDBFilterYuvTmp.Destroy();
+    //delete this.m_pNDBFilterYuvTmp;
+    this.m_pNDBFilterYuvTmp = nil;
+  }
 }
 
 func (this *TComPic)  GetValidSlice                                  (sliceID int) bool {

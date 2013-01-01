@@ -598,7 +598,7 @@ func (this *TComSampleAdaptiveOffset) ProcessSaoCuOrg( iAddr,  iSaoType,  iYCbCr
     //pRec -= (iStride*(iCuHeightTmp+1));
 
     pTmpL = this.m_pTmpL1; 
-    pTmpU = this.m_pTmpU1[uiLPelX:]; 
+	pTmpU = this.m_pTmpU1;//[uiLPelX:]; 
   }
 
   if iYCbCr==0 {
@@ -621,7 +621,7 @@ func (this *TComSampleAdaptiveOffset) ProcessSaoCuOrg( iAddr,  iSaoType,  iYCbCr
       for y=0; y<iLcuHeight; y++ {
         iSignLeft = this.xSign(int(pRec[y*iStride+iStartX] - pTmpL[y]));
         for x=iStartX; x< iEndX; x++ {
-          iSignRight =  this.xSign(int(pRec[y*iStride+x] - pRec[x+1])); 
+          iSignRight =  this.xSign(int(pRec[y*iStride+x] - pRec[y*iStride+x+1])); 
           uiEdgeType =  uint(iSignRight + iSignLeft + 2);
           iSignLeft  = -iSignRight;
 
@@ -640,7 +640,7 @@ func (this *TComSampleAdaptiveOffset) ProcessSaoCuOrg( iAddr,  iSaoType,  iYCbCr
         pRec = pRec[ iStride:];
       }
       for x=0; x< iLcuWidth; x++ {
-        this.m_iUpBuff1[1+x] = this.xSign(int(pRec[x] - pTmpU[x]));
+        this.m_iUpBuff1[1+x] = this.xSign(int(pRec[x] - pTmpU[int(uiLPelX)+x]));
       }
       for y=iStartY; y<iEndY; y++ {
         for x=0; x<iLcuWidth; x++ {
@@ -672,7 +672,7 @@ func (this *TComSampleAdaptiveOffset) ProcessSaoCuOrg( iAddr,  iSaoType,  iYCbCr
       }
 
       for x=iStartX; x<iEndX; x++ {
-        this.m_iUpBuff1[1+x] = this.xSign(int(pRec[x] - pTmpU[x-1]));
+        this.m_iUpBuff1[1+x] = this.xSign(int(pRec[x] - pTmpU[int(uiLPelX)+x-1]));
       }
       for y=iStartY; y<iEndY; y++ {
         iSignDown2 = this.xSign(int(pRec[y*iStride+iStride+iStartX] - pTmpL[y]));
@@ -710,7 +710,7 @@ func (this *TComSampleAdaptiveOffset) ProcessSaoCuOrg( iAddr,  iSaoType,  iYCbCr
       }
 
       for x=iStartX-1; x<iEndX; x++ {
-        this.m_iUpBuff1[1+x] = this.xSign(int(pRec[x] - pTmpU[x+1]));
+        this.m_iUpBuff1[1+x] = this.xSign(int(pRec[x] - pTmpU[int(uiLPelX)+x+1]));
       }
       for y=iStartY; y<iEndY; y++ {
         x=iStartX;
@@ -719,7 +719,7 @@ func (this *TComSampleAdaptiveOffset) ProcessSaoCuOrg( iAddr,  iSaoType,  iYCbCr
         this.m_iUpBuff1[1+x-1] = -iSignDown1; 
         pRec[y*iStride+x] = pClipTbl[int(pRec[y*iStride+x]) + this.m_iOffsetEo[uiEdgeType]];
         for x=iStartX+1; x<iEndX; x++ {
-          iSignDown1      =  this.xSign(int(pRec[y*iStride+x] - pRec[x+iStride-1])) ;
+          iSignDown1      =  this.xSign(int(pRec[y*iStride+x] - pRec[y*iStride+x+iStride-1])) ;
           uiEdgeType      =  uint(iSignDown1 + this.m_iUpBuff1[1+x] + 2);
           this.m_iUpBuff1[1+x-1] = -iSignDown1; 
           pRec[y*iStride+x] = pClipTbl[int(pRec[y*iStride+x]) + this.m_iOffsetEo[uiEdgeType]];
