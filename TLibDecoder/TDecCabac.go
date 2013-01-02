@@ -713,11 +713,7 @@ func (this *TDecSbac)   ParseSaoOffset            (psSaoLcuParam *TLibCommon.Sao
     }else{
         bitDepth = TLibCommon.G_bitDepthY;
     }
-    if bitDepth - 5 < 5 {
-        offsetTh = 1 << 5;
-    }else{
-        offsetTh = 1 << uint(bitDepth - 5);
-    }
+    offsetTh = 1 << uint(TLibCommon.MIN(bitDepth - 5,5).(int));
 
     if psSaoLcuParam.TypeIdx == TLibCommon.SAO_BO {
       for i:=0; i< psSaoLcuParam.Length; i++{
@@ -1219,7 +1215,7 @@ func (this *TDecSbac)  ParseMvd           ( pcCU *TLibCommon.TComDataCU,  uiAbsP
     //const TComMv cMv( uiHorSign ? -Int( uiHorAbs ): uiHorAbs, uiVerSign ? -Int( uiVerAbs ) : uiVerAbs );
     cMv := TLibCommon.NewTComMv(mv_x, mv_y);
 
-    pcCU.GetCUMvField( eRefList ).SetAllMvd( cMv, pcCU.GetPartitionSize1( uiAbsPartIdx ), int(uiAbsPartIdx), uiDepth, int(uiPartIdx) );
+    pcCU.GetCUMvField( eRefList ).SetAllMvd( *cMv, pcCU.GetPartitionSize1( uiAbsPartIdx ), int(uiAbsPartIdx), uiDepth, int(uiPartIdx) );
     return;
 }
 

@@ -86,7 +86,7 @@
     <ReleaseProjectStdErr>On</ReleaseProjectStdErr>
     <ReleaseProjectSaveAll>Off</ReleaseProjectSaveAll>
     <ReleaseProjectReload>Off</ReleaseProjectReload>
-    <File>decmain.go</File>
+    <File>GoHMDecoder.go</File>
     <Folder name="TAppDecoder" sorted="Yes">
         <File>TAppDecoder\TAppDecCfg.go</File>
         <File>TAppDecoder\TAppDecTop.go</File>

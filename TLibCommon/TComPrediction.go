@@ -586,9 +586,9 @@ func (this *TComPrediction)  xPredIntraPlanar         ( pSrc2 []Pel, srcStride i
 func (this *TComPrediction)  xPredInterUni            ( pcCU *TComDataCU, uiPartAddr uint, iWidth, iHeight int, eRefPicList RefPicList, rpcYuvPred *TComYuv, iPartIdx int, bi bool ){
   iRefIdx     := pcCU.GetCUMvField( eRefPicList ).GetRefIdx( int(uiPartAddr) );           //assert (iRefIdx >= 0);
   cMv         := pcCU.GetCUMvField( eRefPicList ).GetMv( int(uiPartAddr) );
-  pcCU.ClipMv(cMv);
-  this.xPredInterLumaBlk  ( pcCU, pcCU.GetSlice().GetRefPic( eRefPicList, int(iRefIdx) ).GetPicYuvRec(), uiPartAddr, cMv, iWidth, iHeight, rpcYuvPred, bi );
-  this.xPredInterChromaBlk( pcCU, pcCU.GetSlice().GetRefPic( eRefPicList, int(iRefIdx) ).GetPicYuvRec(), uiPartAddr, cMv, iWidth, iHeight, rpcYuvPred, bi );
+  pcCU.ClipMv(&cMv);
+  this.xPredInterLumaBlk  ( pcCU, pcCU.GetSlice().GetRefPic( eRefPicList, int(iRefIdx) ).GetPicYuvRec(), uiPartAddr, &cMv, iWidth, iHeight, rpcYuvPred, bi );
+  this.xPredInterChromaBlk( pcCU, pcCU.GetSlice().GetRefPic( eRefPicList, int(iRefIdx) ).GetPicYuvRec(), uiPartAddr, &cMv, iWidth, iHeight, rpcYuvPred, bi );
 }
 func (this *TComPrediction)  xPredInterBi             ( pcCU *TComDataCU, uiPartAddr uint, iWidth, iHeight int, rpcYuvPred *TComYuv, iPartIdx int){
   var pcMbYuv *TComYuv;
@@ -634,7 +634,7 @@ func (this *TComPrediction)  xPredInterBi             ( pcCU *TComDataCU, uiPart
 func (this *TComPrediction)  xPredInterLumaBlk  ( cu *TComDataCU, refPic *TComPicYuv, partAddr uint, mv *TComMv, width, height int, dstPic *TComYuv, bi bool){
   refStride := refPic.GetStride();
   refOffset := int( mv.GetHor() >> 2 ) + int( mv.GetVer() >> 2 ) * refStride;
-  
+
   //ref      := refPic.GetLumaAddr2( int(cu.GetAddr()), int(cu.GetZorderIdxInCU() + partAddr) )[ refOffset:];
   ref2  := refPic.GetBufY()
   offsetY:= refPic.m_cuOffsetY[cu.GetAddr()]+refPic.m_buOffsetY[G_auiZscanToRaster[cu.GetZorderIdxInCU() + partAddr]];
@@ -672,7 +672,7 @@ func (this *TComPrediction)  xPredInterChromaBlk( cu *TComDataCU, refPic *TComPi
   //refCr     := refPic.GetCrAddr2( int(cu.GetAddr()), int(cu.GetZorderIdxInCU() + partAddr) ) [refOffset:];
   refCb2 := refPic.GetBufU();
   refCr2 := refPic.GetBufV();
-  
+
   offsetChroma:=refPic.m_cuOffsetC[cu.GetAddr()]+refPic.m_buOffsetC[G_auiZscanToRaster[cu.GetZorderIdxInCU() + partAddr]];
   iRefOffset := refPic.m_iChromaMarginY*refPic.GetCStride()+refPic.m_iChromaMarginX+offsetChroma + refOffset;
 
@@ -681,9 +681,9 @@ func (this *TComPrediction)  xPredInterChromaBlk( cu *TComDataCU, refPic *TComPi
 
   xFrac  := int(mv.GetHor() & 0x7);
   yFrac  := int(mv.GetVer() & 0x7);
-  
+
   //fmt.Printf("MV(%d,%d)/FMV(%d,%d)=(%d,%d) ", mv.GetHor(),mv.GetVer(),xFrac, yFrac, refCb2[iRefOffset], refCr2[iRefOffset]);
-  
+
   cxWidth  := width  >> 1;
   cxHeight := height >> 1;
 
@@ -914,4 +914,3 @@ func (this *TComPrediction) GetPredicBufWidth()     int   {
 func (this *TComPrediction) GetPredicBufHeight()    int   {
 	return this.m_iYuvExtHeight;
 }
-

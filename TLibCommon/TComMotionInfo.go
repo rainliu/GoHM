@@ -30,7 +30,7 @@ func NewTComMvField() *TComMvField{
 	return &TComMvField{m_iRefIdx: NOT_VALID}
 }
 
-func (this *TComMvField) SetMvField( cMv *TComMv,  iRefIdx int8){
+func (this *TComMvField) SetMvField( cMv TComMv,  iRefIdx int8){
     this.m_acMv.SetHor( cMv.GetHor() );
     this.m_acMv.SetVer( cMv.GetVer() );
 
@@ -41,8 +41,8 @@ func (this *TComMvField) SetRefIdx( refIdx int8) {
 	this.m_iRefIdx = refIdx;
 }
 
-func (this *TComMvField)  GetMv() *TComMv {
-	return  &this.m_acMv;
+func (this *TComMvField)  GetMv() TComMv {
+	return  this.m_acMv;
 }
 func (this *TComMvField)  GetRefIdx() int8 {
 	return  this.m_iRefIdx;
@@ -149,11 +149,11 @@ func (this *TComCUMvField)  GetRefIdxs( offset int) []int8 {
 }
 
 
-func (this *TComCUMvField)  GetMv     ( iIdx int) *TComMv {
-	return  &this.m_pcMv    [iIdx];
+func (this *TComCUMvField)  GetMv     ( iIdx int) TComMv {
+	return  this.m_pcMv    [iIdx];
 }
-func (this *TComCUMvField)  GetMvd    ( iIdx int) *TComMv {
-	return  &this.m_pcMvd   [iIdx];
+func (this *TComCUMvField)  GetMvd    ( iIdx int) TComMv {
+	return  this.m_pcMvd   [iIdx];
 }
 func (this *TComCUMvField)  GetRefIdx( iIdx int) int8 {
 	return  this.m_piRefIdx[iIdx];
@@ -422,11 +422,11 @@ func (this *TComCUMvField)  SetAll2( p []int8, val int8, eCUMode PartSize, iPart
   }
 }
 
-func (this *TComCUMvField)  SetAllMv     ( mv  *TComMv,  		 eCUMode PartSize,  iPartAddr int,  uiDepth uint,  iPartIdx int ){
-    this.SetAll(this.m_pcMv, *mv, eCUMode, iPartAddr, uiDepth, iPartIdx);
+func (this *TComCUMvField)  SetAllMv     ( mv  TComMv,  		 eCUMode PartSize,  iPartAddr int,  uiDepth uint,  iPartIdx int ){
+    this.SetAll(this.m_pcMv, mv, eCUMode, iPartAddr, uiDepth, iPartIdx);
 }
-func (this *TComCUMvField)  SetAllMvd    ( mvd *TComMv,  	     eCUMode PartSize,  iPartAddr int,  uiDepth uint,  iPartIdx int ){
-    this.SetAll(this.m_pcMvd, *mvd, eCUMode, iPartAddr, uiDepth, iPartIdx);
+func (this *TComCUMvField)  SetAllMvd    ( mvd TComMv,  	     eCUMode PartSize,  iPartAddr int,  uiDepth uint,  iPartIdx int ){
+    this.SetAll(this.m_pcMvd, mvd, eCUMode, iPartAddr, uiDepth, iPartIdx);
 }
 func (this *TComCUMvField)  SetAllRefIdx ( iRefIdx int8,          eCUMode PartSize,  iPartAddr int,  uiDepth uint,  iPartIdx int ){
     this.SetAll2(this.m_piRefIdx, iRefIdx, eCUMode, iPartAddr, uiDepth, iPartIdx);

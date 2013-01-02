@@ -147,7 +147,7 @@ func (this *TDecEntropy) DecodePUWise       ( pcCU *TLibCommon.TComDataCU, uiAbs
         if pcCU.GetSlice().GetNumRefIdx( TLibCommon.RefPicList( uiRefListIdx ) ) > 0 {
           pcCU.SetMVPIdxSubParts( 0, TLibCommon.RefPicList( uiRefListIdx ), uiSubPartIdx, uiPartIdx, uiDepth);
           pcCU.SetMVPNumSubParts( 0, TLibCommon.RefPicList( uiRefListIdx ), uiSubPartIdx, uiPartIdx, uiDepth);
-          pcCU.GetCUMvField( TLibCommon.RefPicList( uiRefListIdx ) ).SetAllMvd( cTmpMv, ePartSize, int(uiSubPartIdx), uiDepth, int(uiPartIdx) );
+          pcCU.GetCUMvField( TLibCommon.RefPicList( uiRefListIdx ) ).SetAllMvd( *cTmpMv, ePartSize, int(uiSubPartIdx), uiDepth, int(uiPartIdx) );
           pcCU.GetCUMvField( TLibCommon.RefPicList( uiRefListIdx ) ).SetAllMvField( &cMvFieldNeighbours[ 2*int(uiMergeIndex) + uiRefListIdx ], ePartSize, int(uiSubPartIdx), uiDepth, int(uiPartIdx) );
         }
       }
@@ -163,7 +163,7 @@ func (this *TDecEntropy) DecodePUWise       ( pcCU *TLibCommon.TComDataCU, uiAbs
       }
     }
     if (pcCU.GetInterDir1(uiSubPartIdx) == 3) && pcSubCU.IsBipredRestriction(uiPartIdx) {
-      pcCU.GetCUMvField( TLibCommon.REF_PIC_LIST_1 ).SetAllMv( TLibCommon.NewTComMv(0,0), ePartSize, int(uiSubPartIdx), uiDepth, int(uiPartIdx));
+      pcCU.GetCUMvField( TLibCommon.REF_PIC_LIST_1 ).SetAllMv( *TLibCommon.NewTComMv(0,0), ePartSize, int(uiSubPartIdx), uiDepth, int(uiPartIdx));
       pcCU.GetCUMvField( TLibCommon.REF_PIC_LIST_1 ).SetAllRefIdx( -1, ePartSize, int(uiSubPartIdx), uiDepth, int(uiPartIdx));
       pcCU.SetInterDirSubParts( 1, uiSubPartIdx, uiPartIdx, uiDepth);
     }
@@ -236,7 +236,7 @@ func (this *TDecEntropy) DecodeMVPIdxPU     ( pcSubCU *TLibCommon.TComDataCU, ui
   }
 
   ePartSize := pcSubCU.GetPartitionSize1( uiPartAddr );
-  pcSubCU.GetCUMvField( eRefList ).SetAllMv(cMv, ePartSize, int(uiPartAddr), 0, int(uiPartIdx));
+  pcSubCU.GetCUMvField( eRefList ).SetAllMv(*cMv, ePartSize, int(uiPartAddr), 0, int(uiPartIdx));
 }
 
 func (this *TDecEntropy) SetEntropyDecoder(p TDecEntropyIf) {

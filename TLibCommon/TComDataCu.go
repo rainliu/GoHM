@@ -105,7 +105,7 @@ type TComDataCU struct{
   m_pcIPCMSampleCr		[]Pel;     ///< PCM sample buffer (Cr)
 
   m_piSliceSUMap		[]int;       ///< pointer of slice ID map
-  m_iSliceSUMapAddr		  int;  
+  m_iSliceSUMapAddr		  int;
   m_vNDFBlock 			*list.List;
 
   // -------------------------------------------------------------------------------------------------------------------
@@ -266,7 +266,7 @@ func (this *TComDataCU)  Create(  uiNumPartition,  uiWidth,  uiHeight uint, bDec
 
   this.m_apcCUColocated[0]  = nil;
   this.m_apcCUColocated[1]  = nil;
-  
+
   this.m_vNDFBlock = list.New();
 }
 func (this *TComDataCU)  Destroy(){
@@ -559,7 +559,7 @@ func (this *TComDataCU)  xAddMVPCand           ( pInfo *AMVPInfo,  eRefPicList R
   if pcTmpCU != nil && this.m_pcSlice.IsEqualRef(eRefPicList, int(pcTmpCU.GetCUMvField(eRefPicList).GetRefIdx(int(uiIdx))), iRefIdx) {
     cMvPred := pcTmpCU.GetCUMvField(eRefPicList).GetMv(int(uiIdx));
 
-    pInfo.MvCand[ pInfo.IN] = *cMvPred;
+    pInfo.MvCand[ pInfo.IN] = cMvPred;
     pInfo.IN++;
     return true;
   }
@@ -582,7 +582,7 @@ func (this *TComDataCU)  xAddMVPCand           ( pInfo *AMVPInfo,  eRefPicList R
     iNeibRefPOC = pcTmpCU.GetSlice().GetRefPOC( RefPicList(eRefPicList2nd), int(pcTmpCU.GetCUMvField(RefPicList(eRefPicList2nd)).GetRefIdx(int(uiIdx))) );
     if iNeibRefPOC == int(iCurrRefPOC) { // Same Reference Frame But Diff List//
       cMvPred := pcTmpCU.GetCUMvField(RefPicList(eRefPicList2nd)).GetMv(int(uiIdx));
-      pInfo.MvCand[ pInfo.IN] = *cMvPred;
+      pInfo.MvCand[ pInfo.IN] = cMvPred;
       pInfo.IN++
       return true;
     }
@@ -640,7 +640,7 @@ func (this *TComDataCU)  xAddMVPCandOrder      ( pInfo *AMVPInfo,  eRefPicList R
   if pcTmpCU.GetCUMvField(eRefPicList).GetRefIdx(int(uiIdx)) >= 0 {
     iNeibRefPOC = pcTmpCU.GetSlice().GetRefPOC( eRefPicList, int(pcTmpCU.GetCUMvField(eRefPicList).GetRefIdx(int(uiIdx))) );
     cMvPred := pcTmpCU.GetCUMvField(eRefPicList).GetMv(int(uiIdx));
-    var rcMv *TComMv;
+    var rcMv TComMv;
 
     bIsNeibRefLongTerm = pcTmpCU.GetSlice().GetRefPic( eRefPicList, int(pcTmpCU.GetCUMvField(eRefPicList).GetRefIdx(int(uiIdx))) ).GetIsLongTerm();
     if bIsCurrRefLongTerm == bIsNeibRefLongTerm {
@@ -655,7 +655,7 @@ func (this *TComDataCU)  xAddMVPCandOrder      ( pInfo *AMVPInfo,  eRefPicList R
 	        rcMv = cMvPred.ScaleMv( iScale );
 	      }
 	    }
-	    pInfo.MvCand[ pInfo.IN] = *rcMv;
+	    pInfo.MvCand[ pInfo.IN] = rcMv;
 	    pInfo.IN++;
 	    return true;
     }
@@ -664,7 +664,7 @@ func (this *TComDataCU)  xAddMVPCandOrder      ( pInfo *AMVPInfo,  eRefPicList R
   if pcTmpCU.GetCUMvField(RefPicList(eRefPicList2nd)).GetRefIdx(int(uiIdx)) >= 0 {
     iNeibRefPOC = pcTmpCU.GetSlice().GetRefPOC( RefPicList(eRefPicList2nd), int(pcTmpCU.GetCUMvField(RefPicList(eRefPicList2nd)).GetRefIdx(int(uiIdx))) );
     cMvPred := pcTmpCU.GetCUMvField(RefPicList(eRefPicList2nd)).GetMv(int(uiIdx));
-    var rcMv *TComMv;
+    var rcMv TComMv;
 
     bIsNeibRefLongTerm = pcTmpCU.GetSlice().GetRefPic( RefPicList(eRefPicList2nd), int(pcTmpCU.GetCUMvField(RefPicList(eRefPicList2nd)).GetRefIdx(int(uiIdx))) ).GetIsLongTerm();
     if bIsCurrRefLongTerm == bIsNeibRefLongTerm {
@@ -679,7 +679,7 @@ func (this *TComDataCU)  xAddMVPCandOrder      ( pInfo *AMVPInfo,  eRefPicList R
 	        rcMv = cMvPred.ScaleMv( iScale );
 	      }
 	    }
-	    pInfo.MvCand[ pInfo.IN] = *rcMv;
+	    pInfo.MvCand[ pInfo.IN] = rcMv;
 	    pInfo.IN++
 	    return true;
     }
@@ -750,7 +750,7 @@ func (this *TComDataCU)  xGetColMVP(  eRefPicList RefPicList,  uiCUAddr,  uiPart
 
   var eColRefPicList RefPicList;
   var iColPOC, iColRefPOC, iCurrPOC, iCurrRefPOC, iScale int;
-  var cColMv *TComMv;
+  var cColMv TComMv;
 
   // use coldir.
   var pColPic *TComPic;
@@ -801,14 +801,14 @@ func (this *TComDataCU)  xGetColMVP(  eRefPicList RefPicList,  uiCUAddr,  uiPart
   }
 
   if bIsCurrRefLongTerm || bIsColRefLongTerm {
-    rcMv = cColMv;
+    *rcMv = cColMv;
   }else{
     iScale = this.xGetDistScaleFactor(iCurrPOC, iCurrRefPOC, iColPOC, iColRefPOC);
     if iScale == 4096 {
-      rcMv = cColMv;
+      *rcMv = cColMv;
     }else{
-      //fmt.Printf("xGetColMVP:%d",iScale);	
-      rcMv = cColMv.ScaleMv( iScale );
+      //fmt.Printf("xGetColMVP:%d",iScale);
+      *rcMv = cColMv.ScaleMv( iScale );
     }
   }
   return true;
@@ -957,14 +957,14 @@ func (this *TComDataCU)  xGetCenterCol(  uiPartIdx uint,  eRefPicList RefPicList
   }
 
   if bIsCurrRefLongTerm || bIsColRefLongTerm {
-    pcMv[0] = *cColMv;
+    pcMv[0] = cColMv;
   }else{
     iScale := this.xGetDistScaleFactor(iCurrPOC, int(iCurrRefPOC), iColPOC, iColRefPOC);
     if iScale == 4096 {
-      pcMv[0] = *cColMv;
+      pcMv[0] = cColMv;
     }else{
-      //fmt.Printf("xGetCenterCol:%d",iScale);		
-      pcMv[0] = *cColMv.ScaleMv( iScale );
+      //fmt.Printf("xGetCenterCol:%d",iScale);
+      pcMv[0] = cColMv.ScaleMv( iScale );
     }
   }
   return true;
@@ -2490,7 +2490,7 @@ func (this *TComDataCU)  SetNDBFilterBlockBorderAvailability( numLCUInPicWidth, 
       pRefID = &this.m_piSliceSUMap[pRefMapLCU + int(zRefSU)];
       if *pRefID == sliceID {
       	*pbAvail = (true);
-      }else if *pRefID > sliceID {	
+      }else if *pRefID > sliceID {
       	*pbAvail = (LFCrossSliceBoundary[*pRefID]);
       }else{
       	*pbAvail = (LFCrossSliceBoundary[sliceID]);
@@ -2892,7 +2892,7 @@ func (this *TComDataCU)  IsFirstAbsZorderIdxInDepth ( uiAbsPartIdx,  uiDepth uin
 func (this *TComDataCU)  GetMvField            ( pcCU *TComDataCU,  uiAbsPartIdx uint,  eRefPicList RefPicList, rcMvField *TComMvField){
   if  pcCU == nil {  // OUT OF BOUNDARY
     cZeroMv:=NewTComMv(0,0);
-    rcMvField.SetMvField( cZeroMv, NOT_VALID );
+    rcMvField.SetMvField( *cZeroMv, NOT_VALID );
     return;
   }
 
@@ -3025,12 +3025,12 @@ func (this *TComDataCU)  FillMvpCand           (  uiPartIdx,  uiPartAddr uint,  
       pInfo.MvCand[pInfo.IN].Set(0,0);
       pInfo.IN++;
   }
-  
+
   /*for i:=0; i<pInfo.IN; i++ {
     fmt.Printf("(%d,%d) ",pInfo.MvCand[i].GetHor(),pInfo.MvCand[i].GetVer());
   }
   fmt.Printf("\n");*/
-  
+
   return ;
 }
 func (this *TComDataCU)  IsDiffMER             (  xN,  yN,  xP,  yP int) bool{
@@ -3164,13 +3164,13 @@ func (this *TComDataCU)  ClipMv                ( rcMv  *TComMv   ){
   rcMv.SetHor( MIN (iHorMax, MAX (iHorMin, rcMv.GetHor()).(int16)).(int16) );
   rcMv.SetVer( MIN (iVerMax, MAX (iVerMin, rcMv.GetVer()).(int16)).(int16) );
 }
-func (this *TComDataCU)  GetMvPredLeft         ( )   *TComMv{
+func (this *TComDataCU)  GetMvPredLeft         ( )   TComMv{
 	return this.m_cMvFieldA.GetMv();
 }
-func (this *TComDataCU)  GetMvPredAbove        ( )   *TComMv{
+func (this *TComDataCU)  GetMvPredAbove        ( )   TComMv{
 	return this.m_cMvFieldB.GetMv();
 }
-func (this *TComDataCU)  GetMvPredAboveRight   ( )   *TComMv{
+func (this *TComDataCU)  GetMvPredAboveRight   ( )   TComMv{
 	return this.m_cMvFieldC.GetMv();
 }
 
@@ -4103,7 +4103,7 @@ func (this *TComDataCU)  GetInterMergeCandidates       ( uiAbsPartIdx,  uiPUIdx 
     if bExistMV {
       uiArrayAddr := iCount;
       abCandIsInter[uiArrayAddr] = true;
-      pcMvFieldNeighbours[uiArrayAddr << 1].SetMvField( &cColMv, int8(iRefIdx) );
+      pcMvFieldNeighbours[uiArrayAddr << 1].SetMvField( cColMv, int8(iRefIdx) );
 
       if this.GetSlice().IsInterB() {
         iRefIdx = 0;
@@ -4112,7 +4112,7 @@ func (this *TComDataCU)  GetInterMergeCandidates       ( uiAbsPartIdx,  uiPUIdx 
           bExistMV = this.xGetColMVP( REF_PIC_LIST_1, int(uiCurLCUIdx), int(uiPartIdxCenter),  &cColMv, &iRefIdx );
         }
         if bExistMV {
-          pcMvFieldNeighbours[ ( uiArrayAddr << 1 ) + 1 ].SetMvField( &cColMv, int8(iRefIdx) );
+          pcMvFieldNeighbours[ ( uiArrayAddr << 1 ) + 1 ].SetMvField( cColMv, int8(iRefIdx) );
           puhInterDirNeighbours[uiArrayAddr] = 3;
         }else{
           puhInterDirNeighbours[uiArrayAddr] = 1;
@@ -4181,11 +4181,11 @@ func (this *TComDataCU)  GetInterMergeCandidates       ( uiAbsPartIdx,  uiPUIdx 
   for uiArrayAddr < int(this.GetSlice().GetMaxNumMergeCand()) {
     abCandIsInter[uiArrayAddr] = true;
     puhInterDirNeighbours[uiArrayAddr] = 1;
-    pcMvFieldNeighbours[uiArrayAddr << 1].SetMvField( &TComMv{0, 0}, int8(r));
+    pcMvFieldNeighbours[uiArrayAddr << 1].SetMvField( TComMv{0, 0}, int8(r));
 
     if this.GetSlice().IsInterB() {
       puhInterDirNeighbours[uiArrayAddr] = 3;
-      pcMvFieldNeighbours[(uiArrayAddr << 1) + 1].SetMvField(&TComMv{0, 0}, int8(r));
+      pcMvFieldNeighbours[(uiArrayAddr << 1) + 1].SetMvField(TComMv{0, 0}, int8(r));
     }
     uiArrayAddr++;
     if refcnt == iNumRefIdx - 1 {

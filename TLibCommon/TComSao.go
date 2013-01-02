@@ -24,14 +24,14 @@ var m_aiNumCulPartsLevel=[5]int{
 };
 
 var m_auiEoTable=[9]uint{
-  1, //0    
-  2, //1   
+  1, //0
+  2, //1
   0, //2
   3, //3
   4, //4
-  0, //5  
-  0, //6  
-  0, //7 
+  0, //5
+  0, //6
+  0, //7
   0,
 };
 
@@ -162,7 +162,7 @@ func (this *TComSampleAdaptiveOffset) Create(uiSourceWidth, uiSourceHeight, uiMa
   //this.m_iUpBuff1++;
   //this.m_iUpBuff2++;
   //this.m_iUpBufft++;
-  
+
   var i int;
 
   uiMaxY  := int(1 << uint(G_bitDepthY)) - 1;;
@@ -293,7 +293,7 @@ func (this *TComSampleAdaptiveOffset) ConvertLevelRowCol2Idx( level,  row,  col 
   }else{ // (level == 4)
     idx = 85 + row*16 + col;
   }
-  
+
   return idx;
 }
 
@@ -386,7 +386,7 @@ func (this *TComSampleAdaptiveOffset) InitSAOParam   (pcSaoParam *SAOParam,  iPa
     pSaoPart.DownPartsIdx[0]= -1;
     pSaoPart.DownPartsIdx[1]= -1;
     pSaoPart.DownPartsIdx[2]= -1;
-    pSaoPart.DownPartsIdx[3]= -1; 
+    pSaoPart.DownPartsIdx[3]= -1;
   }
 }
 func (this *TComSampleAdaptiveOffset) AllocSaoParam  (pcSaoParam *SAOParam){
@@ -412,7 +412,7 @@ func (this *TComSampleAdaptiveOffset) ResetSAOParam  (pcSaoParam *SAOParam){
     for i:=0; i< m_aiNumCulPartsLevel[this.m_uiMaxSplitLevel]; i++ {
       pcSaoParam.SaoPart[c][i].iBestType     = -1;
       pcSaoParam.SaoPart[c][i].iLength       =  0;
-      pcSaoParam.SaoPart[c][i].bSplit        = false; 
+      pcSaoParam.SaoPart[c][i].bSplit        = false;
       pcSaoParam.SaoPart[c][i].bProcessed    = false;
       pcSaoParam.SaoPart[c][i].dMinCost      = MAX_DOUBLE;
       pcSaoParam.SaoPart[c][i].iMinDist      = MAX_INT;
@@ -439,15 +439,15 @@ func (this *TComSampleAdaptiveOffset) FreeSaoParam   (pcSaoParam *SAOParam){
   pcSaoParam.psSaoPart[0] = 0;
   pcSaoParam.psSaoPart[1] = 0;
   pcSaoParam.psSaoPart[2] = 0;
-  if( pcSaoParam.saoLcuParam[0]) 
+  if( pcSaoParam.saoLcuParam[0])
   {
     delete [] pcSaoParam.saoLcuParam[0]; pcSaoParam.saoLcuParam[0] = NULL;
   }
-  if( pcSaoParam.saoLcuParam[1]) 
+  if( pcSaoParam.saoLcuParam[1])
   {
     delete [] pcSaoParam.saoLcuParam[1]; pcSaoParam.saoLcuParam[1] = NULL;
   }
-  if( pcSaoParam.saoLcuParam[2]) 
+  if( pcSaoParam.saoLcuParam[2])
   {
     delete [] pcSaoParam.saoLcuParam[2]; pcSaoParam.saoLcuParam[2] = NULL;
   }*/
@@ -462,9 +462,9 @@ func (this *TComSampleAdaptiveOffset) SAOProcess(pcSaoParam *SAOParam){
       this.m_pcPic.GetPicYuvRec().CopyToPic(this.m_pcYuvTmp);
     }
     if this.m_saoLcuBasedOptimization {
-      pcSaoParam.OneUnitFlag[0] = false;  
-      pcSaoParam.OneUnitFlag[1] = false;  
-      pcSaoParam.OneUnitFlag[2] = false;  
+      pcSaoParam.OneUnitFlag[0] = false;
+      pcSaoParam.OneUnitFlag[1] = false;
+      pcSaoParam.OneUnitFlag[2] = false;
     }
     iY  := 0;
     if pcSaoParam.SaoFlag[0] {
@@ -480,7 +480,7 @@ func (this *TComSampleAdaptiveOffset) SAOProcess(pcSaoParam *SAOParam){
 func (this *TComSampleAdaptiveOffset) ProcessSaoCu( iAddr,  iSaoType,  iYCbCr int){
   if !this.m_bUseNIF {
     this.ProcessSaoCuOrg( iAddr, iSaoType, iYCbCr);
-  }else{  
+  }else{
     isChroma := B2U(iYCbCr != 0);
     var  stride  int;
     if iYCbCr != 0 {
@@ -496,7 +496,7 @@ func (this *TComSampleAdaptiveOffset) ProcessSaoCu( iAddr,  iSaoType,  iYCbCr in
     var pbBorderAvail []bool;
     var posOffset uint;
 
-	vFilterBlocksList := this.m_pcPic.GetCU(uint(iAddr)).GetNDBFilterBlocks();//std::vector<NDBFBlockInfo>& 
+	vFilterBlocksList := this.m_pcPic.GetCU(uint(iAddr)).GetNDBFilterBlocks();//std::vector<NDBFBlockInfo>&
     //for i:=0; i< vFilterBlocks.size(); i++ {
     for e:=vFilterBlocksList.Front(); e!=nil; e=e.Next() {
       vFilterBlocks:=e.Value.(NDBFBlockInfo)
@@ -597,8 +597,8 @@ func (this *TComSampleAdaptiveOffset) ProcessSaoCuOrg( iAddr,  iSaoType,  iYCbCr
     }
     //pRec -= (iStride*(iCuHeightTmp+1));
 
-    pTmpL = this.m_pTmpL1; 
-	pTmpU = this.m_pTmpU1;//[uiLPelX:]; 
+    pTmpL = this.m_pTmpL1;
+	pTmpU = this.m_pTmpU1;//[uiLPelX:];
   }
 
   if iYCbCr==0 {
@@ -617,17 +617,18 @@ func (this *TComSampleAdaptiveOffset) ProcessSaoCuOrg( iAddr,  iSaoType,  iYCbCr
       }else{
       	iEndX   = iLcuWidth;
       }
-      
+      //fmt.Printf("type=%d, %d\n", iSaoType, pRec[0]);
+
       for y=0; y<iLcuHeight; y++ {
-        iSignLeft = this.xSign(int(pRec[y*iStride+iStartX] - pTmpL[y]));
+        iSignLeft = this.xSign(int(pRec[iStartX] - pTmpL[y]));
         for x=iStartX; x< iEndX; x++ {
-          iSignRight =  this.xSign(int(pRec[y*iStride+x] - pRec[y*iStride+x+1])); 
+          iSignRight =  this.xSign(int(pRec[x] - pRec[x+1]));
           uiEdgeType =  uint(iSignRight + iSignLeft + 2);
           iSignLeft  = -iSignRight;
 
-          pRec[y*iStride+x] = pClipTbl[int(pRec[y*iStride+x]) + this.m_iOffsetEo[uiEdgeType]];
+          pRec[x] = pClipTbl[int(pRec[x]) + this.m_iOffsetEo[uiEdgeType]];
         }
-        //pRec += iStride;
+        pRec = pRec[iStride:];
       }
   case SAO_EO_1: // dir: |
       iStartY = int(B2U(uiTPelY == 0));
@@ -639,18 +640,21 @@ func (this *TComSampleAdaptiveOffset) ProcessSaoCuOrg( iAddr,  iSaoType,  iYCbCr
       if uiTPelY == 0 {
         pRec = pRec[ iStride:];
       }
+      //fmt.Printf("type=%d, %d\n", iSaoType, pRec[0]);
+
       for x=0; x< iLcuWidth; x++ {
         this.m_iUpBuff1[1+x] = this.xSign(int(pRec[x] - pTmpU[int(uiLPelX)+x]));
+
       }
       for y=iStartY; y<iEndY; y++ {
         for x=0; x<iLcuWidth; x++ {
-          iSignDown  = this.xSign(int(pRec[y*iStride+x] - pRec[y*iStride+x+iStride])); 
+          iSignDown  = this.xSign(int(pRec[x] - pRec[x+iStride]));
           uiEdgeType = uint(iSignDown + this.m_iUpBuff1[1+x] + 2);
           this.m_iUpBuff1[1+x]= -iSignDown;
 
-          pRec[y*iStride+x] = pClipTbl[int(pRec[y*iStride+x]) + this.m_iOffsetEo[uiEdgeType]];
+          pRec[x] = pClipTbl[int(pRec[x]) + this.m_iOffsetEo[uiEdgeType]];
         }
-        //pRec += iStride;
+        pRec = pRec[iStride:];
       }
   case SAO_EO_2: // dir: 135
       iStartX = int(B2U(uiLPelX == 0));
@@ -659,38 +663,54 @@ func (this *TComSampleAdaptiveOffset) ProcessSaoCuOrg( iAddr,  iSaoType,  iYCbCr
 	  }else{
 	  	iEndX   = iLcuWidth;
 	  }
-	  
+
       iStartY = int(B2U(uiTPelY == 0));
       if uiBPelY == uint(iPicHeightTmp) {
       	iEndY   = iLcuHeight-1;
       }else{
       	iEndY   = iLcuHeight;
       }
-
+      //var pRec2 []Pel;
       if uiTPelY == 0 {
         pRec = pRec[iStride:];
       }
+      //fmt.Printf("\ntype=%d, %d\n", iSaoType, pRec[0]);
 
       for x=iStartX; x<iEndX; x++ {
         this.m_iUpBuff1[1+x] = this.xSign(int(pRec[x] - pTmpU[int(uiLPelX)+x-1]));
+        //fmt.Printf("(%d-%d)=%d ", pRec[x], pTmpU[int(uiLPelX)+x-1],this.m_iUpBuff1[1+x]);
       }
       for y=iStartY; y<iEndY; y++ {
-        iSignDown2 = this.xSign(int(pRec[y*iStride+iStride+iStartX] - pTmpL[y]));
+        iSignDown2 = this.xSign(int(pRec[iStride+iStartX] - pTmpL[y]));
+        //fmt.Printf("(%d-%d)=%d\n",pRec[iStride+iStartX],pTmpL[y],iSignDown2);
         for x=iStartX; x<iEndX; x++ {
-          iSignDown1      =  this.xSign(int(pRec[y*iStride+x] - pRec[y*iStride+x+iStride+1])) ;
+          iSignDown1      =  this.xSign(int(pRec[x] - pRec[x+iStride+1])) ;
           uiEdgeType      =  uint(iSignDown1 + this.m_iUpBuff1[1+x] + 2);
-          this.m_iUpBufft[1+x+1] = -iSignDown1; 
-          pRec[y*iStride+x] = pClipTbl[int(pRec[y*iStride+x]) + this.m_iOffsetEo[uiEdgeType]];
+          this.m_iUpBufft[1+x+1] = -iSignDown1;
+          pRec[x] = pClipTbl[int(pRec[x]) + this.m_iOffsetEo[uiEdgeType]];
         }
         this.m_iUpBufft[1+iStartX] = iSignDown2;
 
-        this.m_ipSwap     = this.m_iUpBuff1;
+        this.m_ipSwap   = this.m_iUpBuff1;
         this.m_iUpBuff1 = this.m_iUpBufft;
         this.m_iUpBufft = this.m_ipSwap;
 
-        //pRec += iStride;
+        pRec = pRec[iStride:];
       }
   case SAO_EO_3: // dir: 45
+    var pRec2 []Pel;
+    var offset2 int;
+    if iYCbCr == 0 {
+        pRec2   = this.m_pcPic.GetPicYuvRec().GetLumaAddr();
+        offset2 = this.m_pcPic.GetPicYuvRec().m_cuOffsetY[ iAddr ];
+    }else if iYCbCr == 1 {
+        pRec2   = this.m_pcPic.GetPicYuvRec().GetCbAddr();
+        offset2 = this.m_pcPic.GetPicYuvRec().m_cuOffsetC[ iAddr ];
+    }else{
+        pRec2   = this.m_pcPic.GetPicYuvRec().GetCrAddr();
+        offset2 = this.m_pcPic.GetPicYuvRec().m_cuOffsetC[ iAddr ];
+    }
+
       iStartX = int(B2U(uiLPelX == 0));
       if uiRPelX == uint(iPicWidthTmp) {
       	iEndX   = iLcuWidth-1 ;
@@ -707,33 +727,38 @@ func (this *TComSampleAdaptiveOffset) ProcessSaoCuOrg( iAddr,  iSaoType,  iYCbCr
 
       if iStartY == 1 {
         pRec = pRec[iStride:];
+        offset2 += iStride;
       }
+      //fmt.Printf("type=%d, %d\n", iSaoType, pRec[0]);
 
       for x=iStartX-1; x<iEndX; x++ {
-        this.m_iUpBuff1[1+x] = this.xSign(int(pRec[x] - pTmpU[int(uiLPelX)+x+1]));
+        //fmt.Printf("x=%d,uiLPelX=%d, offset2=%d\n", x, uiLPelX, offset2);
+        this.m_iUpBuff1[1+x] = this.xSign(int(pRec2[offset2+x] - pTmpU[int(uiLPelX)+x+1]));
+        //fmt.Printf("%d-%d=%d\n",pRec2[offset2+x],pTmpU[int(uiLPelX)+x+1],this.m_iUpBuff1[1+x]);
       }
       for y=iStartY; y<iEndY; y++ {
         x=iStartX;
-        iSignDown1      =  this.xSign(int(pRec[y*iStride+x] - pTmpL[y+1])) ;
+        iSignDown1      =  this.xSign(int(pRec[x] - pTmpL[y+1])) ;
         uiEdgeType      =  uint(iSignDown1 + this.m_iUpBuff1[1+x]) + 2;
-        this.m_iUpBuff1[1+x-1] = -iSignDown1; 
-        pRec[y*iStride+x] = pClipTbl[int(pRec[y*iStride+x]) + this.m_iOffsetEo[uiEdgeType]];
+        this.m_iUpBuff1[1+x-1] = -iSignDown1;
+        pRec[x] = pClipTbl[int(pRec[x]) + this.m_iOffsetEo[uiEdgeType]];
         for x=iStartX+1; x<iEndX; x++ {
-          iSignDown1      =  this.xSign(int(pRec[y*iStride+x] - pRec[y*iStride+x+iStride-1])) ;
+          iSignDown1      =  this.xSign(int(pRec[x] - pRec[x+iStride-1])) ;
           uiEdgeType      =  uint(iSignDown1 + this.m_iUpBuff1[1+x] + 2);
-          this.m_iUpBuff1[1+x-1] = -iSignDown1; 
-          pRec[y*iStride+x] = pClipTbl[int(pRec[y*iStride+x]) + this.m_iOffsetEo[uiEdgeType]];
+          this.m_iUpBuff1[1+x-1] = -iSignDown1;
+          pRec[x] = pClipTbl[int(pRec[x]) + this.m_iOffsetEo[uiEdgeType]];
         }
-        this.m_iUpBuff1[1+iEndX-1] = this.xSign(int(pRec[y*iStride+iEndX-1 + iStride] - pRec[y*iStride+iEndX]));
+        this.m_iUpBuff1[1+iEndX-1] = this.xSign(int(pRec[iEndX-1 + iStride] - pRec[iEndX]));
 
-        //pRec += iStride;
-      }   
+        pRec = pRec[iStride:];
+      }
   case SAO_BO:
+      //fmt.Printf("type=%d, %d\n", iSaoType, pRec[0]);
       for y=0; y<iLcuHeight; y++ {
         for x=0; x<iLcuWidth; x++ {
-          pRec[y*iStride+x] = Pel(pOffsetBo[pRec[y*iStride+x]]);
+          pRec[x] = Pel(pOffsetBo[pRec[x]]);
         }
-        //pRec += iStride;
+        pRec = pRec[iStride:];
       }
   default: //break;
   }
@@ -756,14 +781,14 @@ func (this *TComSampleAdaptiveOffset) CreatePicSaoInfo(pcPic *TComPic,  numSlice
 func (this *TComSampleAdaptiveOffset) DestroyPicSaoInfo(){
 	//do nothing
 }
-func (this *TComSampleAdaptiveOffset) ProcessSaoBlock(pDec2 []Pel, posOffset int, pRest []Pel,  stride,  saoType int,  width,  height int, pbBorderAvail []bool,  iYCbCr int){ 
+func (this *TComSampleAdaptiveOffset) ProcessSaoBlock(pDec2 []Pel, posOffset int, pRest []Pel,  stride,  saoType int,  width,  height int, pbBorderAvail []bool,  iYCbCr int){
   //variables
   var startX, startY, endX, endY, x, y int;
   var signLeft,signRight,signDown,signDown1 int;
   var edgeType uint;
   var pClipTbl []Pel;
   var pOffsetBo []int;
-  
+
   if iYCbCr==0 {
   	pClipTbl = this.m_pClipTable;
     pOffsetBo = this.m_iOffsetBo;
@@ -771,12 +796,12 @@ func (this *TComSampleAdaptiveOffset) ProcessSaoBlock(pDec2 []Pel, posOffset int
     pClipTbl = this.m_pChromaClipTable;
     pOffsetBo = this.m_iChromaOffsetBo;
   }
-  
-  
+
+
   switch saoType {
   case SAO_EO_0: // dir: -
   	  pDec := pDec2[posOffset:];
-  	  
+
   	  if pbBorderAvail[SGU_L]{
       	startX =  0;
       }else{
@@ -784,14 +809,14 @@ func (this *TComSampleAdaptiveOffset) ProcessSaoBlock(pDec2 []Pel, posOffset int
       }
       if pbBorderAvail[SGU_R] {
       	endX   = width;
-      }else{	
+      }else{
       	endX   = (width -1);
       }
-      
+
       for y=0; y< height; y++{
         signLeft = this.xSign(int(pDec[y*stride+startX] - pDec[y*stride+startX-1]));
         for x=startX; x< endX; x++{
-          signRight =  this.xSign(int(pDec[y*stride+x] - pDec[y*stride+x+1])); 
+          signRight =  this.xSign(int(pDec[y*stride+x] - pDec[y*stride+x+1]));
           edgeType =  uint(signRight + signLeft + 2);
           signLeft  = -signRight;
 
@@ -802,7 +827,7 @@ func (this *TComSampleAdaptiveOffset) ProcessSaoBlock(pDec2 []Pel, posOffset int
       }
   case SAO_EO_1: // dir: |
   	  pDec := pDec2[posOffset:];
-  	  
+
   	  if pbBorderAvail[SGU_T]{
       	startY = 0;
       }else{
@@ -822,7 +847,7 @@ func (this *TComSampleAdaptiveOffset) ProcessSaoBlock(pDec2 []Pel, posOffset int
       }
       for y=startY; y<endY; y++ {
         for x=0; x< width; x++ {
-          signDown  = this.xSign(int(pDec[y*stride+x] - pDec[y*stride+x+stride])); 
+          signDown  = this.xSign(int(pDec[y*stride+x] - pDec[y*stride+x+stride]));
           edgeType = uint(signDown + this.m_iUpBuff1[1+x] + 2);
           this.m_iUpBuff1[1+x]= -signDown;
 
@@ -875,7 +900,7 @@ func (this *TComSampleAdaptiveOffset) ProcessSaoBlock(pDec2 []Pel, posOffset int
           edgeType      =  uint(signDown1 + this.m_iUpBuff1[1+x] + 2);
           pRest[y*stride+x] = pClipTbl[int(pDec[y*stride+x]) + this.m_iOffsetEo[edgeType]];
 
-          this.m_iUpBufft[1+x+1] = -signDown1; 
+          this.m_iUpBufft[1+x+1] = -signDown1;
         }
         this.m_iUpBufft[1+startX] = this.xSign(int(pDec[y*stride+stride+startX] - pDec[y*stride+startX-1]));
 
@@ -943,7 +968,7 @@ func (this *TComSampleAdaptiveOffset) ProcessSaoBlock(pDec2 []Pel, posOffset int
           edgeType      =  uint(signDown1 + this.m_iUpBuff1[1+x] + 2);
 
           pRest[y*stride+x] = pClipTbl[int(pDec[y*stride+x]) + this.m_iOffsetEo[edgeType]];
-          this.m_iUpBuff1[1+x-1] = -signDown1; 
+          this.m_iUpBuff1[1+x-1] = -signDown1;
         }
         this.m_iUpBuff1[1+endX-1] = this.xSign(int(pDec[y*stride+endX-1 + stride] - pDec[y*stride+endX]));
 
@@ -965,7 +990,7 @@ func (this *TComSampleAdaptiveOffset) ProcessSaoBlock(pDec2 []Pel, posOffset int
           edgeType = uint(this.xSign(int(pDec[x] - pDec[x+ posShift])) + this.m_iUpBuff1[1+x] + 2);
           pRest[x] = pClipTbl[int(pDec[x]) + this.m_iOffsetEo[edgeType]];
         }
-      }  
+      }
   case SAO_BO:
   	  pDec := pDec2[posOffset:];
       for y=0; y< height; y++ {
@@ -976,7 +1001,7 @@ func (this *TComSampleAdaptiveOffset) ProcessSaoBlock(pDec2 []Pel, posOffset int
         //pDec  += stride;
       }
   default: //break;
-  } 
+  }
 }
 
 func (this *TComSampleAdaptiveOffset) ResetLcuPart(saoLcuParam []SaoLcuParam){
@@ -1015,7 +1040,7 @@ func (this *TComSampleAdaptiveOffset) ConvertOnePart2SaoUnit(saoParam *SAOParam,
   for idxY = saoQTPart[partIdx].StartCUY; idxY<= saoQTPart[partIdx].EndCUY; idxY++ {
     for idxX = saoQTPart[partIdx].StartCUX; idxX<= saoQTPart[partIdx].EndCUX; idxX++ {
       addr = idxY * frameWidthInCU + idxX;
-      saoLcuParam[addr].PartIdxTmp = partIdx; 
+      saoLcuParam[addr].PartIdxTmp = partIdx;
       saoLcuParam[addr].TypeIdx    = saoQTPart[partIdx].iBestType;
       saoLcuParam[addr].SubTypeIdx = saoQTPart[partIdx].subTypeIdx;
       if saoLcuParam[addr].TypeIdx!=-1 {
@@ -1077,7 +1102,7 @@ func (this *TComSampleAdaptiveOffset) ProcessSaoUnitAll(saoLcuParam []SaoLcuPara
   }
 
   offset[0] = 0;
-  for idxY = 0; idxY< frameHeightInCU; idxY++ { 
+  for idxY = 0; idxY< frameHeightInCU; idxY++ {
     addr = idxY * frameWidthInCU;
     if yCbCr == 0 {
       pRec  = this.m_pcPic.GetPicYuvRec().GetLumaAddr1(addr);
@@ -1097,10 +1122,11 @@ func (this *TComSampleAdaptiveOffset) ProcessSaoUnitAll(saoLcuParam []SaoLcuPara
       this.m_pTmpL1[i] = pRec[i*stride+0];
       //pRec+=stride;
     }
-    pRec=pRec[(int(this.m_uiMaxCUHeight>>isChroma))*stride-(stride<<1):];
+    pRec=pRec[(int(this.m_uiMaxCUHeight>>isChroma)+1)*stride-(stride<<1):];
 
 	for i=0; i<picWidthTmp; i++{
     	this.m_pTmpU2[i] = pRec[i];//, sizeof(Pel)*picWidthTmp);
+    	//fmt.Printf("%d ", this.m_pTmpU2[i]);
     }
 
     for idxX = 0; idxX < frameWidthInCU; idxX++ {
@@ -1123,7 +1149,7 @@ func (this *TComSampleAdaptiveOffset) ProcessSaoUnitAll(saoLcuParam []SaoLcuPara
             for i=0; i<saoLcuParam[addr].Length; i++ {
               offset[ (saoLcuParam[addr].SubTypeIdx +i)%SAO_MAX_BO_CLASSES  +1] = saoLcuParam[addr].Offset[i] << uint(saoBitIncrease);
             }
-			
+
 			var bitDepth int;
 			if yCbCr==0 {
 	            ppLumaTable = this.m_lumaTableBo;
@@ -1173,6 +1199,9 @@ func (this *TComSampleAdaptiveOffset) ProcessSaoUnitAll(saoLcuParam []SaoLcuPara
     tmpUSwap = this.m_pTmpU1;
     this.m_pTmpU1 = this.m_pTmpU2;
     this.m_pTmpU2 = tmpUSwap;
+    /*for i=0; i<picWidthTmp; i++ {
+		fmt.Printf("(%d:%d) ", this.m_pTmpU1[i], this.m_pTmpU2[i]);
+	}*/
   }
 }
 func (this *TComSampleAdaptiveOffset) SetSaoLcuBoundary ( bVal bool)  {
@@ -1222,8 +1251,8 @@ func (this *TComSampleAdaptiveOffset) xPCMRestoration        (pcPic *TComPic){
     for uiCUAddr := uint(0); uiCUAddr < pcPic.GetNumCUsInFrame() ; uiCUAddr++ {
       pcCU := pcPic.GetCU(uiCUAddr);
 
-      this.xPCMCURestoration(pcCU, 0, 0); 
-    } 
+      this.xPCMCURestoration(pcCU, 0, 0);
+    }
   }
 }
 func (this *TComSampleAdaptiveOffset) xPCMCURestoration      (pcCU *TComDataCU,  uiAbsZorderIdx,  uiDepth uint){

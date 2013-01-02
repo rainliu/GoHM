@@ -70,13 +70,13 @@ func (this *TComMv)     GetAbsVer () int16 {
   // ------------------------------------------------------------------------------------------------------------------
   // operations
   // ------------------------------------------------------------------------------------------------------------------
- 
-func (this *TComMv) AddMv(rcMv *TComMv){
+
+func (this *TComMv) AddMv(rcMv TComMv){
     this.m_iHor += rcMv.m_iHor;
     this.m_iVer += rcMv.m_iVer;
 }
 
-func (this *TComMv) SubMv(rcMv *TComMv){
+func (this *TComMv) SubMv(rcMv TComMv){
     this.m_iHor -= rcMv.m_iHor;
     this.m_iVer -= rcMv.m_iVer;
 }
@@ -91,23 +91,23 @@ func (this *TComMv) LeftShift (i uint){
     this.m_iVer <<= i;
 }
 
-func SubMvs(lcMv, rcMv *TComMv ) *TComMv{
-    return &TComMv{ lcMv.m_iHor - rcMv.m_iHor, lcMv.m_iVer - rcMv.m_iVer };
+func SubMvs(lcMv, rcMv TComMv ) TComMv{
+    return TComMv{ lcMv.m_iHor - rcMv.m_iHor, lcMv.m_iVer - rcMv.m_iVer };
   }
 
-func AddMvs (lcMv, rcMv *TComMv) *TComMv{
-    return &TComMv{ lcMv.m_iHor + rcMv.m_iHor, lcMv.m_iVer + rcMv.m_iVer };
+func AddMvs (lcMv, rcMv TComMv) TComMv{
+    return TComMv{ lcMv.m_iHor + rcMv.m_iHor, lcMv.m_iVer + rcMv.m_iVer };
 }
 
-func EqualMvs(lcMv, rcMv *TComMv) bool{
+func EqualMvs(lcMv, rcMv TComMv) bool{
     return (lcMv.m_iHor==rcMv.m_iHor && lcMv.m_iVer==rcMv.m_iVer);
 }
 
-func NotEqualMvs(lcMv, rcMv *TComMv) bool{
+func NotEqualMvs(lcMv, rcMv TComMv) bool{
     return (lcMv.m_iHor!=rcMv.m_iHor || lcMv.m_iVer!=rcMv.m_iVer);
 }
-  
-func (this *TComMv) ScaleMv(  iScale int) *TComMv{
+
+func (this *TComMv) ScaleMv(  iScale int) TComMv{
     mvx := (iScale * int(this.GetHor()) + 127 + int(B2U(iScale * int(this.GetHor()) < 0))) >> 8;
 
     if mvx < -32768{
@@ -124,5 +124,5 @@ func (this *TComMv) ScaleMv(  iScale int) *TComMv{
     	mvy = 32767;
     }
 
-    return &TComMv{ m_iHor:int16(mvx), m_iVer:int16(mvy) };
+    return TComMv{ m_iHor:int16(mvx), m_iVer:int16(mvy) };
 }
