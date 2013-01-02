@@ -1,4 +1,4 @@
 GoHM
 ====
 
-HM Codec with Go
+H.265/HEVC HM Video Codec with Go
