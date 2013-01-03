@@ -1,8 +1,41 @@
+/* The copyright in this software is being made available under the BSD
+ * License, included below. This software may be subject to other third party
+ * and contributor rights, including patent rights, and no such rights are
+ * granted under this license.
+ *
+ * Copyright (c) 2012-2013, H265.net
+ * All rights reserved.
+ *
+ * Redistribution and use in source and binary forms, with or without
+ * modification, are permitted provided that the following conditions are met:
+ *
+ *  * Redistributions of source code must retain the above copyright notice,
+ *    this list of conditions and the following disclaimer.
+ *  * Redistributions in binary form must reproduce the above copyright notice,
+ *    this list of conditions and the following disclaimer in the documentation
+ *    and/or other materials provided with the distribution.
+ *  * Neither the name of the H265.net nor the names of its contributors may
+ *    be used to endorse or promote products derived from this software without
+ *    specific prior written permission.
+ *
+ * THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS"
+ * AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE
+ * IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE
+ * ARE DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT HOLDER OR CONTRIBUTORS
+ * BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR
+ * CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF
+ * SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS
+ * INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN
+ * CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE)
+ * ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF
+ * THE POSSIBILITY OF SUCH DAMAGE.
+ */
+
 package TLibCommon
 
 import (
-	"fmt"
     "container/list"
+    "fmt"
 )
 
 // ====================================================================================================================
@@ -61,35 +94,35 @@ func (this *TComReferencePictureSet) SetDeltaPocMSBPresentFlag(i int, x bool) {
     this.m_deltaPocMSBPresentFlag[i] = x
 }
 func (this *TComReferencePictureSet) SetUsed(bufferNum int, used bool) {
-	this.m_used[bufferNum] = used;
+    this.m_used[bufferNum] = used
 }
 func (this *TComReferencePictureSet) SetDeltaPOC(bufferNum, deltaPOC int) {
-	this.m_deltaPOC[bufferNum] = deltaPOC;
+    this.m_deltaPOC[bufferNum] = deltaPOC
 }
 func (this *TComReferencePictureSet) SetPOC(bufferNum, POC int) {
-	this.m_POC[bufferNum] = POC;
+    this.m_POC[bufferNum] = POC
 }
 func (this *TComReferencePictureSet) SetNumberOfPictures(numberOfPictures int) {
-	this.m_numberOfPictures = numberOfPictures;
+    this.m_numberOfPictures = numberOfPictures
 }
 func (this *TComReferencePictureSet) SetCheckLTMSBPresent(bufferNum int, b bool) {
-  	this.m_bCheckLTMSB[bufferNum] = b;
+    this.m_bCheckLTMSB[bufferNum] = b
 }
 func (this *TComReferencePictureSet) GetCheckLTMSBPresent(bufferNum int) bool {
-    return this.m_bCheckLTMSB[bufferNum];
+    return this.m_bCheckLTMSB[bufferNum]
 }
 
 func (this *TComReferencePictureSet) GetUsed(bufferNum int) bool {
-    return this.m_used[bufferNum];
+    return this.m_used[bufferNum]
 }
 func (this *TComReferencePictureSet) GetDeltaPOC(bufferNum int) int {
-    return this.m_deltaPOC[bufferNum];
+    return this.m_deltaPOC[bufferNum]
 }
 func (this *TComReferencePictureSet) GetPOC(bufferNum int) int {
-    return this.m_POC[bufferNum];
+    return this.m_POC[bufferNum]
 }
 func (this *TComReferencePictureSet) GetNumberOfPictures() int {
-    return this.m_numberOfPictures;
+    return this.m_numberOfPictures
 }
 
 func (this *TComReferencePictureSet) SetNumberOfNegativePictures(number int) {
@@ -144,49 +177,49 @@ func (this *TComReferencePictureSet) GetRefIdc(bufferNum int) int {
 }
 
 func (this *TComReferencePictureSet) SortDeltaPOC() {
-  // sort in increasing order (smallest first)
-  for j:=1; j < this.GetNumberOfPictures(); j++ {
-    deltaPOC := this.GetDeltaPOC(j);
-    used := this.GetUsed(j);
-    for k:=j-1; k >= 0; k-- {
-      temp := this.GetDeltaPOC(k);
-      if deltaPOC < temp {
-        this.SetDeltaPOC(k+1, temp);
-        this.SetUsed(k+1, this.GetUsed(k));
-        this.SetDeltaPOC(k, deltaPOC);
-        this.SetUsed(k, used);
-      }
+    // sort in increasing order (smallest first)
+    for j := 1; j < this.GetNumberOfPictures(); j++ {
+        deltaPOC := this.GetDeltaPOC(j)
+        used := this.GetUsed(j)
+        for k := j - 1; k >= 0; k-- {
+            temp := this.GetDeltaPOC(k)
+            if deltaPOC < temp {
+                this.SetDeltaPOC(k+1, temp)
+                this.SetUsed(k+1, this.GetUsed(k))
+                this.SetDeltaPOC(k, deltaPOC)
+                this.SetUsed(k, used)
+            }
+        }
     }
-  }
-  // flip the negative values to largest first
-  numNegPics := this.GetNumberOfNegativePictures();
-  k:=numNegPics-1;
-  for j:=0; j < numNegPics>>1; j++ {
-    deltaPOC := this.GetDeltaPOC(j);
-    used := this.GetUsed(j);
-    this.SetDeltaPOC(j, this.GetDeltaPOC(k));
-    this.SetUsed(j, this.GetUsed(k));
-    this.SetDeltaPOC(k, deltaPOC);
-    this.SetUsed(k, used);
-    k--;
-  }
+    // flip the negative values to largest first
+    numNegPics := this.GetNumberOfNegativePictures()
+    k := numNegPics - 1
+    for j := 0; j < numNegPics>>1; j++ {
+        deltaPOC := this.GetDeltaPOC(j)
+        used := this.GetUsed(j)
+        this.SetDeltaPOC(j, this.GetDeltaPOC(k))
+        this.SetUsed(j, this.GetUsed(k))
+        this.SetDeltaPOC(k, deltaPOC)
+        this.SetUsed(k, used)
+        k--
+    }
 }
 func (this *TComReferencePictureSet) PrintDeltaPOC() {
-  fmt.Printf("DeltaPOC = { ");
-  for j:=0; j < this.GetNumberOfPictures(); j++ {
-  	if this.GetUsed(j) {
-    	fmt.Printf("%d%s ", this.GetDeltaPOC(j), "*");
-  	}else{
-  		fmt.Printf("%d%s ", this.GetDeltaPOC(j), "");
-  	}
-  }
-  if this.GetInterRPSPrediction() {
-    fmt.Printf("}, RefIdc = { ");
-    for j:=0; j < this.GetNumRefIdc(); j++ {
-      fmt.Printf("%d ", this.GetRefIdc(j));
+    fmt.Printf("DeltaPOC = { ")
+    for j := 0; j < this.GetNumberOfPictures(); j++ {
+        if this.GetUsed(j) {
+            fmt.Printf("%d%s ", this.GetDeltaPOC(j), "*")
+        } else {
+            fmt.Printf("%d%s ", this.GetDeltaPOC(j), "")
+        }
     }
-  }
-  fmt.Printf("}\n");
+    if this.GetInterRPSPrediction() {
+        fmt.Printf("}, RefIdc = { ")
+        for j := 0; j < this.GetNumRefIdc(); j++ {
+            fmt.Printf("%d ", this.GetRefIdc(j))
+        }
+    }
+    fmt.Printf("}\n")
 }
 
 //};
@@ -208,12 +241,12 @@ func (this *TComRPSList) Create(numberOfReferencePictureSets int) {
     this.m_referencePictureSets = make([]TComReferencePictureSet, numberOfReferencePictureSets)
 }
 func (this *TComRPSList) Destroy() {
-  //if this.m_referencePictureSets
-  //{
-  //  delete [] m_referencePictureSets;
-  //}
-  this.m_numberOfReferencePictureSets = 0;
-  this.m_referencePictureSets = nil;
+    //if this.m_referencePictureSets
+    //{
+    //  delete [] m_referencePictureSets;
+    //}
+    this.m_numberOfReferencePictureSets = 0
+    this.m_referencePictureSets = nil
 }
 
 func (this *TComRPSList) GetReferencePictureSet(referencePictureSetNum int) *TComReferencePictureSet {
@@ -256,19 +289,19 @@ func (this *TComScalingList) SetUseTransformSkip(b bool) {
 }
 func (this *TComScalingList) GetScalingListAddress(sizeId, listId uint) []int {
     return this.m_scalingListCoef[sizeId][listId][:]
-}   //!< get matrix coefficient
-func (this *TComScalingList) CheckPredMode(sizeId, listId uint) bool {//encoder func
-/*
-  for predListIdx := int(listId) ; predListIdx >= 0; predListIdx-- {
-    if( !memcmp(getScalingListAddress(sizeId,listId),((listId == predListIdx) ?
-      getScalingListDefaultAddress(sizeId, predListIdx): getScalingListAddress(sizeId, predListIdx)),sizeof(Int)*min(MAX_MATRIX_COEF_NUM,(Int)g_scalingListSize[sizeId])) // check value of matrix
-     && ((sizeId < SCALING_LIST_16x16) || (getScalingListDC(sizeId,listId) == getScalingListDC(sizeId,predListIdx)))) // check DC value
-    {
-      setRefMatrixId(sizeId, listId, predListIdx);
-      return false;
-    }
-  }*/
-  return true;
+}                                                                      //!< get matrix coefficient
+func (this *TComScalingList) CheckPredMode(sizeId, listId uint) bool { //encoder func
+    /*
+      for predListIdx := int(listId) ; predListIdx >= 0; predListIdx-- {
+        if( !memcmp(getScalingListAddress(sizeId,listId),((listId == predListIdx) ?
+          getScalingListDefaultAddress(sizeId, predListIdx): getScalingListAddress(sizeId, predListIdx)),sizeof(Int)*min(MAX_MATRIX_COEF_NUM,(Int)g_scalingListSize[sizeId])) // check value of matrix
+         && ((sizeId < SCALING_LIST_16x16) || (getScalingListDC(sizeId,listId) == getScalingListDC(sizeId,predListIdx)))) // check DC value
+        {
+          setRefMatrixId(sizeId, listId, predListIdx);
+          return false;
+        }
+      }*/
+    return true
 }
 func (this *TComScalingList) SetRefMatrixId(sizeId, listId, u uint) {
     this.m_refMatrixId[sizeId][listId] = u
@@ -325,12 +358,12 @@ func (this *TComScalingList) GetScalingListDefaultAddress(sizeId, listId uint) [
     return src
 }   //!< get default matrix coefficient
 func (this *TComScalingList) ProcessDefaultMarix(sizeId, listId uint) {
-  for i:=0; i< MIN(MAX_MATRIX_COEF_NUM,int(G_scalingListSize[sizeId])).(int); i++ {
-  	this.GetScalingListAddress(sizeId, listId)[i] = this.GetScalingListDefaultAddress(sizeId,listId)[i];
-  }
-  //::memcpy(getScalingListAddress(sizeId, listId),getScalingListDefaultAddress(sizeId,listId),sizeof(Int)*);
-  
-  this.SetScalingListDC(sizeId,listId,SCALING_LIST_DC);
+    for i := 0; i < MIN(MAX_MATRIX_COEF_NUM, int(G_scalingListSize[sizeId])).(int); i++ {
+        this.GetScalingListAddress(sizeId, listId)[i] = this.GetScalingListDefaultAddress(sizeId, listId)[i]
+    }
+    //::memcpy(getScalingListAddress(sizeId, listId),getScalingListDefaultAddress(sizeId,listId),sizeof(Int)*);
+
+    this.SetScalingListDC(sizeId, listId, SCALING_LIST_DC)
 }
 func (this *TComScalingList) SetScalingListDC(sizeId, listId, u uint) {
     this.m_scalingListDC[sizeId][listId] = int(u)
@@ -340,25 +373,25 @@ func (this *TComScalingList) GetScalingListDC(sizeId, listId uint) int {
     return this.m_scalingListDC[sizeId][listId]
 }   //!< get DC value
 func (this *TComScalingList) CheckDcOfMatrix() {
-  for sizeId := uint(0); sizeId < SCALING_LIST_SIZE_NUM; sizeId++ {
-    for listId := uint(0); listId < G_scalingListNum[sizeId]; listId++ {
-      //check default matrix?
-      if this.GetScalingListDC(sizeId,listId) == 0 {
-        this.ProcessDefaultMarix(sizeId, listId);
-      }
+    for sizeId := uint(0); sizeId < SCALING_LIST_SIZE_NUM; sizeId++ {
+        for listId := uint(0); listId < G_scalingListNum[sizeId]; listId++ {
+            //check default matrix?
+            if this.GetScalingListDC(sizeId, listId) == 0 {
+                this.ProcessDefaultMarix(sizeId, listId)
+            }
+        }
     }
-  }
 }
 func (this *TComScalingList) ProcessRefMatrix(sizeId, listId, refListId uint) {
-  if listId == refListId {
-  	for i:=0; i<MIN(MAX_MATRIX_COEF_NUM,int(G_scalingListSize[sizeId])).(int); i++ {
-  		this.GetScalingListAddress(sizeId, listId)[i] = this.GetScalingListDefaultAddress(sizeId, refListId)[i];
-  	}
-  }else{
-    for i:=0; i<MIN(MAX_MATRIX_COEF_NUM,int(G_scalingListSize[sizeId])).(int); i++ {
-  		this.GetScalingListAddress(sizeId, listId)[i] = this.GetScalingListAddress(sizeId, refListId)[i];
-  	}
-  }
+    if listId == refListId {
+        for i := 0; i < MIN(MAX_MATRIX_COEF_NUM, int(G_scalingListSize[sizeId])).(int); i++ {
+            this.GetScalingListAddress(sizeId, listId)[i] = this.GetScalingListDefaultAddress(sizeId, refListId)[i]
+        }
+    } else {
+        for i := 0; i < MIN(MAX_MATRIX_COEF_NUM, int(G_scalingListSize[sizeId])).(int); i++ {
+            this.GetScalingListAddress(sizeId, listId)[i] = this.GetScalingListAddress(sizeId, refListId)[i]
+        }
+    }
 }
 func (this *TComScalingList) XParseScalingList(pchFile string) bool { //Encoder func
     /*FILE *fp;
@@ -437,25 +470,25 @@ func (this *TComScalingList) XParseScalingList(pchFile string) bool { //Encoder 
 
 //private:
 func (this *TComScalingList) init() {
-  for sizeId := uint(0); sizeId < SCALING_LIST_SIZE_NUM; sizeId++ {
-    for listId := uint(0); listId < G_scalingListNum[sizeId]; listId++ {
-      var l int;
-      if G_scalingListSize[sizeId] > MAX_MATRIX_COEF_NUM {
-      	l = MAX_MATRIX_COEF_NUM
-      }else{
-      	l = int(G_scalingListSize[sizeId])
-      }
-      this.m_scalingListCoef[sizeId][listId] = make([]int, l);
+    for sizeId := uint(0); sizeId < SCALING_LIST_SIZE_NUM; sizeId++ {
+        for listId := uint(0); listId < G_scalingListNum[sizeId]; listId++ {
+            var l int
+            if G_scalingListSize[sizeId] > MAX_MATRIX_COEF_NUM {
+                l = MAX_MATRIX_COEF_NUM
+            } else {
+                l = int(G_scalingListSize[sizeId])
+            }
+            this.m_scalingListCoef[sizeId][listId] = make([]int, l)
+        }
     }
-  }
-  this.m_scalingListCoef[SCALING_LIST_32x32][3] = this.m_scalingListCoef[SCALING_LIST_32x32][1]; // copy address for 32x32
+    this.m_scalingListCoef[SCALING_LIST_32x32][3] = this.m_scalingListCoef[SCALING_LIST_32x32][1] // copy address for 32x32
 }
 func (this *TComScalingList) destroy() {
-  /*for sizeId := 0; sizeId < SCALING_LIST_SIZE_NUM; sizeId++ {
-    for listId := 0; listId < g_scalingListNum[sizeId]; listId++ {
-      if m_scalingListCoef[sizeId][listId]) delete [] m_scalingListCoef[sizeId][listId];
-    }
-  }*/
+    /*for sizeId := 0; sizeId < SCALING_LIST_SIZE_NUM; sizeId++ {
+      for listId := 0; listId < g_scalingListNum[sizeId]; listId++ {
+        if m_scalingListCoef[sizeId][listId]) delete [] m_scalingListCoef[sizeId][listId];
+      }
+    }*/
 }
 
 //!< transform skipping flag for setting default scaling matrix for 4x4
@@ -543,61 +576,60 @@ func (this *TComPTL) GetSubLayerPTL(i int) *ProfileTierLevel {
 /// VPS class
 
 //#if SIGNAL_BITRATE_PICRATE_IN_VPS
-type TComBitRatePicRateInfo struct{
-  m_bitRateInfoPresentFlag	[MAX_TLAYER]bool;
-  m_picRateInfoPresentFlag	[MAX_TLAYER]bool;
-  m_avgBitRate				[MAX_TLAYER]int;
-  m_maxBitRate				[MAX_TLAYER]int;
-  m_constantPicRateIdc		[MAX_TLAYER]int;
-  m_avgPicRate				[MAX_TLAYER]int;
+type TComBitRatePicRateInfo struct {
+    m_bitRateInfoPresentFlag [MAX_TLAYER]bool
+    m_picRateInfoPresentFlag [MAX_TLAYER]bool
+    m_avgBitRate             [MAX_TLAYER]int
+    m_maxBitRate             [MAX_TLAYER]int
+    m_constantPicRateIdc     [MAX_TLAYER]int
+    m_avgPicRate             [MAX_TLAYER]int
 }
 
-func NewTComBitRatePicRateInfo() *TComBitRatePicRateInfo{
-	return &TComBitRatePicRateInfo{}
+func NewTComBitRatePicRateInfo() *TComBitRatePicRateInfo {
+    return &TComBitRatePicRateInfo{}
 }
 
-func (this *TComBitRatePicRateInfo)  GetBitRateInfoPresentFlag(i int)   bool  {
-	return this.m_bitRateInfoPresentFlag[i];
+func (this *TComBitRatePicRateInfo) GetBitRateInfoPresentFlag(i int) bool {
+    return this.m_bitRateInfoPresentFlag[i]
 }
-func (this *TComBitRatePicRateInfo)  SetBitRateInfoPresentFlag(i int, x bool) {
-	this.m_bitRateInfoPresentFlag[i] = x;
-}
-
-func (this *TComBitRatePicRateInfo)  GetPicRateInfoPresentFlag(i int) 	bool  {
-	return this.m_picRateInfoPresentFlag[i];
-}
-func (this *TComBitRatePicRateInfo)  SetPicRateInfoPresentFlag(i int, x bool) {
-	this.m_picRateInfoPresentFlag[i] = x;
+func (this *TComBitRatePicRateInfo) SetBitRateInfoPresentFlag(i int, x bool) {
+    this.m_bitRateInfoPresentFlag[i] = x
 }
 
-func (this *TComBitRatePicRateInfo)  GetAvgBitRate(i int) int {
-	return this.m_avgBitRate[i];
+func (this *TComBitRatePicRateInfo) GetPicRateInfoPresentFlag(i int) bool {
+    return this.m_picRateInfoPresentFlag[i]
 }
-func (this *TComBitRatePicRateInfo)  SetAvgBitRate(i, x int)  {
-	this.m_avgBitRate[i] = x;
-}
-
-func (this *TComBitRatePicRateInfo)  GetMaxBitRate(i int) int {
-	return this.m_maxBitRate[i];
-}
-func (this *TComBitRatePicRateInfo)  SetMaxBitRate(i, x int)  {
-	this.m_maxBitRate[i] = x;
+func (this *TComBitRatePicRateInfo) SetPicRateInfoPresentFlag(i int, x bool) {
+    this.m_picRateInfoPresentFlag[i] = x
 }
 
-func (this *TComBitRatePicRateInfo)  GetConstantPicRateIdc(i int) int {
-	return this.m_constantPicRateIdc[i];
+func (this *TComBitRatePicRateInfo) GetAvgBitRate(i int) int {
+    return this.m_avgBitRate[i]
 }
-func (this *TComBitRatePicRateInfo)  SetConstantPicRateIdc(i, x int)  {
-	this.m_constantPicRateIdc[i] = x;
-}
-
-func (this *TComBitRatePicRateInfo)  GetAvgPicRate(i int) int {
-	return this.m_avgPicRate[i];
-}
-func (this *TComBitRatePicRateInfo)  SetAvgPicRate(i, x int)  {
-	this.m_avgPicRate[i] = x;
+func (this *TComBitRatePicRateInfo) SetAvgBitRate(i, x int) {
+    this.m_avgBitRate[i] = x
 }
 
+func (this *TComBitRatePicRateInfo) GetMaxBitRate(i int) int {
+    return this.m_maxBitRate[i]
+}
+func (this *TComBitRatePicRateInfo) SetMaxBitRate(i, x int) {
+    this.m_maxBitRate[i] = x
+}
+
+func (this *TComBitRatePicRateInfo) GetConstantPicRateIdc(i int) int {
+    return this.m_constantPicRateIdc[i]
+}
+func (this *TComBitRatePicRateInfo) SetConstantPicRateIdc(i, x int) {
+    this.m_constantPicRateIdc[i] = x
+}
+
+func (this *TComBitRatePicRateInfo) GetAvgPicRate(i int) int {
+    return this.m_avgPicRate[i]
+}
+func (this *TComBitRatePicRateInfo) SetAvgPicRate(i, x int) {
+    this.m_avgPicRate[i] = x
+}
 
 type TComVPS struct {
     //private:
@@ -610,18 +642,17 @@ type TComVPS struct {
     m_uiMaxDecPicBuffering [MAX_TLAYER]uint
     m_uiMaxLatencyIncrease [MAX_TLAYER]uint
 
+    //#if VPS_OPERATING_POINT
+    m_numHrdParameters          uint
+    m_maxNuhReservedZeroLayerId uint
+    m_opLayerIdIncludedFlag     [MAX_VPS_NUM_HRD_PARAMETERS_ALLOWED_PLUS1][MAX_VPS_NUH_RESERVED_ZERO_LAYER_ID_PLUS1]bool
+    //#endif
 
-//#if VPS_OPERATING_POINT
-  	m_numHrdParameters	uint;
-  	m_maxNuhReservedZeroLayerId	uint;
-  	m_opLayerIdIncludedFlag	[MAX_VPS_NUM_HRD_PARAMETERS_ALLOWED_PLUS1][MAX_VPS_NUH_RESERVED_ZERO_LAYER_ID_PLUS1]bool;
-//#endif
+    m_pcPTL TComPTL
 
-    m_pcPTL                TComPTL
-
-//#if SIGNAL_BITRATE_PICRATE_IN_VPS
-  	m_bitRatePicRateInfo	TComBitRatePicRateInfo;
-//#endif
+    //#if SIGNAL_BITRATE_PICRATE_IN_VPS
+    m_bitRatePicRateInfo TComBitRatePicRateInfo
+    //#endif
 }
 
 //public:
@@ -678,35 +709,39 @@ func (this *TComVPS) SetMaxLatencyIncrease(v, tLayer uint) {
 func (this *TComVPS) GetMaxLatencyIncrease(tLayer uint) uint {
     return this.m_uiMaxLatencyIncrease[tLayer]
 }
+
 //#if VPS_OPERATING_POINT
-func (this *TComVPS)  GetNumHrdParameters()  uint                               {
-	return this.m_numHrdParameters;
+func (this *TComVPS) GetNumHrdParameters() uint {
+    return this.m_numHrdParameters
 }
-func (this *TComVPS)  SetNumHrdParameters(v uint)                           {
-	this.m_numHrdParameters = v;
-}
-
-func (this *TComVPS)  GetMaxNuhReservedZeroLayerId() uint                       {
-	return this.m_maxNuhReservedZeroLayerId;
-}
-func (this *TComVPS)  SetMaxNuhReservedZeroLayerId(v uint)                  {
-	this.m_maxNuhReservedZeroLayerId = v;
+func (this *TComVPS) SetNumHrdParameters(v uint) {
+    this.m_numHrdParameters = v
 }
 
-func (this *TComVPS)  GetOpLayerIdIncludedFlag( opIdx, id uint)  bool       {
-	return this.m_opLayerIdIncludedFlag[opIdx][id];
+func (this *TComVPS) GetMaxNuhReservedZeroLayerId() uint {
+    return this.m_maxNuhReservedZeroLayerId
 }
-func (this *TComVPS)  SetOpLayerIdIncludedFlag( v bool,  opIdx,  id uint) {
-	this.m_opLayerIdIncludedFlag[opIdx][id] = v;
+func (this *TComVPS) SetMaxNuhReservedZeroLayerId(v uint) {
+    this.m_maxNuhReservedZeroLayerId = v
 }
+
+func (this *TComVPS) GetOpLayerIdIncludedFlag(opIdx, id uint) bool {
+    return this.m_opLayerIdIncludedFlag[opIdx][id]
+}
+func (this *TComVPS) SetOpLayerIdIncludedFlag(v bool, opIdx, id uint) {
+    this.m_opLayerIdIncludedFlag[opIdx][id] = v
+}
+
 //#endif
 func (this *TComVPS) GetPTL() *TComPTL {
     return &this.m_pcPTL
 }
+
 //#if SIGNAL_BITRATE_PICRATE_IN_VPS
-func (this *TComVPS)  GetBitratePicrateInfo() *TComBitRatePicRateInfo{
-	return &this.m_bitRatePicRateInfo;
+func (this *TComVPS) GetBitratePicrateInfo() *TComBitRatePicRateInfo {
+    return &this.m_bitRatePicRateInfo
 }
+
 //#endif
 
 type HrdSubLayerInfo struct {
@@ -717,70 +752,70 @@ type HrdSubLayerInfo struct {
     bitRateValueMinus1    [MAX_CPB_CNT][2]uint
     cpbSizeValue          [MAX_CPB_CNT][2]uint
     cbrFlag               [MAX_CPB_CNT][2]bool
-//#if HRD_BUFFER
-    ducpbSizeValue    	  [MAX_CPB_CNT][2]uint;
-//#endif    
+    //#if HRD_BUFFER
+    ducpbSizeValue [MAX_CPB_CNT][2]uint
+    //#endif
 }
 
 type TComVUI struct {
     //private:
-    m_aspectRatioInfoPresentFlag         bool
-    m_aspectRatioIdc                     int
-    m_sarWidth                           int
-    m_sarHeight                          int
-    m_overscanInfoPresentFlag            bool
-    m_overscanAppropriateFlag            bool
-    m_videoSignalTypePresentFlag         bool
-    m_videoFormat                        int
-    m_videoFullRangeFlag                 bool
-    m_colourDescriptionPresentFlag       bool
-    m_colourPrimaries                    int
-    m_transferCharacteristics            int
-    m_matrixCoefficients                 int
-    m_chromaLocInfoPresentFlag           bool
-    m_chromaSampleLocTypeTopField        int
-    m_chromaSampleLocTypeBottomField     int
-    m_neutralChromaIndicationFlag        bool
-    m_fieldSeqFlag                       bool
-//#if HLS_ADD_VUI_PICSTRUCT_PRESENT_FLAG
-    m_picStructPresentFlag				bool;
-//#endif /* HLS_ADD_VUI_PICSTRUCT_PRESENT_FLAG */    
+    m_aspectRatioInfoPresentFlag     bool
+    m_aspectRatioIdc                 int
+    m_sarWidth                       int
+    m_sarHeight                      int
+    m_overscanInfoPresentFlag        bool
+    m_overscanAppropriateFlag        bool
+    m_videoSignalTypePresentFlag     bool
+    m_videoFormat                    int
+    m_videoFullRangeFlag             bool
+    m_colourDescriptionPresentFlag   bool
+    m_colourPrimaries                int
+    m_transferCharacteristics        int
+    m_matrixCoefficients             int
+    m_chromaLocInfoPresentFlag       bool
+    m_chromaSampleLocTypeTopField    int
+    m_chromaSampleLocTypeBottomField int
+    m_neutralChromaIndicationFlag    bool
+    m_fieldSeqFlag                   bool
+    //#if HLS_ADD_VUI_PICSTRUCT_PRESENT_FLAG
+    m_picStructPresentFlag bool
+    //#endif /* HLS_ADD_VUI_PICSTRUCT_PRESENT_FLAG */
     m_hrdParametersPresentFlag           bool
     m_bitstreamRestrictionFlag           bool
     m_tilesFixedStructureFlag            bool
     m_motionVectorsOverPicBoundariesFlag bool
-//#if HLS_MOVE_SPS_PICLIST_FLAGS
-    m_restrictedRefPicListsFlag			bool;
-//#endif /* HLS_MOVE_SPS_PICLIST_FLAGS */
-//#if MIN_SPATIAL_SEGMENTATION
-    m_minSpatialSegmentationIdc			int;
-//#endif    
-    m_maxBytesPerPicDenom                int
-    m_maxBitsPerMinCuDenom               int
-    m_log2MaxMvLengthHorizontal          int
-    m_log2MaxMvLengthVertical            int
-    m_timingInfoPresentFlag              bool
-    m_numUnitsInTick                     uint
-    m_timeScale                          uint
-    m_nalHrdParametersPresentFlag        bool
-    m_vclHrdParametersPresentFlag        bool
-    m_subPicCpbParamsPresentFlag         bool
-    m_tickDivisorMinus2                  uint
-    m_duCpbRemovalDelayLengthMinus1      uint
-    m_bitRateScale                       uint
-    m_cpbSizeScale                       uint
-//#if HRD_BUFFER
-    m_ducpbSizeScale					uint;
-//#endif    
+    //#if HLS_MOVE_SPS_PICLIST_FLAGS
+    m_restrictedRefPicListsFlag bool
+    //#endif /* HLS_MOVE_SPS_PICLIST_FLAGS */
+    //#if MIN_SPATIAL_SEGMENTATION
+    m_minSpatialSegmentationIdc int
+    //#endif
+    m_maxBytesPerPicDenom           int
+    m_maxBitsPerMinCuDenom          int
+    m_log2MaxMvLengthHorizontal     int
+    m_log2MaxMvLengthVertical       int
+    m_timingInfoPresentFlag         bool
+    m_numUnitsInTick                uint
+    m_timeScale                     uint
+    m_nalHrdParametersPresentFlag   bool
+    m_vclHrdParametersPresentFlag   bool
+    m_subPicCpbParamsPresentFlag    bool
+    m_tickDivisorMinus2             uint
+    m_duCpbRemovalDelayLengthMinus1 uint
+    m_bitRateScale                  uint
+    m_cpbSizeScale                  uint
+    //#if HRD_BUFFER
+    m_ducpbSizeScale uint
+    //#endif
     m_initialCpbRemovalDelayLengthMinus1 uint
     m_cpbRemovalDelayLengthMinus1        uint
     m_dpbOutputDelayLengthMinus1         uint
     m_numDU                              uint
     m_HRD                                [MAX_TLAYER]HrdSubLayerInfo
-//#if POC_TEMPORAL_RELATIONSHIP
-    m_pocProportionalToTimingFlag	bool;
-    m_numTicksPocDiffOneMinus1		int;
-//#endif    
+    //#if POC_TEMPORAL_RELATIONSHIP
+    m_pocProportionalToTimingFlag bool
+    m_numTicksPocDiffOneMinus1    int
+    //#endif
 }
 
 //public:
@@ -808,12 +843,12 @@ func NewTComVUI() *TComVUI {
         m_bitstreamRestrictionFlag:           false,
         m_tilesFixedStructureFlag:            false,
         m_motionVectorsOverPicBoundariesFlag: true,
-//#if HLS_MOVE_SPS_PICLIST_FLAGS
-    	m_restrictedRefPicListsFlag			 : true,
-//#endif /* HLS_MOVE_SPS_PICLIST_FLAGS */
-//#if MIN_SPATIAL_SEGMENTATION
-    	m_minSpatialSegmentationIdc			 : 0,
-//#endif        
+        //#if HLS_MOVE_SPS_PICLIST_FLAGS
+        m_restrictedRefPicListsFlag: true,
+        //#endif /* HLS_MOVE_SPS_PICLIST_FLAGS */
+        //#if MIN_SPATIAL_SEGMENTATION
+        m_minSpatialSegmentationIdc: 0,
+        //#endif
         m_maxBytesPerPicDenom:                2,
         m_maxBitsPerMinCuDenom:               1,
         m_log2MaxMvLengthHorizontal:          15,
@@ -831,10 +866,10 @@ func NewTComVUI() *TComVUI {
         m_initialCpbRemovalDelayLengthMinus1: 0,
         m_cpbRemovalDelayLengthMinus1:        0,
         m_dpbOutputDelayLengthMinus1:         0,
-//#if POC_TEMPORAL_RELATIONSHIP
-    	m_pocProportionalToTimingFlag:		false,
-    	m_numTicksPocDiffOneMinus1:				0,
-//#endif        
+        //#if POC_TEMPORAL_RELATIONSHIP
+        m_pocProportionalToTimingFlag: false,
+        m_numTicksPocDiffOneMinus1:    0,
+        //#endif
     }
 }
 
@@ -965,12 +1000,13 @@ func (this *TComVUI) SetFieldSeqFlag(i bool) {
 }
 
 //#if HLS_ADD_VUI_PICSTRUCT_PRESENT_FLAG
-func (this *TComVUI)  GetPicStructPresentFlag() bool{ 
-	return this.m_picStructPresentFlag; 
+func (this *TComVUI) GetPicStructPresentFlag() bool {
+    return this.m_picStructPresentFlag
 }
-func (this *TComVUI)  SetPicStructPresentFlag(i bool) { 
-	this.m_picStructPresentFlag = i; 
+func (this *TComVUI) SetPicStructPresentFlag(i bool) {
+    this.m_picStructPresentFlag = i
 }
+
 //#endif /* HLS_ADD_VUI_PICSTRUCT_PRESENT_FLAG */
 
 func (this *TComVUI) GetHrdParametersPresentFlag() bool {
@@ -1000,22 +1036,25 @@ func (this *TComVUI) GetMotionVectorsOverPicBoundariesFlag() bool {
 func (this *TComVUI) SetMotionVectorsOverPicBoundariesFlag(i bool) {
     this.m_motionVectorsOverPicBoundariesFlag = i
 }
+
 //#if HLS_MOVE_SPS_PICLIST_FLAGS
-func (this *TComVUI)  GetRestrictedRefPicListsFlag() bool{ 
-	return this.m_restrictedRefPicListsFlag; 
+func (this *TComVUI) GetRestrictedRefPicListsFlag() bool {
+    return this.m_restrictedRefPicListsFlag
 }
-func (this *TComVUI)  SetRestrictedRefPicListsFlag(b bool) { 
-	this.m_restrictedRefPicListsFlag = b; 
+func (this *TComVUI) SetRestrictedRefPicListsFlag(b bool) {
+    this.m_restrictedRefPicListsFlag = b
 }
+
 //#endif /* HLS_MOVE_SPS_PICLIST_FLAGS */
 
 //#if MIN_SPATIAL_SEGMENTATION
-func (this *TComVUI)  GetMinSpatialSegmentationIdc() int{ 
-	return this.m_minSpatialSegmentationIdc;
+func (this *TComVUI) GetMinSpatialSegmentationIdc() int {
+    return this.m_minSpatialSegmentationIdc
 }
-func (this *TComVUI)  SetMinSpatialSegmentationIdc(i int) { 
-	this.m_minSpatialSegmentationIdc = i; 
+func (this *TComVUI) SetMinSpatialSegmentationIdc(i int) {
+    this.m_minSpatialSegmentationIdc = i
 }
+
 //#endif
 func (this *TComVUI) GetMaxBytesPerPicDenom() int {
     return this.m_maxBytesPerPicDenom
@@ -1114,13 +1153,15 @@ func (this *TComVUI) SetCpbSizeScale(value uint) {
 func (this *TComVUI) GetCpbSizeScale() uint {
     return this.m_cpbSizeScale
 }
+
 //#if HRD_BUFFER
-func (this *TComVUI) SetDuCpbSizeScale                    (  value uint) { 
-	this.m_ducpbSizeScale = value;                     
+func (this *TComVUI) SetDuCpbSizeScale(value uint) {
+    this.m_ducpbSizeScale = value
 }
-func (this *TComVUI) GetDuCpbSizeScale                    ( )            uint{ 
-	return this.m_ducpbSizeScale;                      
+func (this *TComVUI) GetDuCpbSizeScale() uint {
+    return this.m_ducpbSizeScale
 }
+
 //#endif
 func (this *TComVUI) SetInitialCpbRemovalDelayLengthMinus1(value uint) {
     this.m_initialCpbRemovalDelayLengthMinus1 = value
@@ -1170,13 +1211,15 @@ func (this *TComVUI) SetCpbCntMinus1(layer int, value uint) {
 func (this *TComVUI) GetCpbCntMinus1(layer int) uint {
     return this.m_HRD[layer].cpbCntMinus1
 }
+
 //#if HRD_BUFFER
-func (this *TComVUI) SetDuCpbSizeValueMinus1     (  layer,  cpbcnt,  nalOrVcl int,  value uint) { 
-	this.m_HRD[layer].ducpbSizeValue[cpbcnt][nalOrVcl] = value;       
+func (this *TComVUI) SetDuCpbSizeValueMinus1(layer, cpbcnt, nalOrVcl int, value uint) {
+    this.m_HRD[layer].ducpbSizeValue[cpbcnt][nalOrVcl] = value
 }
-func (this *TComVUI) GetDuCpbSizeValueMinus1     (  layer,  cpbcnt,  nalOrVcl int          )  uint{ 
-	return this.m_HRD[layer].ducpbSizeValue[cpbcnt][nalOrVcl];        
+func (this *TComVUI) GetDuCpbSizeValueMinus1(layer, cpbcnt, nalOrVcl int) uint {
+    return this.m_HRD[layer].ducpbSizeValue[cpbcnt][nalOrVcl]
 }
+
 //#endif
 func (this *TComVUI) SetBitRateValueMinus1(layer, cpbcnt, nalOrVcl int, value uint) {
     this.m_HRD[layer].bitRateValueMinus1[cpbcnt][nalOrVcl] = value
@@ -1205,19 +1248,21 @@ func (this *TComVUI) SetNumDU(value uint) {
 func (this *TComVUI) GetNumDU() uint {
     return this.m_numDU
 }
+
 //#if POC_TEMPORAL_RELATIONSHIP
-func (this *TComVUI)  GetPocProportionalToTimingFlag() bool{
-	return this.m_pocProportionalToTimingFlag; 
+func (this *TComVUI) GetPocProportionalToTimingFlag() bool {
+    return this.m_pocProportionalToTimingFlag
 }
-func (this *TComVUI)  SetPocProportionalToTimingFlag(x bool) {
-	this.m_pocProportionalToTimingFlag = x;
+func (this *TComVUI) SetPocProportionalToTimingFlag(x bool) {
+    this.m_pocProportionalToTimingFlag = x
 }
-func (this *TComVUI)  GetNumTicksPocDiffOneMinus1() int{
-	return this.m_numTicksPocDiffOneMinus1;
+func (this *TComVUI) GetNumTicksPocDiffOneMinus1() int {
+    return this.m_numTicksPocDiffOneMinus1
 }
-func (this *TComVUI)  SetNumTicksPocDiffOneMinus1(x int) { 
-	this.m_numTicksPocDiffOneMinus1 = x;
+func (this *TComVUI) SetNumTicksPocDiffOneMinus1(x int) {
+    this.m_numTicksPocDiffOneMinus1 = x
 }
+
 //#endif
 
 type CroppingWindow struct {
@@ -1229,8 +1274,8 @@ type CroppingWindow struct {
     m_picCropBottomOffset int
 }
 
-func NewCroppingWindow() *CroppingWindow{
-	return &CroppingWindow{}
+func NewCroppingWindow() *CroppingWindow {
+    return &CroppingWindow{}
 }
 
 func (this *CroppingWindow) GetPicCroppingFlag() bool {
@@ -1279,7 +1324,6 @@ func (this *CroppingWindow) SetPicCropping(cropLeft, cropRight, cropTop, cropBot
     this.m_picCropTopOffset = cropTop
     this.m_picCropBottomOffset = cropBottom
 }
-
 
 /// SPS class
 type TComSPS struct {
@@ -1366,16 +1410,16 @@ type TComSPS struct {
 
 //public:
 func NewTComSPS() *TComSPS {
-	sps := &TComSPS{};
-	sps.m_picCroppingWindow = NewCroppingWindow();
-	sps.m_cropUnitX[0]=1;
-	sps.m_cropUnitX[1]=2;
-	sps.m_cropUnitX[2]=2;
-	sps.m_cropUnitX[3]=1;
-	sps.m_cropUnitY[0]=1;
-	sps.m_cropUnitY[1]=2;
-	sps.m_cropUnitY[2]=1;
-	sps.m_cropUnitY[3]=1;
+    sps := &TComSPS{}
+    sps.m_picCroppingWindow = NewCroppingWindow()
+    sps.m_cropUnitX[0] = 1
+    sps.m_cropUnitX[1] = 2
+    sps.m_cropUnitX[2] = 2
+    sps.m_cropUnitX[3] = 1
+    sps.m_cropUnitY[0] = 1
+    sps.m_cropUnitY[1] = 2
+    sps.m_cropUnitY[2] = 1
+    sps.m_cropUnitY[3] = 1
 
     return sps
 }
@@ -1540,8 +1584,8 @@ func (this *TComSPS) GetNumReorderPics(tlayer uint) int {
     return this.m_numReorderPics[tlayer]
 }
 func (this *TComSPS) CreateRPSList(numRPS int) {
-  	this.m_RPSList.Destroy();
-  	this.m_RPSList.Create(numRPS);
+    this.m_RPSList.Destroy()
+    this.m_RPSList.Create(numRPS)
 }
 func (this *TComSPS) GetRPSList() *TComRPSList {
     return &this.m_RPSList
@@ -1720,96 +1764,102 @@ func (this *TComSPS) GetVuiParameters() *TComVUI {
     return &this.m_vuiParameters
 }
 func (this *TComSPS) SetHrdParameters(frameRate, numDU, bitRate uint, randomAccess bool) {
-  if !this.GetVuiParametersPresentFlag() {
-    return;
-  }
-
-  vui := this.GetVuiParameters();
-
-  vui.SetTimingInfoPresentFlag( true );
-  switch frameRate {
-  case 24:
-    vui.SetNumUnitsInTick( 1125000 );    vui.SetTimeScale    ( 27000000 );
-    
-  case 25:
-    vui.SetNumUnitsInTick( 1080000 );    vui.SetTimeScale    ( 27000000 );
-    
-  case 30:
-    vui.SetNumUnitsInTick( 900900 );     vui.SetTimeScale    ( 27000000 );
-    
-  case 50:
-    vui.SetNumUnitsInTick( 540000 );     vui.SetTimeScale    ( 27000000 );
-
-  case 60:
-    vui.SetNumUnitsInTick( 450450 );     vui.SetTimeScale    ( 27000000 );
-
-  default:
-    vui.SetNumUnitsInTick( 1001 );       vui.SetTimeScale    ( 60000 );
-
-  }
-
-  rateCnt := ( bitRate > 0 );
-  vui.SetNalHrdParametersPresentFlag( rateCnt );
-  vui.SetVclHrdParametersPresentFlag( rateCnt );
-
-  vui.SetSubPicCpbParamsPresentFlag( ( numDU > 1 ) );
-
-  if vui.GetSubPicCpbParamsPresentFlag() {
-    vui.SetTickDivisorMinus2( 100 - 2 );                          // 
-    vui.SetDuCpbRemovalDelayLengthMinus1( 7 );                    // 8-bit precision ( plus 1 for last DU in AU )
-  }
-
-  vui.SetBitRateScale( 4 );                                       // in units of 2~( 6 + 4 ) = 1,024 bps
-  vui.SetCpbSizeScale( 6 );                                       // in units of 2~( 4 + 4 ) = 1,024 bit
-//#if HRD_BUFFER
-  vui.SetDuCpbSizeScale( 6 );                                       // in units of 2~( 4 + 4 ) = 1,024 bit
-//#endif
-    
-  vui.SetInitialCpbRemovalDelayLengthMinus1(15);                  // assuming 0.5 sec, log2( 90,000 * 0.5 ) = 16-bit
-  if randomAccess {
-    vui.SetCpbRemovalDelayLengthMinus1(5);                        // 32 = 2^5 (plus 1)
-    vui.SetDpbOutputDelayLengthMinus1 (5);                        // 32 + 3 = 2^6
-  }else{
-    vui.SetCpbRemovalDelayLengthMinus1(9);                        // max. 2^10
-    vui.SetDpbOutputDelayLengthMinus1 (9);                        // max. 2^10
-  }
-
-/*
-   Note: only the case of "vps_max_temporal_layers_minus1 = 0" is supported.
-*/
-  var i, j int;
-  var birateValue, cpbSizeValue uint;
-//#if HRD_BUFFER
-  var  ducpbSizeValue uint;
-//#endif
-
-  for i = 0; i < MAX_TLAYER; i ++ {
-    vui.SetFixedPicRateFlag( i, true );
-    vui.SetPicDurationInTcMinus1( i, 0 );
-    vui.SetLowDelayHrdFlag( i, false );
-    vui.SetCpbCntMinus1( i, 0 );
-
-    birateValue  = bitRate;
-    cpbSizeValue = bitRate;                                     // 1 second
-//#if HRD_BUFFER
-    ducpbSizeValue = bitRate/numDU;
-//#endif
-    for j = 0; j < int( vui.GetCpbCntMinus1( i ) + 1 ); j ++ {
-      vui.SetBitRateValueMinus1( i, j, 0, ( birateValue  - 1 ) );
-      vui.SetCpbSizeValueMinus1( i, j, 0, ( cpbSizeValue - 1 ) );
-//#if HRD_BUFFER
-      vui.SetDuCpbSizeValueMinus1( i, j, 0, ( ducpbSizeValue - 1 ) );
-//#endif
-      vui.SetCbrFlag( i, j, 0, ( j == 0 ) );
-
-      vui.SetBitRateValueMinus1( i, j, 1, ( birateValue  - 1) );
-      vui.SetCpbSizeValueMinus1( i, j, 1, ( cpbSizeValue - 1 ) );
-//#if HRD_BUFFER
-      vui.SetDuCpbSizeValueMinus1( i, j, 1, ( ducpbSizeValue - 1 ) );
-//#endif
-      vui.SetCbrFlag( i, j, 1, ( j == 0 ) );
+    if !this.GetVuiParametersPresentFlag() {
+        return
     }
-  }
+
+    vui := this.GetVuiParameters()
+
+    vui.SetTimingInfoPresentFlag(true)
+    switch frameRate {
+    case 24:
+        vui.SetNumUnitsInTick(1125000)
+        vui.SetTimeScale(27000000)
+
+    case 25:
+        vui.SetNumUnitsInTick(1080000)
+        vui.SetTimeScale(27000000)
+
+    case 30:
+        vui.SetNumUnitsInTick(900900)
+        vui.SetTimeScale(27000000)
+
+    case 50:
+        vui.SetNumUnitsInTick(540000)
+        vui.SetTimeScale(27000000)
+
+    case 60:
+        vui.SetNumUnitsInTick(450450)
+        vui.SetTimeScale(27000000)
+
+    default:
+        vui.SetNumUnitsInTick(1001)
+        vui.SetTimeScale(60000)
+
+    }
+
+    rateCnt := (bitRate > 0)
+    vui.SetNalHrdParametersPresentFlag(rateCnt)
+    vui.SetVclHrdParametersPresentFlag(rateCnt)
+
+    vui.SetSubPicCpbParamsPresentFlag((numDU > 1))
+
+    if vui.GetSubPicCpbParamsPresentFlag() {
+        vui.SetTickDivisorMinus2(100 - 2)       //
+        vui.SetDuCpbRemovalDelayLengthMinus1(7) // 8-bit precision ( plus 1 for last DU in AU )
+    }
+
+    vui.SetBitRateScale(4) // in units of 2~( 6 + 4 ) = 1,024 bps
+    vui.SetCpbSizeScale(6) // in units of 2~( 4 + 4 ) = 1,024 bit
+    //#if HRD_BUFFER
+    vui.SetDuCpbSizeScale(6) // in units of 2~( 4 + 4 ) = 1,024 bit
+    //#endif
+
+    vui.SetInitialCpbRemovalDelayLengthMinus1(15) // assuming 0.5 sec, log2( 90,000 * 0.5 ) = 16-bit
+    if randomAccess {
+        vui.SetCpbRemovalDelayLengthMinus1(5) // 32 = 2^5 (plus 1)
+        vui.SetDpbOutputDelayLengthMinus1(5)  // 32 + 3 = 2^6
+    } else {
+        vui.SetCpbRemovalDelayLengthMinus1(9) // max. 2^10
+        vui.SetDpbOutputDelayLengthMinus1(9)  // max. 2^10
+    }
+
+    /*
+       Note: only the case of "vps_max_temporal_layers_minus1 = 0" is supported.
+    */
+    var i, j int
+    var birateValue, cpbSizeValue uint
+    //#if HRD_BUFFER
+    var ducpbSizeValue uint
+    //#endif
+
+    for i = 0; i < MAX_TLAYER; i++ {
+        vui.SetFixedPicRateFlag(i, true)
+        vui.SetPicDurationInTcMinus1(i, 0)
+        vui.SetLowDelayHrdFlag(i, false)
+        vui.SetCpbCntMinus1(i, 0)
+
+        birateValue = bitRate
+        cpbSizeValue = bitRate // 1 second
+        //#if HRD_BUFFER
+        ducpbSizeValue = bitRate / numDU
+        //#endif
+        for j = 0; j < int(vui.GetCpbCntMinus1(i)+1); j++ {
+            vui.SetBitRateValueMinus1(i, j, 0, (birateValue - 1))
+            vui.SetCpbSizeValueMinus1(i, j, 0, (cpbSizeValue - 1))
+            //#if HRD_BUFFER
+            vui.SetDuCpbSizeValueMinus1(i, j, 0, (ducpbSizeValue - 1))
+            //#endif
+            vui.SetCbrFlag(i, j, 0, (j == 0))
+
+            vui.SetBitRateValueMinus1(i, j, 1, (birateValue - 1))
+            vui.SetCpbSizeValueMinus1(i, j, 1, (cpbSizeValue - 1))
+            //#if HRD_BUFFER
+            vui.SetDuCpbSizeValueMinus1(i, j, 1, (ducpbSizeValue - 1))
+            //#endif
+            vui.SetCbrFlag(i, j, 1, (j == 0))
+        }
+    }
 }
 
 func (this *TComSPS) GetPTL() *TComPTL {
@@ -1833,10 +1883,10 @@ func NewTComRefPicListModification() *TComRefPicListModification {
 }
 
 func (this *TComRefPicListModification) Create() {
-	//do nothing
+    //do nothing
 }
 func (this *TComRefPicListModification) Destroy() {
-	//do nothing
+    //do nothing
 }
 
 func (this *TComRefPicListModification) GetRefPicListModificationFlagL0() bool {
@@ -1922,13 +1972,13 @@ type TComPPS struct {
     m_scalingListPresentFlag              bool
     m_scalingList                         *TComScalingList //!< ScalingList class pointer
 
-//#if HLS_MOVE_SPS_PICLIST_FLAGS
-  	m_listsModificationPresentFlag		 bool;
-//#endif /* HLS_MOVE_SPS_PICLIST_FLAGS */
-  	m_log2ParallelMergeLevelMinus2        uint
-//#if HLS_EXTRA_SLICE_HEADER_BITS
-  	m_numExtraSliceHeaderBits			int;
-//#endif /* HLS_EXTRA_SLICE_HEADER_BITS */
+    //#if HLS_MOVE_SPS_PICLIST_FLAGS
+    m_listsModificationPresentFlag bool
+    //#endif /* HLS_MOVE_SPS_PICLIST_FLAGS */
+    m_log2ParallelMergeLevelMinus2 uint
+    //#if HLS_EXTRA_SLICE_HEADER_BITS
+    m_numExtraSliceHeaderBits int
+    //#endif /* HLS_EXTRA_SLICE_HEADER_BITS */
 }
 
 //public:
@@ -2190,12 +2240,13 @@ func (this *TComPPS) GetScalingList() *TComScalingList {
     return this.m_scalingList
 }   //!< Get ScalingList class pointer in PPS
 //#if HLS_MOVE_SPS_PICLIST_FLAGS
-func (this *TComPPS)  GetListsModificationPresentFlag ()  bool   {
-	return this.m_listsModificationPresentFlag;
+func (this *TComPPS) GetListsModificationPresentFlag() bool {
+    return this.m_listsModificationPresentFlag
 }
-func (this *TComPPS)  SetListsModificationPresentFlag ( b bool)  {
-	this.m_listsModificationPresentFlag = b;
+func (this *TComPPS) SetListsModificationPresentFlag(b bool) {
+    this.m_listsModificationPresentFlag = b
 }
+
 //#endif /* HLS_MOVE_SPS_PICLIST_FLAGS */
 func (this *TComPPS) GetLog2ParallelMergeLevelMinus2() uint {
     return this.m_log2ParallelMergeLevelMinus2
@@ -2203,13 +2254,15 @@ func (this *TComPPS) GetLog2ParallelMergeLevelMinus2() uint {
 func (this *TComPPS) SetLog2ParallelMergeLevelMinus2(mrgLevel uint) {
     this.m_log2ParallelMergeLevelMinus2 = mrgLevel
 }
+
 //#if HLS_EXTRA_SLICE_HEADER_BITS
-func (this *TComPPS)  GetNumExtraSliceHeaderBits()  int  {
-	return this.m_numExtraSliceHeaderBits;
+func (this *TComPPS) GetNumExtraSliceHeaderBits() int {
+    return this.m_numExtraSliceHeaderBits
 }
-func (this *TComPPS)  SetNumExtraSliceHeaderBits(i int) {
-	this.m_numExtraSliceHeaderBits = i;
+func (this *TComPPS) SetNumExtraSliceHeaderBits(i int) {
+    this.m_numExtraSliceHeaderBits = i
 }
+
 //#endif /* HLS_EXTRA_SLICE_HEADER_BITS */
 
 func (this *TComPPS) SetLoopFilterAcrossSlicesEnabledFlag(bValue bool) {
@@ -2338,7 +2391,7 @@ type TComSlice struct {
     m_weightPredTable [2][MAX_NUM_REF][3]wpScalingParam // [REF_PIC_LIST_0 or REF_PIC_LIST_1][refIdx][0:Y, 1:U, 2:V]
     m_weightACDCParam [3]wpACDCParam                    // [0:Y, 1:U, 2:V]
 
-    m_tileByteLocation     map[int]uint//*list.List
+    m_tileByteLocation     map[int]uint //*list.List
     m_uiTileOffstForMultES uint
 
     m_puiSubstreamSizes []uint
@@ -2355,117 +2408,117 @@ type TComSlice struct {
 
 //public:
 func NewTComSlice() *TComSlice {
-    pSlice := &TComSlice{ m_iPPSId: -1,
-        m_iPOC                          : 0 ,
-        m_iLastIDR                      : 0 ,
-        m_eNalUnitType                  : NAL_UNIT_CODED_SLICE_IDR ,
-        m_eSliceType                    : I_SLICE ,
-        m_iSliceQp                      : 0 ,
-        m_dependentSliceFlag            : false ,
+    pSlice := &TComSlice{m_iPPSId: -1,
+        m_iPOC:               0,
+        m_iLastIDR:           0,
+        m_eNalUnitType:       NAL_UNIT_CODED_SLICE_IDR,
+        m_eSliceType:         I_SLICE,
+        m_iSliceQp:           0,
+        m_dependentSliceFlag: false,
         //#if ADAPTIVE_QP_SELECTION
-        m_iSliceQpBase                  : 0 ,
+        m_iSliceQpBase: 0,
         //#endif
-        m_deblockingFilterDisable        : false ,
-        m_deblockingFilterOverrideFlag   : false ,
-        m_deblockingFilterBetaOffsetDiv2 : 0 ,
-        m_deblockingFilterTcOffsetDiv2   : 0 ,
-        m_bRefPicListModificationFlagLC : false ,
-        m_bRefPicListCombinationFlag    : false ,
-        m_bCheckLDC                     : false ,
-        m_iSliceQpDelta                 : 0 ,
-        m_iSliceQpDeltaCb               : 0 ,
-        m_iSliceQpDeltaCr               : 0 ,
-        m_iDepth                        : 0 ,
-        m_bRefenced                     : false ,
-        m_pcSPS                         : nil ,
-        m_pcPPS                         : nil ,
-        m_pcPic                         : nil ,
-        m_colFromL0Flag                 : 1 ,
-        m_colRefIdx                     : 0 ,
+        m_deblockingFilterDisable:        false,
+        m_deblockingFilterOverrideFlag:   false,
+        m_deblockingFilterBetaOffsetDiv2: 0,
+        m_deblockingFilterTcOffsetDiv2:   0,
+        m_bRefPicListModificationFlagLC:  false,
+        m_bRefPicListCombinationFlag:     false,
+        m_bCheckLDC:                      false,
+        m_iSliceQpDelta:                  0,
+        m_iSliceQpDeltaCb:                0,
+        m_iSliceQpDeltaCr:                0,
+        m_iDepth:                         0,
+        m_bRefenced:                      false,
+        m_pcSPS:                          nil,
+        m_pcPPS:                          nil,
+        m_pcPic:                          nil,
+        m_colFromL0Flag:                  1,
+        m_colRefIdx:                      0,
         //#if SAO_CHROMA_LAMBDA
-        m_dLambdaLuma                   : 0.0 ,
-        m_dLambdaChroma                 : 0.0 ,
+        m_dLambdaLuma:   0.0,
+        m_dLambdaChroma: 0.0,
         //#else
         //, m_dLambda                       ( 0.0 )
         //#endif
-        m_bNoBackPredFlag               : false ,
-        m_uiTLayer                      : 0 ,
-        m_bTLayerSwitchingFlag          : false ,
-        m_uiSliceMode                   : 0 ,
-        m_uiSliceArgument               : 0 ,
-        m_uiSliceCurStartCUAddr         : 0 ,
-        m_uiSliceCurEndCUAddr           : 0 ,
-        m_uiSliceIdx                    : 0 ,
-        m_uiDependentSliceMode            : 0 ,
-        m_uiDependentSliceArgument        : 0 ,
-        m_uiDependentSliceCurStartCUAddr  : 0 ,
-        m_uiDependentSliceCurEndCUAddr    : 0 ,
-        m_bNextSlice                    : false ,
-        m_bNextDependentSlice           : false ,
-        m_uiSliceBits                   : 0 ,
-        m_uiDependentSliceCounter       : 0 ,
-        m_bFinalized                    : false ,
-        m_uiTileOffstForMultES          : 0 ,
+        m_bNoBackPredFlag:                false,
+        m_uiTLayer:                       0,
+        m_bTLayerSwitchingFlag:           false,
+        m_uiSliceMode:                    0,
+        m_uiSliceArgument:                0,
+        m_uiSliceCurStartCUAddr:          0,
+        m_uiSliceCurEndCUAddr:            0,
+        m_uiSliceIdx:                     0,
+        m_uiDependentSliceMode:           0,
+        m_uiDependentSliceArgument:       0,
+        m_uiDependentSliceCurStartCUAddr: 0,
+        m_uiDependentSliceCurEndCUAddr:   0,
+        m_bNextSlice:                     false,
+        m_bNextDependentSlice:            false,
+        m_uiSliceBits:                    0,
+        m_uiDependentSliceCounter:        0,
+        m_bFinalized:                     false,
+        m_uiTileOffstForMultES:           0,
         //m_puiSubstreamSizes             : NULL ,
-        m_cabacInitFlag                 : false ,
-        m_bLMvdL1Zero                   : false ,
-        m_numEntryPointOffsets          : 0 ,
-        m_temporalLayerNonReferenceFlag : false ,
-        m_enableTMVPFlag                : true}
+        m_cabacInitFlag:                 false,
+        m_bLMvdL1Zero:                   false,
+        m_numEntryPointOffsets:          0,
+        m_temporalLayerNonReferenceFlag: false,
+        m_enableTMVPFlag:                true}
 
-    pSlice.m_aiNumRefIdx[0] = 0;
-    pSlice.m_aiNumRefIdx[1] = 0;
-    pSlice.m_aiNumRefIdx[2] = 0;
+    pSlice.m_aiNumRefIdx[0] = 0
+    pSlice.m_aiNumRefIdx[1] = 0
+    pSlice.m_aiNumRefIdx[2] = 0
 
-    pSlice.InitEqualRef();
+    pSlice.InitEqualRef()
 
-    for iNumCount := 0; iNumCount < MAX_NUM_REF_LC; iNumCount++{
-      pSlice.m_iRefIdxOfLC[REF_PIC_LIST_0][iNumCount]=-1;
-      pSlice.m_iRefIdxOfLC[REF_PIC_LIST_1][iNumCount]=-1;
-      pSlice.m_eListIdFromIdxOfLC[iNumCount]=0;
-      pSlice.m_iRefIdxFromIdxOfLC[iNumCount]=0;
-      pSlice.m_iRefIdxOfL0FromRefIdxOfL1[iNumCount] = -1;
-      pSlice.m_iRefIdxOfL1FromRefIdxOfL0[iNumCount] = -1;
+    for iNumCount := 0; iNumCount < MAX_NUM_REF_LC; iNumCount++ {
+        pSlice.m_iRefIdxOfLC[REF_PIC_LIST_0][iNumCount] = -1
+        pSlice.m_iRefIdxOfLC[REF_PIC_LIST_1][iNumCount] = -1
+        pSlice.m_eListIdFromIdxOfLC[iNumCount] = 0
+        pSlice.m_iRefIdxFromIdxOfLC[iNumCount] = 0
+        pSlice.m_iRefIdxOfL0FromRefIdxOfL1[iNumCount] = -1
+        pSlice.m_iRefIdxOfL1FromRefIdxOfL0[iNumCount] = -1
     }
-    for iNumCount := 0; iNumCount < MAX_NUM_REF; iNumCount++{
-      pSlice.m_apcRefPicList [0][iNumCount] = nil;
-      pSlice.m_apcRefPicList [1][iNumCount] = nil;
-      pSlice.m_aiRefPOCList  [0][iNumCount] = 0;
-      pSlice.m_aiRefPOCList  [1][iNumCount] = 0;
+    for iNumCount := 0; iNumCount < MAX_NUM_REF; iNumCount++ {
+        pSlice.m_apcRefPicList[0][iNumCount] = nil
+        pSlice.m_apcRefPicList[1][iNumCount] = nil
+        pSlice.m_aiRefPOCList[0][iNumCount] = 0
+        pSlice.m_aiRefPOCList[1][iNumCount] = 0
     }
-    pSlice.m_bCombineWithReferenceFlag = false;
-    pSlice.ResetWpScaling(pSlice.m_weightPredTable);
-    pSlice.InitWpAcDcParam();
-    pSlice.m_saoEnabledFlag = false;
+    pSlice.m_bCombineWithReferenceFlag = false
+    pSlice.ResetWpScaling(pSlice.m_weightPredTable)
+    pSlice.InitWpAcDcParam()
+    pSlice.m_saoEnabledFlag = false
 
-    return pSlice;
+    return pSlice
 }
 
 func (this *TComSlice) InitSlice() {
-  this.m_aiNumRefIdx[0]      = 0;
-  this.m_aiNumRefIdx[1]      = 0;
+    this.m_aiNumRefIdx[0] = 0
+    this.m_aiNumRefIdx[1] = 0
 
-  this.m_colFromL0Flag = 1;
+    this.m_colFromL0Flag = 1
 
-  this.m_colRefIdx = 0;
-  this.InitEqualRef();
-  this.m_bNoBackPredFlag = false;
-  this.m_bRefPicListCombinationFlag = false;
-  this.m_bRefPicListModificationFlagLC = false;
-  this.m_bCheckLDC = false;
-  this.m_iSliceQpDeltaCb = 0;
-  this.m_iSliceQpDeltaCr = 0;
+    this.m_colRefIdx = 0
+    this.InitEqualRef()
+    this.m_bNoBackPredFlag = false
+    this.m_bRefPicListCombinationFlag = false
+    this.m_bRefPicListModificationFlagLC = false
+    this.m_bCheckLDC = false
+    this.m_iSliceQpDeltaCb = 0
+    this.m_iSliceQpDeltaCr = 0
 
-  this.m_aiNumRefIdx[REF_PIC_LIST_C]      = 0;
+    this.m_aiNumRefIdx[REF_PIC_LIST_C] = 0
 
-  this.m_maxNumMergeCand = MRG_MAX_NUM_CANDS;
+    this.m_maxNumMergeCand = MRG_MAX_NUM_CANDS
 
-  this.m_bFinalized=false;
+    this.m_bFinalized = false
 
-  this.m_tileByteLocation = make(map[int]uint);//list.New();
-  this.m_cabacInitFlag        = false;
-  this.m_numEntryPointOffsets = 0;
-  this.m_enableTMVPFlag = true;
+    this.m_tileByteLocation = make(map[int]uint) //list.New();
+    this.m_cabacInitFlag = false
+    this.m_numEntryPointOffsets = 0
+    this.m_enableTMVPFlag = true
 }
 
 func (this *TComSlice) SetVPS(pcVPS *TComVPS) {
@@ -2630,23 +2683,23 @@ func (this *TComSlice) GetColRefIdx() uint {
     return this.m_colRefIdx
 }
 func (this *TComSlice) CheckColRefIdx(curSliceIdx uint, pic *TComPic) {
-  var i int;
-  curSlice := pic.GetSlice(curSliceIdx);
-  currColRefPOC :=  curSlice.GetRefPOC( RefPicList(1-curSlice.GetColFromL0Flag()), int(curSlice.GetColRefIdx()));
-  var preSlice *TComSlice;
-  var preColRefPOC int;
-  for i=int(curSliceIdx)-1; i>=0; i-- {
-    preSlice = pic.GetSlice(uint(i));
-    if preSlice.GetSliceType() != I_SLICE {
-      preColRefPOC  = preSlice.GetRefPOC( RefPicList(1-preSlice.GetColFromL0Flag()), int(preSlice.GetColRefIdx()));
-      if currColRefPOC != preColRefPOC {
-        fmt.Printf("Collocated_ref_idx shall always be the same for all slices of a coded picture!\n");
-        return //exit(EXIT_FAILURE);
-      }else{
-        break;
-      }
+    var i int
+    curSlice := pic.GetSlice(curSliceIdx)
+    currColRefPOC := curSlice.GetRefPOC(RefPicList(1-curSlice.GetColFromL0Flag()), int(curSlice.GetColRefIdx()))
+    var preSlice *TComSlice
+    var preColRefPOC int
+    for i = int(curSliceIdx) - 1; i >= 0; i-- {
+        preSlice = pic.GetSlice(uint(i))
+        if preSlice.GetSliceType() != I_SLICE {
+            preColRefPOC = preSlice.GetRefPOC(RefPicList(1-preSlice.GetColFromL0Flag()), int(preSlice.GetColRefIdx()))
+            if currColRefPOC != preColRefPOC {
+                fmt.Printf("Collocated_ref_idx shall always be the same for all slices of a coded picture!\n")
+                return //exit(EXIT_FAILURE);
+            } else {
+                break
+            }
+        }
     }
-  }
 }
 func (this *TComSlice) GetCheckLDC() bool {
     return this.m_bCheckLDC
@@ -2655,17 +2708,17 @@ func (this *TComSlice) GetMvdL1ZeroFlag() bool {
     return this.m_bLMvdL1Zero
 }
 func (this *TComSlice) GetNumRpsCurrTempList() int {
-  numRpsCurrTempList := 0;
+    numRpsCurrTempList := 0
 
-  if this.m_eSliceType == I_SLICE {
-    return 0;
-  }
-  for i:=0; i < this.m_pcRPS.GetNumberOfNegativePictures() + this.m_pcRPS.GetNumberOfPositivePictures() + this.m_pcRPS.GetNumberOfLongtermPictures(); i++ {
-    if this.m_pcRPS.GetUsed(i) {
-      numRpsCurrTempList++;
+    if this.m_eSliceType == I_SLICE {
+        return 0
     }
-  }
-  return numRpsCurrTempList;
+    for i := 0; i < this.m_pcRPS.GetNumberOfNegativePictures()+this.m_pcRPS.GetNumberOfPositivePictures()+this.m_pcRPS.GetNumberOfLongtermPictures(); i++ {
+        if this.m_pcRPS.GetUsed(i) {
+            numRpsCurrTempList++
+        }
+    }
+    return numRpsCurrTempList
 }
 func (this *TComSlice) GetRefIdxOfLC(e RefPicList, iRefIdx int) int {
     return this.m_iRefIdxOfLC[e][iRefIdx]
@@ -2714,80 +2767,80 @@ func (this *TComSlice) GetNalUnitType() NalUnitType {
     return this.m_eNalUnitType
 }
 func (this *TComSlice) GetRapPicFlag() bool {
-    return this.GetNalUnitType() == NAL_UNIT_CODED_SLICE_IDR	||
-      this.GetNalUnitType() == NAL_UNIT_CODED_SLICE_IDR_N_LP	||
-      this.GetNalUnitType() == NAL_UNIT_CODED_SLICE_BLA_N_LP	||
-      this.GetNalUnitType() == NAL_UNIT_CODED_SLICE_BLANT		||
-      this.GetNalUnitType() == NAL_UNIT_CODED_SLICE_BLA			||
-      this.GetNalUnitType() == NAL_UNIT_CODED_SLICE_CRA;
+    return this.GetNalUnitType() == NAL_UNIT_CODED_SLICE_IDR ||
+        this.GetNalUnitType() == NAL_UNIT_CODED_SLICE_IDR_N_LP ||
+        this.GetNalUnitType() == NAL_UNIT_CODED_SLICE_BLA_N_LP ||
+        this.GetNalUnitType() == NAL_UNIT_CODED_SLICE_BLANT ||
+        this.GetNalUnitType() == NAL_UNIT_CODED_SLICE_BLA ||
+        this.GetNalUnitType() == NAL_UNIT_CODED_SLICE_CRA
 }
 func (this *TComSlice) GetIdrPicFlag() bool {
     return this.GetNalUnitType() == NAL_UNIT_CODED_SLICE_IDR || this.GetNalUnitType() == NAL_UNIT_CODED_SLICE_IDR_N_LP
 }
 func (this *TComSlice) CheckCRA(pReferencePictureSet *TComReferencePictureSet, pocCRA *int, prevRAPisBLA *bool, rcListPic *list.List) {
-  for i := int(0); i < pReferencePictureSet.GetNumberOfNegativePictures()+pReferencePictureSet.GetNumberOfPositivePictures(); i++ {
-    if uint(*pocCRA) < MAX_UINT && this.GetPOC() > *pocCRA {
-      //assert(getPOC()+pReferencePictureSet.GetDeltaPOC(i) >= pocCRA);
+    for i := int(0); i < pReferencePictureSet.GetNumberOfNegativePictures()+pReferencePictureSet.GetNumberOfPositivePictures(); i++ {
+        if uint(*pocCRA) < MAX_UINT && this.GetPOC() > *pocCRA {
+            //assert(getPOC()+pReferencePictureSet.GetDeltaPOC(i) >= pocCRA);
+        }
     }
-  }
-  for i := int(pReferencePictureSet.GetNumberOfNegativePictures()+pReferencePictureSet.GetNumberOfPositivePictures()); i < pReferencePictureSet.GetNumberOfPictures(); i++ {
-    if uint(*pocCRA) < MAX_UINT && this.GetPOC() > *pocCRA {
-      //assert(pReferencePictureSet.GetPOC(i) >= pocCRA);
+    for i := int(pReferencePictureSet.GetNumberOfNegativePictures() + pReferencePictureSet.GetNumberOfPositivePictures()); i < pReferencePictureSet.GetNumberOfPictures(); i++ {
+        if uint(*pocCRA) < MAX_UINT && this.GetPOC() > *pocCRA {
+            //assert(pReferencePictureSet.GetPOC(i) >= pocCRA);
+        }
     }
-  }
-  if this.GetNalUnitType() == NAL_UNIT_CODED_SLICE_IDR || this.GetNalUnitType() == NAL_UNIT_CODED_SLICE_IDR_N_LP { // IDR picture found
-    *prevRAPisBLA = false;
-  }else if this.GetNalUnitType() == NAL_UNIT_CODED_SLICE_CRA { // CRA picture found
-    *pocCRA = this.GetPOC();
-    *prevRAPisBLA = false;
-  }else if  this.GetNalUnitType() == NAL_UNIT_CODED_SLICE_BLA 	||
-            this.GetNalUnitType() == NAL_UNIT_CODED_SLICE_BLANT	||
-            this.GetNalUnitType() == NAL_UNIT_CODED_SLICE_BLA_N_LP { // BLA picture found
-    *pocCRA = this.GetPOC();
-    *prevRAPisBLA = true;
-  }
+    if this.GetNalUnitType() == NAL_UNIT_CODED_SLICE_IDR || this.GetNalUnitType() == NAL_UNIT_CODED_SLICE_IDR_N_LP { // IDR picture found
+        *prevRAPisBLA = false
+    } else if this.GetNalUnitType() == NAL_UNIT_CODED_SLICE_CRA { // CRA picture found
+        *pocCRA = this.GetPOC()
+        *prevRAPisBLA = false
+    } else if this.GetNalUnitType() == NAL_UNIT_CODED_SLICE_BLA ||
+        this.GetNalUnitType() == NAL_UNIT_CODED_SLICE_BLANT ||
+        this.GetNalUnitType() == NAL_UNIT_CODED_SLICE_BLA_N_LP { // BLA picture found
+        *pocCRA = this.GetPOC()
+        *prevRAPisBLA = true
+    }
 }
 func (this *TComSlice) DecodingRefreshMarking(pocCRA *int, bRefreshPending *bool, rcListPic *list.List) {
-  var rpcPic *TComPic;
-  pocCurr := this.GetPOC(); 
+    var rpcPic *TComPic
+    pocCurr := this.GetPOC()
 
-  if   this.GetNalUnitType() == NAL_UNIT_CODED_SLICE_BLA		||
-       this.GetNalUnitType() == NAL_UNIT_CODED_SLICE_BLANT		||
-       this.GetNalUnitType() == NAL_UNIT_CODED_SLICE_BLA_N_LP	||
-       this.GetNalUnitType() == NAL_UNIT_CODED_SLICE_IDR		||
-       this.GetNalUnitType() == NAL_UNIT_CODED_SLICE_IDR_N_LP {  // IDR or BLA picture
-    // mark all pictures as not used for reference
-    iterPic  := rcListPic.Front(); // TComList<TComPic*>::iterator        
-    for iterPic != nil {
-      rpcPic = iterPic.Value.(*TComPic);
-      rpcPic.SetCurrSliceIdx(0);
-      if int(rpcPic.GetPOC()) != pocCurr {
-      	 rpcPic.GetSlice(0).SetReferenced(false);
-      }
-      iterPic = iterPic.Next();
-    }
-    if this.GetNalUnitType() == NAL_UNIT_CODED_SLICE_BLA		||
-       this.GetNalUnitType() == NAL_UNIT_CODED_SLICE_BLANT		||
-       this.GetNalUnitType() == NAL_UNIT_CODED_SLICE_BLA_N_LP {
-      *pocCRA = pocCurr;
-    }
-  }else{ // CRA or No DR 
-    if *bRefreshPending==true && pocCurr > *pocCRA { // CRA reference marking pending 
-      iterPic  := rcListPic.Front(); // TComList<TComPic*>::iterator      
-      for iterPic != nil {
-        rpcPic = iterPic.Value.(*TComPic);
-        if int(rpcPic.GetPOC()) != pocCurr && int(rpcPic.GetPOC()) != *pocCRA {
-        	rpcPic.GetSlice(0).SetReferenced(false);
+    if this.GetNalUnitType() == NAL_UNIT_CODED_SLICE_BLA ||
+        this.GetNalUnitType() == NAL_UNIT_CODED_SLICE_BLANT ||
+        this.GetNalUnitType() == NAL_UNIT_CODED_SLICE_BLA_N_LP ||
+        this.GetNalUnitType() == NAL_UNIT_CODED_SLICE_IDR ||
+        this.GetNalUnitType() == NAL_UNIT_CODED_SLICE_IDR_N_LP { // IDR or BLA picture
+        // mark all pictures as not used for reference
+        iterPic := rcListPic.Front() // TComList<TComPic*>::iterator
+        for iterPic != nil {
+            rpcPic = iterPic.Value.(*TComPic)
+            rpcPic.SetCurrSliceIdx(0)
+            if int(rpcPic.GetPOC()) != pocCurr {
+                rpcPic.GetSlice(0).SetReferenced(false)
+            }
+            iterPic = iterPic.Next()
         }
-        iterPic = iterPic.Next();
-      }
-      *bRefreshPending = false; 
+        if this.GetNalUnitType() == NAL_UNIT_CODED_SLICE_BLA ||
+            this.GetNalUnitType() == NAL_UNIT_CODED_SLICE_BLANT ||
+            this.GetNalUnitType() == NAL_UNIT_CODED_SLICE_BLA_N_LP {
+            *pocCRA = pocCurr
+        }
+    } else { // CRA or No DR
+        if *bRefreshPending == true && pocCurr > *pocCRA { // CRA reference marking pending
+            iterPic := rcListPic.Front() // TComList<TComPic*>::iterator
+            for iterPic != nil {
+                rpcPic = iterPic.Value.(*TComPic)
+                if int(rpcPic.GetPOC()) != pocCurr && int(rpcPic.GetPOC()) != *pocCRA {
+                    rpcPic.GetSlice(0).SetReferenced(false)
+                }
+                iterPic = iterPic.Next()
+            }
+            *bRefreshPending = false
+        }
+        if this.GetNalUnitType() == NAL_UNIT_CODED_SLICE_CRA { // CRA picture found
+            *bRefreshPending = true
+            *pocCRA = pocCurr
+        }
     }
-    if this.GetNalUnitType() == NAL_UNIT_CODED_SLICE_CRA { // CRA picture found
-      *bRefreshPending = true; 
-      *pocCRA = pocCurr;
-    }
-  }
 }
 func (this *TComSlice) SetSliceType(e SliceType) {
     this.m_eSliceType = e
@@ -2841,201 +2894,201 @@ func (this *TComSlice) SetDepth(iDepth int) {
 }
 
 func (this *TComSlice) SetRefPicList(rcListPic *list.List) {
-  if this.m_eSliceType == I_SLICE {
-  	for j:=0; j<2; j++ {
-  		for i:=0; i<MAX_NUM_REF + 1; i++ {
-  			this.m_apcRefPicList[j][i] =nil;
-  		}
-  	}
-    for i:=0; i<3; i++ {
-    	this.m_aiNumRefIdx [i] = 0;
-    } 
-    //::memset( m_apcRefPicList, 0, sizeof (m_apcRefPicList));
-    //::memset( m_aiNumRefIdx,   0, sizeof ( m_aiNumRefIdx ));
-    return;
-  }
+    if this.m_eSliceType == I_SLICE {
+        for j := 0; j < 2; j++ {
+            for i := 0; i < MAX_NUM_REF+1; i++ {
+                this.m_apcRefPicList[j][i] = nil
+            }
+        }
+        for i := 0; i < 3; i++ {
+            this.m_aiNumRefIdx[i] = 0
+        }
+        //::memset( m_apcRefPicList, 0, sizeof (m_apcRefPicList));
+        //::memset( m_aiNumRefIdx,   0, sizeof ( m_aiNumRefIdx ));
+        return
+    }
 
-  this.m_aiNumRefIdx[0] = this.GetNumRefIdx(REF_PIC_LIST_0);
-  this.m_aiNumRefIdx[1] = this.GetNumRefIdx(REF_PIC_LIST_1);
+    this.m_aiNumRefIdx[0] = this.GetNumRefIdx(REF_PIC_LIST_0)
+    this.m_aiNumRefIdx[1] = this.GetNumRefIdx(REF_PIC_LIST_1)
 
-  var pcRefPic *TComPic;
-  var RefPicSetStCurr0 [16]*TComPic;
-  var RefPicSetStCurr1 [16]*TComPic;
-  var RefPicSetLtCurr  [16]*TComPic;
-  NumPocStCurr0 := 0;
-  NumPocStCurr1 := 0;
-  NumPocLtCurr  := 0;
+    var pcRefPic *TComPic
+    var RefPicSetStCurr0 [16]*TComPic
+    var RefPicSetStCurr1 [16]*TComPic
+    var RefPicSetLtCurr [16]*TComPic
+    NumPocStCurr0 := 0
+    NumPocStCurr1 := 0
+    NumPocLtCurr := 0
 
-  var i int;
-  for i=0; i < this.m_pcRPS.GetNumberOfNegativePictures(); i++ {
-    if this.m_pcRPS.GetUsed(i) {
-      pcRefPic = this.xGetRefPic(rcListPic, this.GetPOC()+this.m_pcRPS.GetDeltaPOC(i));
-      pcRefPic.SetIsLongTerm(false);
-      pcRefPic.SetIsUsedAsLongTerm(false);
-      pcRefPic.GetPicYuvRec().ExtendPicBorder();
-      RefPicSetStCurr0[NumPocStCurr0] = pcRefPic;
-      NumPocStCurr0++;
-      pcRefPic.SetCheckLTMSBPresent(false);
+    var i int
+    for i = 0; i < this.m_pcRPS.GetNumberOfNegativePictures(); i++ {
+        if this.m_pcRPS.GetUsed(i) {
+            pcRefPic = this.xGetRefPic(rcListPic, this.GetPOC()+this.m_pcRPS.GetDeltaPOC(i))
+            pcRefPic.SetIsLongTerm(false)
+            pcRefPic.SetIsUsedAsLongTerm(false)
+            pcRefPic.GetPicYuvRec().ExtendPicBorder()
+            RefPicSetStCurr0[NumPocStCurr0] = pcRefPic
+            NumPocStCurr0++
+            pcRefPic.SetCheckLTMSBPresent(false)
+        }
     }
-  }
-  for ; i < this.m_pcRPS.GetNumberOfNegativePictures()+this.m_pcRPS.GetNumberOfPositivePictures(); i++ {
-    if this.m_pcRPS.GetUsed(i) {
-      pcRefPic = this.xGetRefPic(rcListPic, this.GetPOC()+this.m_pcRPS.GetDeltaPOC(i));
-      pcRefPic.SetIsLongTerm(false);
-      pcRefPic.SetIsUsedAsLongTerm(false);
-      pcRefPic.GetPicYuvRec().ExtendPicBorder();
-      RefPicSetStCurr1[NumPocStCurr1] = pcRefPic;
-      NumPocStCurr1++;
-      pcRefPic.SetCheckLTMSBPresent(false);
+    for ; i < this.m_pcRPS.GetNumberOfNegativePictures()+this.m_pcRPS.GetNumberOfPositivePictures(); i++ {
+        if this.m_pcRPS.GetUsed(i) {
+            pcRefPic = this.xGetRefPic(rcListPic, this.GetPOC()+this.m_pcRPS.GetDeltaPOC(i))
+            pcRefPic.SetIsLongTerm(false)
+            pcRefPic.SetIsUsedAsLongTerm(false)
+            pcRefPic.GetPicYuvRec().ExtendPicBorder()
+            RefPicSetStCurr1[NumPocStCurr1] = pcRefPic
+            NumPocStCurr1++
+            pcRefPic.SetCheckLTMSBPresent(false)
+        }
     }
-  }
-  for i = this.m_pcRPS.GetNumberOfNegativePictures()+this.m_pcRPS.GetNumberOfPositivePictures()+this.m_pcRPS.GetNumberOfLongtermPictures()-1; i > this.m_pcRPS.GetNumberOfNegativePictures()+this.m_pcRPS.GetNumberOfPositivePictures()-1 ; i-- {
-    if this.m_pcRPS.GetUsed(i) {
-      pcRefPic = this.xGetLongTermRefPic(rcListPic, this.m_pcRPS.GetPOC(i));
-      pcRefPic.SetIsLongTerm(true);
-      pcRefPic.SetIsUsedAsLongTerm(true);
-      pcRefPic.GetPicYuvRec().ExtendPicBorder();
-      RefPicSetLtCurr[NumPocLtCurr] = pcRefPic;
-      NumPocLtCurr++;
+    for i = this.m_pcRPS.GetNumberOfNegativePictures() + this.m_pcRPS.GetNumberOfPositivePictures() + this.m_pcRPS.GetNumberOfLongtermPictures() - 1; i > this.m_pcRPS.GetNumberOfNegativePictures()+this.m_pcRPS.GetNumberOfPositivePictures()-1; i-- {
+        if this.m_pcRPS.GetUsed(i) {
+            pcRefPic = this.xGetLongTermRefPic(rcListPic, this.m_pcRPS.GetPOC(i))
+            pcRefPic.SetIsLongTerm(true)
+            pcRefPic.SetIsUsedAsLongTerm(true)
+            pcRefPic.GetPicYuvRec().ExtendPicBorder()
+            RefPicSetLtCurr[NumPocLtCurr] = pcRefPic
+            NumPocLtCurr++
+        }
+        if pcRefPic == nil {
+            pcRefPic = this.xGetLongTermRefPic(rcListPic, this.m_pcRPS.GetPOC(i))
+        }
+        pcRefPic.SetCheckLTMSBPresent(this.m_pcRPS.GetCheckLTMSBPresent(i))
     }
-    if pcRefPic==nil {
-      pcRefPic = this.xGetLongTermRefPic(rcListPic, this.m_pcRPS.GetPOC(i));
-    }
-    pcRefPic.SetCheckLTMSBPresent(this.m_pcRPS.GetCheckLTMSBPresent(i));
-  }
 
-  // ref_pic_list_init
-//#if RPL_INIT_FIX
-  var rpsCurrList0	[MAX_NUM_REF+1]*TComPic;
-  var rpsCurrList1	[MAX_NUM_REF+1]*TComPic;
-  numPocTotalCurr := NumPocStCurr0 + NumPocStCurr1 + NumPocLtCurr;
+    // ref_pic_list_init
+    //#if RPL_INIT_FIX
+    var rpsCurrList0 [MAX_NUM_REF + 1]*TComPic
+    var rpsCurrList1 [MAX_NUM_REF + 1]*TComPic
+    numPocTotalCurr := NumPocStCurr0 + NumPocStCurr1 + NumPocLtCurr
 
-  //{
-    cIdx := 0;
-    for i=0; i<NumPocStCurr0; i++ {
-      rpsCurrList0[cIdx] = RefPicSetStCurr0[i];
-      cIdx++
+    //{
+    cIdx := 0
+    for i = 0; i < NumPocStCurr0; i++ {
+        rpsCurrList0[cIdx] = RefPicSetStCurr0[i]
+        cIdx++
     }
-    for i=0; i<NumPocStCurr1; i++ {
-      rpsCurrList0[cIdx] = RefPicSetStCurr1[i];
-      cIdx++
+    for i = 0; i < NumPocStCurr1; i++ {
+        rpsCurrList0[cIdx] = RefPicSetStCurr1[i]
+        cIdx++
     }
-    for i=0; i<NumPocLtCurr;  i++ {
-      rpsCurrList0[cIdx] = RefPicSetLtCurr[i];
-      cIdx++
+    for i = 0; i < NumPocLtCurr; i++ {
+        rpsCurrList0[cIdx] = RefPicSetLtCurr[i]
+        cIdx++
     }
-  //}
+    //}
 
-  if this.m_eSliceType==B_SLICE {
-    cIdx := 0;
-    for i=0; i<NumPocStCurr1; i++ {
-      rpsCurrList1[cIdx] = RefPicSetStCurr1[i];
-      cIdx++
+    if this.m_eSliceType == B_SLICE {
+        cIdx := 0
+        for i = 0; i < NumPocStCurr1; i++ {
+            rpsCurrList1[cIdx] = RefPicSetStCurr1[i]
+            cIdx++
+        }
+        for i = 0; i < NumPocStCurr0; i++ {
+            rpsCurrList1[cIdx] = RefPicSetStCurr0[i]
+            cIdx++
+        }
+        for i = 0; i < NumPocLtCurr; i++ {
+            rpsCurrList1[cIdx] = RefPicSetLtCurr[i]
+            cIdx++
+        }
     }
-    for i=0; i<NumPocStCurr0; i++ {
-      rpsCurrList1[cIdx] = RefPicSetStCurr0[i];
-      cIdx++
-    }
-    for i=0; i<NumPocLtCurr;  i++ {
-      rpsCurrList1[cIdx] = RefPicSetLtCurr[i];
-      cIdx++
-    }
-  }
 
-  for rIdx := 0; rIdx <= (this.m_aiNumRefIdx[0]-1); rIdx ++ {
-  	if this.m_RefPicListModification.GetRefPicListModificationFlagL0() {
-    	this.m_apcRefPicList[0][rIdx] = rpsCurrList0[this.m_RefPicListModification.GetRefPicSetIdxL0(uint(rIdx)) ];
-    }else{
-    	this.m_apcRefPicList[0][rIdx] = rpsCurrList0[rIdx % numPocTotalCurr];
+    for rIdx := 0; rIdx <= (this.m_aiNumRefIdx[0] - 1); rIdx++ {
+        if this.m_RefPicListModification.GetRefPicListModificationFlagL0() {
+            this.m_apcRefPicList[0][rIdx] = rpsCurrList0[this.m_RefPicListModification.GetRefPicSetIdxL0(uint(rIdx))]
+        } else {
+            this.m_apcRefPicList[0][rIdx] = rpsCurrList0[rIdx%numPocTotalCurr]
+        }
     }
-  }
-  if this.m_eSliceType == P_SLICE {
-    this.m_aiNumRefIdx[1] = 0;
-    //::memset( m_apcRefPicList[1], 0, sizeof(m_apcRefPicList[1]));
-  }else{
-    for rIdx := 0; rIdx <= (this.m_aiNumRefIdx[1]-1); rIdx ++ {
-    	if this.m_RefPicListModification.GetRefPicListModificationFlagL1() {
-      		this.m_apcRefPicList[1][rIdx] =  rpsCurrList1[ this.m_RefPicListModification.GetRefPicSetIdxL1(uint(rIdx)) ];
-      	}else{
-      		this.m_apcRefPicList[1][rIdx] =  rpsCurrList1[rIdx % numPocTotalCurr];
-      	}
+    if this.m_eSliceType == P_SLICE {
+        this.m_aiNumRefIdx[1] = 0
+        //::memset( m_apcRefPicList[1], 0, sizeof(m_apcRefPicList[1]));
+    } else {
+        for rIdx := 0; rIdx <= (this.m_aiNumRefIdx[1] - 1); rIdx++ {
+            if this.m_RefPicListModification.GetRefPicListModificationFlagL1() {
+                this.m_apcRefPicList[1][rIdx] = rpsCurrList1[this.m_RefPicListModification.GetRefPicSetIdxL1(uint(rIdx))]
+            } else {
+                this.m_apcRefPicList[1][rIdx] = rpsCurrList1[rIdx%numPocTotalCurr]
+            }
+        }
     }
-  }
-/*#else
-  UInt cIdx = 0;
-  UInt num_ref_idx_l0_active_minus1 = m_aiNumRefIdx[0] - 1;
-  UInt num_ref_idx_l1_active_minus1 = m_aiNumRefIdx[1] - 1;
-  TComPic*  refPicListTemp0[MAX_NUM_REF+1];
-  TComPic*  refPicListTemp1[MAX_NUM_REF+1];
-  Int  numRpsCurrTempList0, numRpsCurrTempList1;
+    /*#else
+      UInt cIdx = 0;
+      UInt num_ref_idx_l0_active_minus1 = m_aiNumRefIdx[0] - 1;
+      UInt num_ref_idx_l1_active_minus1 = m_aiNumRefIdx[1] - 1;
+      TComPic*  refPicListTemp0[MAX_NUM_REF+1];
+      TComPic*  refPicListTemp1[MAX_NUM_REF+1];
+      Int  numRpsCurrTempList0, numRpsCurrTempList1;
 
-  numRpsCurrTempList0 = numRpsCurrTempList1 = NumPocStCurr0 + NumPocStCurr1 + NumPocLtCurr;
-  if (numRpsCurrTempList0 <= num_ref_idx_l0_active_minus1)
-  {
-    numRpsCurrTempList0 = num_ref_idx_l0_active_minus1 + 1;
-  }
-  if (numRpsCurrTempList1 <= num_ref_idx_l1_active_minus1)
-  {
-    numRpsCurrTempList1 = num_ref_idx_l1_active_minus1 + 1;
-  }
+      numRpsCurrTempList0 = numRpsCurrTempList1 = NumPocStCurr0 + NumPocStCurr1 + NumPocLtCurr;
+      if (numRpsCurrTempList0 <= num_ref_idx_l0_active_minus1)
+      {
+        numRpsCurrTempList0 = num_ref_idx_l0_active_minus1 + 1;
+      }
+      if (numRpsCurrTempList1 <= num_ref_idx_l1_active_minus1)
+      {
+        numRpsCurrTempList1 = num_ref_idx_l1_active_minus1 + 1;
+      }
 
-  cIdx = 0;
-  while (cIdx < numRpsCurrTempList0)
-  {
-    for ( i=0; i<NumPocStCurr0 && cIdx<numRpsCurrTempList0; cIdx++,i++)
-    {
-      refPicListTemp0[cIdx] = RefPicSetStCurr0[ i ];
-    }
-    for ( i=0; i<NumPocStCurr1 && cIdx<numRpsCurrTempList0; cIdx++,i++)
-    {
-      refPicListTemp0[cIdx] = RefPicSetStCurr1[ i ];
-    }
-    for ( i=0; i<NumPocLtCurr && cIdx<numRpsCurrTempList0; cIdx++,i++)
-    {
-      refPicListTemp0[cIdx] = RefPicSetLtCurr[ i ];
-    }
-  }
-  cIdx = 0;
-  while (cIdx<numRpsCurrTempList1 && m_eSliceType==B_SLICE)
-  {
-    for ( i=0; i<NumPocStCurr1 && cIdx<numRpsCurrTempList1; cIdx++,i++)
-    {
-      refPicListTemp1[cIdx] = RefPicSetStCurr1[ i ];
-    }
-    for ( i=0; i<NumPocStCurr0 && cIdx<numRpsCurrTempList1; cIdx++,i++)
-    {
-      refPicListTemp1[cIdx] = RefPicSetStCurr0[ i ];
-    }
-    for ( i=0; i<NumPocLtCurr && cIdx<numRpsCurrTempList1; cIdx++,i++)
-    {
-      refPicListTemp1[cIdx] = RefPicSetLtCurr[ i ];
-    }
-  }
+      cIdx = 0;
+      while (cIdx < numRpsCurrTempList0)
+      {
+        for ( i=0; i<NumPocStCurr0 && cIdx<numRpsCurrTempList0; cIdx++,i++)
+        {
+          refPicListTemp0[cIdx] = RefPicSetStCurr0[ i ];
+        }
+        for ( i=0; i<NumPocStCurr1 && cIdx<numRpsCurrTempList0; cIdx++,i++)
+        {
+          refPicListTemp0[cIdx] = RefPicSetStCurr1[ i ];
+        }
+        for ( i=0; i<NumPocLtCurr && cIdx<numRpsCurrTempList0; cIdx++,i++)
+        {
+          refPicListTemp0[cIdx] = RefPicSetLtCurr[ i ];
+        }
+      }
+      cIdx = 0;
+      while (cIdx<numRpsCurrTempList1 && m_eSliceType==B_SLICE)
+      {
+        for ( i=0; i<NumPocStCurr1 && cIdx<numRpsCurrTempList1; cIdx++,i++)
+        {
+          refPicListTemp1[cIdx] = RefPicSetStCurr1[ i ];
+        }
+        for ( i=0; i<NumPocStCurr0 && cIdx<numRpsCurrTempList1; cIdx++,i++)
+        {
+          refPicListTemp1[cIdx] = RefPicSetStCurr0[ i ];
+        }
+        for ( i=0; i<NumPocLtCurr && cIdx<numRpsCurrTempList1; cIdx++,i++)
+        {
+          refPicListTemp1[cIdx] = RefPicSetLtCurr[ i ];
+        }
+      }
 
-  for (cIdx = 0; cIdx <= num_ref_idx_l0_active_minus1; cIdx ++)
-  {
-    m_apcRefPicList[0][cIdx] = m_RefPicListModification.getRefPicListModificationFlagL0() ? refPicListTemp0[ m_RefPicListModification.getRefPicSetIdxL0(cIdx) ] : refPicListTemp0[cIdx];
-  }
-  if ( m_eSliceType == P_SLICE )
-  {
-    m_aiNumRefIdx[1] = 0;
-    ::memset( m_apcRefPicList[1], 0, sizeof(m_apcRefPicList[1]));
-  }
-  else
-  {
-    for (cIdx = 0; cIdx <= num_ref_idx_l1_active_minus1; cIdx ++)
-    {
-      m_apcRefPicList[1][cIdx] = m_RefPicListModification.getRefPicListModificationFlagL1() ? refPicListTemp1[ m_RefPicListModification.getRefPicSetIdxL1(cIdx) ] : refPicListTemp1[cIdx];
-    }
-  }
-#endif*/
+      for (cIdx = 0; cIdx <= num_ref_idx_l0_active_minus1; cIdx ++)
+      {
+        m_apcRefPicList[0][cIdx] = m_RefPicListModification.getRefPicListModificationFlagL0() ? refPicListTemp0[ m_RefPicListModification.getRefPicSetIdxL0(cIdx) ] : refPicListTemp0[cIdx];
+      }
+      if ( m_eSliceType == P_SLICE )
+      {
+        m_aiNumRefIdx[1] = 0;
+        ::memset( m_apcRefPicList[1], 0, sizeof(m_apcRefPicList[1]));
+      }
+      else
+      {
+        for (cIdx = 0; cIdx <= num_ref_idx_l1_active_minus1; cIdx ++)
+        {
+          m_apcRefPicList[1][cIdx] = m_RefPicListModification.getRefPicListModificationFlagL1() ? refPicListTemp1[ m_RefPicListModification.getRefPicSetIdxL1(cIdx) ] : refPicListTemp1[cIdx];
+        }
+      }
+    #endif*/
 }
 func (this *TComSlice) SetRefPOCList() {
-  for iDir := 0; iDir < 2; iDir++ {
-    for iNumRefIdx := 0; iNumRefIdx < this.m_aiNumRefIdx[iDir]; iNumRefIdx++ {
-      this.m_aiRefPOCList[iDir][iNumRefIdx] = int(this.m_apcRefPicList[iDir][iNumRefIdx].GetPOC());
+    for iDir := 0; iDir < 2; iDir++ {
+        for iNumRefIdx := 0; iNumRefIdx < this.m_aiNumRefIdx[iDir]; iNumRefIdx++ {
+            this.m_aiRefPOCList[iDir][iNumRefIdx] = int(this.m_apcRefPicList[iDir][iNumRefIdx].GetPOC())
+        }
     }
-  }
 }
 func (this *TComSlice) SetColFromL0Flag(colFromL0 uint) {
     this.m_colFromL0Flag = colFromL0
@@ -3078,19 +3131,19 @@ func (this *TComSlice) GetLambdaChroma() float64 {
 //#endif
 
 func (this *TComSlice) InitEqualRef() {
-  for iDir := int(0); iDir < 2; iDir++{
-    for iRefIdx1 := int(0); iRefIdx1 < MAX_NUM_REF; iRefIdx1++ {
-      for iRefIdx2 := iRefIdx1; iRefIdx2 < MAX_NUM_REF; iRefIdx2++ {
-      	if iRefIdx1 == iRefIdx2 {
-        	this.m_abEqualRef[iDir][iRefIdx1][iRefIdx2] = true;
-        	this.m_abEqualRef[iDir][iRefIdx2][iRefIdx1] = true
-        }else{
-        	this.m_abEqualRef[iDir][iRefIdx1][iRefIdx2] = false;
-        	this.m_abEqualRef[iDir][iRefIdx2][iRefIdx1] = false
+    for iDir := int(0); iDir < 2; iDir++ {
+        for iRefIdx1 := int(0); iRefIdx1 < MAX_NUM_REF; iRefIdx1++ {
+            for iRefIdx2 := iRefIdx1; iRefIdx2 < MAX_NUM_REF; iRefIdx2++ {
+                if iRefIdx1 == iRefIdx2 {
+                    this.m_abEqualRef[iDir][iRefIdx1][iRefIdx2] = true
+                    this.m_abEqualRef[iDir][iRefIdx2][iRefIdx1] = true
+                } else {
+                    this.m_abEqualRef[iDir][iRefIdx1][iRefIdx2] = false
+                    this.m_abEqualRef[iDir][iRefIdx2][iRefIdx1] = false
+                }
+            }
         }
-      }
     }
-  }
 }
 func (this *TComSlice) IsEqualRef(e RefPicList, iRefIdx1 int, iRefIdx2 int) bool {
     if iRefIdx1 < 0 || iRefIdx2 < 0 {
@@ -3106,32 +3159,32 @@ func (this *TComSlice) SetEqualRef(e RefPicList, iRefIdx1 int, iRefIdx2 int, b b
 }
 
 func /*(this *TComSlice)*/ SortPicList(rcListPic *list.List) {
-  var pcPicExtract *TComPic;
-  var pcPicInsert *TComPic;
+    var pcPicExtract *TComPic
+    var pcPicInsert *TComPic
 
-  for i := 1; i < rcListPic.Len(); i++{
-  	iterPicExtract := rcListPic.Front();
-  	for j := 0; j < i; j++ {
-  	 iterPicExtract = iterPicExtract.Next();
-  	}
-  	pcPicExtract = iterPicExtract.Value.(*TComPic);
-    pcPicExtract.SetCurrSliceIdx(0);
+    for i := 1; i < rcListPic.Len(); i++ {
+        iterPicExtract := rcListPic.Front()
+        for j := 0; j < i; j++ {
+            iterPicExtract = iterPicExtract.Next()
+        }
+        pcPicExtract = iterPicExtract.Value.(*TComPic)
+        pcPicExtract.SetCurrSliceIdx(0)
 
-    iterPicInsert := rcListPic.Front();
-    for iterPicInsert != iterPicExtract {
-      pcPicInsert = iterPicInsert.Value.(*TComPic);
-      pcPicInsert.SetCurrSliceIdx(0);
-      if pcPicInsert.GetPOC() >= pcPicExtract.GetPOC() {
-        break;
-      }
+        iterPicInsert := rcListPic.Front()
+        for iterPicInsert != iterPicExtract {
+            pcPicInsert = iterPicInsert.Value.(*TComPic)
+            pcPicInsert.SetCurrSliceIdx(0)
+            if pcPicInsert.GetPOC() >= pcPicExtract.GetPOC() {
+                break
+            }
 
-      iterPicInsert = iterPicInsert.Next();
+            iterPicInsert = iterPicInsert.Next()
+        }
+
+        //  swap iterPicExtract and iterPicInsert, iterPicExtract = curr. / iterPicInsert = insertion position
+        rcListPic.InsertBefore(pcPicExtract, iterPicInsert) // (, iterPicExtract, iterPicExtract_1);
+        rcListPic.Remove(iterPicExtract)
     }
-
-    //  swap iterPicExtract and iterPicInsert, iterPicExtract = curr. / iterPicInsert = insertion position
-    rcListPic.InsertBefore(pcPicExtract, iterPicInsert);// (, iterPicExtract, iterPicExtract_1);
-    rcListPic.Remove (iterPicExtract);
-  }
 }
 
 func (this *TComSlice) GetNoBackPredFlag() bool {
@@ -3141,56 +3194,56 @@ func (this *TComSlice) SetNoBackPredFlag(b bool) {
     this.m_bNoBackPredFlag = b
 }
 func (this *TComSlice) GenerateCombinedList() {
-  if this.m_aiNumRefIdx[REF_PIC_LIST_C] > 0 {
-    this.m_aiNumRefIdx[REF_PIC_LIST_C]=0;
-    for iNumCount := 0; iNumCount < MAX_NUM_REF_LC; iNumCount++ {
-      this.m_iRefIdxOfLC[REF_PIC_LIST_0][iNumCount]=-1;
-      this.m_iRefIdxOfLC[REF_PIC_LIST_1][iNumCount]=-1;
-      this.m_eListIdFromIdxOfLC[iNumCount]=0;
-      this.m_iRefIdxFromIdxOfLC[iNumCount]=0;
-      this.m_iRefIdxOfL0FromRefIdxOfL1[iNumCount] = -1;
-      this.m_iRefIdxOfL1FromRefIdxOfL0[iNumCount] = -1;
+    if this.m_aiNumRefIdx[REF_PIC_LIST_C] > 0 {
+        this.m_aiNumRefIdx[REF_PIC_LIST_C] = 0
+        for iNumCount := 0; iNumCount < MAX_NUM_REF_LC; iNumCount++ {
+            this.m_iRefIdxOfLC[REF_PIC_LIST_0][iNumCount] = -1
+            this.m_iRefIdxOfLC[REF_PIC_LIST_1][iNumCount] = -1
+            this.m_eListIdFromIdxOfLC[iNumCount] = 0
+            this.m_iRefIdxFromIdxOfLC[iNumCount] = 0
+            this.m_iRefIdxOfL0FromRefIdxOfL1[iNumCount] = -1
+            this.m_iRefIdxOfL1FromRefIdxOfL0[iNumCount] = -1
+        }
+
+        for iNumRefIdx := 0; iNumRefIdx < MAX_NUM_REF; iNumRefIdx++ {
+            if iNumRefIdx < this.m_aiNumRefIdx[REF_PIC_LIST_0] {
+                bTempRefIdxInL2 := true
+                for iRefIdxLC := 0; iRefIdxLC < this.m_aiNumRefIdx[REF_PIC_LIST_C]; iRefIdxLC++ {
+                    if this.m_apcRefPicList[REF_PIC_LIST_0][iNumRefIdx].GetPOC() == this.m_apcRefPicList[this.m_eListIdFromIdxOfLC[iRefIdxLC]][this.m_iRefIdxFromIdxOfLC[iRefIdxLC]].GetPOC() {
+                        this.m_iRefIdxOfL1FromRefIdxOfL0[iNumRefIdx] = this.m_iRefIdxFromIdxOfLC[iRefIdxLC]
+                        this.m_iRefIdxOfL0FromRefIdxOfL1[this.m_iRefIdxFromIdxOfLC[iRefIdxLC]] = iNumRefIdx
+                        bTempRefIdxInL2 = false
+                        break
+                    }
+                }
+
+                if bTempRefIdxInL2 == true {
+                    this.m_eListIdFromIdxOfLC[this.m_aiNumRefIdx[REF_PIC_LIST_C]] = REF_PIC_LIST_0
+                    this.m_iRefIdxFromIdxOfLC[this.m_aiNumRefIdx[REF_PIC_LIST_C]] = iNumRefIdx
+                    this.m_iRefIdxOfLC[REF_PIC_LIST_0][iNumRefIdx] = this.m_aiNumRefIdx[REF_PIC_LIST_C]
+                    this.m_aiNumRefIdx[REF_PIC_LIST_C]++
+                }
+            }
+
+            if iNumRefIdx < this.m_aiNumRefIdx[REF_PIC_LIST_1] {
+                bTempRefIdxInL2 := true
+                for iRefIdxLC := 0; iRefIdxLC < this.m_aiNumRefIdx[REF_PIC_LIST_C]; iRefIdxLC++ {
+                    if this.m_apcRefPicList[REF_PIC_LIST_1][iNumRefIdx].GetPOC() == this.m_apcRefPicList[this.m_eListIdFromIdxOfLC[iRefIdxLC]][this.m_iRefIdxFromIdxOfLC[iRefIdxLC]].GetPOC() {
+                        this.m_iRefIdxOfL0FromRefIdxOfL1[iNumRefIdx] = this.m_iRefIdxFromIdxOfLC[iRefIdxLC]
+                        this.m_iRefIdxOfL1FromRefIdxOfL0[this.m_iRefIdxFromIdxOfLC[iRefIdxLC]] = iNumRefIdx
+                        bTempRefIdxInL2 = false
+                        break
+                    }
+                }
+                if bTempRefIdxInL2 == true {
+                    this.m_eListIdFromIdxOfLC[this.m_aiNumRefIdx[REF_PIC_LIST_C]] = REF_PIC_LIST_1
+                    this.m_iRefIdxFromIdxOfLC[this.m_aiNumRefIdx[REF_PIC_LIST_C]] = iNumRefIdx
+                    this.m_iRefIdxOfLC[REF_PIC_LIST_1][iNumRefIdx] = this.m_aiNumRefIdx[REF_PIC_LIST_C]
+                    this.m_aiNumRefIdx[REF_PIC_LIST_C]++
+                }
+            }
+        }
     }
-
-    for iNumRefIdx := 0; iNumRefIdx < MAX_NUM_REF; iNumRefIdx++ {
-      if iNumRefIdx < this.m_aiNumRefIdx[REF_PIC_LIST_0] {
-        bTempRefIdxInL2 := true;
-        for iRefIdxLC := 0; iRefIdxLC < this.m_aiNumRefIdx[REF_PIC_LIST_C]; iRefIdxLC++ {
-          if this.m_apcRefPicList[REF_PIC_LIST_0][iNumRefIdx].GetPOC() == this.m_apcRefPicList[this.m_eListIdFromIdxOfLC[iRefIdxLC]][this.m_iRefIdxFromIdxOfLC[iRefIdxLC]].GetPOC() {
-            this.m_iRefIdxOfL1FromRefIdxOfL0[iNumRefIdx] = this.m_iRefIdxFromIdxOfLC[iRefIdxLC];
-            this.m_iRefIdxOfL0FromRefIdxOfL1[this.m_iRefIdxFromIdxOfLC[iRefIdxLC]] = iNumRefIdx;
-            bTempRefIdxInL2 = false;
-            break;
-          }
-        }
-
-        if bTempRefIdxInL2 == true  {
-          this.m_eListIdFromIdxOfLC[this.m_aiNumRefIdx[REF_PIC_LIST_C]] = REF_PIC_LIST_0;
-          this.m_iRefIdxFromIdxOfLC[this.m_aiNumRefIdx[REF_PIC_LIST_C]] = iNumRefIdx;
-          this.m_iRefIdxOfLC[REF_PIC_LIST_0][iNumRefIdx] = this.m_aiNumRefIdx[REF_PIC_LIST_C];
-          this.m_aiNumRefIdx[REF_PIC_LIST_C]++;
-        }
-      }
-
-      if iNumRefIdx < this.m_aiNumRefIdx[REF_PIC_LIST_1] {
-        bTempRefIdxInL2 := true;
-        for  iRefIdxLC := 0; iRefIdxLC < this.m_aiNumRefIdx[REF_PIC_LIST_C]; iRefIdxLC++ {
-          if this.m_apcRefPicList[REF_PIC_LIST_1][iNumRefIdx].GetPOC() == this.m_apcRefPicList[this.m_eListIdFromIdxOfLC[iRefIdxLC]][this.m_iRefIdxFromIdxOfLC[iRefIdxLC]].GetPOC() {
-            this.m_iRefIdxOfL0FromRefIdxOfL1[iNumRefIdx] = this.m_iRefIdxFromIdxOfLC[iRefIdxLC];
-            this.m_iRefIdxOfL1FromRefIdxOfL0[this.m_iRefIdxFromIdxOfLC[iRefIdxLC]] = iNumRefIdx;
-            bTempRefIdxInL2 = false;
-            break;
-          }
-        }
-        if bTempRefIdxInL2 == true {
-          this.m_eListIdFromIdxOfLC[this.m_aiNumRefIdx[REF_PIC_LIST_C]] = REF_PIC_LIST_1;
-          this.m_iRefIdxFromIdxOfLC[this.m_aiNumRefIdx[REF_PIC_LIST_C]] = iNumRefIdx;
-          this.m_iRefIdxOfLC[REF_PIC_LIST_1][iNumRefIdx] = this.m_aiNumRefIdx[REF_PIC_LIST_C];
-          this.m_aiNumRefIdx[REF_PIC_LIST_C]++;
-        }
-      }
-    }
-  }
 }
 
 func (this *TComSlice) GetTLayer() uint {
@@ -3201,278 +3254,278 @@ func (this *TComSlice) SetTLayer(uiTLayer uint) {
 }
 
 func (this *TComSlice) SetTLayerInfo(uiTLayer uint) {
-	this.m_uiTLayer = uiTLayer;
+    this.m_uiTLayer = uiTLayer
 }
 func (this *TComSlice) DecodingMarking(rcListPic *list.List, iGOPSIze int, iMaxRefPicNum *int) {
-	//do nothing
+    //do nothing
 }
 func (this *TComSlice) ApplyReferencePictureSet(rcListPic *list.List, pReferencePictureSet *TComReferencePictureSet) {
-  var rpcPic *TComPic;
-  var i, isReference int;
+    var rpcPic *TComPic
+    var i, isReference int
 
-  j := 0;
-  // loop through all pictures in the reference picture buffer
-  iterPic := rcListPic.Front();
-  for iterPic != nil {
-    j++;
-    rpcPic = iterPic.Value.(*TComPic);
-    iterPic = iterPic.Next();
+    j := 0
+    // loop through all pictures in the reference picture buffer
+    iterPic := rcListPic.Front()
+    for iterPic != nil {
+        j++
+        rpcPic = iterPic.Value.(*TComPic)
+        iterPic = iterPic.Next()
 
-    isReference = 0;
-    // loop through all pictures in the Reference Picture Set
-    // to see if the picture should be kept as reference picture
-    for i=0;i<pReferencePictureSet.GetNumberOfPositivePictures()+pReferencePictureSet.GetNumberOfNegativePictures();i++ {
-      if !rpcPic.GetIsLongTerm() && rpcPic.GetPicSym().GetSlice(0).GetPOC() == this.GetPOC() + pReferencePictureSet.GetDeltaPOC(i) {
-        isReference = 1;
-        rpcPic.SetUsedByCurr(pReferencePictureSet.GetUsed(i));
-        rpcPic.SetIsLongTerm(false);
-        rpcPic.SetIsUsedAsLongTerm(false);
-      }
-    }
-    for ;i<pReferencePictureSet.GetNumberOfPictures();i++ {
-      if pReferencePictureSet.GetCheckLTMSBPresent(i)==true {
-        if rpcPic.GetIsLongTerm() && (rpcPic.GetPicSym().GetSlice(0).GetPOC()) == pReferencePictureSet.GetPOC(i) {
-          isReference = 1;
-          rpcPic.SetUsedByCurr(pReferencePictureSet.GetUsed(i));
+        isReference = 0
+        // loop through all pictures in the Reference Picture Set
+        // to see if the picture should be kept as reference picture
+        for i = 0; i < pReferencePictureSet.GetNumberOfPositivePictures()+pReferencePictureSet.GetNumberOfNegativePictures(); i++ {
+            if !rpcPic.GetIsLongTerm() && rpcPic.GetPicSym().GetSlice(0).GetPOC() == this.GetPOC()+pReferencePictureSet.GetDeltaPOC(i) {
+                isReference = 1
+                rpcPic.SetUsedByCurr(pReferencePictureSet.GetUsed(i))
+                rpcPic.SetIsLongTerm(false)
+                rpcPic.SetIsUsedAsLongTerm(false)
+            }
         }
-      }else{
-        if rpcPic.GetIsLongTerm() && (rpcPic.GetPicSym().GetSlice(0).GetPOC()%(1<<rpcPic.GetPicSym().GetSlice(0).GetSPS().GetBitsForPOC())) == pReferencePictureSet.GetPOC(i)%(1<<rpcPic.GetPicSym().GetSlice(0).GetSPS().GetBitsForPOC()) {
-          isReference = 1;
-          rpcPic.SetUsedByCurr(pReferencePictureSet.GetUsed(i));
-        }
-      }
+        for ; i < pReferencePictureSet.GetNumberOfPictures(); i++ {
+            if pReferencePictureSet.GetCheckLTMSBPresent(i) == true {
+                if rpcPic.GetIsLongTerm() && (rpcPic.GetPicSym().GetSlice(0).GetPOC()) == pReferencePictureSet.GetPOC(i) {
+                    isReference = 1
+                    rpcPic.SetUsedByCurr(pReferencePictureSet.GetUsed(i))
+                }
+            } else {
+                if rpcPic.GetIsLongTerm() && (rpcPic.GetPicSym().GetSlice(0).GetPOC()%(1<<rpcPic.GetPicSym().GetSlice(0).GetSPS().GetBitsForPOC())) == pReferencePictureSet.GetPOC(i)%(1<<rpcPic.GetPicSym().GetSlice(0).GetSPS().GetBitsForPOC()) {
+                    isReference = 1
+                    rpcPic.SetUsedByCurr(pReferencePictureSet.GetUsed(i))
+                }
+            }
 
+        }
+        // mark the picture as "unused for reference" if it is not in
+        // the Reference Picture Set
+        if rpcPic.GetPicSym().GetSlice(0).GetPOC() != this.GetPOC() && isReference == 0 {
+            rpcPic.GetSlice(0).SetReferenced(false)
+            rpcPic.SetIsLongTerm(false)
+        }
+        //check that pictures of higher temporal layers are not used
+        //assert(rpcPic.GetSlice( 0 )->isReferenced()==0||rpcPic.GetUsedByCurr()==0||rpcPic.GetTLayer()<=this.GetTLayer());
+        //check that pictures of higher or equal temporal layer are not in the RPS if the current picture is a TSA picture
+        if this.GetNalUnitType() == NAL_UNIT_CODED_SLICE_TLA || this.GetNalUnitType() == NAL_UNIT_CODED_SLICE_TSA_N {
+            //assert(rpcPic.GetSlice( 0 )->isReferenced()==0||rpcPic.GetTLayer()<this.GetTLayer());
+        }
+        //check that pictures marked as temporal layer non-reference pictures are not used for reference
+        if rpcPic.GetPicSym().GetSlice(0).GetPOC() != this.GetPOC() && rpcPic.GetTLayer() == this.GetTLayer() {
+            //assert(rpcPic.GetSlice( 0 )->isReferenced()==0||rpcPic.GetUsedByCurr()==0||rpcPic.GetSlice( 0 ).GetTemporalLayerNonReferenceFlag()==false);
+        }
     }
-    // mark the picture as "unused for reference" if it is not in
-    // the Reference Picture Set
-    if rpcPic.GetPicSym().GetSlice(0).GetPOC() != this.GetPOC() && isReference == 0 {
-      rpcPic.GetSlice( 0 ).SetReferenced( false );
-      rpcPic.SetIsLongTerm(false);
-    }
-    //check that pictures of higher temporal layers are not used
-    //assert(rpcPic.GetSlice( 0 )->isReferenced()==0||rpcPic.GetUsedByCurr()==0||rpcPic.GetTLayer()<=this.GetTLayer());
-    //check that pictures of higher or equal temporal layer are not in the RPS if the current picture is a TSA picture
-    if this.GetNalUnitType() == NAL_UNIT_CODED_SLICE_TLA || this.GetNalUnitType() == NAL_UNIT_CODED_SLICE_TSA_N {
-      //assert(rpcPic.GetSlice( 0 )->isReferenced()==0||rpcPic.GetTLayer()<this.GetTLayer());
-    }
-    //check that pictures marked as temporal layer non-reference pictures are not used for reference
-    if rpcPic.GetPicSym().GetSlice(0).GetPOC() != this.GetPOC() && rpcPic.GetTLayer()==this.GetTLayer() {
-      //assert(rpcPic.GetSlice( 0 )->isReferenced()==0||rpcPic.GetUsedByCurr()==0||rpcPic.GetSlice( 0 ).GetTemporalLayerNonReferenceFlag()==false);
-    }
-  }
 }
 func (this *TComSlice) IsTemporalLayerSwitchingPoint(rcListPic *list.List, RPSList *TComReferencePictureSet) bool {
-  var rpcPic *TComPic;
-  // loop through all pictures in the reference picture buffer
-  iterPic := rcListPic.Front();
-  for iterPic != nil {
-    rpcPic = iterPic.Value.(*TComPic);
-    iterPic = iterPic.Next();
-    if rpcPic.GetSlice(0).IsReferenced() && int(rpcPic.GetPOC()) != this.GetPOC() {
-      if rpcPic.GetTLayer() >= this.GetTLayer() {
-        return false;
-      }
-    }
-  }
-  return true;
-}
-func (this *TComSlice) IsStepwiseTemporalLayerSwitchingPointCandidate(rcListPic *list.List, RPSList *TComReferencePictureSet) bool {
-    var rpcPic *TComPic;
-
-    iterPic := rcListPic.Front();
+    var rpcPic *TComPic
+    // loop through all pictures in the reference picture buffer
+    iterPic := rcListPic.Front()
     for iterPic != nil {
-        rpcPic = iterPic.Value.(*TComPic);
-    	iterPic = iterPic.Next();
-        if rpcPic.GetSlice(0).IsReferenced() &&  (rpcPic.GetUsedByCurr()==true) && int(rpcPic.GetPOC()) != this.GetPOC() {
+        rpcPic = iterPic.Value.(*TComPic)
+        iterPic = iterPic.Next()
+        if rpcPic.GetSlice(0).IsReferenced() && int(rpcPic.GetPOC()) != this.GetPOC() {
             if rpcPic.GetTLayer() >= this.GetTLayer() {
-                return false;
+                return false
             }
         }
     }
-    return true;
+    return true
+}
+func (this *TComSlice) IsStepwiseTemporalLayerSwitchingPointCandidate(rcListPic *list.List, RPSList *TComReferencePictureSet) bool {
+    var rpcPic *TComPic
+
+    iterPic := rcListPic.Front()
+    for iterPic != nil {
+        rpcPic = iterPic.Value.(*TComPic)
+        iterPic = iterPic.Next()
+        if rpcPic.GetSlice(0).IsReferenced() && (rpcPic.GetUsedByCurr() == true) && int(rpcPic.GetPOC()) != this.GetPOC() {
+            if rpcPic.GetTLayer() >= this.GetTLayer() {
+                return false
+            }
+        }
+    }
+    return true
 }
 func (this *TComSlice) CheckThatAllRefPicsAreAvailable(rcListPic *list.List, pReferencePictureSet *TComReferencePictureSet, printErrors bool, pocRandomAccess int) int {
-  var rpcPic *TComPic;
-  var i, isAvailable, j int;
-  atLeastOneLost := 0;
-  atLeastOneRemoved := 0;
-  iPocLost := 0;
+    var rpcPic *TComPic
+    var i, isAvailable, j int
+    atLeastOneLost := 0
+    atLeastOneRemoved := 0
+    iPocLost := 0
 
-  // loop through all long-term pictures in the Reference Picture Set
-  // to see if the picture should be kept as reference picture
-  for i=pReferencePictureSet.GetNumberOfNegativePictures()+pReferencePictureSet.GetNumberOfPositivePictures();i<pReferencePictureSet.GetNumberOfPictures();i++{
-    j = 0;
-    isAvailable = 0;
-    // loop through all pictures in the reference picture buffer
-    iterPic := rcListPic.Front();
-    for iterPic != nil {
-      j++;
-      rpcPic = iterPic.Value.(*TComPic);
-      iterPic = iterPic.Next();
-      if pReferencePictureSet.GetCheckLTMSBPresent(i)==true{
-        if rpcPic.GetIsLongTerm() && (rpcPic.GetPicSym().GetSlice(0).GetPOC()) == pReferencePictureSet.GetPOC(i) && rpcPic.GetSlice(0).IsReferenced(){
-          isAvailable = 1;
+    // loop through all long-term pictures in the Reference Picture Set
+    // to see if the picture should be kept as reference picture
+    for i = pReferencePictureSet.GetNumberOfNegativePictures() + pReferencePictureSet.GetNumberOfPositivePictures(); i < pReferencePictureSet.GetNumberOfPictures(); i++ {
+        j = 0
+        isAvailable = 0
+        // loop through all pictures in the reference picture buffer
+        iterPic := rcListPic.Front()
+        for iterPic != nil {
+            j++
+            rpcPic = iterPic.Value.(*TComPic)
+            iterPic = iterPic.Next()
+            if pReferencePictureSet.GetCheckLTMSBPresent(i) == true {
+                if rpcPic.GetIsLongTerm() && (rpcPic.GetPicSym().GetSlice(0).GetPOC()) == pReferencePictureSet.GetPOC(i) && rpcPic.GetSlice(0).IsReferenced() {
+                    isAvailable = 1
+                }
+            } else {
+                if rpcPic.GetIsLongTerm() &&
+                    (rpcPic.GetPicSym().GetSlice(0).GetPOC()%(1<<rpcPic.GetPicSym().GetSlice(0).GetSPS().GetBitsForPOC())) == pReferencePictureSet.GetPOC(i)%(1<<rpcPic.GetPicSym().GetSlice(0).GetSPS().GetBitsForPOC()) &&
+                    rpcPic.GetSlice(0).IsReferenced() {
+                    isAvailable = 1
+                }
+            }
         }
-      }else{
-        if rpcPic.GetIsLongTerm() &&
-          (rpcPic.GetPicSym().GetSlice(0).GetPOC()%(1<<rpcPic.GetPicSym().GetSlice(0).GetSPS().GetBitsForPOC())) == pReferencePictureSet.GetPOC(i)%(1<<rpcPic.GetPicSym().GetSlice(0).GetSPS().GetBitsForPOC()) &&
-           rpcPic.GetSlice(0).IsReferenced(){
-          isAvailable = 1;
+        // if there was no such long-term check the short terms
+        if isAvailable == 0 {
+            iterPic = rcListPic.Front()
+            for iterPic != nil {
+                j++
+                rpcPic = iterPic.Value.(*TComPic)
+                iterPic = iterPic.Next()
+                if (rpcPic.GetPicSym().GetSlice(0).GetPOC()%(1<<rpcPic.GetPicSym().GetSlice(0).GetSPS().GetBitsForPOC())) == (this.GetPOC()+pReferencePictureSet.GetDeltaPOC(i))%(1<<rpcPic.GetPicSym().GetSlice(0).GetSPS().GetBitsForPOC()) && rpcPic.GetSlice(0).IsReferenced() {
+                    isAvailable = 1
+                    rpcPic.SetIsLongTerm(true)
+                    rpcPic.SetIsUsedAsLongTerm(true)
+                    break
+                }
+            }
         }
-      }
-    }
-    // if there was no such long-term check the short terms
-    if isAvailable==0 {
-      iterPic = rcListPic.Front();
-      for iterPic != nil {
-        j++;
-        rpcPic = iterPic.Value.(*TComPic);
-      	iterPic = iterPic.Next();
-        if (rpcPic.GetPicSym().GetSlice(0).GetPOC()%(1<<rpcPic.GetPicSym().GetSlice(0).GetSPS().GetBitsForPOC())) == (this.GetPOC() + pReferencePictureSet.GetDeltaPOC(i))%(1<<rpcPic.GetPicSym().GetSlice(0).GetSPS().GetBitsForPOC()) && rpcPic.GetSlice(0).IsReferenced(){
-          isAvailable = 1;
-          rpcPic.SetIsLongTerm(true);
-          rpcPic.SetIsUsedAsLongTerm(true);
-          break;
+        // report that a picture is lost if it is in the Reference Picture Set
+        // but not available as reference picture
+        if isAvailable == 0 {
+            if this.GetPOC()+pReferencePictureSet.GetDeltaPOC(i) >= pocRandomAccess {
+                if !pReferencePictureSet.GetUsed(i) {
+                    if printErrors {
+                        fmt.Printf("\nLong-term reference picture with POC = %3d seems to have been removed or not correctly decoded.", this.GetPOC()+pReferencePictureSet.GetDeltaPOC(i))
+                    }
+                    atLeastOneRemoved = 1
+                } else {
+                    if printErrors {
+                        fmt.Printf("\nLong-term reference picture with POC = %3d is lost or not correctly decoded!", this.GetPOC()+pReferencePictureSet.GetDeltaPOC(i))
+                    }
+                    atLeastOneLost = 1
+                    iPocLost = this.GetPOC() + pReferencePictureSet.GetDeltaPOC(i)
+                }
+            }
         }
-      }
     }
-    // report that a picture is lost if it is in the Reference Picture Set
-    // but not available as reference picture
-    if isAvailable == 0 {
-      if this.GetPOC() + pReferencePictureSet.GetDeltaPOC(i) >= pocRandomAccess {
-        if !pReferencePictureSet.GetUsed(i) {
-          if printErrors {
-            fmt.Printf("\nLong-term reference picture with POC = %3d seems to have been removed or not correctly decoded.", this.GetPOC() + pReferencePictureSet.GetDeltaPOC(i));
-          }
-          atLeastOneRemoved = 1;
-        }else{
-          if printErrors {
-            fmt.Printf("\nLong-term reference picture with POC = %3d is lost or not correctly decoded!", this.GetPOC() + pReferencePictureSet.GetDeltaPOC(i));
-          }
-          atLeastOneLost = 1;
-          iPocLost=this.GetPOC() + pReferencePictureSet.GetDeltaPOC(i);
+    // loop through all short-term pictures in the Reference Picture Set
+    // to see if the picture should be kept as reference picture
+    for i = 0; i < pReferencePictureSet.GetNumberOfNegativePictures()+pReferencePictureSet.GetNumberOfPositivePictures(); i++ {
+        j = 0
+        isAvailable = 0
+        // loop through all pictures in the reference picture buffer
+        iterPic := rcListPic.Front()
+        for iterPic != nil {
+            j++
+            rpcPic = iterPic.Value.(*TComPic)
+            iterPic = iterPic.Next()
+            if !rpcPic.GetIsLongTerm() && rpcPic.GetPicSym().GetSlice(0).GetPOC() == this.GetPOC()+pReferencePictureSet.GetDeltaPOC(i) && rpcPic.GetSlice(0).IsReferenced() {
+                isAvailable = 1
+            }
         }
-      }
-    }
-  }
-  // loop through all short-term pictures in the Reference Picture Set
-  // to see if the picture should be kept as reference picture
-  for i=0;i<pReferencePictureSet.GetNumberOfNegativePictures()+pReferencePictureSet.GetNumberOfPositivePictures();i++ {
-    j = 0;
-    isAvailable = 0;
-    // loop through all pictures in the reference picture buffer
-    iterPic := rcListPic.Front();
-    for iterPic != nil {
-      j++;
-      rpcPic = iterPic.Value.(*TComPic);
-      iterPic = iterPic.Next();
-      if !rpcPic.GetIsLongTerm() && rpcPic.GetPicSym().GetSlice(0).GetPOC() == this.GetPOC() + pReferencePictureSet.GetDeltaPOC(i) && rpcPic.GetSlice(0).IsReferenced(){
-        isAvailable = 1;
-      }
-    }
-    // report that a picture is lost if it is in the Reference Picture Set
-    // but not available as reference picture
-    if isAvailable == 0 {
-      if this.GetPOC() + pReferencePictureSet.GetDeltaPOC(i) >= pocRandomAccess {
-        if !pReferencePictureSet.GetUsed(i)  {
-          if(printErrors){
-            fmt.Printf("\nShort-term reference picture with POC = %3d seems to have been removed or not correctly decoded.", this.GetPOC() + pReferencePictureSet.GetDeltaPOC(i));
-          }
-          atLeastOneRemoved = 1;
-        }else{
-          if printErrors{
-            fmt.Printf("\nShort-term reference picture with POC = %3d is lost or not correctly decoded!", this.GetPOC() + pReferencePictureSet.GetDeltaPOC(i));
-          }
-          atLeastOneLost = 1;
-          iPocLost=this.GetPOC() + pReferencePictureSet.GetDeltaPOC(i);
+        // report that a picture is lost if it is in the Reference Picture Set
+        // but not available as reference picture
+        if isAvailable == 0 {
+            if this.GetPOC()+pReferencePictureSet.GetDeltaPOC(i) >= pocRandomAccess {
+                if !pReferencePictureSet.GetUsed(i) {
+                    if printErrors {
+                        fmt.Printf("\nShort-term reference picture with POC = %3d seems to have been removed or not correctly decoded.", this.GetPOC()+pReferencePictureSet.GetDeltaPOC(i))
+                    }
+                    atLeastOneRemoved = 1
+                } else {
+                    if printErrors {
+                        fmt.Printf("\nShort-term reference picture with POC = %3d is lost or not correctly decoded!", this.GetPOC()+pReferencePictureSet.GetDeltaPOC(i))
+                    }
+                    atLeastOneLost = 1
+                    iPocLost = this.GetPOC() + pReferencePictureSet.GetDeltaPOC(i)
+                }
+            }
         }
-      }
     }
-  }
-  if atLeastOneLost!=0 {
-    return iPocLost+1;
-  }
-  if atLeastOneRemoved!=0 {
-    return -2;
-  }
+    if atLeastOneLost != 0 {
+        return iPocLost + 1
+    }
+    if atLeastOneRemoved != 0 {
+        return -2
+    }
 
-  return 0;
+    return 0
 }
 func (this *TComSlice) CreateExplicitReferencePictureSetFromReference(rcListPic *list.List, pReferencePictureSet *TComReferencePictureSet) {
-  var rpcPic *TComPic;
-  var i, j int;
-  k := 0;
-  nrOfNegativePictures := 0;
-  nrOfPositivePictures := 0;
-  pcRPS := this.GetLocalRPS();
+    var rpcPic *TComPic
+    var i, j int
+    k := 0
+    nrOfNegativePictures := 0
+    nrOfPositivePictures := 0
+    pcRPS := this.GetLocalRPS()
 
-  // loop through all pictures in the Reference Picture Set
-  for i=0;i<pReferencePictureSet.GetNumberOfPictures();i++ {
-    j = 0;
-    // loop through all pictures in the reference picture buffer
-    iterPic := rcListPic.Front();
-    for iterPic != nil {
-      j++;
-      rpcPic = iterPic.Value.(*TComPic);
-      iterPic = iterPic.Next();
+    // loop through all pictures in the Reference Picture Set
+    for i = 0; i < pReferencePictureSet.GetNumberOfPictures(); i++ {
+        j = 0
+        // loop through all pictures in the reference picture buffer
+        iterPic := rcListPic.Front()
+        for iterPic != nil {
+            j++
+            rpcPic = iterPic.Value.(*TComPic)
+            iterPic = iterPic.Next()
 
-      if rpcPic.GetPicSym().GetSlice(0).GetPOC() == this.GetPOC() + pReferencePictureSet.GetDeltaPOC(i) && rpcPic.GetSlice(0).IsReferenced(){
-        // This picture exists as a reference picture
-        // and should be added to the explicit Reference Picture Set
-        pcRPS.SetDeltaPOC(k, pReferencePictureSet.GetDeltaPOC(i));
-        pcRPS.SetUsed(k, pReferencePictureSet.GetUsed(i));
-        if pcRPS.GetDeltaPOC(k) < 0 {
-          nrOfNegativePictures++;
-        } else {
-          nrOfPositivePictures++;
+            if rpcPic.GetPicSym().GetSlice(0).GetPOC() == this.GetPOC()+pReferencePictureSet.GetDeltaPOC(i) && rpcPic.GetSlice(0).IsReferenced() {
+                // This picture exists as a reference picture
+                // and should be added to the explicit Reference Picture Set
+                pcRPS.SetDeltaPOC(k, pReferencePictureSet.GetDeltaPOC(i))
+                pcRPS.SetUsed(k, pReferencePictureSet.GetUsed(i))
+                if pcRPS.GetDeltaPOC(k) < 0 {
+                    nrOfNegativePictures++
+                } else {
+                    nrOfPositivePictures++
+                }
+                k++
+            }
         }
-        k++;
-      }
     }
-  }
-  pcRPS.SetNumberOfNegativePictures(nrOfNegativePictures);
-  pcRPS.SetNumberOfPositivePictures(nrOfPositivePictures);
-  pcRPS.SetNumberOfPictures(nrOfNegativePictures+nrOfPositivePictures);
-  // This is a simplistic inter rps example. A smarter encoder will look for a better reference RPS to do the
-  // inter RPS prediction with.  Here we just use the reference used by pReferencePictureSet.
-  // If pReferencePictureSet is not inter_RPS_predicted, then inter_RPS_prediction is for the current RPS also disabled.
-  if !pReferencePictureSet.GetInterRPSPrediction() {
-    pcRPS.SetInterRPSPrediction(false);
-    pcRPS.SetNumRefIdc(0);
-  }else{
-    rIdx :=  this.GetRPSidx() - pReferencePictureSet.GetDeltaRIdxMinus1() - 1;
-    deltaRPS := pReferencePictureSet.GetDeltaRPS();
-    pcRefRPS := this.GetSPS().GetRPSList().GetReferencePictureSet(rIdx);
-    iRefPics := pcRefRPS.GetNumberOfPictures();
-    iNewIdc := 0;
-    for i=0; i<= iRefPics; i++ {
-      var deltaPOC int;
-      if i != iRefPics {
-      	deltaPOC = pcRefRPS.GetDeltaPOC(i);  // check if the reference abs POC is >= 0
-      }else{
-      	deltaPOC = 0;  // check if the reference abs POC is >= 0
-      }
-      iRefIdc := 0;
-      for j=0; j < pcRPS.GetNumberOfPictures(); j++ {// loop through the  pictures in the new RPS
-        if (deltaPOC + deltaRPS) == pcRPS.GetDeltaPOC(j) {
-          if pcRPS.GetUsed(j) {
-            iRefIdc = 1;
-          }else{
-            iRefIdc = 2;
-          }
+    pcRPS.SetNumberOfNegativePictures(nrOfNegativePictures)
+    pcRPS.SetNumberOfPositivePictures(nrOfPositivePictures)
+    pcRPS.SetNumberOfPictures(nrOfNegativePictures + nrOfPositivePictures)
+    // This is a simplistic inter rps example. A smarter encoder will look for a better reference RPS to do the
+    // inter RPS prediction with.  Here we just use the reference used by pReferencePictureSet.
+    // If pReferencePictureSet is not inter_RPS_predicted, then inter_RPS_prediction is for the current RPS also disabled.
+    if !pReferencePictureSet.GetInterRPSPrediction() {
+        pcRPS.SetInterRPSPrediction(false)
+        pcRPS.SetNumRefIdc(0)
+    } else {
+        rIdx := this.GetRPSidx() - pReferencePictureSet.GetDeltaRIdxMinus1() - 1
+        deltaRPS := pReferencePictureSet.GetDeltaRPS()
+        pcRefRPS := this.GetSPS().GetRPSList().GetReferencePictureSet(rIdx)
+        iRefPics := pcRefRPS.GetNumberOfPictures()
+        iNewIdc := 0
+        for i = 0; i <= iRefPics; i++ {
+            var deltaPOC int
+            if i != iRefPics {
+                deltaPOC = pcRefRPS.GetDeltaPOC(i) // check if the reference abs POC is >= 0
+            } else {
+                deltaPOC = 0 // check if the reference abs POC is >= 0
+            }
+            iRefIdc := 0
+            for j = 0; j < pcRPS.GetNumberOfPictures(); j++ { // loop through the  pictures in the new RPS
+                if (deltaPOC + deltaRPS) == pcRPS.GetDeltaPOC(j) {
+                    if pcRPS.GetUsed(j) {
+                        iRefIdc = 1
+                    } else {
+                        iRefIdc = 2
+                    }
+                }
+            }
+            pcRPS.SetRefIdc(i, iRefIdc)
+            iNewIdc++
         }
-      }
-      pcRPS.SetRefIdc(i, iRefIdc);
-      iNewIdc++;
+        pcRPS.SetInterRPSPrediction(true)
+        pcRPS.SetNumRefIdc(iNewIdc)
+        pcRPS.SetDeltaRPS(deltaRPS)
+        pcRPS.SetDeltaRIdxMinus1(pReferencePictureSet.GetDeltaRIdxMinus1() + this.GetSPS().GetRPSList().GetNumberOfReferencePictureSets() - this.GetRPSidx())
     }
-    pcRPS.SetInterRPSPrediction(true);
-    pcRPS.SetNumRefIdc(iNewIdc);
-    pcRPS.SetDeltaRPS(deltaRPS);
-    pcRPS.SetDeltaRIdxMinus1(pReferencePictureSet.GetDeltaRIdxMinus1() + this.GetSPS().GetRPSList().GetNumberOfReferencePictureSets() - this.GetRPSidx());
-  }
 
-  this.SetRPS(pcRPS);
-  this.SetRPSidx(-1);
+    this.SetRPS(pcRPS)
+    this.SetRPSidx(-1)
 }
 
 func (this *TComSlice) SetMaxNumMergeCand(val uint) {
@@ -3513,110 +3566,110 @@ func (this *TComSlice) GetSliceIdx() uint {
     return this.m_uiSliceIdx
 }
 func (this *TComSlice) CopySliceInfo(pSrc *TComSlice) {
-  //assert( pSrc != NULL );
+    //assert( pSrc != NULL );
 
-  var i, j, k int;
+    var i, j, k int
 
-  this.m_iPOC                 = pSrc.m_iPOC;
-  this.m_eNalUnitType         = pSrc.m_eNalUnitType;
-  this.m_eSliceType           = pSrc.m_eSliceType;
-  this.m_iSliceQp             = pSrc.m_iSliceQp;
-//#if ADAPTIVE_QP_SELECTION
-  this.m_iSliceQpBase         = pSrc.m_iSliceQpBase;
-//#endif
-  this.m_deblockingFilterDisable   = pSrc.m_deblockingFilterDisable;
-  this.m_deblockingFilterOverrideFlag = pSrc.m_deblockingFilterOverrideFlag;
-  this.m_deblockingFilterBetaOffsetDiv2 = pSrc.m_deblockingFilterBetaOffsetDiv2;
-  this.m_deblockingFilterTcOffsetDiv2 = pSrc.m_deblockingFilterTcOffsetDiv2;
+    this.m_iPOC = pSrc.m_iPOC
+    this.m_eNalUnitType = pSrc.m_eNalUnitType
+    this.m_eSliceType = pSrc.m_eSliceType
+    this.m_iSliceQp = pSrc.m_iSliceQp
+    //#if ADAPTIVE_QP_SELECTION
+    this.m_iSliceQpBase = pSrc.m_iSliceQpBase
+    //#endif
+    this.m_deblockingFilterDisable = pSrc.m_deblockingFilterDisable
+    this.m_deblockingFilterOverrideFlag = pSrc.m_deblockingFilterOverrideFlag
+    this.m_deblockingFilterBetaOffsetDiv2 = pSrc.m_deblockingFilterBetaOffsetDiv2
+    this.m_deblockingFilterTcOffsetDiv2 = pSrc.m_deblockingFilterTcOffsetDiv2
 
-  for i = 0; i < 3; i++ {
-    this.m_aiNumRefIdx[i]     = pSrc.m_aiNumRefIdx[i];
-  }
-
-  for i = 0; i < 2; i++ {
-    for j = 0; j < MAX_NUM_REF_LC; j++ {
-       this.m_iRefIdxOfLC[i][j]  = pSrc.m_iRefIdxOfLC[i][j];
+    for i = 0; i < 3; i++ {
+        this.m_aiNumRefIdx[i] = pSrc.m_aiNumRefIdx[i]
     }
-  }
-  for i = 0; i < MAX_NUM_REF_LC; i++ {
-    this.m_eListIdFromIdxOfLC[i] = pSrc.m_eListIdFromIdxOfLC[i];
-    this.m_iRefIdxFromIdxOfLC[i] = pSrc.m_iRefIdxFromIdxOfLC[i];
-    this.m_iRefIdxOfL1FromRefIdxOfL0[i] = pSrc.m_iRefIdxOfL1FromRefIdxOfL0[i];
-    this.m_iRefIdxOfL0FromRefIdxOfL1[i] = pSrc.m_iRefIdxOfL0FromRefIdxOfL1[i];
-  }
-  this.m_bRefPicListModificationFlagLC = pSrc.m_bRefPicListModificationFlagLC;
-  this.m_bRefPicListCombinationFlag    = pSrc.m_bRefPicListCombinationFlag;
-  this.m_bCheckLDC             = pSrc.m_bCheckLDC;
-  this.m_iSliceQpDelta        = pSrc.m_iSliceQpDelta;
-  this.m_iSliceQpDeltaCb      = pSrc.m_iSliceQpDeltaCb;
-  this.m_iSliceQpDeltaCr      = pSrc.m_iSliceQpDeltaCr;
-  for i = 0; i < 2; i++ {
-    for j = 0; j < MAX_NUM_REF; j++ {
-      this.m_apcRefPicList[i][j]  = pSrc.m_apcRefPicList[i][j];
-      this.m_aiRefPOCList[i][j]   = pSrc.m_aiRefPOCList[i][j];
+
+    for i = 0; i < 2; i++ {
+        for j = 0; j < MAX_NUM_REF_LC; j++ {
+            this.m_iRefIdxOfLC[i][j] = pSrc.m_iRefIdxOfLC[i][j]
+        }
     }
-  }
-  this.m_iDepth               = pSrc.m_iDepth;
-
-  // referenced slice
-  this.m_bRefenced            = pSrc.m_bRefenced;
-
-  // access channel
-  this.m_pcSPS                = pSrc.m_pcSPS;
-  this.m_pcPPS                = pSrc.m_pcPPS;
-  this.m_pcRPS                = pSrc.m_pcRPS;
-  this.m_iLastIDR             = pSrc.m_iLastIDR;
-
-  this.m_pcPic                = pSrc.m_pcPic;
-
-  this.m_colFromL0Flag        = pSrc.m_colFromL0Flag;
-  this.m_colRefIdx            = pSrc.m_colRefIdx;
-//#if SAO_CHROMA_LAMBDA
-  this.m_dLambdaLuma          = pSrc.m_dLambdaLuma;
-  this.m_dLambdaChroma        = pSrc.m_dLambdaChroma;
-//#else
-//  m_dLambda              = pSrc.m_dLambda;
-//#endif
-  for i = 0; i < 2; i++ {
-    for j = 0; j < MAX_NUM_REF; j++ {
-      for k =0; k < MAX_NUM_REF; k++ {
-        this.m_abEqualRef[i][j][k] = pSrc.m_abEqualRef[i][j][k];
-      }
+    for i = 0; i < MAX_NUM_REF_LC; i++ {
+        this.m_eListIdFromIdxOfLC[i] = pSrc.m_eListIdFromIdxOfLC[i]
+        this.m_iRefIdxFromIdxOfLC[i] = pSrc.m_iRefIdxFromIdxOfLC[i]
+        this.m_iRefIdxOfL1FromRefIdxOfL0[i] = pSrc.m_iRefIdxOfL1FromRefIdxOfL0[i]
+        this.m_iRefIdxOfL0FromRefIdxOfL1[i] = pSrc.m_iRefIdxOfL0FromRefIdxOfL1[i]
     }
-  }
-
-  this.m_bNoBackPredFlag      = pSrc.m_bNoBackPredFlag;
-  this.m_uiTLayer                      = pSrc.m_uiTLayer;
-  this.m_bTLayerSwitchingFlag          = pSrc.m_bTLayerSwitchingFlag;
-
-  this.m_uiSliceMode                   = pSrc.m_uiSliceMode;
-  this.m_uiSliceArgument               = pSrc.m_uiSliceArgument;
-  this.m_uiSliceCurStartCUAddr         = pSrc.m_uiSliceCurStartCUAddr;
-  this.m_uiSliceCurEndCUAddr           = pSrc.m_uiSliceCurEndCUAddr;
-  this.m_uiSliceIdx                    = pSrc.m_uiSliceIdx;
-  this.m_uiDependentSliceMode            = pSrc.m_uiDependentSliceMode;
-  this.m_uiDependentSliceArgument        = pSrc.m_uiDependentSliceArgument;
-  this.m_uiDependentSliceCurStartCUAddr  = pSrc.m_uiDependentSliceCurStartCUAddr;
-  this.m_uiDependentSliceCurEndCUAddr    = pSrc.m_uiDependentSliceCurEndCUAddr;
-  this.m_bNextSlice                    = pSrc.m_bNextSlice;
-  this.m_bNextDependentSlice             = pSrc.m_bNextDependentSlice;
-  for e:=0 ; e<2 ; e++  {
-    for n:=0 ; n<MAX_NUM_REF ; n++  {
-    	for m:=0; m<3; m++{
-    		this.m_weightPredTable[e][n][m] = pSrc.m_weightPredTable[e][n][m];
-    	}
-      //memcpy(this.m_weightPredTable[e][n], pSrc.m_weightPredTable[e][n], sizeof(wpScalingParam)*3 );
+    this.m_bRefPicListModificationFlagLC = pSrc.m_bRefPicListModificationFlagLC
+    this.m_bRefPicListCombinationFlag = pSrc.m_bRefPicListCombinationFlag
+    this.m_bCheckLDC = pSrc.m_bCheckLDC
+    this.m_iSliceQpDelta = pSrc.m_iSliceQpDelta
+    this.m_iSliceQpDeltaCb = pSrc.m_iSliceQpDeltaCb
+    this.m_iSliceQpDeltaCr = pSrc.m_iSliceQpDeltaCr
+    for i = 0; i < 2; i++ {
+        for j = 0; j < MAX_NUM_REF; j++ {
+            this.m_apcRefPicList[i][j] = pSrc.m_apcRefPicList[i][j]
+            this.m_aiRefPOCList[i][j] = pSrc.m_aiRefPOCList[i][j]
+        }
     }
-  }
-  this.m_saoEnabledFlag = pSrc.m_saoEnabledFlag;
-  this.m_saoEnabledFlagChroma = pSrc.m_saoEnabledFlagChroma;
-  this.m_cabacInitFlag                = pSrc.m_cabacInitFlag;
-  this.m_numEntryPointOffsets  = pSrc.m_numEntryPointOffsets;
+    this.m_iDepth = pSrc.m_iDepth
 
-  this.m_bLMvdL1Zero = pSrc.m_bLMvdL1Zero;
-  this.m_LFCrossSliceBoundaryFlag = pSrc.m_LFCrossSliceBoundaryFlag;
-  this.m_enableTMVPFlag                = pSrc.m_enableTMVPFlag;
-  this.m_maxNumMergeCand               = pSrc.m_maxNumMergeCand;
+    // referenced slice
+    this.m_bRefenced = pSrc.m_bRefenced
+
+    // access channel
+    this.m_pcSPS = pSrc.m_pcSPS
+    this.m_pcPPS = pSrc.m_pcPPS
+    this.m_pcRPS = pSrc.m_pcRPS
+    this.m_iLastIDR = pSrc.m_iLastIDR
+
+    this.m_pcPic = pSrc.m_pcPic
+
+    this.m_colFromL0Flag = pSrc.m_colFromL0Flag
+    this.m_colRefIdx = pSrc.m_colRefIdx
+    //#if SAO_CHROMA_LAMBDA
+    this.m_dLambdaLuma = pSrc.m_dLambdaLuma
+    this.m_dLambdaChroma = pSrc.m_dLambdaChroma
+    //#else
+    //  m_dLambda              = pSrc.m_dLambda;
+    //#endif
+    for i = 0; i < 2; i++ {
+        for j = 0; j < MAX_NUM_REF; j++ {
+            for k = 0; k < MAX_NUM_REF; k++ {
+                this.m_abEqualRef[i][j][k] = pSrc.m_abEqualRef[i][j][k]
+            }
+        }
+    }
+
+    this.m_bNoBackPredFlag = pSrc.m_bNoBackPredFlag
+    this.m_uiTLayer = pSrc.m_uiTLayer
+    this.m_bTLayerSwitchingFlag = pSrc.m_bTLayerSwitchingFlag
+
+    this.m_uiSliceMode = pSrc.m_uiSliceMode
+    this.m_uiSliceArgument = pSrc.m_uiSliceArgument
+    this.m_uiSliceCurStartCUAddr = pSrc.m_uiSliceCurStartCUAddr
+    this.m_uiSliceCurEndCUAddr = pSrc.m_uiSliceCurEndCUAddr
+    this.m_uiSliceIdx = pSrc.m_uiSliceIdx
+    this.m_uiDependentSliceMode = pSrc.m_uiDependentSliceMode
+    this.m_uiDependentSliceArgument = pSrc.m_uiDependentSliceArgument
+    this.m_uiDependentSliceCurStartCUAddr = pSrc.m_uiDependentSliceCurStartCUAddr
+    this.m_uiDependentSliceCurEndCUAddr = pSrc.m_uiDependentSliceCurEndCUAddr
+    this.m_bNextSlice = pSrc.m_bNextSlice
+    this.m_bNextDependentSlice = pSrc.m_bNextDependentSlice
+    for e := 0; e < 2; e++ {
+        for n := 0; n < MAX_NUM_REF; n++ {
+            for m := 0; m < 3; m++ {
+                this.m_weightPredTable[e][n][m] = pSrc.m_weightPredTable[e][n][m]
+            }
+            //memcpy(this.m_weightPredTable[e][n], pSrc.m_weightPredTable[e][n], sizeof(wpScalingParam)*3 );
+        }
+    }
+    this.m_saoEnabledFlag = pSrc.m_saoEnabledFlag
+    this.m_saoEnabledFlagChroma = pSrc.m_saoEnabledFlagChroma
+    this.m_cabacInitFlag = pSrc.m_cabacInitFlag
+    this.m_numEntryPointOffsets = pSrc.m_numEntryPointOffsets
+
+    this.m_bLMvdL1Zero = pSrc.m_bLMvdL1Zero
+    this.m_LFCrossSliceBoundaryFlag = pSrc.m_LFCrossSliceBoundaryFlag
+    this.m_enableTMVPFlag = pSrc.m_enableTMVPFlag
+    this.m_maxNumMergeCand = pSrc.m_maxNumMergeCand
 }
 func (this *TComSlice) SetDependentSliceMode(uiMode uint) {
     this.m_uiDependentSliceMode = uiMode
@@ -3677,52 +3730,52 @@ func (this *TComSlice) SetWpScaling(wp [2][MAX_NUM_REF][3]wpScalingParam) {
     this.m_weightPredTable = wp
 }
 func (this *TComSlice) GetWpScaling(e RefPicList, iRefIdx int) []wpScalingParam {
-	return this.m_weightPredTable[e][iRefIdx][:];
+    return this.m_weightPredTable[e][iRefIdx][:]
 }
 
 func (this *TComSlice) ResetWpScaling(wp [2][MAX_NUM_REF][3]wpScalingParam) {
-  for e:=0 ; e<2 ; e++ {
-    for i:=0 ; i<MAX_NUM_REF ; i++ {
-      for yuv:=0 ; yuv<3 ; yuv++ {
-        wp[e][i][yuv].bPresentFlag      = false;
-        wp[e][i][yuv].uiLog2WeightDenom = 0;
-        wp[e][i][yuv].uiLog2WeightDenom = 0;
-        wp[e][i][yuv].iWeight           = 1;
-        wp[e][i][yuv].iOffset           = 0;
-      }
+    for e := 0; e < 2; e++ {
+        for i := 0; i < MAX_NUM_REF; i++ {
+            for yuv := 0; yuv < 3; yuv++ {
+                wp[e][i][yuv].bPresentFlag = false
+                wp[e][i][yuv].uiLog2WeightDenom = 0
+                wp[e][i][yuv].uiLog2WeightDenom = 0
+                wp[e][i][yuv].iWeight = 1
+                wp[e][i][yuv].iOffset = 0
+            }
+        }
     }
-  }
 }
 func (this *TComSlice) InitWpScaling1(wp [2][MAX_NUM_REF][3]wpScalingParam) {
-  for e:=0 ; e<2 ; e++ {
-    for i:=0 ; i<MAX_NUM_REF ; i++ {
-      for yuv:=0 ; yuv<3 ; yuv++ {
-        if ( !wp[e][i][yuv].bPresentFlag ) {
-          // Inferring values not present :
-          wp[e][i][yuv].iWeight = (1 << wp[e][i][yuv].uiLog2WeightDenom);
-          wp[e][i][yuv].iOffset = 0;
-        }
+    for e := 0; e < 2; e++ {
+        for i := 0; i < MAX_NUM_REF; i++ {
+            for yuv := 0; yuv < 3; yuv++ {
+                if !wp[e][i][yuv].bPresentFlag {
+                    // Inferring values not present :
+                    wp[e][i][yuv].iWeight = (1 << wp[e][i][yuv].uiLog2WeightDenom)
+                    wp[e][i][yuv].iOffset = 0
+                }
 
-        wp[e][i][yuv].w      = wp[e][i][yuv].iWeight;
-        var bitDepth uint;
-        if yuv!=0 {
-        	bitDepth = uint(G_bitDepthC);
-        }else{
-        	bitDepth = uint(G_bitDepthY);
+                wp[e][i][yuv].w = wp[e][i][yuv].iWeight
+                var bitDepth uint
+                if yuv != 0 {
+                    bitDepth = uint(G_bitDepthC)
+                } else {
+                    bitDepth = uint(G_bitDepthY)
+                }
+                wp[e][i][yuv].o = wp[e][i][yuv].iOffset << (bitDepth - 8)
+                wp[e][i][yuv].shift = int(wp[e][i][yuv].uiLog2WeightDenom)
+                if wp[e][i][yuv].uiLog2WeightDenom >= 1 {
+                    wp[e][i][yuv].round = (1 << (wp[e][i][yuv].uiLog2WeightDenom - 1))
+                } else {
+                    wp[e][i][yuv].round = (0)
+                }
+            }
         }
-        wp[e][i][yuv].o      = wp[e][i][yuv].iOffset << (bitDepth-8);
-        wp[e][i][yuv].shift  = int(wp[e][i][yuv].uiLog2WeightDenom);
-        if wp[e][i][yuv].uiLog2WeightDenom>=1 {
-       		wp[e][i][yuv].round  = (1 << (wp[e][i][yuv].uiLog2WeightDenom-1)) ;
-       	}else{
-       		wp[e][i][yuv].round  = (0);
-       	}
-      }
     }
-  }
 }
 func (this *TComSlice) InitWpScaling() {
-	this.InitWpScaling1(this.m_weightPredTable);
+    this.InitWpScaling1(this.m_weightPredTable)
 }
 func (this *TComSlice) ApplyWP() bool {
     return ((this.m_eSliceType == P_SLICE && this.m_pcPPS.GetUseWP()) || (this.m_eSliceType == B_SLICE && this.m_pcPPS.GetWPBiPred()))
@@ -3732,31 +3785,31 @@ func (this *TComSlice) SetWpAcDcParam(wp [3]wpACDCParam) {
     //memcpy(this.m_weightACDCParam, wp, sizeof(wpACDCParam)*3);
     this.m_weightACDCParam = wp
 }
-func (this *TComSlice) GetWpAcDcParam() [3]wpACDCParam{
-	return this.m_weightACDCParam;
+func (this *TComSlice) GetWpAcDcParam() [3]wpACDCParam {
+    return this.m_weightACDCParam
 }
 func (this *TComSlice) InitWpAcDcParam() {
-  for iComp := 0; iComp < 3; iComp++ {
-    this.m_weightACDCParam[iComp].iAC = 0;
-    this.m_weightACDCParam[iComp].iDC = 0;
-  }
+    for iComp := 0; iComp < 3; iComp++ {
+        this.m_weightACDCParam[iComp].iAC = 0
+        this.m_weightACDCParam[iComp].iDC = 0
+    }
 }
 
 //func (this *TComSlice) SetTileLocationCount(cnt uint) {
-    //	return this.m_tileByteLocation.Resize(cnt);
+//	return this.m_tileByteLocation.Resize(cnt);
 //}
 func (this *TComSlice) GetTileLocationCount() uint {
     return uint(len(this.m_tileByteLocation))
 }
 func (this *TComSlice) SetTileLocation(idx int, location uint) {
     //assert (idx<this.m_tileByteLocation.size());
-    this.m_tileByteLocation[idx] = location;
+    this.m_tileByteLocation[idx] = location
 }
 func (this *TComSlice) AddTileLocation(location uint) {
-    this.m_tileByteLocation[len(this.m_tileByteLocation)+1] = location;
+    this.m_tileByteLocation[len(this.m_tileByteLocation)+1] = location
 }
 func (this *TComSlice) GetTileLocation(idx int) uint {
-    return this.m_tileByteLocation[idx];
+    return this.m_tileByteLocation[idx]
 }
 
 func (this *TComSlice) SetTileOffstForMultES(uiOffset uint) {
@@ -3766,12 +3819,12 @@ func (this *TComSlice) GetTileOffstForMultES() uint {
     return this.m_uiTileOffstForMultES
 }
 func (this *TComSlice) AllocSubstreamSizes(uiNumSubstreams uint) {
-  //delete[] m_puiSubstreamSizes;
-  if uiNumSubstreams > 0 {
-  	this.m_puiSubstreamSizes = make([]uint, uiNumSubstreams-1);
-  }else{
-  	this.m_puiSubstreamSizes = make([]uint, 0);
-  }
+    //delete[] m_puiSubstreamSizes;
+    if uiNumSubstreams > 0 {
+        this.m_puiSubstreamSizes = make([]uint, uiNumSubstreams-1)
+    } else {
+        this.m_puiSubstreamSizes = make([]uint, 0)
+    }
 }
 func (this *TComSlice) GetSubstreamSizes() []uint {
     return this.m_puiSubstreamSizes
@@ -3783,33 +3836,33 @@ func (this *TComSlice) GetScalingList() *TComScalingList {
     return this.m_scalingList
 }
 func (this *TComSlice) SetDefaultScalingList() {
-  for sizeId := 0; sizeId < SCALING_LIST_SIZE_NUM; sizeId++ {
-    for listId:= uint(0);listId<G_scalingListNum[sizeId];listId++ {
-      this.GetScalingList().ProcessDefaultMarix(uint(sizeId), listId);
+    for sizeId := 0; sizeId < SCALING_LIST_SIZE_NUM; sizeId++ {
+        for listId := uint(0); listId < G_scalingListNum[sizeId]; listId++ {
+            this.GetScalingList().ProcessDefaultMarix(uint(sizeId), listId)
+        }
     }
-  }
 }
 func (this *TComSlice) CheckDefaultScalingList() bool {
-/* Encoder func
+    /* Encoder func
 
-  defaultCounter:=uint(0);
+      defaultCounter:=uint(0);
 
-  for sizeId := uint(0); sizeId < SCALING_LIST_SIZE_NUM; sizeId++ {
-    for listId:= uint(0);listId<G_scalingListNum[sizeId];listId++ {
-    	slDstAddr := this.GetScalingList().GetScalingListAddress(sizeId,listId);
-    	slSrcAddr := this.GetScalingList().GetScalingListDefaultAddress(sizeId, listId);
+      for sizeId := uint(0); sizeId < SCALING_LIST_SIZE_NUM; sizeId++ {
+        for listId:= uint(0);listId<G_scalingListNum[sizeId];listId++ {
+        	slDstAddr := this.GetScalingList().GetScalingListAddress(sizeId,listId);
+        	slSrcAddr := this.GetScalingList().GetScalingListDefaultAddress(sizeId, listId);
 
-		sizeof(Int)*min(MAX_MATRIX_COEF_NUM,G_scalingListSize[sizeId])
-      if( !memcmp() // check value of matrix
-     && ((sizeId < SCALING_LIST_16x16) || (getScalingList().GetScalingListDC(sizeId,listId) == 16))) // check DC value
-      {
-        defaultCounter++;
+    		sizeof(Int)*min(MAX_MATRIX_COEF_NUM,G_scalingListSize[sizeId])
+          if( !memcmp() // check value of matrix
+         && ((sizeId < SCALING_LIST_16x16) || (getScalingList().GetScalingListDC(sizeId,listId) == 16))) // check DC value
+          {
+            defaultCounter++;
+          }
+        }
       }
-    }
-  }
-  return (defaultCounter == (SCALING_LIST_NUM * SCALING_LIST_SIZE_NUM - 4)) ? false : true; // -4 for 32x32
- */
- 	return true;
+      return (defaultCounter == (SCALING_LIST_NUM * SCALING_LIST_SIZE_NUM - 4)) ? false : true; // -4 for 32x32
+    */
+    return true
 }
 func (this *TComSlice) SetCabacInitFlag(val bool) {
     this.m_cabacInitFlag = val
@@ -3845,36 +3898,36 @@ func (this *TComSlice) GetEnableTMVPFlag() bool {
 
 //protected:
 func (this *TComSlice) xGetRefPic(rcListPic *list.List, poc int) *TComPic {
-  var pcPic *TComPic;
+    var pcPic *TComPic
 
-  for e:=rcListPic.Front(); e!=nil; e=e.Next() {
-  	pcPic = e.Value.(*TComPic);
-  	if pcPic.GetPOC() == uint(poc) {
-      break;
+    for e := rcListPic.Front(); e != nil; e = e.Next() {
+        pcPic = e.Value.(*TComPic)
+        if pcPic.GetPOC() == uint(poc) {
+            break
+        }
     }
-  }
 
-  return pcPic;
+    return pcPic
 }
 
 func (this *TComSlice) xGetLongTermRefPic(rcListPic *list.List, poc int) *TComPic {
-  var pcPic *TComPic;
-  var pcStPic *TComPic;
+    var pcPic *TComPic
+    var pcStPic *TComPic
 
-  for e:=rcListPic.Front(); e!=nil; e=e.Next() {
-  	pcPic = e.Value.(*TComPic);
-  	if pcPic!=nil &&
-  	   pcPic.GetPOC()%(1<<this.GetSPS().GetBitsForPOC()) == (uint(poc)%(1<<this.GetSPS().GetBitsForPOC())) {
-      if pcPic.GetIsLongTerm() {
-        return pcPic;
-      }else{
-        pcStPic = pcPic;
-      }
-      break;
+    for e := rcListPic.Front(); e != nil; e = e.Next() {
+        pcPic = e.Value.(*TComPic)
+        if pcPic != nil &&
+            pcPic.GetPOC()%(1<<this.GetSPS().GetBitsForPOC()) == (uint(poc)%(1<<this.GetSPS().GetBitsForPOC())) {
+            if pcPic.GetIsLongTerm() {
+                return pcPic
+            } else {
+                pcStPic = pcPic
+            }
+            break
+        }
     }
-  }
 
-  return pcStPic;
+    return pcStPic
 }
 
 //};// END CLASS DEFINITION TComSlice
@@ -3929,7 +3982,7 @@ func NewParameterSetManager() *ParameterSetManager {
 
 //! store sequence parameter set and take ownership of it
 func (this *ParameterSetManager) SetVPS(vps *TComVPS) {
-	this.m_vpsMap[vps.GetVPSId()] = vps
+    this.m_vpsMap[vps.GetVPSId()] = vps
 }
 
 //! get pointer to existing video parameter set
@@ -3963,4 +4016,5 @@ func (this *ParameterSetManager) GetPPS(ppsId int) *TComPPS {
 
 func (this *ParameterSetManager) ApplyPS() {
 }
+
 //func (this *ParameterSetManager)  TComPPS* getFirstPPS()      { return m_ppsMap.getFirstPS(); };

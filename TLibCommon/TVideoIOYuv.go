@@ -1,3 +1,36 @@
+/* The copyright in this software is being made available under the BSD
+ * License, included below. This software may be subject to other third party
+ * and contributor rights, including patent rights, and no such rights are
+ * granted under this license.
+ *
+ * Copyright (c) 2012-2013, H265.net
+ * All rights reserved.
+ *
+ * Redistribution and use in source and binary forms, with or without
+ * modification, are permitted provided that the following conditions are met:
+ *
+ *  * Redistributions of source code must retain the above copyright notice,
+ *    this list of conditions and the following disclaimer.
+ *  * Redistributions in binary form must reproduce the above copyright notice,
+ *    this list of conditions and the following disclaimer in the documentation
+ *    and/or other materials provided with the distribution.
+ *  * Neither the name of the H265.net nor the names of its contributors may
+ *    be used to endorse or promote products derived from this software without
+ *    specific prior written permission.
+ *
+ * THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS"
+ * AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE
+ * IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE
+ * ARE DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT HOLDER OR CONTRIBUTORS
+ * BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR
+ * CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF
+ * SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS
+ * INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN
+ * CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE)
+ * ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF
+ * THE POSSIBILITY OF SUCH DAMAGE.
+ */
+
 package TLibCommon
 
 import (
@@ -61,8 +94,8 @@ func (this *TVideoIOYuv) Open(pchFile string, bWriteMode bool, fileBitDepthY, fi
 
 ///< close file
 func (this *TVideoIOYuv) Close() {
-	if this.m_cHandle!=nil{
-    	this.m_cHandle.Close()
+    if this.m_cHandle != nil {
+        this.m_cHandle.Close()
     }
 }
 
@@ -95,12 +128,12 @@ func (this *TVideoIOYuv) SkipFrames(numFrames, width, height uint) (err error) {
     return err
 
     /* fall back to consuming the input
-    buf := make([]byte, 512)
-    offset_mod_bufsize := offset % len(buf);
-    for i := 0; i < offset - offset_mod_bufsize; i += len(buf) {
-      this.m_cHandle.Read(buf);
-    }
-    this.m_cHandle.Read(buf, offset_mod_bufsize);*/
+       buf := make([]byte, 512)
+       offset_mod_bufsize := offset % len(buf);
+       for i := 0; i < offset - offset_mod_bufsize; i += len(buf) {
+         this.m_cHandle.Read(buf);
+       }
+       this.m_cHandle.Read(buf, offset_mod_bufsize);*/
 }
 
 ///< read  one YUV frame with padding parameter
@@ -142,20 +175,20 @@ func (this *TVideoIOYuv) Read(pPicYuv *TComPicYuv, aiPad []int) bool {
     maxvalC := Pel((1 << desired_bitdepthC) - 1)
 
     /*
-    #if CLIP_TO_709_RANGE
-      if (m_bitdepthShiftY < 0 && desired_bitdepthY >= 8)
-      {
-        // ITU-R BT.709 compliant clipping for converting say 10b to 8b
-        minvalY = 1 << (desired_bitdepthY - 8);
-        maxvalY = (0xff << (desired_bitdepthY - 8)) -1;
-      }
-      if (m_bitdepthShiftC < 0 && desired_bitdepthC >= 8)
-      {
-        // ITU-R BT.709 compliant clipping for converting say 10b to 8b
-        minvalC = 1 << (desired_bitdepthC - 8);
-        maxvalC = (0xff << (desired_bitdepthC - 8)) -1;
-      }
-    #endif
+       #if CLIP_TO_709_RANGE
+         if (m_bitdepthShiftY < 0 && desired_bitdepthY >= 8)
+         {
+           // ITU-R BT.709 compliant clipping for converting say 10b to 8b
+           minvalY = 1 << (desired_bitdepthY - 8);
+           maxvalY = (0xff << (desired_bitdepthY - 8)) -1;
+         }
+         if (m_bitdepthShiftC < 0 && desired_bitdepthC >= 8)
+         {
+           // ITU-R BT.709 compliant clipping for converting say 10b to 8b
+           minvalC = 1 << (desired_bitdepthC - 8);
+           maxvalC = (0xff << (desired_bitdepthC - 8)) -1;
+         }
+       #endif
     */
     if !this.readPlane(pPicYuv.GetLumaAddr(), this.m_cHandle, is16bit, iStride, width, height, pad_h, pad_v) {
         return false

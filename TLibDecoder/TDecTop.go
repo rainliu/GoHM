@@ -1,11 +1,43 @@
+/* The copyright in this software is being made available under the BSD
+ * License, included below. This software may be subject to other third party
+ * and contributor rights, including patent rights, and no such rights are
+ * granted under this license.
+ *
+ * Copyright (c) 2012-2013, H265.net
+ * All rights reserved.
+ *
+ * Redistribution and use in source and binary forms, with or without
+ * modification, are permitted provided that the following conditions are met:
+ *
+ *  * Redistributions of source code must retain the above copyright notice,
+ *    this list of conditions and the following disclaimer.
+ *  * Redistributions in binary form must reproduce the above copyright notice,
+ *    this list of conditions and the following disclaimer in the documentation
+ *    and/or other materials provided with the distribution.
+ *  * Neither the name of the H265.net nor the names of its contributors may
+ *    be used to endorse or promote products derived from this software without
+ *    specific prior written permission.
+ *
+ * THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS"
+ * AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE
+ * IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE
+ * ARE DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT HOLDER OR CONTRIBUTORS
+ * BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR
+ * CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF
+ * SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS
+ * INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN
+ * CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE)
+ * ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF
+ * THE POSSIBILITY OF SUCH DAMAGE.
+ */
+
 package TLibDecoder
 
 import (
-	"os"
     "container/list"
     "fmt"
     "gohm/TLibCommon"
-
+    "os"
 )
 
 /// decoder class
@@ -20,7 +52,7 @@ type TDecTop struct {
     m_prevRAPisBLA    bool ///< true if the previous RAP (CRA/CRANT/BLA/BLANT/IDR) picture is a BLA/BLANT picture
     m_pocRandomAccess int  ///< POC number of the random access point (the first IDR or CRA picture)
 
-    m_pcListPic                  *list.List                 //  Dynamic buffer
+    m_pcListPic                  *list.List                      //  Dynamic buffer
     m_parameterSetManagerDecoder *TLibCommon.ParameterSetManager // storage for parameter sets
     m_apcSlicePilot              *TLibCommon.TComSlice
 
@@ -49,37 +81,37 @@ type TDecTop struct {
 
     //static
     warningMessage bool
-    m_pTraceFile	*os.File
+    m_pTraceFile   *os.File
 }
 
 //public:
 func NewTDecTop() *TDecTop {
     return &TDecTop{m_pcPic: nil,
-        m_iGopSize:      0,
-        m_bGopSizeSet:   false,
-        m_iMaxRefPicNum: 0,
-        m_bRefreshPending:       false,
-        m_pocCRA:                0,
-        m_prevRAPisBLA:          false,
-        m_pocRandomAccess:       TLibCommon.MAX_INT,
-        m_prevPOC:               TLibCommon.MAX_INT,
-        m_bFirstSliceInPicture:  true,
-        m_bFirstSliceInSequence: true,
-        m_pcListPic:             list.New(),
+        m_iGopSize:                   0,
+        m_bGopSizeSet:                false,
+        m_iMaxRefPicNum:              0,
+        m_bRefreshPending:            false,
+        m_pocCRA:                     0,
+        m_prevRAPisBLA:               false,
+        m_pocRandomAccess:            TLibCommon.MAX_INT,
+        m_prevPOC:                    TLibCommon.MAX_INT,
+        m_bFirstSliceInPicture:       true,
+        m_bFirstSliceInSequence:      true,
+        m_pcListPic:                  list.New(),
         m_parameterSetManagerDecoder: TLibCommon.NewParameterSetManager(),
-        warningMessage:          false,
-        m_cPrediction     :TLibCommon.NewTComPrediction(),
-    	m_cTrQuant        :TLibCommon.NewTComTrQuant(),
-    	m_cGopDecoder     :NewTDecGop(),
-    	m_cSliceDecoder   :NewTDecSlice(),
-    	m_cCuDecoder      :NewTDecCu(),
-    	m_cEntropyDecoder :NewTDecEntropy(),
-    	m_cCavlcDecoder   :NewTDecCavlc(),
-    	m_cSbacDecoder    :NewTDecSbac(),
-    	m_cBinCabac       :NewTDecBinCabac(),
-    	m_cSeiReader      :NewTDecSeiReader(),
-    	m_cLoopFilter     :TLibCommon.NewTComLoopFilter(),
-    	m_cSAO            :TLibCommon.NewTComSampleAdaptiveOffset()}
+        warningMessage:               false,
+        m_cPrediction:                TLibCommon.NewTComPrediction(),
+        m_cTrQuant:                   TLibCommon.NewTComTrQuant(),
+        m_cGopDecoder:                NewTDecGop(),
+        m_cSliceDecoder:              NewTDecSlice(),
+        m_cCuDecoder:                 NewTDecCu(),
+        m_cEntropyDecoder:            NewTDecEntropy(),
+        m_cCavlcDecoder:              NewTDecCavlc(),
+        m_cSbacDecoder:               NewTDecSbac(),
+        m_cBinCabac:                  NewTDecBinCabac(),
+        m_cSeiReader:                 NewTDecSeiReader(),
+        m_cLoopFilter:                TLibCommon.NewTComLoopFilter(),
+        m_cSAO:                       TLibCommon.NewTComSampleAdaptiveOffset()}
 }
 
 func (this *TDecTop) Create(pchTraceFile string) {
@@ -87,16 +119,16 @@ func (this *TDecTop) Create(pchTraceFile string) {
     this.m_apcSlicePilot = TLibCommon.NewTComSlice()
     this.m_uiSliceIdx = 0
 
-    if pchTraceFile!=""{
-    	this.m_pTraceFile, _ = os.Create(pchTraceFile)
-    }else{
-    	this.m_pTraceFile = nil
+    if pchTraceFile != "" {
+        this.m_pTraceFile, _ = os.Create(pchTraceFile)
+    } else {
+        this.m_pTraceFile = nil
     }
 }
 func (this *TDecTop) Destroy() {
-	if this.m_pTraceFile!=nil{
-		this.m_pTraceFile.Close();
-	}
+    if this.m_pTraceFile != nil {
+        this.m_pTraceFile.Close()
+    }
 
     this.m_cGopDecoder.Destroy()
     this.m_apcSlicePilot = nil
@@ -157,10 +189,10 @@ func (this *TDecTop) Init() {
 
 func (this *TDecTop) Decode(nalu *InputNALUnit, iSkipFrame *int, iPOCLastDisplay *int, bSliceTrace bool) bool {
     // Initialize entropy decoder
-    this.m_cEntropyDecoder.SetEntropyDecoder (this.m_cCavlcDecoder);
-    this.m_cEntropyDecoder.SetBitstream(nalu.GetBitstream());
-    this.m_cEntropyDecoder.SetTraceFile(this.m_pTraceFile);
-    this.m_cEntropyDecoder.SetSliceTrace(bSliceTrace);
+    this.m_cEntropyDecoder.SetEntropyDecoder(this.m_cCavlcDecoder)
+    this.m_cEntropyDecoder.SetBitstream(nalu.GetBitstream())
+    this.m_cEntropyDecoder.SetTraceFile(this.m_pTraceFile)
+    this.m_cEntropyDecoder.SetSliceTrace(bSliceTrace)
 
     switch nalu.GetNalUnitType() {
     case TLibCommon.NAL_UNIT_VPS:
@@ -222,11 +254,11 @@ func (this *TDecTop) Decode(nalu *InputNALUnit, iSkipFrame *int, iPOCLastDisplay
 }
 
 func (this *TDecTop) DeletePicBuffer() {
-	for e := this.m_pcListPic.Front(); e != nil; e = e.Next() {
-		pcPic := e.Value.(*TLibCommon.TComPic)
-		pcPic.Destroy();
-		this.m_pcListPic.Remove(e)
-	}
+    for e := this.m_pcListPic.Front(); e != nil; e = e.Next() {
+        pcPic := e.Value.(*TLibCommon.TComPic)
+        pcPic.Destroy()
+        this.m_pcListPic.Remove(e)
+    }
 
     this.m_cSAO.Destroy()
     this.m_cLoopFilter.Destroy()
@@ -246,7 +278,7 @@ func (this *TDecTop) ExecuteLoopFilters(poc *int, iSkipFrame *int, iPOCLastDispl
     // Execute Deblock + Cleanup
     this.m_cGopDecoder.FilterPicture(this.m_pcPic)
 
-    TLibCommon.SortPicList(this.m_pcListPic)// sorting for application output
+    TLibCommon.SortPicList(this.m_pcListPic) // sorting for application output
     *poc = this.m_pcPic.GetSlice(this.m_uiSliceIdx - 1).GetPOC()
     this.m_cCuDecoder.Destroy()
     this.m_bFirstSliceInPicture = true
@@ -278,29 +310,29 @@ func (this *TDecTop) xGetNewPicBuffer(pcSlice *TLibCommon.TComSlice) (rpcPic *TL
         return rpcPic
     }
 
-    bBufferIsAvailable := false;
-	for e := this.m_pcListPic.Front(); e != nil; e = e.Next() {
-		rpcPic = e.Value.(*TLibCommon.TComPic)
-		if rpcPic.GetReconMark() == false && rpcPic.GetOutputMark() == false {
-          rpcPic.SetOutputMark(false);
-          bBufferIsAvailable = true;
-          break;
+    bBufferIsAvailable := false
+    for e := this.m_pcListPic.Front(); e != nil; e = e.Next() {
+        rpcPic = e.Value.(*TLibCommon.TComPic)
+        if rpcPic.GetReconMark() == false && rpcPic.GetOutputMark() == false {
+            rpcPic.SetOutputMark(false)
+            bBufferIsAvailable = true
+            break
         }
 
-        if rpcPic.GetSlice( 0 ).IsReferenced() == false  && rpcPic.GetOutputMark() == false{
-          rpcPic.SetOutputMark(false);
-          rpcPic.SetReconMark( false );
-          rpcPic.GetPicYuvRec().SetBorderExtension( false );
-          bBufferIsAvailable = true;
-          break;
+        if rpcPic.GetSlice(0).IsReferenced() == false && rpcPic.GetOutputMark() == false {
+            rpcPic.SetOutputMark(false)
+            rpcPic.SetReconMark(false)
+            rpcPic.GetPicYuvRec().SetBorderExtension(false)
+            bBufferIsAvailable = true
+            break
         }
-	}
+    }
 
     if !bBufferIsAvailable {
         //There is no room for this picture, either because of faulty encoder or dropped NAL. Extend the buffer.
-        this.m_iMaxRefPicNum++;
-        rpcPic := TLibCommon.NewTComPic();
-        this.m_pcListPic.PushBack( rpcPic );
+        this.m_iMaxRefPicNum++
+        rpcPic := TLibCommon.NewTComPic()
+        this.m_pcListPic.PushBack(rpcPic)
     }
 
     rpcPic.Destroy()
@@ -309,7 +341,7 @@ func (this *TDecTop) xGetNewPicBuffer(pcSlice *TLibCommon.TComSlice) (rpcPic *TL
         picCroppingWindow, numReorderPics[:], true)
     rpcPic.GetPicSym().AllocSaoParam(this.m_cSAO)
 
-    return rpcPic;
+    return rpcPic
 }
 func (this *TDecTop) xUpdateGopSize(pcSlice *TLibCommon.TComSlice) {
     if !pcSlice.IsIntra() && !this.m_bGopSizeSet {
@@ -356,313 +388,313 @@ func (this *TDecTop) xActivateParameterSets() {
 }
 
 func (this *TDecTop) xDecodeSlice(nalu *InputNALUnit, iSkipFrame *int, iPOCLastDisplay int) bool {
-  this.m_apcSlicePilot.InitSlice();
+    this.m_apcSlicePilot.InitSlice()
 
-  if this.m_bFirstSliceInPicture {
-    this.m_uiSliceIdx     = 0;
-  }
-  this.m_apcSlicePilot.SetSliceIdx(this.m_uiSliceIdx);
-  if !this.m_bFirstSliceInPicture {
-    this.m_apcSlicePilot.CopySliceInfo( this.m_pcPic.GetPicSym().GetSlice(this.m_uiSliceIdx-1) );
-  }
-
-  this.m_apcSlicePilot.SetNalUnitType(nalu.GetNalUnitType());
-  if (this.m_apcSlicePilot.GetNalUnitType() == TLibCommon.NAL_UNIT_CODED_SLICE_TRAIL_N) ||
-     (this.m_apcSlicePilot.GetNalUnitType() == TLibCommon.NAL_UNIT_CODED_SLICE_TSA_N)   ||
-     (this.m_apcSlicePilot.GetNalUnitType() == TLibCommon.NAL_UNIT_CODED_SLICE_STSA_N)  {
-    this.m_apcSlicePilot.SetTemporalLayerNonReferenceFlag(true);
-  }
-  this.m_apcSlicePilot.SetReferenced(true); // Putting this as true ensures that picture is referenced the first time it is in an RPS
-  this.m_apcSlicePilot.SetTLayerInfo(nalu.GetTemporalId());
-
-  this.m_cEntropyDecoder.DecodeSliceHeader (this.m_apcSlicePilot, this.m_parameterSetManagerDecoder);
-
-  //fmt.Printf("POC=%d, bNextSlice=%v\n", this.m_apcSlicePilot.GetPOC(),this.m_apcSlicePilot.IsNextSlice());
-
-  // exit when a new picture is found
-  if this.m_apcSlicePilot.IsNextSlice() && this.m_apcSlicePilot.GetPOC()!=this.m_prevPOC && !this.m_bFirstSliceInSequence {
-    if this.m_prevPOC >= this.m_pocRandomAccess {
-      this.m_prevPOC = this.m_apcSlicePilot.GetPOC();
-      return true;
+    if this.m_bFirstSliceInPicture {
+        this.m_uiSliceIdx = 0
     }
-    this.m_prevPOC = this.m_apcSlicePilot.GetPOC();
-  }
-
-  // actual decoding starts here
-  this.xActivateParameterSets();
-
-  if this.m_apcSlicePilot.IsNextSlice() {
-    this.m_prevPOC = this.m_apcSlicePilot.GetPOC();
-  }
-  this.m_bFirstSliceInSequence = false;
-  if this.m_apcSlicePilot.IsNextSlice() {
-    // Skip pictures due to random access
-    if this.IsRandomAccessSkipPicture(iSkipFrame, &iPOCLastDisplay) {
-      return false;
-    }
-    // Skip TFD pictures associated with BLA/BLANT pictures
-    if this.IsSkipPictureForBLA(&iPOCLastDisplay) {
-      return false;
-    }
-  }
-  //detect lost reference picture and insert copy of earlier frame.
-  /*lostPoc := this.m_apcSlicePilot.CheckThatAllRefPicsAreAvailable(this.m_pcListPic, this.m_apcSlicePilot.GetRPS(), true, this.m_pocRandomAccess);
-  for lostPoc > 0 {
-    this.xCreateLostPicture(lostPoc-1);
-    lostPoc = this.m_apcSlicePilot.CheckThatAllRefPicsAreAvailable(this.m_pcListPic, this.m_apcSlicePilot.GetRPS(), true, this.m_pocRandomAccess);
-  }*/
-  if this.m_bFirstSliceInPicture {
-    // Buffer initialize for prediction.
-    this.m_cPrediction.InitTempBuff();
-    this.m_apcSlicePilot.ApplyReferencePictureSet(this.m_pcListPic, this.m_apcSlicePilot.GetRPS());
-    //  Get a new picture buffer
-    this.m_pcPic = this.xGetNewPicBuffer (this.m_apcSlicePilot);
-
-    // transfer any SEI messages that have been received to the picture
-    this.m_pcPic.SetSEIs(this.m_SEIs);
-    this.m_SEIs = nil;
-
-    // Recursive structure
-    this.m_cCuDecoder.Create ( TLibCommon.G_uiMaxCUDepth, TLibCommon.G_uiMaxCUWidth, TLibCommon.G_uiMaxCUHeight );
-    this.m_cCuDecoder.Init   ( this.m_cEntropyDecoder, this.m_cTrQuant, this.m_cPrediction );
-    this.m_cTrQuant.Init     ( TLibCommon.G_uiMaxCUWidth, TLibCommon.G_uiMaxCUHeight, this.m_apcSlicePilot.GetSPS().GetMaxTrSize(),
-    						   0, nil, nil, nil, false, false, false, false, false);
-
-    this.m_cSliceDecoder.Create( this.m_apcSlicePilot, int(this.m_apcSlicePilot.GetSPS().GetPicWidthInLumaSamples()),
-    							 int(this.m_apcSlicePilot.GetSPS().GetPicHeightInLumaSamples()), TLibCommon.G_uiMaxCUWidth, TLibCommon.G_uiMaxCUHeight, TLibCommon.G_uiMaxCUDepth );
-  }
-
-  //  Set picture slice pointer
-  pcSlice := this.m_apcSlicePilot;
-  bNextSlice := pcSlice.IsNextSlice();
-
-  var uiCummulativeTileWidth, uiCummulativeTileHeight uint;
-  var i, j, p int;
-
-  //set NumColumnsMins1 and NumRowsMinus1
-  this.m_pcPic.GetPicSym().SetNumColumnsMinus1( pcSlice.GetPPS().GetNumColumnsMinus1() );
-  this.m_pcPic.GetPicSym().SetNumRowsMinus1	  ( pcSlice.GetPPS().GetNumRowsMinus1() );
-
-  //create the TComTileArray
-  this.m_pcPic.GetPicSym().XCreateTComTileArray();
-
-  if pcSlice.GetPPS().GetUniformSpacingFlag() {
-    //set the width for each tile
-    for j=0; j < this.m_pcPic.GetPicSym().GetNumRowsMinus1()+1; j++ {
-      for p=0; p < this.m_pcPic.GetPicSym().GetNumColumnsMinus1()+1; p++ {
-      	a := (p+1)*int(this.m_pcPic.GetPicSym().GetFrameWidthInCU())/(this.m_pcPic.GetPicSym().GetNumColumnsMinus1()+1)
-      	b := (p*int(this.m_pcPic.GetPicSym().GetFrameWidthInCU()))/(this.m_pcPic.GetPicSym().GetNumColumnsMinus1()+1)
-        this.m_pcPic.GetPicSym().GetTComTile(uint( j * (this.m_pcPic.GetPicSym().GetNumColumnsMinus1()+1) + p )).SetTileWidth( uint(a-b) );
-      }
+    this.m_apcSlicePilot.SetSliceIdx(this.m_uiSliceIdx)
+    if !this.m_bFirstSliceInPicture {
+        this.m_apcSlicePilot.CopySliceInfo(this.m_pcPic.GetPicSym().GetSlice(this.m_uiSliceIdx - 1))
     }
 
-    //set the height for each tile
-    for j=0; j < this.m_pcPic.GetPicSym().GetNumColumnsMinus1()+1; j++ {
-      for p=0; p < this.m_pcPic.GetPicSym().GetNumRowsMinus1()+1; p++ {
-      	a := (p+1)*int(this.m_pcPic.GetPicSym().GetFrameHeightInCU())/(this.m_pcPic.GetPicSym().GetNumRowsMinus1()+1);
-      	b := (p*int(this.m_pcPic.GetPicSym().GetFrameHeightInCU()))/(this.m_pcPic.GetPicSym().GetNumRowsMinus1()+1)
-        this.m_pcPic.GetPicSym().GetTComTile(uint( p * (this.m_pcPic.GetPicSym().GetNumColumnsMinus1()+1) + j )).SetTileHeight( uint(a-b) );
-      }
+    this.m_apcSlicePilot.SetNalUnitType(nalu.GetNalUnitType())
+    if (this.m_apcSlicePilot.GetNalUnitType() == TLibCommon.NAL_UNIT_CODED_SLICE_TRAIL_N) ||
+        (this.m_apcSlicePilot.GetNalUnitType() == TLibCommon.NAL_UNIT_CODED_SLICE_TSA_N) ||
+        (this.m_apcSlicePilot.GetNalUnitType() == TLibCommon.NAL_UNIT_CODED_SLICE_STSA_N) {
+        this.m_apcSlicePilot.SetTemporalLayerNonReferenceFlag(true)
     }
-  }else{
-    //set the width for each tile
-    for j=0; j < pcSlice.GetPPS().GetNumRowsMinus1()+1; j++ {
-      uiCummulativeTileWidth = 0;
-      for i=0; i < pcSlice.GetPPS().GetNumColumnsMinus1(); i++ {
-        this.m_pcPic.GetPicSym().GetTComTile(uint(j * (pcSlice.GetPPS().GetNumColumnsMinus1()+1) + i)).SetTileWidth( pcSlice.GetPPS().GetColumnWidth(uint(i)) );
-        uiCummulativeTileWidth += pcSlice.GetPPS().GetColumnWidth(uint(i));
-      }
-      this.m_pcPic.GetPicSym().GetTComTile(uint(j * (pcSlice.GetPPS().GetNumColumnsMinus1()+1) + i)).SetTileWidth( this.m_pcPic.GetPicSym().GetFrameWidthInCU()-uiCummulativeTileWidth );
-    }
+    this.m_apcSlicePilot.SetReferenced(true) // Putting this as true ensures that picture is referenced the first time it is in an RPS
+    this.m_apcSlicePilot.SetTLayerInfo(nalu.GetTemporalId())
 
-    //set the height for each tile
-    for j=0; j < pcSlice.GetPPS().GetNumColumnsMinus1()+1; j++ {
-      uiCummulativeTileHeight = 0;
-      for i=0; i < pcSlice.GetPPS().GetNumRowsMinus1(); i++ {
-        this.m_pcPic.GetPicSym().GetTComTile(uint(i * (pcSlice.GetPPS().GetNumColumnsMinus1()+1) + j)).SetTileHeight( pcSlice.GetPPS().GetRowHeight(uint(i)) );
-        uiCummulativeTileHeight += pcSlice.GetPPS().GetRowHeight(uint(i));
-      }
-      this.m_pcPic.GetPicSym().GetTComTile(uint(i * (pcSlice.GetPPS().GetNumColumnsMinus1()+1) + j)).SetTileHeight( this.m_pcPic.GetPicSym().GetFrameHeightInCU()-uiCummulativeTileHeight );
-    }
-  }
+    this.m_cEntropyDecoder.DecodeSliceHeader(this.m_apcSlicePilot, this.m_parameterSetManagerDecoder)
 
-  this.m_pcPic.GetPicSym().XInitTiles();
+    //fmt.Printf("POC=%d, bNextSlice=%v\n", this.m_apcSlicePilot.GetPOC(),this.m_apcSlicePilot.IsNextSlice());
 
-  //generate the Coding Order Map and Inverse Coding Order Map
-  uiEncCUAddr := 0;
-  for i=0; i<int(this.m_pcPic.GetPicSym().GetNumberOfCUsInFrame()); i++ {
-    this.m_pcPic.GetPicSym().SetCUOrderMap(i, uiEncCUAddr);
-    this.m_pcPic.GetPicSym().SetInverseCUOrderMap(uiEncCUAddr, i);
-
-    uiEncCUAddr = int(this.m_pcPic.GetPicSym().XCalculateNxtCUAddr(uint(uiEncCUAddr)));
-  }
-  this.m_pcPic.GetPicSym().SetCUOrderMap(int(this.m_pcPic.GetPicSym().GetNumberOfCUsInFrame()), int(this.m_pcPic.GetPicSym().GetNumberOfCUsInFrame()));
-  this.m_pcPic.GetPicSym().SetInverseCUOrderMap(int(this.m_pcPic.GetPicSym().GetNumberOfCUsInFrame()), int(this.m_pcPic.GetPicSym().GetNumberOfCUsInFrame()));
-
-  //convert the start and end CU addresses of the slice and dependent slice into encoding order
-  pcSlice.SetDependentSliceCurStartCUAddr( this.m_pcPic.GetPicSym().GetPicSCUEncOrder(pcSlice.GetDependentSliceCurStartCUAddr()) );
-  pcSlice.SetDependentSliceCurEndCUAddr( this.m_pcPic.GetPicSym().GetPicSCUEncOrder(pcSlice.GetDependentSliceCurEndCUAddr()) );
-  if pcSlice.IsNextSlice(){
-    pcSlice.SetSliceCurStartCUAddr(this.m_pcPic.GetPicSym().GetPicSCUEncOrder(pcSlice.GetSliceCurStartCUAddr()));
-    pcSlice.SetSliceCurEndCUAddr(this.m_pcPic.GetPicSym().GetPicSCUEncOrder(pcSlice.GetSliceCurEndCUAddr()));
-  }
-
-  if this.m_bFirstSliceInPicture {
-    if this.m_pcPic.GetNumAllocatedSlice() != 1 {
-      this.m_pcPic.ClearSliceBuffer();
-    }
-  }else{
-    this.m_pcPic.AllocateNewSlice();
-  }
-  //assert(pcPic.GetNumAllocatedSlice() == (this.m_uiSliceIdx + 1));
-  this.m_apcSlicePilot = this.m_pcPic.GetPicSym().GetSlice(this.m_uiSliceIdx);
-  //fmt.Printf("%v\n", this.m_apcSlicePilot)
-  this.m_pcPic.GetPicSym().SetSlice(pcSlice, this.m_uiSliceIdx);
-
-  this.m_pcPic.SetTLayer(nalu.GetTemporalId());
-
-  if bNextSlice {
-    pcSlice.CheckCRA(pcSlice.GetRPS(), &this.m_pocCRA, &this.m_prevRAPisBLA, this.m_pcListPic);
-    // Set reference list
-    pcSlice.SetRefPicList( this.m_pcListPic );
-
-    // For generalized B
-    // note: maybe not existed case (always L0 is copied to L1 if L1 is empty)
-    if pcSlice.IsInterB() && pcSlice.GetNumRefIdx(TLibCommon.REF_PIC_LIST_1) == 0 {
-      iNumRefIdx := pcSlice.GetNumRefIdx(TLibCommon.REF_PIC_LIST_0);
-      pcSlice.SetNumRefIdx        ( TLibCommon.REF_PIC_LIST_1, iNumRefIdx );
-
-      for iRefIdx := 0; iRefIdx < iNumRefIdx; iRefIdx++ {
-        pcSlice.SetRefPic(pcSlice.GetRefPic(TLibCommon.REF_PIC_LIST_0, iRefIdx), TLibCommon.REF_PIC_LIST_1, iRefIdx);
-      }
-    }
-    if !pcSlice.IsIntra() {
-      bLowDelay := true;
-      iCurrPOC  := pcSlice.GetPOC();
-      iRefIdx := 0;
-
-      for iRefIdx = 0; iRefIdx < pcSlice.GetNumRefIdx(TLibCommon.REF_PIC_LIST_0) && bLowDelay; iRefIdx++ {
-        if int(pcSlice.GetRefPic(TLibCommon.REF_PIC_LIST_0, iRefIdx).GetPOC()) > iCurrPOC {
-          bLowDelay = false;
+    // exit when a new picture is found
+    if this.m_apcSlicePilot.IsNextSlice() && this.m_apcSlicePilot.GetPOC() != this.m_prevPOC && !this.m_bFirstSliceInSequence {
+        if this.m_prevPOC >= this.m_pocRandomAccess {
+            this.m_prevPOC = this.m_apcSlicePilot.GetPOC()
+            return true
         }
-      }
-      if pcSlice.IsInterB() {
-        for iRefIdx = 0; iRefIdx < pcSlice.GetNumRefIdx(TLibCommon.REF_PIC_LIST_1) && bLowDelay; iRefIdx++ {
-          if int(pcSlice.GetRefPic(TLibCommon.REF_PIC_LIST_1, iRefIdx).GetPOC()) > iCurrPOC {
-            bLowDelay = false;
-          }
+        this.m_prevPOC = this.m_apcSlicePilot.GetPOC()
+    }
+
+    // actual decoding starts here
+    this.xActivateParameterSets()
+
+    if this.m_apcSlicePilot.IsNextSlice() {
+        this.m_prevPOC = this.m_apcSlicePilot.GetPOC()
+    }
+    this.m_bFirstSliceInSequence = false
+    if this.m_apcSlicePilot.IsNextSlice() {
+        // Skip pictures due to random access
+        if this.IsRandomAccessSkipPicture(iSkipFrame, &iPOCLastDisplay) {
+            return false
         }
-      }
-
-      pcSlice.SetCheckLDC(bLowDelay);
-    }
-
-    //---------------
-    pcSlice.SetRefPOCList();
-    pcSlice.SetNoBackPredFlag( false );
-    if pcSlice.GetSliceType() == TLibCommon.B_SLICE {
-      if pcSlice.GetNumRefIdx(TLibCommon.RefPicList( 0 ) ) == pcSlice.GetNumRefIdx(TLibCommon.RefPicList( 1 ) ) {
-        pcSlice.SetNoBackPredFlag( true );
-        for i=0; i < pcSlice.GetNumRefIdx(TLibCommon.RefPicList( 1 ) ); i++ {
-          if pcSlice.GetRefPOC(TLibCommon.RefPicList(1), i) != pcSlice.GetRefPOC(TLibCommon.RefPicList(0), i) {
-            pcSlice.SetNoBackPredFlag( false );
-            break;
-          }
+        // Skip TFD pictures associated with BLA/BLANT pictures
+        if this.IsSkipPictureForBLA(&iPOCLastDisplay) {
+            return false
         }
-      }
     }
-  }
+    //detect lost reference picture and insert copy of earlier frame.
+    /*lostPoc := this.m_apcSlicePilot.CheckThatAllRefPicsAreAvailable(this.m_pcListPic, this.m_apcSlicePilot.GetRPS(), true, this.m_pocRandomAccess);
+      for lostPoc > 0 {
+        this.xCreateLostPicture(lostPoc-1);
+        lostPoc = this.m_apcSlicePilot.CheckThatAllRefPicsAreAvailable(this.m_pcListPic, this.m_apcSlicePilot.GetRPS(), true, this.m_pocRandomAccess);
+      }*/
+    if this.m_bFirstSliceInPicture {
+        // Buffer initialize for prediction.
+        this.m_cPrediction.InitTempBuff()
+        this.m_apcSlicePilot.ApplyReferencePictureSet(this.m_pcListPic, this.m_apcSlicePilot.GetRPS())
+        //  Get a new picture buffer
+        this.m_pcPic = this.xGetNewPicBuffer(this.m_apcSlicePilot)
 
-  this.m_pcPic.SetCurrSliceIdx(this.m_uiSliceIdx);
-  if pcSlice.GetSPS().GetScalingListFlag() {
-    pcSlice.SetScalingList ( pcSlice.GetSPS().GetScalingList()  );
-    if pcSlice.GetPPS().GetScalingListPresentFlag() {
-      pcSlice.SetScalingList ( pcSlice.GetPPS().GetScalingList()  );
+        // transfer any SEI messages that have been received to the picture
+        this.m_pcPic.SetSEIs(this.m_SEIs)
+        this.m_SEIs = nil
+
+        // Recursive structure
+        this.m_cCuDecoder.Create(TLibCommon.G_uiMaxCUDepth, TLibCommon.G_uiMaxCUWidth, TLibCommon.G_uiMaxCUHeight)
+        this.m_cCuDecoder.Init(this.m_cEntropyDecoder, this.m_cTrQuant, this.m_cPrediction)
+        this.m_cTrQuant.Init(TLibCommon.G_uiMaxCUWidth, TLibCommon.G_uiMaxCUHeight, this.m_apcSlicePilot.GetSPS().GetMaxTrSize(),
+            0, nil, nil, nil, false, false, false, false, false)
+
+        this.m_cSliceDecoder.Create(this.m_apcSlicePilot, int(this.m_apcSlicePilot.GetSPS().GetPicWidthInLumaSamples()),
+            int(this.m_apcSlicePilot.GetSPS().GetPicHeightInLumaSamples()), TLibCommon.G_uiMaxCUWidth, TLibCommon.G_uiMaxCUHeight, TLibCommon.G_uiMaxCUDepth)
     }
-    pcSlice.GetScalingList().SetUseTransformSkip(pcSlice.GetPPS().GetUseTransformSkip());
-    if !pcSlice.GetPPS().GetScalingListPresentFlag() && !pcSlice.GetSPS().GetScalingListPresentFlag() {
-      pcSlice.SetDefaultScalingList();
+
+    //  Set picture slice pointer
+    pcSlice := this.m_apcSlicePilot
+    bNextSlice := pcSlice.IsNextSlice()
+
+    var uiCummulativeTileWidth, uiCummulativeTileHeight uint
+    var i, j, p int
+
+    //set NumColumnsMins1 and NumRowsMinus1
+    this.m_pcPic.GetPicSym().SetNumColumnsMinus1(pcSlice.GetPPS().GetNumColumnsMinus1())
+    this.m_pcPic.GetPicSym().SetNumRowsMinus1(pcSlice.GetPPS().GetNumRowsMinus1())
+
+    //create the TComTileArray
+    this.m_pcPic.GetPicSym().XCreateTComTileArray()
+
+    if pcSlice.GetPPS().GetUniformSpacingFlag() {
+        //set the width for each tile
+        for j = 0; j < this.m_pcPic.GetPicSym().GetNumRowsMinus1()+1; j++ {
+            for p = 0; p < this.m_pcPic.GetPicSym().GetNumColumnsMinus1()+1; p++ {
+                a := (p + 1) * int(this.m_pcPic.GetPicSym().GetFrameWidthInCU()) / (this.m_pcPic.GetPicSym().GetNumColumnsMinus1() + 1)
+                b := (p * int(this.m_pcPic.GetPicSym().GetFrameWidthInCU())) / (this.m_pcPic.GetPicSym().GetNumColumnsMinus1() + 1)
+                this.m_pcPic.GetPicSym().GetTComTile(uint(j*(this.m_pcPic.GetPicSym().GetNumColumnsMinus1()+1) + p)).SetTileWidth(uint(a - b))
+            }
+        }
+
+        //set the height for each tile
+        for j = 0; j < this.m_pcPic.GetPicSym().GetNumColumnsMinus1()+1; j++ {
+            for p = 0; p < this.m_pcPic.GetPicSym().GetNumRowsMinus1()+1; p++ {
+                a := (p + 1) * int(this.m_pcPic.GetPicSym().GetFrameHeightInCU()) / (this.m_pcPic.GetPicSym().GetNumRowsMinus1() + 1)
+                b := (p * int(this.m_pcPic.GetPicSym().GetFrameHeightInCU())) / (this.m_pcPic.GetPicSym().GetNumRowsMinus1() + 1)
+                this.m_pcPic.GetPicSym().GetTComTile(uint(p*(this.m_pcPic.GetPicSym().GetNumColumnsMinus1()+1) + j)).SetTileHeight(uint(a - b))
+            }
+        }
+    } else {
+        //set the width for each tile
+        for j = 0; j < pcSlice.GetPPS().GetNumRowsMinus1()+1; j++ {
+            uiCummulativeTileWidth = 0
+            for i = 0; i < pcSlice.GetPPS().GetNumColumnsMinus1(); i++ {
+                this.m_pcPic.GetPicSym().GetTComTile(uint(j*(pcSlice.GetPPS().GetNumColumnsMinus1()+1) + i)).SetTileWidth(pcSlice.GetPPS().GetColumnWidth(uint(i)))
+                uiCummulativeTileWidth += pcSlice.GetPPS().GetColumnWidth(uint(i))
+            }
+            this.m_pcPic.GetPicSym().GetTComTile(uint(j*(pcSlice.GetPPS().GetNumColumnsMinus1()+1) + i)).SetTileWidth(this.m_pcPic.GetPicSym().GetFrameWidthInCU() - uiCummulativeTileWidth)
+        }
+
+        //set the height for each tile
+        for j = 0; j < pcSlice.GetPPS().GetNumColumnsMinus1()+1; j++ {
+            uiCummulativeTileHeight = 0
+            for i = 0; i < pcSlice.GetPPS().GetNumRowsMinus1(); i++ {
+                this.m_pcPic.GetPicSym().GetTComTile(uint(i*(pcSlice.GetPPS().GetNumColumnsMinus1()+1) + j)).SetTileHeight(pcSlice.GetPPS().GetRowHeight(uint(i)))
+                uiCummulativeTileHeight += pcSlice.GetPPS().GetRowHeight(uint(i))
+            }
+            this.m_pcPic.GetPicSym().GetTComTile(uint(i*(pcSlice.GetPPS().GetNumColumnsMinus1()+1) + j)).SetTileHeight(this.m_pcPic.GetPicSym().GetFrameHeightInCU() - uiCummulativeTileHeight)
+        }
     }
-    this.m_cTrQuant.SetScalingListDec(pcSlice.GetScalingList());
-    this.m_cTrQuant.SetUseScalingList(true);
-  }else{
-    this.m_cTrQuant.SetFlatScalingList();
-    this.m_cTrQuant.SetUseScalingList(false);
-  }
 
-  //  Decode a picture
-  this.m_cGopDecoder.DecompressSlice(nalu.m_Bitstream, this.m_pcPic, this.m_pTraceFile);
+    this.m_pcPic.GetPicSym().XInitTiles()
 
-  this.m_bFirstSliceInPicture = false;
-  this.m_uiSliceIdx++;
+    //generate the Coding Order Map and Inverse Coding Order Map
+    uiEncCUAddr := 0
+    for i = 0; i < int(this.m_pcPic.GetPicSym().GetNumberOfCUsInFrame()); i++ {
+        this.m_pcPic.GetPicSym().SetCUOrderMap(i, uiEncCUAddr)
+        this.m_pcPic.GetPicSym().SetInverseCUOrderMap(uiEncCUAddr, i)
 
-  return false;
+        uiEncCUAddr = int(this.m_pcPic.GetPicSym().XCalculateNxtCUAddr(uint(uiEncCUAddr)))
+    }
+    this.m_pcPic.GetPicSym().SetCUOrderMap(int(this.m_pcPic.GetPicSym().GetNumberOfCUsInFrame()), int(this.m_pcPic.GetPicSym().GetNumberOfCUsInFrame()))
+    this.m_pcPic.GetPicSym().SetInverseCUOrderMap(int(this.m_pcPic.GetPicSym().GetNumberOfCUsInFrame()), int(this.m_pcPic.GetPicSym().GetNumberOfCUsInFrame()))
+
+    //convert the start and end CU addresses of the slice and dependent slice into encoding order
+    pcSlice.SetDependentSliceCurStartCUAddr(this.m_pcPic.GetPicSym().GetPicSCUEncOrder(pcSlice.GetDependentSliceCurStartCUAddr()))
+    pcSlice.SetDependentSliceCurEndCUAddr(this.m_pcPic.GetPicSym().GetPicSCUEncOrder(pcSlice.GetDependentSliceCurEndCUAddr()))
+    if pcSlice.IsNextSlice() {
+        pcSlice.SetSliceCurStartCUAddr(this.m_pcPic.GetPicSym().GetPicSCUEncOrder(pcSlice.GetSliceCurStartCUAddr()))
+        pcSlice.SetSliceCurEndCUAddr(this.m_pcPic.GetPicSym().GetPicSCUEncOrder(pcSlice.GetSliceCurEndCUAddr()))
+    }
+
+    if this.m_bFirstSliceInPicture {
+        if this.m_pcPic.GetNumAllocatedSlice() != 1 {
+            this.m_pcPic.ClearSliceBuffer()
+        }
+    } else {
+        this.m_pcPic.AllocateNewSlice()
+    }
+    //assert(pcPic.GetNumAllocatedSlice() == (this.m_uiSliceIdx + 1));
+    this.m_apcSlicePilot = this.m_pcPic.GetPicSym().GetSlice(this.m_uiSliceIdx)
+    //fmt.Printf("%v\n", this.m_apcSlicePilot)
+    this.m_pcPic.GetPicSym().SetSlice(pcSlice, this.m_uiSliceIdx)
+
+    this.m_pcPic.SetTLayer(nalu.GetTemporalId())
+
+    if bNextSlice {
+        pcSlice.CheckCRA(pcSlice.GetRPS(), &this.m_pocCRA, &this.m_prevRAPisBLA, this.m_pcListPic)
+        // Set reference list
+        pcSlice.SetRefPicList(this.m_pcListPic)
+
+        // For generalized B
+        // note: maybe not existed case (always L0 is copied to L1 if L1 is empty)
+        if pcSlice.IsInterB() && pcSlice.GetNumRefIdx(TLibCommon.REF_PIC_LIST_1) == 0 {
+            iNumRefIdx := pcSlice.GetNumRefIdx(TLibCommon.REF_PIC_LIST_0)
+            pcSlice.SetNumRefIdx(TLibCommon.REF_PIC_LIST_1, iNumRefIdx)
+
+            for iRefIdx := 0; iRefIdx < iNumRefIdx; iRefIdx++ {
+                pcSlice.SetRefPic(pcSlice.GetRefPic(TLibCommon.REF_PIC_LIST_0, iRefIdx), TLibCommon.REF_PIC_LIST_1, iRefIdx)
+            }
+        }
+        if !pcSlice.IsIntra() {
+            bLowDelay := true
+            iCurrPOC := pcSlice.GetPOC()
+            iRefIdx := 0
+
+            for iRefIdx = 0; iRefIdx < pcSlice.GetNumRefIdx(TLibCommon.REF_PIC_LIST_0) && bLowDelay; iRefIdx++ {
+                if int(pcSlice.GetRefPic(TLibCommon.REF_PIC_LIST_0, iRefIdx).GetPOC()) > iCurrPOC {
+                    bLowDelay = false
+                }
+            }
+            if pcSlice.IsInterB() {
+                for iRefIdx = 0; iRefIdx < pcSlice.GetNumRefIdx(TLibCommon.REF_PIC_LIST_1) && bLowDelay; iRefIdx++ {
+                    if int(pcSlice.GetRefPic(TLibCommon.REF_PIC_LIST_1, iRefIdx).GetPOC()) > iCurrPOC {
+                        bLowDelay = false
+                    }
+                }
+            }
+
+            pcSlice.SetCheckLDC(bLowDelay)
+        }
+
+        //---------------
+        pcSlice.SetRefPOCList()
+        pcSlice.SetNoBackPredFlag(false)
+        if pcSlice.GetSliceType() == TLibCommon.B_SLICE {
+            if pcSlice.GetNumRefIdx(TLibCommon.RefPicList(0)) == pcSlice.GetNumRefIdx(TLibCommon.RefPicList(1)) {
+                pcSlice.SetNoBackPredFlag(true)
+                for i = 0; i < pcSlice.GetNumRefIdx(TLibCommon.RefPicList(1)); i++ {
+                    if pcSlice.GetRefPOC(TLibCommon.RefPicList(1), i) != pcSlice.GetRefPOC(TLibCommon.RefPicList(0), i) {
+                        pcSlice.SetNoBackPredFlag(false)
+                        break
+                    }
+                }
+            }
+        }
+    }
+
+    this.m_pcPic.SetCurrSliceIdx(this.m_uiSliceIdx)
+    if pcSlice.GetSPS().GetScalingListFlag() {
+        pcSlice.SetScalingList(pcSlice.GetSPS().GetScalingList())
+        if pcSlice.GetPPS().GetScalingListPresentFlag() {
+            pcSlice.SetScalingList(pcSlice.GetPPS().GetScalingList())
+        }
+        pcSlice.GetScalingList().SetUseTransformSkip(pcSlice.GetPPS().GetUseTransformSkip())
+        if !pcSlice.GetPPS().GetScalingListPresentFlag() && !pcSlice.GetSPS().GetScalingListPresentFlag() {
+            pcSlice.SetDefaultScalingList()
+        }
+        this.m_cTrQuant.SetScalingListDec(pcSlice.GetScalingList())
+        this.m_cTrQuant.SetUseScalingList(true)
+    } else {
+        this.m_cTrQuant.SetFlatScalingList()
+        this.m_cTrQuant.SetUseScalingList(false)
+    }
+
+    //  Decode a picture
+    this.m_cGopDecoder.DecompressSlice(nalu.m_Bitstream, this.m_pcPic, this.m_pTraceFile)
+
+    this.m_bFirstSliceInPicture = false
+    this.m_uiSliceIdx++
+
+    return false
 }
 func (this *TDecTop) xDecodeVPS() {
-  vps := TLibCommon.NewTComVPS();
+    vps := TLibCommon.NewTComVPS()
 
-  this.m_cEntropyDecoder.DecodeVPS( vps );
-  this.m_parameterSetManagerDecoder.SetVPS(vps);
+    this.m_cEntropyDecoder.DecodeVPS(vps)
+    this.m_parameterSetManagerDecoder.SetVPS(vps)
 }
 func (this *TDecTop) xDecodeSPS() {
-  sps := TLibCommon.NewTComSPS();
-  this.m_cEntropyDecoder.DecodeSPS( sps );
-  this.m_parameterSetManagerDecoder.SetSPS(sps);
+    sps := TLibCommon.NewTComSPS()
+    this.m_cEntropyDecoder.DecodeSPS(sps)
+    this.m_parameterSetManagerDecoder.SetSPS(sps)
 }
 func (this *TDecTop) xDecodePPS() {
-  pps := TLibCommon.NewTComPPS();
-  this.m_cEntropyDecoder.DecodePPS( pps, this.m_parameterSetManagerDecoder );
-  this.m_parameterSetManagerDecoder.SetPPS( pps );
+    pps := TLibCommon.NewTComPPS()
+    this.m_cEntropyDecoder.DecodePPS(pps, this.m_parameterSetManagerDecoder)
+    this.m_parameterSetManagerDecoder.SetPPS(pps)
 
-//#if DEPENDENT_SLICES
-//#if REMOVE_ENTROPY_SLICES
-  if pps.GetDependentSliceEnabledFlag() {
-//#else
-//  if( pps.GetDependentSliceEnabledFlag() && (!pps.GetEntropySliceEnabledFlag()) )
-//#endif
-	var NumCtx int;
-	if pps.GetEntropyCodingSyncEnabledFlag(){
-    	NumCtx = 2;
-    }else{
-    	NumCtx = 1;
+    //#if DEPENDENT_SLICES
+    //#if REMOVE_ENTROPY_SLICES
+    if pps.GetDependentSliceEnabledFlag() {
+        //#else
+        //  if( pps.GetDependentSliceEnabledFlag() && (!pps.GetEntropySliceEnabledFlag()) )
+        //#endif
+        var NumCtx int
+        if pps.GetEntropyCodingSyncEnabledFlag() {
+            NumCtx = 2
+        } else {
+            NumCtx = 1
+        }
+        this.m_cSliceDecoder.InitCtxMem(uint(NumCtx))
+        for st := 0; st < NumCtx; st++ {
+            ctx := NewTDecSbac()
+            ctx.Init(this.m_cBinCabac)
+            this.m_cSliceDecoder.SetCtxMem(ctx, st)
+        }
     }
-    this.m_cSliceDecoder.InitCtxMem(uint(NumCtx));
-    for st := 0; st < NumCtx; st++ {
-      ctx := NewTDecSbac();
-      ctx.Init( this.m_cBinCabac );
-      this.m_cSliceDecoder.SetCtxMem( ctx, st );
-    }
-  }
-//#endif
+    //#endif
 }
 
 //#if SUFFIX_SEI_NUT_DECODED_HASH_SEI
 func (this *TDecTop) xDecodeSEI(bs *TLibCommon.TComInputBitstream, nalUnitType TLibCommon.NalUnitType) {
-  if this.m_SEIs == nil{
-//#if SUFFIX_SEI_NUT_DECODED_HASH_SEI
-    if (nalUnitType == TLibCommon.NAL_UNIT_SEI_SUFFIX) && (this.m_pcPic.GetSEIs()!=nil) {
-      this.m_SEIs = this.m_pcPic.GetSEIs();          // If suffix SEI and SEI already present, use already existing SEI structure
-    }else{
-      this.m_SEIs = TLibCommon.NewSEImessages();
+    if this.m_SEIs == nil {
+        //#if SUFFIX_SEI_NUT_DECODED_HASH_SEI
+        if (nalUnitType == TLibCommon.NAL_UNIT_SEI_SUFFIX) && (this.m_pcPic.GetSEIs() != nil) {
+            this.m_SEIs = this.m_pcPic.GetSEIs() // If suffix SEI and SEI already present, use already existing SEI structure
+        } else {
+            this.m_SEIs = TLibCommon.NewSEImessages()
+        }
+    } else {
+        //assert(nalUnitType != NAL_UNIT_SEI_SUFFIX);
     }
-  }else{
-    //assert(nalUnitType != NAL_UNIT_SEI_SUFFIX);
-  }
-/*#else
-  {
-    m_SEIs = new SEImessages;
-  }
-#endif*/
-  this.m_SEIs.SetSPS(this.m_parameterSetManagerDecoder.GetSPS(0));
-//#if SUFFIX_SEI_NUT_DECODED_HASH_SEI
-  this.m_cSeiReader.ParseSEImessage( bs, this.m_SEIs, nalUnitType );
-  if nalUnitType == TLibCommon.NAL_UNIT_SEI_SUFFIX {
-    if this.m_pcPic.GetSEIs()==nil{
-      this.m_pcPic.SetSEIs(this.m_SEIs); // Only suffix SEI present and new object created; update picture SEI variable
+    /*#else
+      {
+        m_SEIs = new SEImessages;
+      }
+    #endif*/
+    this.m_SEIs.SetSPS(this.m_parameterSetManagerDecoder.GetSPS(0))
+    //#if SUFFIX_SEI_NUT_DECODED_HASH_SEI
+    this.m_cSeiReader.ParseSEImessage(bs, this.m_SEIs, nalUnitType)
+    if nalUnitType == TLibCommon.NAL_UNIT_SEI_SUFFIX {
+        if this.m_pcPic.GetSEIs() == nil {
+            this.m_pcPic.SetSEIs(this.m_SEIs) // Only suffix SEI present and new object created; update picture SEI variable
+        }
+        this.m_SEIs = nil // SEI structure already updated using this pointer; not required now.
     }
-    this.m_SEIs = nil;  // SEI structure already updated using this pointer; not required now.
-  }
-//#else
-//  m_seiReader.parseSEImessage( bs, *m_SEIs );
-//#endif
+    //#else
+    //  m_seiReader.parseSEImessage( bs, *m_SEIs );
+    //#endif
 }

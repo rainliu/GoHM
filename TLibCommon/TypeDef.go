@@ -1,95 +1,129 @@
+/* The copyright in this software is being made available under the BSD
+ * License, included below. This software may be subject to other third party
+ * and contributor rights, including patent rights, and no such rights are
+ * granted under this license.
+ *
+ * Copyright (c) 2012-2013, H265.net
+ * All rights reserved.
+ *
+ * Redistribution and use in source and binary forms, with or without
+ * modification, are permitted provided that the following conditions are met:
+ *
+ *  * Redistributions of source code must retain the above copyright notice,
+ *    this list of conditions and the following disclaimer.
+ *  * Redistributions in binary form must reproduce the above copyright notice,
+ *    this list of conditions and the following disclaimer in the documentation
+ *    and/or other materials provided with the distribution.
+ *  * Neither the name of the H265.net nor the names of its contributors may
+ *    be used to endorse or promote products derived from this software without
+ *    specific prior written permission.
+ *
+ * THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS"
+ * AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE
+ * IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE
+ * ARE DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT HOLDER OR CONTRIBUTORS
+ * BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR
+ * CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF
+ * SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS
+ * INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN
+ * CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE)
+ * ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF
+ * THE POSSIBILITY OF SUCH DAMAGE.
+ */
+
 package TLibCommon
 
 import ()
 
 //! \ingroup TLibCommon
 //! \{
-const SUFFIX_SEI_NUT_DECODED_HASH_SEI             =1  ///< K0120: Use the suffix SEI NUT for the decoded hash SEI message
-const HLS_SEI_GENERIC_EXTENSION                   =1  ///< K0371: generic SEI payload extension mechanism
-const HLS_REMOVE_ACTIVE_PARAM_SET_SEI_EXT_FLAG    =1  ///< K0371: remove active_parameter_set_sei_extension_flag
-const HLS_ADD_SUBLAYER_ORDERING_INFO_PRESENT_FLAG =1  ///< K0330: Use sub_layer_ordering_info_present_flag in VPS and SPS as a shortcut to signal only one set of values
-const HLS_GROUP_SPS_PCM_FLAGS                     =1  ///< K0217: Group together syntax elements for PCM in SPS
-const HLS_EXTRA_SLICE_HEADER_BITS                 =1  ///< K0210: signal num_extra_slice_header_bits in PPS
-const HLS_MOVE_SPS_PICLIST_FLAGS                  =1  ///< K0170: move restricted_ref_pic_lists_flag and lists_modification_present_flag
-const HLS_ADD_VUI_PICSTRUCT_PRESENT_FLAG          =1  ///< add pic_struct_present_flag to VUI
-const HLS_DISPLAY_WINDOW_PLACEHOLDER              =1  ///< K0382: add display window flag placeholder
+const SUFFIX_SEI_NUT_DECODED_HASH_SEI = 1             ///< K0120: Use the suffix SEI NUT for the decoded hash SEI message
+const HLS_SEI_GENERIC_EXTENSION = 1                   ///< K0371: generic SEI payload extension mechanism
+const HLS_REMOVE_ACTIVE_PARAM_SET_SEI_EXT_FLAG = 1    ///< K0371: remove active_parameter_set_sei_extension_flag
+const HLS_ADD_SUBLAYER_ORDERING_INFO_PRESENT_FLAG = 1 ///< K0330: Use sub_layer_ordering_info_present_flag in VPS and SPS as a shortcut to signal only one set of values
+const HLS_GROUP_SPS_PCM_FLAGS = 1                     ///< K0217: Group together syntax elements for PCM in SPS
+const HLS_EXTRA_SLICE_HEADER_BITS = 1                 ///< K0210: signal num_extra_slice_header_bits in PPS
+const HLS_MOVE_SPS_PICLIST_FLAGS = 1                  ///< K0170: move restricted_ref_pic_lists_flag and lists_modification_present_flag
+const HLS_ADD_VUI_PICSTRUCT_PRESENT_FLAG = 1          ///< add pic_struct_present_flag to VUI
+const HLS_DISPLAY_WINDOW_PLACEHOLDER = 1              ///< K0382: add display window flag placeholder
 
-const VARYING_DBL_PARAMS                          =1  ///< K0289: Specifying varying deblocking parameters in GOP
+const VARYING_DBL_PARAMS = 1 ///< K0289: Specifying varying deblocking parameters in GOP
 
-const DISALLOW_LTRP_REPETITIONS                   =1  ///< K0123: Disallow duplicate LTRP entries in RPS
-const REMOVE_LTRP_LSB_RESTRICTIONS                =1  ///< K0123: Remove restrictions that LTRP LSBs have to be increasing/decreasing
-const POC_TEMPORAL_RELATIONSHIP                   =1  ///< K0120: Add syntax in SPS/VUI to indicate POC temporal relationship
-const SIGNAL_BITRATE_PICRATE_IN_VPS               =1  ///< K0125: Signal bit_rate and pic_rate in VPS
-const MOVE_SPS_TEMPORAL_ID_NESTING_FLAG           =1  ///< K0120: Move sps_temporal_id_nesting_flag and replace sps_reserved_zero_bit
-const CONDITION_SUBLAYERPROFILEPRESENTFLAG        =1  ///< K0125: Condition signalling of sub_layer_profile_present_flag
+const DISALLOW_LTRP_REPETITIONS = 1            ///< K0123: Disallow duplicate LTRP entries in RPS
+const REMOVE_LTRP_LSB_RESTRICTIONS = 1         ///< K0123: Remove restrictions that LTRP LSBs have to be increasing/decreasing
+const POC_TEMPORAL_RELATIONSHIP = 1            ///< K0120: Add syntax in SPS/VUI to indicate POC temporal relationship
+const SIGNAL_BITRATE_PICRATE_IN_VPS = 1        ///< K0125: Signal bit_rate and pic_rate in VPS
+const MOVE_SPS_TEMPORAL_ID_NESTING_FLAG = 1    ///< K0120: Move sps_temporal_id_nesting_flag and replace sps_reserved_zero_bit
+const CONDITION_SUBLAYERPROFILEPRESENTFLAG = 1 ///< K0125: Condition signalling of sub_layer_profile_present_flag
 
-const VPS_OPERATING_POINT                         =1  ///< K0204 - Operation point added to VPS
+const VPS_OPERATING_POINT = 1 ///< K0204 - Operation point added to VPS
 //#if VPS_OPERATING_POINT
-  const MAX_VPS_NUM_HRD_PARAMETERS                =1
-  const MAX_VPS_NUM_HRD_PARAMETERS_ALLOWED_PLUS1  =1024
-  const MAX_VPS_NUH_RESERVED_ZERO_LAYER_ID_PLUS1  =1
+const MAX_VPS_NUM_HRD_PARAMETERS = 1
+const MAX_VPS_NUM_HRD_PARAMETERS_ALLOWED_PLUS1 = 1024
+const MAX_VPS_NUH_RESERVED_ZERO_LAYER_ID_PLUS1 = 1
+
 //#endif
-const SEI_DISPLAY_ORIENTATION                     =1  ///< Display orientation SEI message
-const SEI_TEMPORAL_LEVEL0_INDEX                   =1  ///< K0205 - Temporal level zero index SEI message
+const SEI_DISPLAY_ORIENTATION = 1   ///< Display orientation SEI message
+const SEI_TEMPORAL_LEVEL0_INDEX = 1 ///< K0205 - Temporal level zero index SEI message
 
-const RATE_CONTROL_LAMBDA_DOMAIN                  =1  ///< JCTVC-K0103, rate control by R-lambda model
+const RATE_CONTROL_LAMBDA_DOMAIN = 1 ///< JCTVC-K0103, rate control by R-lambda model
 
-const MIN_SPATIAL_SEGMENTATION                    =1  ///< JCTVC-K0236
-const SAVE_BITS_REFPICLIST_MOD_FLAG               =1  ///< K0224 Proposal#1: Send ref_pic_list_modification_flag_lX only when NumPocTotalCurr is greater than 1.
+const MIN_SPATIAL_SEGMENTATION = 1      ///< JCTVC-K0236
+const SAVE_BITS_REFPICLIST_MOD_FLAG = 1 ///< K0224 Proposal#1: Send ref_pic_list_modification_flag_lX only when NumPocTotalCurr is greater than 1.
 
-const VPS_REARRANGE                               =1  ///< JCTVC-K0254
-const HRD_BUFFER                                  =1  ///< JCTVC-K0221
+const VPS_REARRANGE = 1 ///< JCTVC-K0254
+const HRD_BUFFER = 1    ///< JCTVC-K0221
 
-const USE_PIC_CHROMA_QP_OFFSETS_IN_DEBLOCKING     =1  ///< K0220: Use picture-based chroma QP offsets in deblocking filter.
+const USE_PIC_CHROMA_QP_OFFSETS_IN_DEBLOCKING = 1 ///< K0220: Use picture-based chroma QP offsets in deblocking filter.
 
-const REMOVE_BURST_IPCM                			  =1  /// Ticket763
-const REMOVE_ENTROPY_SLICES 					  =1
+const REMOVE_BURST_IPCM = 1 /// Ticket763
+const REMOVE_ENTROPY_SLICES = 1
 
-const DEPENDENT_SLICE_SEGMENT_FLAGS   			  =1   ///< K0184: Move dependent_slice_enabled_flag after seq_parameter_set_id in PPS.
-                                            ///< Move dependent_slice_flag between pic_parameter_set_id and slice_address.
-const SPS_INTER_REF_SET_PRED      				  =1   ///< K0136: Not send inter_ref_pic_set_prediction_flag for index 0
-const HM9_NALU_TYPES 						      =1
+const DEPENDENT_SLICE_SEGMENT_FLAGS = 1 ///< K0184: Move dependent_slice_enabled_flag after seq_parameter_set_id in PPS.
+///< Move dependent_slice_flag between pic_parameter_set_id and slice_address.
+const SPS_INTER_REF_SET_PRED = 1 ///< K0136: Not send inter_ref_pic_set_prediction_flag for index 0
+const HM9_NALU_TYPES = 1
 
-const STRONG_INTRA_SMOOTHING          			  =1  ///< Enables Bilinear interploation of reference samples instead of 121 filter in intra prediction when reference samples are flat.
+const STRONG_INTRA_SMOOTHING = 1 ///< Enables Bilinear interploation of reference samples instead of 121 filter in intra prediction when reference samples are flat.
 
-const RESTRICT_INTRA_BOUNDARY_SMOOTHING    		  =1  ///< K0380, K0186
-const LINEBUF_CLEANUP               			  =1 ///< K0101
-const MERGE_CLEANUP_AND_K0197     				  =1  //<Code cleanup and K0197: removal of indirect use of A1 and B1 in merging candidate list construction.
-const RPL_INIT_FIX 								  =1 ///< K0255 2nd part (editorial)
+const RESTRICT_INTRA_BOUNDARY_SMOOTHING = 1 ///< K0380, K0186
+const LINEBUF_CLEANUP = 1                   ///< K0101
+const MERGE_CLEANUP_AND_K0197 = 1           //<Code cleanup and K0197: removal of indirect use of A1 and B1 in merging candidate list construction.
+const RPL_INIT_FIX = 1                      ///< K0255 2nd part (editorial)
 
-const MAX_CPB_CNT                     			  =32  ///< Upper bound of (cpb_cnt_minus1 + 1)
-const MAX_NUM_LAYER_IDS                			  =64
+const MAX_CPB_CNT = 32 ///< Upper bound of (cpb_cnt_minus1 + 1)
+const MAX_NUM_LAYER_IDS = 64
 
-const FLAT_4x4_DSL 								  =1 ///< Use flat 4x4 default scaling list (see notes on K0203)
+const FLAT_4x4_DSL = 1 ///< Use flat 4x4 default scaling list (see notes on K0203)
 
-const RDOQ_TRANSFORMSKIP          				  =1   // Enable RDOQ for transform skip (see noted on K0245)
+const RDOQ_TRANSFORMSKIP = 1 // Enable RDOQ for transform skip (see noted on K0245)
 
-const COEF_REMAIN_BIN_REDUCTION        =3 ///< indicates the level at which the VLC
-                                           ///< transitions from Golomb-Rice to TU+EG(k)
+const COEF_REMAIN_BIN_REDUCTION = 3 ///< indicates the level at which the VLC
+///< transitions from Golomb-Rice to TU+EG(k)
 
-const CU_DQP_TU_CMAX =5                   ///< max number bins for truncated unary
-const CU_DQP_EG_k =0                      ///< expgolomb order
+const CU_DQP_TU_CMAX = 5 ///< max number bins for truncated unary
+const CU_DQP_EG_k = 0    ///< expgolomb order
 
-const SBH_THRESHOLD                    =4  ///< I0156: value of the fixed SBH controlling threshold
+const SBH_THRESHOLD = 4 ///< I0156: value of the fixed SBH controlling threshold
 
-const SEQUENCE_LEVEL_LOSSLESS           =0  ///< H0530: used only for sequence or frame-level lossless coding
+const SEQUENCE_LEVEL_LOSSLESS = 0 ///< H0530: used only for sequence or frame-level lossless coding
 
-const DISABLING_CLIP_FOR_BIPREDME         =1  ///< Ticket #175
+const DISABLING_CLIP_FOR_BIPREDME = 1 ///< Ticket #175
 
-const C1FLAG_NUMBER               =8 // maximum number of largerThan1 flag coded in one chunk :  16 in HM5
-const C2FLAG_NUMBER               =1 // maximum number of largerThan2 flag coded in one chunk:  16 in HM5
+const C1FLAG_NUMBER = 8 // maximum number of largerThan1 flag coded in one chunk :  16 in HM5
+const C2FLAG_NUMBER = 1 // maximum number of largerThan2 flag coded in one chunk:  16 in HM5
 
-const REMOVE_SAO_LCU_ENC_CONSTRAINTS_3 =1  ///< disable the encoder constraint that conditionally disable SAO for chroma for entire slice in interleaved mode
+const REMOVE_SAO_LCU_ENC_CONSTRAINTS_3 = 1 ///< disable the encoder constraint that conditionally disable SAO for chroma for entire slice in interleaved mode
 
-const SAO_SKIP_RIGHT                   =1  ///< H1101: disallow using unavailable pixel during RDO
+const SAO_SKIP_RIGHT = 1 ///< H1101: disallow using unavailable pixel during RDO
 
-const SAO_ENCODING_CHOICE              =1  ///< I0184: picture early termination
+const SAO_ENCODING_CHOICE = 1 ///< I0184: picture early termination
 //#if SAO_ENCODING_CHOICE
-const SAO_ENCODING_RATE                =0.75
-const SAO_ENCODING_CHOICE_CHROMA       =1 ///< J0044: picture early termination Luma and Chroma are handled separatenly
+const SAO_ENCODING_RATE = 0.75
+const SAO_ENCODING_CHOICE_CHROMA = 1 ///< J0044: picture early termination Luma and Chroma are handled separatenly
 //#if SAO_ENCODING_CHOICE_CHROMA
-const SAO_ENCODING_RATE_CHROMA         =0.5
-const SAO_ENCODING_CHOICE_CHROMA_BF    =1 ///  K0156: Bug fix for SAO selection consistency
+const SAO_ENCODING_RATE_CHROMA = 0.5
+const SAO_ENCODING_CHOICE_CHROMA_BF = 1 ///  K0156: Bug fix for SAO selection consistency
 //#endif
 //#endif
 
@@ -260,55 +294,54 @@ const ( //enum SAOType
     MAX_NUM_SAO_TYPE
 )
 
+type SAOQTPart struct {
+    iBestType  int
+    iLength    int
+    subTypeIdx int ///< indicates EO class or BO band position
+    iOffset    [4]int
+    StartCUX   int
+    StartCUY   int
+    EndCUX     int
+    EndCUY     int
 
-type SAOQTPart struct{
-  iBestType		int;
-  iLength		int;
-  subTypeIdx 	int;                 ///< indicates EO class or BO band position
-  iOffset	[4]int;
-  StartCUX		int;
-  StartCUY		int;
-  EndCUX		int;
-  EndCUY		int;
+    PartIdx   int
+    PartLevel int
+    PartCol   int
+    PartRow   int
 
-  PartIdx		int;
-  PartLevel		int;
-  PartCol		int;
-  PartRow		int;
+    DownPartsIdx [NUM_DOWN_PART]int
+    UpPartIdx    int
 
-  DownPartsIdx	[NUM_DOWN_PART]int;
-  UpPartIdx		int;
+    bSplit bool
 
-  bSplit		bool;
+    //---- encoder only start -----//
+    bProcessed bool
+    dMinCost   float64
+    iMinDist   int
+    iMinRate   int
+    //---- encoder only end -----//
+}
 
-  //---- encoder only start -----//
-  bProcessed	bool;
-  dMinCost		float64;
-  iMinDist		int;
-  iMinRate		int;
-  //---- encoder only end -----//
-} ;
+type SaoLcuParam struct {
+    MergeUpFlag   bool
+    MergeLeftFlag bool
+    TypeIdx       int
+    SubTypeIdx    int ///< indicates EO class or BO band position
+    Offset        [4]int
+    PartIdx       int
+    PartIdxTmp    int
+    Length        int
+}
 
-type SaoLcuParam struct{
-  MergeUpFlag		bool;
-  MergeLeftFlag		bool;
-  TypeIdx			int;
-  SubTypeIdx		int;                  ///< indicates EO class or BO band position
-  Offset			[4]int;
-  PartIdx			int;
-  PartIdxTmp		int;
-  Length			int;
-};
-
-type SAOParam struct{
-  SaoFlag			[2]bool;
-  SaoPart			[3][]SAOQTPart;
-  MaxSplitLevel		int;
-  OneUnitFlag		[3]bool;
-  SaoLcuParam		[3][]SaoLcuParam;
-  NumCuInHeight		int;
-  NumCuInWidth		int;
-};
+type SAOParam struct {
+    SaoFlag       [2]bool
+    SaoPart       [3][]SAOQTPart
+    MaxSplitLevel int
+    OneUnitFlag   [3]bool
+    SaoLcuParam   [3][]SaoLcuParam
+    NumCuInHeight int
+    NumCuInWidth  int
+}
 
 /// parameters for deblocking filter
 type LFCUParam struct {
@@ -466,9 +499,9 @@ const ( //enum MVP_DIR
 type COEFF_SCAN_TYPE uint8
 
 const ( //enum COEFF_SCAN_TYPE
-  SCAN_DIAG = iota         ///< up-right diagonal scan
-  SCAN_HOR              ///< horizontal first scan
-  SCAN_VER               ///< vertical first scan
+    SCAN_DIAG = iota ///< up-right diagonal scan
+    SCAN_HOR         ///< horizontal first scan
+    SCAN_VER         ///< vertical first scan
 )
 
 //namespace Profile
