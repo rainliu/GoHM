@@ -55,8 +55,8 @@ type TDecGop struct {
     m_pcEntropyDecoder             *TDecEntropy
     m_pcSbacDecoder                *TDecSbac
     m_pcBinCABAC                   *TDecBinCabac
-    m_pcSbacDecoders               []TDecSbac // independant CABAC decoders
-    m_pcBinCABACs                  []TDecBinCabac
+    m_pcSbacDecoders               []*TDecSbac // independant CABAC decoders
+    m_pcBinCABACs                  []*TDecBinCabac
     m_pcCavlcDecoder               *TDecCavlc
     m_pcSliceDecoder               *TDecSlice
     m_pcLoopFilter                 *TLibCommon.TComLoopFilter
@@ -128,10 +128,12 @@ func (this *TDecGop) DecompressSlice(pcBitstream *TLibCommon.TComInputBitstream,
     // init each couple {EntropyDecoder, Substream}
     puiSubstreamSizes := pcSlice.GetSubstreamSizes()
     ppcSubstreams := make([]*TLibCommon.TComInputBitstream, uiNumSubstreams)
-    this.m_pcSbacDecoders = make([]TDecSbac, uiNumSubstreams)
-    this.m_pcBinCABACs = make([]TDecBinCabac, uiNumSubstreams)
+    this.m_pcSbacDecoders = make([]*TDecSbac, uiNumSubstreams)
+    this.m_pcBinCABACs = make([]*TDecBinCabac, uiNumSubstreams)
     for ui := uint(0); ui < uiNumSubstreams; ui++ {
-        this.m_pcSbacDecoders[ui].Init(&this.m_pcBinCABACs[ui])
+    	this.m_pcSbacDecoders[ui] = NewTDecSbac();
+    	this.m_pcBinCABACs[ui]    = NewTDecBinCabac();
+        this.m_pcSbacDecoders[ui].Init(this.m_pcBinCABACs[ui])
         if ui+1 < uiNumSubstreams {
             ppcSubstreams[ui] = pcBitstream.ExtractSubstream(puiSubstreamSizes[ui])
         } else {
@@ -140,7 +142,7 @@ func (this *TDecGop) DecompressSlice(pcBitstream *TLibCommon.TComInputBitstream,
     }
 
     for ui := uint(0); ui+1 < uiNumSubstreams; ui++ {
-        this.m_pcEntropyDecoder.SetEntropyDecoder(&this.m_pcSbacDecoders[uiNumSubstreams-1-ui])
+        this.m_pcEntropyDecoder.SetEntropyDecoder(this.m_pcSbacDecoders[uiNumSubstreams-1-ui])
         this.m_pcEntropyDecoder.SetTraceFile(pTraceFile)
         this.m_pcEntropyDecoder.SetBitstream(ppcSubstreams[uiNumSubstreams-1-ui])
         this.m_pcEntropyDecoder.ResetEntropy(pcSlice)

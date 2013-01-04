@@ -74,7 +74,7 @@ func (this *TDecSlice) Destroy() {
 }
 
 func (this *TDecSlice) DecompressSlice(pcBitstream *TLibCommon.TComInputBitstream, ppcSubstreams []*TLibCommon.TComInputBitstream,
-    rpcPic *TLibCommon.TComPic, pcSbacDecoder *TDecSbac, pcSbacDecoders []TDecSbac) {
+    rpcPic *TLibCommon.TComPic, pcSbacDecoder *TDecSbac, pcSbacDecoders []*TDecSbac) {
     //var pcCU *TLibCommon.TComDataCU;
     uiIsLast := uint(0)
     var iStartCUEncOrder uint
@@ -243,7 +243,7 @@ func (this *TDecSlice) DecompressSlice(pcBitstream *TLibCommon.TComInputBitstrea
                     pcSbacDecoders[uiSubStrm].LoadContexts(this.m_pcBufferSbacDecoders[uiTileCol])
                 }
             }
-            pcSbacDecoder.Load(&pcSbacDecoders[uiSubStrm]) //this load is used to simplify the code (avoid to change all the call to pcSbacDecoders)
+            pcSbacDecoder.Load(pcSbacDecoders[uiSubStrm]) //this load is used to simplify the code (avoid to change all the call to pcSbacDecoders)
         } else if pcSlice.GetPPS().GetNumSubstreams() <= 1 {
             // Set variables to appropriate values to avoid later code change.
             iNumSubstreamsPerTile = 1
@@ -321,7 +321,7 @@ func (this *TDecSlice) DecompressSlice(pcBitstream *TLibCommon.TComInputBitstrea
             //#else
             //    if (pcSlice.GetPPS().GetNumSubstreams() > 1 && (uiCol == uiTileLCUX+1))
             //#endif
-            this.m_pcBufferSbacDecoders[uiTileCol].LoadContexts(&pcSbacDecoders[uiSubStrm])
+            this.m_pcBufferSbacDecoders[uiTileCol].LoadContexts(pcSbacDecoders[uiSubStrm])
         }
         //#if DEPENDENT_SLICES
         if uiIsLast != 0 && bAllowDependence {
