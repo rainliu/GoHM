@@ -495,19 +495,19 @@ func (this *TComYuv) AddAvg(pcYuvSrc0 *TComYuv, pcYuvSrc1 *TComYuv, iPartUnitIdx
     iDstStride := this.GetStride()
 
     shiftNum := uint(IF_INTERNAL_PREC + 1 - G_bitDepthY)
-    offset := Pel((1 << (shiftNum - 1)) + 2*IF_INTERNAL_OFFS)
+    offset := int((1 << (shiftNum - 1)) + 2*IF_INTERNAL_OFFS)
 
     for y = 0; y < iHeight; y++ {
         for x = 0; x < iWidth; x += 4 {
-            pDstY[y*iDstStride+x+0] = ClipY((pSrcY0[y*iSrc0Stride+x+0] + pSrcY1[y*iSrc1Stride+x+0] + offset) >> shiftNum)
-            pDstY[y*iDstStride+x+1] = ClipY((pSrcY0[y*iSrc0Stride+x+1] + pSrcY1[y*iSrc1Stride+x+1] + offset) >> shiftNum)
-            pDstY[y*iDstStride+x+2] = ClipY((pSrcY0[y*iSrc0Stride+x+2] + pSrcY1[y*iSrc1Stride+x+2] + offset) >> shiftNum)
-            pDstY[y*iDstStride+x+3] = ClipY((pSrcY0[y*iSrc0Stride+x+3] + pSrcY1[y*iSrc1Stride+x+3] + offset) >> shiftNum)
+            pDstY[y*iDstStride+x+0] = ClipY(Pel((int(pSrcY0[y*iSrc0Stride+x+0]) + int(pSrcY1[y*iSrc1Stride+x+0]) + offset) >> shiftNum))
+            pDstY[y*iDstStride+x+1] = ClipY(Pel((int(pSrcY0[y*iSrc0Stride+x+1]) + int(pSrcY1[y*iSrc1Stride+x+1]) + offset) >> shiftNum))
+            pDstY[y*iDstStride+x+2] = ClipY(Pel((int(pSrcY0[y*iSrc0Stride+x+2]) + int(pSrcY1[y*iSrc1Stride+x+2]) + offset) >> shiftNum))
+            pDstY[y*iDstStride+x+3] = ClipY(Pel((int(pSrcY0[y*iSrc0Stride+x+3]) + int(pSrcY1[y*iSrc1Stride+x+3]) + offset) >> shiftNum))
         }
     }
 
     shiftNum = uint(IF_INTERNAL_PREC + 1 - G_bitDepthC)
-    offset = Pel((1 << (shiftNum - 1)) + 2*IF_INTERNAL_OFFS)
+    offset = int((1 << (shiftNum - 1)) + 2*IF_INTERNAL_OFFS)
 
     iSrc0Stride = pcYuvSrc0.GetCStride()
     iSrc1Stride = pcYuvSrc1.GetCStride()
@@ -519,10 +519,10 @@ func (this *TComYuv) AddAvg(pcYuvSrc0 *TComYuv, pcYuvSrc1 *TComYuv, iPartUnitIdx
     for y = 0; y < iHeight; y++ {
         for x = 0; x < iWidth; x += 2 {
             // note: chroma min width is 2
-            pDstU[y*iDstStride+x+0] = ClipC((pSrcU0[y*iSrc0Stride+x+0] + pSrcU1[y*iSrc1Stride+x+0] + offset) >> shiftNum)
-            pDstV[y*iDstStride+x+0] = ClipC((pSrcV0[y*iSrc0Stride+x+0] + pSrcV1[y*iSrc1Stride+x+0] + offset) >> shiftNum)
-            pDstU[y*iDstStride+x+1] = ClipC((pSrcU0[y*iSrc0Stride+x+1] + pSrcU1[y*iSrc1Stride+x+1] + offset) >> shiftNum)
-            pDstV[y*iDstStride+x+1] = ClipC((pSrcV0[y*iSrc0Stride+x+1] + pSrcV1[y*iSrc1Stride+x+1] + offset) >> shiftNum)
+            pDstU[y*iDstStride+x+0] = ClipC(Pel((int(pSrcU0[y*iSrc0Stride+x+0]) + int(pSrcU1[y*iSrc1Stride+x+0]) + offset) >> shiftNum))
+            pDstV[y*iDstStride+x+0] = ClipC(Pel((int(pSrcV0[y*iSrc0Stride+x+0]) + int(pSrcV1[y*iSrc1Stride+x+0]) + offset) >> shiftNum))
+            pDstU[y*iDstStride+x+1] = ClipC(Pel((int(pSrcU0[y*iSrc0Stride+x+1]) + int(pSrcU1[y*iSrc1Stride+x+1]) + offset) >> shiftNum))
+            pDstV[y*iDstStride+x+1] = ClipC(Pel((int(pSrcV0[y*iSrc0Stride+x+1]) + int(pSrcV1[y*iSrc1Stride+x+1]) + offset) >> shiftNum))
         }
     }
 }

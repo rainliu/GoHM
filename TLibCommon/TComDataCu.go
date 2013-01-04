@@ -2444,7 +2444,7 @@ func (this *TComDataCU) SetNDBFilterBlockBorderAvailability(numLCUInPicWidth, nu
 
     //for i:=uint(0); i< numSGU; i++ {
     for e := this.m_vNDFBlock.Front(); e != nil; e = e.Next() {
-        rSGU := e.Value.(NDBFBlockInfo) //this.m_vNDFBlock[i];
+        rSGU := e.Value.(*NDBFBlockInfo) //this.m_vNDFBlock[i];
 
         sliceID = rSGU.sliceID
         uiLPelX = rSGU.posX

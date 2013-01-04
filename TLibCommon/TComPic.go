@@ -464,7 +464,7 @@ func (this *TComPic) CreateNonDBFilterInfoLCU(tileID, sliceID int, pcCU *TComDat
             break
         }
 
-        var NDBFBlock NDBFBlockInfo
+        NDBFBlock:=&NDBFBlockInfo{};
 
         NDBFBlock.tileID = tileID
         NDBFBlock.sliceID = sliceID
