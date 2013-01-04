@@ -74,7 +74,7 @@ func (this *TAppDecTop) Destroy() {
 func (this *TAppDecTop) Decode() (err error) {
     var poc int
     var pcListPic *list.List // = NULL;
-    var nalUnit *list.List   //vector<uint8_t>
+    var nalUnit, oldNalUnit *list.List   //vector<uint8_t>
     var nalu TLibDecoder.InputNALUnit
 
     bitstreamFile, err := os.Open(this.m_pchBitstreamFile)
@@ -108,6 +108,8 @@ func (this *TAppDecTop) Decode() (err error) {
         if !bNewPicture {
             nalUnit = list.New() //vector<uint8_t>
             eof = bytestream.ByteStreamNALUnit(nalUnit, &stats)
+        }else{
+        	nalUnit = oldNalUnit;
         }
 
         // call actual decoding function
@@ -120,8 +122,9 @@ func (this *TAppDecTop) Decode() (err error) {
             fmt.Printf("Warning: Attempt to decode an empty NAL unit\n")
             break
         } else {
-            //fmt.Printf("NalUnit Len=%d\n", nalUnit.Len())
-            nalu.Read(nalUnit)
+        	fmt.Printf("NalUnit Len=%d\n", nalUnit.Len())
+            oldNalUnit=nalu.Read(nalUnit)
+            
             //fmt.Printf("Type=%d\n", nalu.GetNalUnitType())
 
             if (this.m_iMaxTemporalLayer >= 0 && int(nalu.GetTemporalId()) > this.m_iMaxTemporalLayer) ||
