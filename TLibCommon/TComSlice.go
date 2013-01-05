@@ -72,7 +72,7 @@ type TComReferencePictureSet struct {
 
 //public:
 func NewTComReferencePictureSet() *TComReferencePictureSet {
-    return &TComReferencePictureSet{}
+    return &TComReferencePictureSet{} //init by go
 }
 
 func (this *TComReferencePictureSet) GetPocLSBLT(i int) int {
@@ -272,7 +272,10 @@ type TComScalingList struct {
 
 //public:
 func NewTComScalingList() *TComScalingList {
-    return &TComScalingList{}
+    sl := &TComScalingList{m_useTransformSkip:false}
+    sl.Init();
+
+    return sl;
 }
 
 func (this *TComScalingList) SetScalingListPresentFlag(b bool) {
@@ -469,7 +472,7 @@ func (this *TComScalingList) XParseScalingList(pchFile string) bool { //Encoder 
 }
 
 //private:
-func (this *TComScalingList) init() {
+func (this *TComScalingList) Init() {
     for sizeId := uint(0); sizeId < SCALING_LIST_SIZE_NUM; sizeId++ {
         for listId := uint(0); listId < G_scalingListNum[sizeId]; listId++ {
             var l int
@@ -483,7 +486,7 @@ func (this *TComScalingList) init() {
     }
     this.m_scalingListCoef[SCALING_LIST_32x32][3] = this.m_scalingListCoef[SCALING_LIST_32x32][1] // copy address for 32x32
 }
-func (this *TComScalingList) destroy() {
+func (this *TComScalingList) Destroy() {
     /*for sizeId := 0; sizeId < SCALING_LIST_SIZE_NUM; sizeId++ {
       for listId := 0; listId < g_scalingListNum[sizeId]; listId++ {
         if m_scalingListCoef[sizeId][listId]) delete [] m_scalingListCoef[sizeId][listId];
@@ -503,7 +506,7 @@ type ProfileTierLevel struct {
 
 //public:
 func NewProfileTierLevel() *ProfileTierLevel {
-    return &ProfileTierLevel{}
+    return &ProfileTierLevel{} //init zero by go
 }
 
 func (this *ProfileTierLevel) GetProfileSpace() int {
@@ -550,7 +553,7 @@ type TComPTL struct {
 
 //public:
 func NewTComPTL() *TComPTL {
-    return &TComPTL{}
+    return &TComPTL{} //init zero by go
 }
 func (this *TComPTL) GetSubLayerProfilePresentFlag(i int) bool {
     return this.m_subLayerProfilePresentFlag[i]
@@ -586,7 +589,7 @@ type TComBitRatePicRateInfo struct {
 }
 
 func NewTComBitRatePicRateInfo() *TComBitRatePicRateInfo {
-    return &TComBitRatePicRateInfo{}
+    return &TComBitRatePicRateInfo{} //init zero by go
 }
 
 func (this *TComBitRatePicRateInfo) GetBitRateInfoPresentFlag(i int) bool {
@@ -1362,8 +1365,10 @@ type TComSPS struct {
 
     m_bUseLComb bool
 
+/*#if !HLS_MOVE_SPS_PICLIST_FLAGS
     m_restrictedRefPicListsFlag    bool
     m_listsModificationPresentFlag bool
+#endif*/ /* !HLS_MOVE_SPS_PICLIST_FLAGS */
 
     // Parameter
     m_bitDepthY   int
@@ -1396,9 +1401,9 @@ type TComSPS struct {
     m_uiMaxLatencyIncrease   [MAX_TLAYER]uint
 
     m_useDF bool
-    //NTRA_SMOOTHING
+    //#if STRONG_INTRA_SMOOTHING
     m_useStrongIntraSmoothing bool
-    //
+    //#endif
 
     m_vuiParametersPresentFlag bool
     m_vuiParameters            TComVUI
@@ -1410,7 +1415,62 @@ type TComSPS struct {
 
 //public:
 func NewTComSPS() *TComSPS {
-    sps := &TComSPS{}
+    sps := &TComSPS{ m_SPSId                     :  0        ,
+                     m_VPSId                     :  0        ,
+                     m_chromaFormatIdc           :CHROMA_420 ,
+                     m_uiMaxTLayers              :  1        ,
+                     // Structure
+                     m_picWidthInLumaSamples     :352        ,
+                     m_picHeightInLumaSamples    :288        ,
+                     m_uiMaxCUWidth              : 32        ,
+                     m_uiMaxCUHeight             : 32        ,
+                     m_uiMaxCUDepth              :  3        ,
+                     m_uiMinTrDepth              :  0        ,
+                     m_uiMaxTrDepth              :  1        ,
+                     m_bLongTermRefsPresent      :false      ,
+                     m_uiQuadtreeTULog2MaxSize   :  0        ,
+                     m_uiQuadtreeTULog2MinSize   :  0        ,
+                     m_uiQuadtreeTUMaxDepthInter :  0        ,
+                     m_uiQuadtreeTUMaxDepthIntra :  0        ,
+                     // Tool list
+                     m_usePCM                    :false      ,
+                     m_pcmLog2MaxSize            :  5        ,
+                     m_uiPCMLog2MinSize          :  7        ,
+                     m_bUseLComb                 :false      ,
+                    /*#if !HLS_MOVE_SPS_PICLIST_FLAGS
+                     m_restrictedRefPicListsFlag   :  1      ,
+                     m_listsModificationPresentFlag:  0      ,
+                    #endif*/ /* !HLS_MOVE_SPS_PICLIST_FLAGS */
+                     m_bitDepthY                 :  8        ,
+                     m_bitDepthC                 :  8        ,
+                     m_qpBDOffsetY               :  0        ,
+                     m_qpBDOffsetC               :  0        ,
+                     m_useLossless               :false      ,
+                     m_uiPCMBitDepthLuma         :  8        ,
+                     m_uiPCMBitDepthChroma       :  8        ,
+                     m_bPCMFilterDisableFlag     :false      ,
+                     m_uiBitsForPOC              :  8        ,
+                     m_numLongTermRefPicSPS      :  0        ,
+                     m_uiMaxTrSize               : 32        ,
+                     m_bUseSAO                   :false      ,
+                     m_bTemporalIdNestingFlag    :false      ,
+                     m_scalingListEnabledFlag    :false      ,
+                     //#if STRONG_INTRA_SMOOTHING
+                     m_useStrongIntraSmoothing   :false      ,
+                     //#endif
+                     m_vuiParametersPresentFlag  :false      }
+
+    for i := 0; i < MAX_TLAYER; i++ {
+      sps.m_uiMaxLatencyIncrease[i] = 0;
+      sps.m_uiMaxDecPicBuffering[i] = 0;
+      sps.m_numReorderPics[i]       = 0;
+    }
+    sps.m_scalingList = NewTComScalingList();
+    for i:=0; i<33; i++ {
+        sps.m_ltRefPicPocLsbSps[i] = 0;
+        sps.m_usedByCurrPicLtSPSFlag[i] = false;
+    }
+
     sps.m_picCroppingWindow = NewCroppingWindow()
     sps.m_cropUnitX[0] = 1
     sps.m_cropUnitX[1] = 2
@@ -1625,7 +1685,7 @@ func (this *TComSPS) GetUseLossless() bool {
 func (this *TComSPS) SetUseLossless(b bool) {
     this.m_useLossless = b
 }
-
+/*#if !HLS_MOVE_SPS_PICLIST_FLAGS
 func (this *TComSPS) GetRestrictedRefPicListsFlag() bool {
     return this.m_restrictedRefPicListsFlag
 }
@@ -1638,6 +1698,7 @@ func (this *TComSPS) GetListsModificationPresentFlag() bool {
 func (this *TComSPS) SetListsModificationPresentFlag(b bool) {
     this.m_listsModificationPresentFlag = b
 }
+#endif*/ /* !HLS_MOVE_SPS_PICLIST_FLAGS */
 
 // AMP accuracy
 func (this *TComSPS) GetAMPAcc(uiDepth uint) int {
@@ -1879,7 +1940,7 @@ type TComRefPicListModification struct {
 
 //public:
 func NewTComRefPicListModification() *TComRefPicListModification {
-    return &TComRefPicListModification{}
+    return &TComRefPicListModification{} //init zero by go
 }
 
 func (this *TComRefPicListModification) Create() {
@@ -1983,7 +2044,49 @@ type TComPPS struct {
 
 //public:
 func NewTComPPS() *TComPPS {
-    return &TComPPS{}
+    pps := &TComPPS{ m_PPSId                       :0               ,
+                     m_SPSId                       :0               ,
+                     m_picInitQPMinus26            :0               ,
+                     m_useDQP                      :false           ,
+                     m_bConstrainedIntraPred       :false           ,
+                     m_bSliceChromaQpFlag          :false           ,
+                     m_pcSPS                       :nil             ,
+                     m_uiMaxCuDQPDepth             :0               ,
+                     m_uiMinCuDQPSize              :0               ,
+                     m_chromaCbQpOffset            :0               ,
+                     m_chromaCrQpOffset            :0               ,
+                     m_numRefIdxL0DefaultActive    :1               ,
+                     m_numRefIdxL1DefaultActive    :1               ,
+                     m_TransquantBypassEnableFlag  :false           ,
+                     m_useTransformSkip            :false           ,
+                     m_dependentSliceEnabledFlag   :false           ,
+                     m_tilesEnabledFlag            :false           ,
+                     m_entropyCodingSyncEnabledFlag:false           ,
+                     /*#if !REMOVE_ENTROPY_SLICES
+                     m_entropySliceEnabledFlag     :false           ,
+                     #endif*/
+                     m_loopFilterAcrossTilesEnabledFlag:true        ,
+                     m_uniformSpacingFlag           :false          ,
+                     m_iNumColumnsMinus1            :0              ,
+                     m_puiColumnWidth               :nil            ,
+                     m_iNumRowsMinus1               :0              ,
+                     m_puiRowHeight                 :nil            ,
+                     m_iNumSubstreams               :1              ,
+                     m_signHideFlag                 :false          ,
+                     m_cabacInitPresentFlag         :false          ,
+                     m_encCABACTableIdx             :I_SLICE        ,
+                     m_sliceHeaderExtensionPresentFlag   :false     ,
+                     m_loopFilterAcrossSlicesEnabledFlag :false     ,
+                     //#if HLS_MOVE_SPS_PICLIST_FLAGS
+                     m_listsModificationPresentFlag :false          ,
+                     //#endif /* HLS_MOVE_SPS_PICLIST_FLAGS */
+                     //#if HLS_EXTRA_SLICE_HEADER_BITS
+                     m_numExtraSliceHeaderBits      :0              };
+                      //#endif /* HLS_EXTRA_SLICE_HEADER_BITS */
+
+  pps.m_scalingList = NewTComScalingList();
+
+  return pps;
 }
 
 func (this *TComPPS) GetPPSId() int {
@@ -2278,7 +2381,7 @@ func (this *TComPPS) SetSliceHeaderExtensionPresentFlag(val bool) {
     this.m_sliceHeaderExtensionPresentFlag = val
 }
 
-type wpScalingParam struct {
+type WpScalingParam struct {
     // Explicit weighted prediction parameters parsed in slice header,
     // or Implicit weighted prediction parameters (8 bits depth values).
     bPresentFlag      bool
@@ -2288,6 +2391,31 @@ type wpScalingParam struct {
 
     // Weighted prediction scaling values built from above parameters (bitdepth scaled):
     w, o, offset, shift, round int
+}
+
+func (this *WpScalingParam) SetPresentFlag(bPresentFlag bool) {
+    this.bPresentFlag = bPresentFlag;
+}
+func (this *WpScalingParam) SetLog2WeightDenom(uiLog2WeightDenom uint) {
+    this.uiLog2WeightDenom = uiLog2WeightDenom;
+}
+func (this *WpScalingParam) SetWeight(iWeight int ) {
+    this.iWeight = iWeight;
+}
+func (this *WpScalingParam) SetOffset(iOffset int) {
+    this.iOffset = iOffset;
+}
+func (this *WpScalingParam) GetPresentFlag() bool {
+    return this.bPresentFlag;
+}
+func (this *WpScalingParam) GetLog2WeightDenom() uint {
+    return this.uiLog2WeightDenom;
+}
+func (this *WpScalingParam) GetWeight() int  {
+    return this.iWeight;
+}
+func (this *WpScalingParam) GetOffset() int {
+    return this.iOffset;
 }
 
 type wpACDCParam struct {
@@ -2388,7 +2516,7 @@ type TComSlice struct {
     m_uiDependentSliceCounter        uint
     m_bFinalized                     bool
 
-    m_weightPredTable [2][MAX_NUM_REF][3]wpScalingParam // [REF_PIC_LIST_0 or REF_PIC_LIST_1][refIdx][0:Y, 1:U, 2:V]
+    m_weightPredTable [2][MAX_NUM_REF][3]WpScalingParam // [REF_PIC_LIST_0 or REF_PIC_LIST_1][refIdx][0:Y, 1:U, 2:V]
     m_weightACDCParam [3]wpACDCParam                    // [0:Y, 1:U, 2:V]
 
     m_tileByteLocation     map[int]uint //*list.List
@@ -3658,7 +3786,7 @@ func (this *TComSlice) CopySliceInfo(pSrc *TComSlice) {
             for m := 0; m < 3; m++ {
                 this.m_weightPredTable[e][n][m] = pSrc.m_weightPredTable[e][n][m]
             }
-            //memcpy(this.m_weightPredTable[e][n], pSrc.m_weightPredTable[e][n], sizeof(wpScalingParam)*3 );
+            //memcpy(this.m_weightPredTable[e][n], pSrc.m_weightPredTable[e][n], sizeof(WpScalingParam)*3 );
         }
     }
     this.m_saoEnabledFlag = pSrc.m_saoEnabledFlag
@@ -3725,15 +3853,15 @@ func (this *TComSlice) SetFinalized(uiVal bool) {
 func (this *TComSlice) GetFinalized() bool {
     return this.m_bFinalized
 }
-func (this *TComSlice) SetWpScaling(wp [2][MAX_NUM_REF][3]wpScalingParam) {
-    //memcpy(this.m_weightPredTable, wp, sizeof(wpScalingParam)*2*MAX_NUM_REF*3);
+func (this *TComSlice) SetWpScaling(wp [2][MAX_NUM_REF][3]WpScalingParam) {
+    //memcpy(this.m_weightPredTable, wp, sizeof(WpScalingParam)*2*MAX_NUM_REF*3);
     this.m_weightPredTable = wp
 }
-func (this *TComSlice) GetWpScaling(e RefPicList, iRefIdx int) []wpScalingParam {
+func (this *TComSlice) GetWpScaling(e RefPicList, iRefIdx int) []WpScalingParam {
     return this.m_weightPredTable[e][iRefIdx][:]
 }
 
-func (this *TComSlice) ResetWpScaling(wp [2][MAX_NUM_REF][3]wpScalingParam) {
+func (this *TComSlice) ResetWpScaling(wp [2][MAX_NUM_REF][3]WpScalingParam) {
     for e := 0; e < 2; e++ {
         for i := 0; i < MAX_NUM_REF; i++ {
             for yuv := 0; yuv < 3; yuv++ {
@@ -3746,7 +3874,7 @@ func (this *TComSlice) ResetWpScaling(wp [2][MAX_NUM_REF][3]wpScalingParam) {
         }
     }
 }
-func (this *TComSlice) InitWpScaling1(wp [2][MAX_NUM_REF][3]wpScalingParam) {
+func (this *TComSlice) InitWpScaling1(wp [2][MAX_NUM_REF][3]WpScalingParam) {
     for e := 0; e < 2; e++ {
         for i := 0; i < MAX_NUM_REF; i++ {
             for yuv := 0; yuv < 3; yuv++ {

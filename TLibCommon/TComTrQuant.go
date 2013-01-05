@@ -896,13 +896,13 @@ func (this *TComTrQuant) xDeQuant(bitDepth int, pSrc []TCoeff, pDes []int, iWidt
 
         if iShift > this.m_cQP.m_iPer {
             for n := 0; n < iWidth*iHeight; n++ {
-                clipQCoef = CLIP3(-32768, 32767, piQCoef[n]).(TCoeff)
+                clipQCoef = CLIP3(TCoeff(-32768), TCoeff(32767), piQCoef[n]).(TCoeff)
                 iCoeffQ = ((int(clipQCoef) * piDequantCoef[n]) + iAdd) >> uint(iShift-this.m_cQP.m_iPer)
                 piCoef[n] = CLIP3(-32768, 32767, iCoeffQ).(int)
             }
         } else {
             for n := 0; n < iWidth*iHeight; n++ {
-                clipQCoef = CLIP3(-levelLimit, levelLimit-1, piQCoef[n]).(TCoeff)
+                clipQCoef = CLIP3(TCoeff(-levelLimit), TCoeff(levelLimit-1), piQCoef[n]).(TCoeff)
                 iCoeffQ = (int(clipQCoef) * piDequantCoef[n]) << uint(this.m_cQP.m_iPer-iShift)
                 piCoef[n] = CLIP3(-32768, 32767, iCoeffQ).(int)
             }

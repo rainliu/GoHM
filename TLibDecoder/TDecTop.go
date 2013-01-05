@@ -293,6 +293,7 @@ func (this *TDecTop) xGetNewPicBuffer(pcSlice *TLibCommon.TComSlice) (rpcPic *TL
 
     for temporalLayer := uint(0); temporalLayer < TLibCommon.MAX_TLAYER; temporalLayer++ {
         numReorderPics[temporalLayer] = pcSlice.GetSPS().GetNumReorderPics(temporalLayer)
+        //fmt.Printf("numReorderPics[temporalLayer]=%d\n",numReorderPics[temporalLayer]);
     }
 
     this.xUpdateGopSize(pcSlice)

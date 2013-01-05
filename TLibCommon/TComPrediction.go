@@ -46,8 +46,8 @@ import (
 // ====================================================================================================================
 /// weighting prediction class
 type TComWeightPrediction struct {
-    m_wp0 [3]wpScalingParam
-    m_wp1 [3]wpScalingParam
+    m_wp0 [3]WpScalingParam
+    m_wp1 [3]WpScalingParam
 }
 
 func NewTComWeightPrediction() *TComWeightPrediction {
@@ -68,11 +68,11 @@ func (this *TComWeightPrediction) weightUnidirC(w0 int, P0 Pel, round, shift, of
     return ClipC(Pel(((w0*(int(P0)+IF_INTERNAL_OFFS) + round) >> uint(shift)) + offset))
 }
 
-func (this *TComWeightPrediction) GetWpScaling(pcCU *TComDataCU, iRefIdx0, iRefIdx1 int, wp0, wp1 []wpScalingParam) {
+func (this *TComWeightPrediction) GetWpScaling(pcCU *TComDataCU, iRefIdx0, iRefIdx1 int) (wp0, wp1 []WpScalingParam) {
     pcSlice := pcCU.GetSlice()
     pps := pcCU.GetSlice().GetPPS()
     wpBiPred := pps.GetWPBiPred()
-    var pwp []wpScalingParam
+    var pwp []WpScalingParam
     bBiDir := (iRefIdx0 >= 0 && iRefIdx1 >= 0)
     bUniDir := !bBiDir
 
@@ -136,9 +136,11 @@ func (this *TComWeightPrediction) GetWpScaling(pcCU *TComDataCU, iRefIdx0, iRefI
             }
         }
     }
+
+    return wp0, wp1
 }
 
-func (this *TComWeightPrediction) AddWeightBi(pcYuvSrc0, pcYuvSrc1 *TComYuv, iPartUnitIdx uint, iWidth, iHeight int, wp0, wp1 []wpScalingParam, rpcYuvDst *TComYuv, bRound bool) {
+func (this *TComWeightPrediction) AddWeightBi(pcYuvSrc0, pcYuvSrc1 *TComYuv, iPartUnitIdx uint, iWidth, iHeight int, wp0, wp1 []WpScalingParam, rpcYuvDst *TComYuv, bRound bool) {
     var x, y int
 
     pSrcY0 := pcYuvSrc0.GetLumaAddr1(iPartUnitIdx)
@@ -232,7 +234,7 @@ func (this *TComWeightPrediction) AddWeightBi(pcYuvSrc0, pcYuvSrc1 *TComYuv, iPa
         //pDstV  += iDstStride;
     }
 }
-func (this *TComWeightPrediction) AddWeightUni(pcYuvSrc0 *TComYuv, iPartUnitIdx uint, iWidth, iHeight int, wp0 []wpScalingParam, rpcYuvDst *TComYuv) {
+func (this *TComWeightPrediction) AddWeightUni(pcYuvSrc0 *TComYuv, iPartUnitIdx uint, iWidth, iHeight int, wp0 []WpScalingParam, rpcYuvDst *TComYuv) {
     var x, y int
 
     pSrcY0 := pcYuvSrc0.GetLumaAddr1(iPartUnitIdx)
@@ -317,25 +319,25 @@ func (this *TComWeightPrediction) AddWeightUni(pcYuvSrc0 *TComYuv, iPartUnitIdx 
 }
 
 func (this *TComWeightPrediction) xWeightedPredictionUni(pcCU *TComDataCU, pcYuvSrc *TComYuv, uiPartAddr uint, iWidth, iHeight int, eRefPicList RefPicList, rpcYuvPred *TComYuv, iPartIdx, iRefIdx int) {
-    var pwp, pwpTmp []wpScalingParam
+    var pwp []WpScalingParam
     if iRefIdx < 0 {
         iRefIdx = int(pcCU.GetCUMvField(eRefPicList).GetRefIdx(int(uiPartAddr)))
     }
     //assert (iRefIdx >= 0);
 
     if eRefPicList == REF_PIC_LIST_0 {
-        this.GetWpScaling(pcCU, iRefIdx, -1, pwp, pwpTmp)
+        pwp, _ = this.GetWpScaling(pcCU, iRefIdx, -1)
     } else {
-        this.GetWpScaling(pcCU, -1, iRefIdx, pwpTmp, pwp)
+        _, pwp = this.GetWpScaling(pcCU, -1, iRefIdx)
     }
     this.AddWeightUni(pcYuvSrc, uiPartAddr, iWidth, iHeight, pwp, rpcYuvPred)
 }
 func (this *TComWeightPrediction) xWeightedPredictionBi(pcCU *TComDataCU, pcYuvSrc0, pcYuvSrc1 *TComYuv, iRefIdx0, iRefIdx1 int, uiPartIdx uint, iWidth, iHeight int, rpcYuvDst *TComYuv) {
-    var pwp0, pwp1 []wpScalingParam
+    var pwp0, pwp1 []WpScalingParam
     //pps := pcCU.GetSlice().GetPPS();
     //assert( pps.GetWPBiPred());
 
-    this.GetWpScaling(pcCU, iRefIdx0, iRefIdx1, pwp0, pwp1)
+    pwp0, pwp1 = this.GetWpScaling(pcCU, iRefIdx0, iRefIdx1)
 
     if iRefIdx0 >= 0 && iRefIdx1 >= 0 {
         this.AddWeightBi(pcYuvSrc0, pcYuvSrc1, uiPartIdx, iWidth, iHeight, pwp0, pwp1, rpcYuvDst, true)

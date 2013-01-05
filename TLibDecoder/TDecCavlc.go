@@ -94,6 +94,12 @@ func (this *SyntaxElementParser) GetSliceTrace() bool {
     return this.m_bSliceTrace
 }
 
+func (this *SyntaxElementParser) xTraceVUIHeader(pVUI *TLibCommon.TComVUI) {
+    if this.GetTraceFile() != nil {
+        io.WriteString(this.m_pTraceFile, fmt.Sprintf("========= VUI Parameter Set ===============================================\n")) //, pVPS.GetVPSId() );
+    }
+}
+
 func (this *SyntaxElementParser) xTraceVPSHeader(pVPS *TLibCommon.TComVPS) {
     if this.GetTraceFile() != nil {
         io.WriteString(this.m_pTraceFile, fmt.Sprintf("========= Video Parameter Set =============================================\n")) //, pVPS.GetVPSId() );
@@ -903,6 +909,182 @@ func (this *TDecCavlc) ParsePPS(pcPPS *TLibCommon.TComPPS) {
     }
 }
 func (this *TDecCavlc) ParseVUI(pcVUI *TLibCommon.TComVUI, pcSPS *TLibCommon.TComSPS) {
+//#if ENC_DEC_TRACE
+  //fprintf( g_hTrace, "----------- vui_parameters -----------\n");
+  this.xTraceVUIHeader(pcVUI);
+//#endif
+  var  uiCode uint;
+
+  this.READ_FLAG(     &uiCode, "aspect_ratio_info_present_flag");
+  pcVUI.SetAspectRatioInfoPresentFlag(uiCode!=0);
+  if pcVUI.GetAspectRatioInfoPresentFlag() {
+    this.READ_CODE(8, &uiCode, "aspect_ratio_idc");
+    pcVUI.SetAspectRatioIdc(int(uiCode));
+    if pcVUI.GetAspectRatioIdc() == 255 {
+      this.READ_CODE(16, &uiCode, "sar_width");
+      pcVUI.SetSarWidth(int(uiCode));
+      this.READ_CODE(16, &uiCode, "sar_height");
+      pcVUI.SetSarHeight(int(uiCode));
+    }
+  }
+
+  this.READ_FLAG(     &uiCode, "overscan_info_present_flag");
+  pcVUI.SetOverscanInfoPresentFlag(uiCode!=0);
+  if pcVUI.GetOverscanInfoPresentFlag(){
+    this.READ_FLAG(   &uiCode, "overscan_appropriate_flag");
+    pcVUI.SetOverscanAppropriateFlag(uiCode!=0);
+  }
+
+  this.READ_FLAG(     &uiCode, "video_signal_type_present_flag");
+  pcVUI.SetVideoSignalTypePresentFlag(uiCode!=0);
+  if pcVUI.GetVideoSignalTypePresentFlag() {
+    this.READ_CODE(3, &uiCode, "video_format");
+    pcVUI.SetVideoFormat(int(uiCode));
+    this.READ_FLAG(   &uiCode, "video_full_range_flag");
+    pcVUI.SetVideoFullRangeFlag(uiCode!=0);
+    this.READ_FLAG(   &uiCode, "colour_description_present_flag");
+    pcVUI.SetColourDescriptionPresentFlag(uiCode!=0);
+    if pcVUI.GetColourDescriptionPresentFlag() {
+      this.READ_CODE(8, &uiCode, "colour_primaries");
+      pcVUI.SetColourPrimaries(int(uiCode));
+      this.READ_CODE(8, &uiCode, "transfer_characteristics");
+      pcVUI.SetTransferCharacteristics(int(uiCode));
+      this.READ_CODE(8, &uiCode, "matrix_coefficients");
+      pcVUI.SetMatrixCoefficients(int(uiCode));
+    }
+  }
+
+  this.READ_FLAG(     &uiCode, "chroma_loc_info_present_flag");
+  pcVUI.SetChromaLocInfoPresentFlag(uiCode!=0);
+  if pcVUI.GetChromaLocInfoPresentFlag() {
+    this.READ_UVLC(   &uiCode, "chroma_sample_loc_type_top_field" );
+    pcVUI.SetChromaSampleLocTypeTopField(int(uiCode));
+    this.READ_UVLC(   &uiCode, "chroma_sample_loc_type_bottom_field" );
+    pcVUI.SetChromaSampleLocTypeBottomField(int(uiCode));
+  }
+
+  this.READ_FLAG(     &uiCode, "neutral_chroma_indication_flag");
+  pcVUI.SetNeutralChromaIndicationFlag(uiCode!=0);
+
+  this.READ_FLAG(     &uiCode, "field_seq_flag");
+  pcVUI.SetFieldSeqFlag(uiCode!=0);
+  //assert(pcVUI.GetFieldSeqFlag() == false);        // not supported yet
+
+//#if HLS_DISPLAY_WINDOW_PLACEHOLDER
+  this.READ_FLAG(&uiCode, "default_display_window_flag");                   //assert(uiCode == 0);
+//#endif
+//#if HLS_ADD_VUI_PICSTRUCT_PRESENT_FLAG
+  this.READ_FLAG(&uiCode, "pic_struct_present_flag");
+  pcVUI.SetPicStructPresentFlag(uiCode!=0);
+//#endif /* HLS_ADD_VUI_PICSTRUCT_PRESENT_FLAG */
+
+  this.READ_FLAG(     &uiCode, "hrd_parameters_present_flag");
+  pcVUI.SetHrdParametersPresentFlag(uiCode!=0);
+  if pcVUI.GetHrdParametersPresentFlag() {
+    this.READ_FLAG( &uiCode, "timing_info_present_flag" );
+    pcVUI.SetTimingInfoPresentFlag( uiCode!=0);
+    if pcVUI.GetTimingInfoPresentFlag()  {
+      this.READ_CODE( 32, &uiCode, "num_units_in_tick" );
+      pcVUI.SetNumUnitsInTick( uiCode );
+      this.READ_CODE( 32, &uiCode, "time_scale" );
+      pcVUI.SetTimeScale( uiCode );
+    }
+    this.READ_FLAG( &uiCode, "nal_hrd_parameters_present_flag" );
+    pcVUI.SetNalHrdParametersPresentFlag( uiCode!=0 );
+    this.READ_FLAG( &uiCode, "vcl_hrd_parameters_present_flag" );
+    pcVUI.SetVclHrdParametersPresentFlag( uiCode!=0 );
+    if pcVUI.GetNalHrdParametersPresentFlag() || pcVUI.GetVclHrdParametersPresentFlag()  {
+      this.READ_FLAG( &uiCode, "sub_pic_Cpb_params_present_flag" );
+      pcVUI.SetSubPicCpbParamsPresentFlag( uiCode!=0 );
+      if pcVUI.GetSubPicCpbParamsPresentFlag() {
+        this.READ_CODE( 8, &uiCode, "tick_divisor_minus2" );
+        pcVUI.SetTickDivisorMinus2( uiCode );
+        this.READ_CODE( 5, &uiCode, "du_cpb_removal_delay_length_minus1" );
+        pcVUI.SetDuCpbRemovalDelayLengthMinus1( uiCode );
+      }
+      this.READ_CODE( 4, &uiCode, "bit_rate_scale" );
+      pcVUI.SetBitRateScale( uiCode );
+      this.READ_CODE( 4, &uiCode, "cpb_size_scale" );
+      pcVUI.SetCpbSizeScale( uiCode );
+//#if HRD_BUFFER
+      if pcVUI.GetSubPicCpbParamsPresentFlag() {
+        this.READ_CODE( 4, &uiCode, "du_cpb_size_scale" );
+        pcVUI.SetDuCpbSizeScale( uiCode );
+      }
+//#endif
+      this.READ_CODE( 5, &uiCode, "initial_cpb_removal_delay_length_minus1" );
+      pcVUI.SetInitialCpbRemovalDelayLengthMinus1( uiCode );
+      this.READ_CODE( 5, &uiCode, "cpb_removal_delay_length_minus1" );
+      pcVUI.SetCpbRemovalDelayLengthMinus1( uiCode );
+      this.READ_CODE( 5, &uiCode, "dpb_output_delay_length_minus1" );
+      pcVUI.SetDpbOutputDelayLengthMinus1( uiCode );
+    }
+
+    var i, j, nalOrVcl int;
+    for i = 0; i < int(pcSPS.GetMaxTLayers()); i ++ {
+      this.READ_FLAG( &uiCode, "fixed_pic_rate_flag" );
+      pcVUI.SetFixedPicRateFlag( i, uiCode!=0 );
+      if pcVUI.GetFixedPicRateFlag( i ) {
+        this.READ_UVLC( &uiCode, "pic_duration_in_tc_minus1" );
+        pcVUI.SetPicDurationInTcMinus1( i, uiCode );
+      }
+      this.READ_FLAG( &uiCode, "low_delay_hrd_flag" );
+      pcVUI.SetLowDelayHrdFlag( i, uiCode!=0 );
+      this.READ_UVLC( &uiCode, "cpb_cnt_minus1" );
+      pcVUI.SetCpbCntMinus1( i, uiCode );
+      for nalOrVcl = 0; nalOrVcl < 2; nalOrVcl ++ {
+        if  ( ( nalOrVcl == 0 ) && ( pcVUI.GetNalHrdParametersPresentFlag() ) ) ||
+            ( ( nalOrVcl == 1 ) && ( pcVUI.GetVclHrdParametersPresentFlag() ) ) {
+          for j = 0; j < int( pcVUI.GetCpbCntMinus1( i ) + 1 ); j ++ {
+            this.READ_UVLC( &uiCode, "bit_size_value_minus1" );
+            pcVUI.SetBitRateValueMinus1( i, j, nalOrVcl, uiCode );
+            this.READ_UVLC( &uiCode, "cpb_size_value_minus1" );
+            pcVUI.SetCpbSizeValueMinus1( i, j, nalOrVcl, uiCode );
+//#if HRD_BUFFER
+            if pcVUI.GetSubPicCpbParamsPresentFlag() {
+              this.READ_UVLC( &uiCode, "du_cpb_size_value_minus1" );
+              pcVUI.SetDuCpbSizeValueMinus1( i, j, nalOrVcl, uiCode );
+            }
+//#endif
+            this.READ_FLAG( &uiCode, "cbr_flag" );
+            pcVUI.SetCbrFlag( i, j, nalOrVcl, uiCode!=0 );
+          }
+        }
+      }
+    }
+  }
+//#if POC_TEMPORAL_RELATIONSHIP
+  this.READ_FLAG( &uiCode, "poc_proportional_to_timing_flag" );
+  pcVUI.SetPocProportionalToTimingFlag(uiCode!=0);
+  if pcVUI.GetPocProportionalToTimingFlag() && pcVUI.GetTimingInfoPresentFlag() {
+    this.READ_UVLC( &uiCode, "num_ticks_poc_diff_one_minus1" );
+    pcVUI.SetNumTicksPocDiffOneMinus1(int(uiCode));
+  }
+//#endif
+  this.READ_FLAG(     &uiCode, "bitstream_restriction_flag");
+  pcVUI.SetBitstreamRestrictionFlag(uiCode!=0);
+  if pcVUI.GetBitstreamRestrictionFlag() {
+    this.READ_FLAG(   &uiCode, "tiles_fixed_structure_flag");
+    pcVUI.SetTilesFixedStructureFlag(uiCode!=0);
+    this.READ_FLAG(   &uiCode, "motion_vectors_over_pic_boundaries_flag");
+    pcVUI.SetMotionVectorsOverPicBoundariesFlag(uiCode!=0);
+//#if HLS_MOVE_SPS_PICLIST_FLAGS
+    this.READ_FLAG(   &uiCode, "restricted_ref_pic_lists_flag");
+    pcVUI.SetRestrictedRefPicListsFlag(uiCode!=0);
+//#endif /* HLS_MOVE_SPS_PICLIST_FLAGS */
+//#if MIN_SPATIAL_SEGMENTATION
+    this.READ_CODE( 8, &uiCode, "min_spatial_segmentation_idc");
+    pcVUI.SetMinSpatialSegmentationIdc(int(uiCode));
+//#endif
+    this.READ_UVLC(   &uiCode, "max_bytes_per_pic_denom" );
+    pcVUI.SetMaxBytesPerPicDenom(int(uiCode));
+    this.READ_UVLC(   &uiCode, "max_bits_per_mincu_denom" );
+    pcVUI.SetMaxBitsPerMinCuDenom(int(uiCode));
+    this.READ_UVLC(   &uiCode, "log2_max_mv_length_horizontal" );
+    pcVUI.SetLog2MaxMvLengthHorizontal(int(uiCode));
+    this.READ_UVLC(   &uiCode, "log2_max_mv_length_vertical" );
+    pcVUI.SetLog2MaxMvLengthVertical(int(uiCode));
+  }
 }
 func (this *TDecCavlc) ParseSEI(sei *TLibCommon.SEImessages) {
 }
@@ -1507,10 +1689,8 @@ func (this *TDecCavlc) ParseSliceHeader(rpcSlice *TLibCommon.TComSlice, paramete
 }
 func (this *TDecCavlc) ParseTerminatingBit(ruiBit *uint) {
 }
-
 func (this *TDecCavlc) ParseMVPIdx(riMVPIdx *int) {
 }
-
 func (this *TDecCavlc) ParseSkipFlag(pcCU *TLibCommon.TComDataCU, uiAbsPartIdx, uiDepth uint) {
 }
 func (this *TDecCavlc) ParseCUTransquantBypassFlag(pcCU *TLibCommon.TComDataCU, uiAbsPartIdx, uiDepth uint) {
@@ -1525,35 +1705,126 @@ func (this *TDecCavlc) ParsePartSize(pcCU *TLibCommon.TComDataCU, uiAbsPartIdx, 
 }
 func (this *TDecCavlc) ParsePredMode(pcCU *TLibCommon.TComDataCU, uiAbsPartIdx, uiDepth uint) {
 }
-
 func (this *TDecCavlc) ParseIntraDirLumaAng(pcCU *TLibCommon.TComDataCU, uiAbsPartIdx, uiDepth uint) {
 }
-
 func (this *TDecCavlc) ParseIntraDirChroma(pcCU *TLibCommon.TComDataCU, uiAbsPartIdx, uiDepth uint) {
 }
-
 func (this *TDecCavlc) ParseInterDir(pcCU *TLibCommon.TComDataCU, ruiInterDir *uint, uiAbsPartIdx, uiDepth uint) {
 }
 func (this *TDecCavlc) ParseRefFrmIdx(pcCU *TLibCommon.TComDataCU, riRefFrmIdx *int, uiAbsPartIdx, uiDepth uint, eRefList TLibCommon.RefPicList) {
 }
 func (this *TDecCavlc) ParseMvd(pcCU *TLibCommon.TComDataCU, uiAbsPartAddr, uiPartIdx, uiDepth uint, eRefList TLibCommon.RefPicList) {
 }
-
 func (this *TDecCavlc) ParseDeltaQP(pcCU *TLibCommon.TComDataCU, uiAbsPartIdx, uiDepth uint) {
 }
 func (this *TDecCavlc) ParseCoeffNxN(pcCU *TLibCommon.TComDataCU, pcCoef []TLibCommon.TCoeff, uiAbsPartIdx, uiWidth, uiHeight, uiDepth uint, eTType TLibCommon.TextType) {
 }
 func (this *TDecCavlc) ParseTransformSkipFlags(pcCU *TLibCommon.TComDataCU, uiAbsPartIdx, width, height, uiDepth uint, eTType TLibCommon.TextType) {
 }
-
 func (this *TDecCavlc) ParseIPCMInfo(pcCU *TLibCommon.TComDataCU, uiAbsPartIdx, uiDepth uint) {
 }
-
 func (this *TDecCavlc) UpdateContextTables(eSliceType TLibCommon.SliceType, iQp int) {
-    return
 }
 
 func (this *TDecCavlc) xParsePredWeightTable(pcSlice *TLibCommon.TComSlice) {
+  var wp []TLibCommon.WpScalingParam;
+  bChroma     := true; // color always present in HEVC ?
+  pps         := pcSlice.GetPPS();
+  eSliceType  := pcSlice.GetSliceType();
+  iNbRef      := int(1+TLibCommon.B2U(eSliceType == TLibCommon.B_SLICE ));
+  var   uiLog2WeightDenomLuma, uiLog2WeightDenomChroma uint;
+  uiMode      := uint(0);
+  uiTotalSignalledWeightFlags := uint(0);
+  if (eSliceType==TLibCommon.P_SLICE && pps.GetUseWP()) || (eSliceType==TLibCommon.B_SLICE && pps.GetWPBiPred()) {
+    uiMode = 1; // explicit
+  }
+  if uiMode == 1 {  // explicit
+    fmt.Printf("\nTDecCavlc::xParsePredWeightTable(poc=%d) explicit...\n", pcSlice.GetPOC());
+    var iDeltaDenom int;
+    // decode delta_luma_log2_weight_denom :
+    this.READ_UVLC( &uiLog2WeightDenomLuma, "luma_log2_weight_denom" );     // ue(v): luma_log2_weight_denom
+    if bChroma {
+      this.READ_SVLC( &iDeltaDenom, "delta_chroma_log2_weight_denom" );     // se(v): delta_chroma_log2_weight_denom
+      //assert((iDeltaDenom + (Int)uiLog2WeightDenomLuma)>=0);
+      uiLog2WeightDenomChroma = uint(iDeltaDenom + int(uiLog2WeightDenomLuma));
+    }
+
+    for iNumRef:=0 ; iNumRef<iNbRef ; iNumRef++ {
+      var  eRefPicList TLibCommon.RefPicList;
+      if iNumRef!=0 {
+        eRefPicList = TLibCommon.REF_PIC_LIST_1;
+      }else{
+        eRefPicList = TLibCommon.REF_PIC_LIST_0;
+      }
+      for iRefIdx:=0 ; iRefIdx<pcSlice.GetNumRefIdx(eRefPicList) ; iRefIdx++ {
+        wp = pcSlice.GetWpScaling(eRefPicList, iRefIdx);
+
+        wp[0].SetLog2WeightDenom ( uiLog2WeightDenomLuma  );
+        wp[1].SetLog2WeightDenom ( uiLog2WeightDenomChroma);
+        wp[2].SetLog2WeightDenom ( uiLog2WeightDenomChroma);
+
+        var  uiCode uint;
+        this.READ_FLAG( &uiCode, "luma_weight_lX_flag" );           // u(1): luma_weight_l0_flag
+        wp[0].SetPresentFlag ( uiCode == 1 );
+        uiTotalSignalledWeightFlags += uint(TLibCommon.B2U(wp[0].GetPresentFlag()));
+      }
+      if bChroma {
+        var  uiCode uint;
+        for iRefIdx:=0 ; iRefIdx<pcSlice.GetNumRefIdx(eRefPicList) ; iRefIdx++ {
+          wp = pcSlice.GetWpScaling(eRefPicList, iRefIdx);
+          this.READ_FLAG( &uiCode, "chroma_weight_lX_flag" );      // u(1): chroma_weight_l0_flag
+          wp[1].SetPresentFlag  ( uiCode == 1 );
+          wp[2].SetPresentFlag  ( uiCode == 1 );
+          uiTotalSignalledWeightFlags += 2*uint(TLibCommon.B2U(wp[1].GetPresentFlag()));
+        }
+      }
+      for iRefIdx:=0 ; iRefIdx<pcSlice.GetNumRefIdx(eRefPicList) ; iRefIdx++ {
+        wp = pcSlice.GetWpScaling(eRefPicList, iRefIdx);
+        if wp[0].GetPresentFlag() {
+          var iDeltaWeight int;
+          this.READ_SVLC( &iDeltaWeight, "delta_luma_weight_lX" );  // se(v): delta_luma_weight_l0[i]
+          wp[0].SetWeight  (iDeltaWeight + (1<<wp[0].GetLog2WeightDenom()));
+          var iOffset int;
+          this.READ_SVLC( &iOffset, "luma_offset_lX" );       // se(v): luma_offset_l0[i]
+          wp[0].SetOffset(iOffset)  ;
+        }else{
+          wp[0].SetWeight (1 << wp[0].GetLog2WeightDenom());
+          wp[0].SetOffset ( 0);
+        }
+        if bChroma {
+          if wp[1].GetPresentFlag() {
+            for j:=1 ; j<3 ; j++ {
+              var iDeltaWeight int;
+              this.READ_SVLC( &iDeltaWeight, "delta_chroma_weight_lX" );  // se(v): chroma_weight_l0[i][j]
+              wp[j].SetWeight (iDeltaWeight + (1<<wp[1].GetLog2WeightDenom()));
+
+              var iDeltaChroma int;
+              this.READ_SVLC( &iDeltaChroma, "delta_chroma_offset_lX" );  // se(v): delta_chroma_offset_l0[i][j]
+              pred := int( 128 - ( ( 128*wp[j].GetWeight())>>(wp[j].GetLog2WeightDenom()) ) );
+              wp[j].SetOffset (TLibCommon.CLIP3(-128, 127, (iDeltaChroma + pred) ).(int));
+            }
+          }else{
+            for j:=1 ; j<3 ; j++ {
+              wp[j].SetWeight  (1 << wp[j].GetLog2WeightDenom());
+              wp[j].SetOffset  (0);
+            }
+          }
+        }
+      }
+
+      for iRefIdx:=pcSlice.GetNumRefIdx(eRefPicList) ; iRefIdx<TLibCommon.MAX_NUM_REF ; iRefIdx++ {
+        wp = pcSlice.GetWpScaling(eRefPicList, iRefIdx);
+
+        wp[0].SetPresentFlag ( false);
+        wp[1].SetPresentFlag ( false);
+        wp[2].SetPresentFlag ( false);
+      }
+    }
+    //assert(uiTotalSignalledWeightFlags<=24);
+  }else{
+    fmt.Printf("\n wrong weight pred table syntax \n ");
+    //assert(0);
+  }
 }
 func (this *TDecCavlc) ParseScalingList(scalingList *TLibCommon.TComScalingList) {
     var code, sizeId, listId uint
@@ -1581,6 +1852,30 @@ func (this *TDecCavlc) ParseScalingList(scalingList *TLibCommon.TComScalingList)
     }
 }
 func (this *TDecCavlc) xDecodeScalingList(scalingList *TLibCommon.TComScalingList, sizeId, listId uint) {
+    var i,coefNum int;
+    coefNum = TLibCommon.MIN(int(TLibCommon.MAX_MATRIX_COEF_NUM), int(TLibCommon.G_scalingListSize[sizeId])).(int);
+    var data int;
+    scalingListDcCoefMinus8 := int(0);
+    nextCoef := int(TLibCommon.SCALING_LIST_START_VALUE);
+    var scan []uint;
+    if sizeId == 0 {
+        scan = TLibCommon.G_auiSigLastScan [ TLibCommon.SCAN_DIAG ] [ 1 ][:];
+    }else{
+        scan = TLibCommon.G_sigLastScanCG32x32[:];
+    }
+    dst := scalingList.GetScalingListAddress(sizeId, listId);
+
+    if sizeId > TLibCommon.SCALING_LIST_8x8 {
+      this.READ_SVLC( &scalingListDcCoefMinus8, "scaling_list_dc_coef_minus8");
+      scalingList.SetScalingListDC(sizeId,listId,uint(scalingListDcCoefMinus8 + 8));
+      nextCoef = scalingList.GetScalingListDC(sizeId,listId);
+    }
+
+    for i = 0; i < coefNum; i++ {
+      this.READ_SVLC( &data, "scaling_list_delta_coef");
+      nextCoef = (nextCoef + data + 256 ) % 256;
+      dst[scan[i]] = nextCoef;
+    }
 }
 
 //protected:

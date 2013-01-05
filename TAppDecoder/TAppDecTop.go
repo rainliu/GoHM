@@ -55,7 +55,7 @@ type TAppDecTop struct {
 func NewTAppDecTop() *TAppDecTop {
     pAppDecTop := &TAppDecTop{}
     //::memset (m_abDecFlag, 0, sizeof (m_abDecFlag));//memset 0 by Go
-    pAppDecTop.m_iPOCLastDisplay = -TLibCommon.MAX_GOP
+    pAppDecTop.m_iPOCLastDisplay = -TLibCommon.MAX_INT
     pAppDecTop.TAppDecCfg.m_targetDecLayerIdSet = list.New()
     pAppDecTop.m_cTDecTop = TLibDecoder.NewTDecTop()
     pAppDecTop.m_cTVideoIOYuvReconFile = TLibCommon.NewTVideoIOYuv()
@@ -122,9 +122,9 @@ func (this *TAppDecTop) Decode() (err error) {
             fmt.Printf("Warning: Attempt to decode an empty NAL unit\n")
             break
         } else {
-        	fmt.Printf("NalUnit Len=%d\n", nalUnit.Len())
+        	//fmt.Printf("NalUnit Len=%d\n", nalUnit.Len())
             oldNalUnit=nalu.Read(nalUnit)
-            
+
             //fmt.Printf("Type=%d\n", nalu.GetNalUnitType())
 
             if (this.m_iMaxTemporalLayer >= 0 && int(nalu.GetTemporalId()) > this.m_iMaxTemporalLayer) ||
@@ -219,6 +219,7 @@ func (this *TAppDecTop) xWriteOutput(pcListPic *list.List, tId uint) {
 
     for e := pcListPic.Front(); e != nil; e = e.Next() {
         pcPic := e.Value.(*TLibCommon.TComPic)
+        //fmt.Printf("tId=%d, %v, %d, %d, %d, %d\n", tId, pcPic.GetOutputMark(), not_displayed, pcPic.GetNumReorderPics(tId), int(pcPic.GetPOC()), this.m_iPOCLastDisplay);
         if pcPic.GetOutputMark() && (not_displayed > pcPic.GetNumReorderPics(tId) && int(pcPic.GetPOC()) > this.m_iPOCLastDisplay) {
             // write to file
             not_displayed--
@@ -229,6 +230,7 @@ func (this *TAppDecTop) xWriteOutput(pcListPic *list.List, tId uint) {
 
             // update POC of display order
             this.m_iPOCLastDisplay = int(pcPic.GetPOC())
+            //fmt.Printf("m_iPOCLastDisplay=%d\n",this.m_iPOCLastDisplay);
 
             // erase non-referenced picture in the reference picture list after display
             if !pcPic.GetSlice(0).IsReferenced() && pcPic.GetReconMark() == true {
@@ -268,7 +270,8 @@ func (this *TAppDecTop) xFlushOutput(pcListPic *list.List) {
             }
 
             // update POC of display order
-            this.m_iPOCLastDisplay = int(pcPic.GetPOC())
+            this.m_iPOCLastDisplay = int(pcPic.GetPOC());
+            //fmt.Printf("m_iPOCLastDisplay=%d\n",this.m_iPOCLastDisplay);
 
             // erase non-referenced picture in the reference picture list after display
             if !pcPic.GetSlice(0).IsReferenced() && pcPic.GetReconMark() == true {
@@ -294,7 +297,6 @@ func (this *TAppDecTop) xFlushOutput(pcListPic *list.List) {
             pcPic = nil
         }
         //#endif
-        //pcListPic.Remove(e)
     }
 
     pcListPic.Init()

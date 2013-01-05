@@ -96,6 +96,9 @@ func (this *TComPic) Create(iWidth, iHeight int, uiMaxWidth, uiMaxHeight, uiMaxD
     this.m_croppingWindow = croppingWindow
 
     /* store number of reorder pics with picture */
+    for i:=0; i<MAX_TLAYER; i++ {
+        this.m_numReorderPics[i] = numReorderPics[i];
+    }
     //memcpy(m_numReorderPics, numReorderPics, MAX_TLAYER*sizeof(Int));
 
     return
