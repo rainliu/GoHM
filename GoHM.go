@@ -35,35 +35,53 @@ package main
 
 import (
     "fmt"
-    "gohm/TAppDecoder"
-    "gohm/TLibCommon"
     "log"
     "os"
     "time"
+    "gohm/TLibCommon"
+    "gohm/TAppDecoder"
+    //"gohm/TAppEncoder"
 )
 
-func main() {
-    fmt.Printf("GoHM Software: Decoder Version [%s]\n", TLibCommon.NV_VERSION)
+func Encoder(){
+/*
+  	cTAppEncTop := TAppEncoder.NewTAppEncTop();
 
-    cTAppDecTop := TAppDecoder.NewTAppDecTop()
+  	// create application encoder class
+  	cTAppEncTop.Create();
+
+  	// parse configuration
+  	if err := cTAppEncTop.ParseCfg(len(os.Args), os.Args); err != nil {
+  		log.Fatal(err)
+    	return
+    }
+
+    // starting time
+    lBefore := time.Now()
+
+    // call encoding function
+    cTAppEncTop.Encode()
+
+    // ending time
+    lAfter := time.Now()
+
+    fmt.Printf("\n\nTotal Encoding Time: %v.\n", lAfter.Sub(lBefore))
+
+    // destroy application encoder class
+    cTAppEncTop.Destroy()
+*/
+}
+
+func Decoder(){
+	cTAppDecTop := TAppDecoder.NewTAppDecTop()
 
     // create application decoder class
     cTAppDecTop.Create()
 
-    if len(os.Args) == 1 {
-        var args = []string{"gohm.exe", "test.bin", "test.yuv", "100", "trace.txt"}
-
-        // parse configuration
-        if err := cTAppDecTop.ParseCfg(len(args), args); err != nil {
-            log.Fatal(err)
-            return
-        }
-    } else {
-        // parse configuration
-        if err := cTAppDecTop.ParseCfg(len(os.Args), os.Args); err != nil {
-            log.Fatal(err)
-            return
-        }
+    // parse configuration
+    if err := cTAppDecTop.ParseCfg(len(os.Args), os.Args); err != nil {
+    	log.Fatal(err)
+        return
     }
 
     // starting time
@@ -79,4 +97,21 @@ func main() {
 
     // destroy application decoder class
     cTAppDecTop.Destroy()
+}
+
+func main() {
+    fmt.Printf("GoHM Software Version [%s]\n", TLibCommon.NV_VERSION)
+	if len(os.Args) <=2 {
+		fmt.Printf("Usage: \n");
+		fmt.Printf("	HM Encoder: gohm.exe -e encoder.cfg\n");
+		fmt.Printf("	HM Decoder: gohm.exe -d test.bin test.yuv [n trace.txt]\n");
+	}else{
+		if os.Args[1] == "-e" {
+			Encoder();
+		}else if os.Args[1] == "-d" {
+			Decoder();
+		}else{
+			fmt.Printf("Unknown argment %s\n", os.Args[1]);
+		}
+	}
 }

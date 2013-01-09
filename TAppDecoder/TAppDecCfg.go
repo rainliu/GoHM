@@ -57,8 +57,8 @@ func NewTAppDecCfg() *TAppDecCfg {
 }
 
 func (this *TAppDecCfg) ParseCfg(argc int, argv []string) (err error) { ///< initialize option class from configuration
-    if argc <= 2 {
-        err = errors.New("Too few arguments")
+    if argc <= 3 {
+        err = errors.New("Too few arguments for HM Decoder")
         return err
     }
 
@@ -70,20 +70,20 @@ func (this *TAppDecCfg) ParseCfg(argc int, argv []string) (err error) { ///< ini
     this.m_decodedPictureHashSEIEnabled = 1
     //this.m_targetDecLayerIdSet = 0
 
-    if argc >= 3 {
-        this.m_pchBitstreamFile = argv[1]
-        this.m_pchReconFile = argv[2]
+    if argc >= 4 {
+        this.m_pchBitstreamFile = argv[2]
+        this.m_pchReconFile = argv[3]
     }
 
-    if argc >= 4 {
-        this.m_iFrameNum, err = strconv.Atoi(argv[3])
+    if argc >= 5 {
+        this.m_iFrameNum, err = strconv.Atoi(argv[4])
         if err != nil {
             return err
         }
     }
 
-    if argc >= 5 {
-        this.m_pchTraceFile = argv[4]
+    if argc >= 6 {
+        this.m_pchTraceFile = argv[5]
     }
 
     return nil
