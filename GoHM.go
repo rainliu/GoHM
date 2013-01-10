@@ -40,11 +40,10 @@ import (
     "time"
     "gohm/TLibCommon"
     "gohm/TAppDecoder"
-    //"gohm/TAppEncoder"
+    "gohm/TAppEncoder"
 )
 
 func Encoder(){
-/*
   	cTAppEncTop := TAppEncoder.NewTAppEncTop();
 
   	// create application encoder class
@@ -69,7 +68,6 @@ func Encoder(){
 
     // destroy application encoder class
     cTAppEncTop.Destroy()
-*/
 }
 
 func Decoder(){

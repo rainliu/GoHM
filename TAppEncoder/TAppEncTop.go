@@ -34,6 +34,70 @@
 package TAppEncoder
 
 import (
-
+	"io"
+	"container/list"
+	"gohm/TLibCommon"
 )
+
+// ====================================================================================================================
+// Class definition
+// ====================================================================================================================
+
+/// encoder application class
+type TAppEncTop struct{
+	TAppEncCfg
+
+  // class interface
+  //m_cTEncTop				TEncTop;                    ///< encoder class
+  m_cTVideoIOYuvInputFile	TLibCommon.TVideoIOYuv;       ///< input YUV file
+  m_cTVideoIOYuvReconFile	TLibCommon.TVideoIOYuv;       ///< output reconstruction file
+  
+  m_cListPicYuvRec			*list.List;              ///< list of reconstruction YUV files TComList<TComPicYuv*>      
+  
+  m_iFrameRcvd				int;                  ///< number of received frames
+  
+  m_essentialBytes			uint;
+  m_totalBytes				uint;
+}
+
+func NewTAppEncTop() *TAppEncTop{
+	return &TAppEncTop{};
+}
+  
+func (this *TAppEncTop) Encode      (){                               ///< main encoding function
+}
+/*
+func (this *TAppEncTop) GetTEncTop  () *TEncTop{ 
+	return  &m_cTEncTop; 
+}      ///< return encoder class pointer reference
+*/
+//protected:
+  // initialization
+func (this *TAppEncTop)  xCreateLib        (){                               ///< create files & encoder class
+}
+func (this *TAppEncTop)  xInitLibCfg       (){                               ///< initialize internal variables
+}
+func (this *TAppEncTop)  xInitLib          (){                               ///< initialize encoder class
+}
+func (this *TAppEncTop)  xDestroyLib       (){                               ///< destroy encoder class
+}
+  
+  /// obtain required buffers
+func (this *TAppEncTop)  xGetBuffer(rpcPicYuvRec *TLibCommon.TComPicYuv){
+}
+  
+  /// delete allocated buffers
+func (this *TAppEncTop)  xDeleteBuffer     (){
+}
+  
+  // file I/O
+func (this *TAppEncTop)  xWriteOutput(bitstreamFile io.Writer, iNumEncoded int, accessUnits *list.List) { //const std::list<AccessUnit>& ///< write bitstream to file
+}
+
+//func (this *TAppEncTop)  rateStatsAccum(au *AccessUnit, stats *list.List){//const std::vector<UInt>
+//}
+
+func (this *TAppEncTop)  printRateSummary(){
+}
+
 
