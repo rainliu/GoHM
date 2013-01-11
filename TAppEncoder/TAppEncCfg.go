@@ -65,10 +65,6 @@ func (this *OptionBase) GetName() string{
     return this.opt_name;
 }
 
-func (this *OptionBase) SetDefault() {
-    this.opt_storage = this.opt_default_value;
-}
-
 type OptionString struct{
 	OptionBase
 }
@@ -80,9 +76,21 @@ func NewOptionString(name string, storage interface{}, default_value interface{}
 /* Generic parsing */
 //template<typename T>
 func (this *OptionString) Parse(arg string) error{
-   this.opt_storage = arg;
+   //this.opt_storage = arg;
+   var storage *string;
+   storage = this.opt_storage.(*string);
+	
+   *storage = arg;
    
    return nil;
+}
+
+func (this *OptionString) SetDefault() {
+	var storage *string;
+	var default_value string;
+	storage = this.opt_storage.(*string);
+	default_value = this.opt_default_value.(string);
+    *storage = default_value;
 }
 
 
@@ -102,10 +110,23 @@ func (this *OptionInt) Parse(arg string) error {
 		return err
 	}
 	
-	this.opt_storage = argint;
+	//this.opt_storage = argint;
+	var storage *int;
+	storage = this.opt_storage.(*int);
+	
+	*storage = argint;
 	
 	return nil;
 }
+
+func (this *OptionInt) SetDefault() {
+	var storage *int;
+	var default_value int;
+	storage = this.opt_storage.(*int);
+	default_value = this.opt_default_value.(int);
+    *storage = default_value;
+}
+
 
 type OptionUInt struct{
 	OptionBase
@@ -123,11 +144,22 @@ func (this *OptionUInt) Parse(arg string) error {
 		return err
 	}
 	
-	this.opt_storage = uint(argint);
+	//this.opt_storage = uint(argint);
+	var storage *uint;
+	storage = this.opt_storage.(*uint);
+	
+	*storage = uint(argint);
 	
 	return nil;
 }
  
+func (this *OptionUInt) SetDefault() {
+	var storage *uint;
+	var default_value uint;
+	storage = this.opt_storage.(*uint);
+	default_value = this.opt_default_value.(uint);
+    *storage = default_value;
+}
 
 type OptionBool struct{
 	OptionBase
@@ -145,11 +177,22 @@ func (this *OptionBool) Parse(arg string) error {
 		return err
 	}
 	
-	this.opt_storage = argint!=0;
+	//this.opt_storage = argint!=0;
+	var storage *bool;
+	storage = this.opt_storage.(*bool);
+	
+	*storage = argint!=0;
 	
 	return nil;
 }
 
+func (this *OptionBool) SetDefault() {
+	var storage *bool;
+	var default_value bool;
+	storage = this.opt_storage.(*bool);
+	default_value = this.opt_default_value.(bool);
+    *storage = default_value;
+}
 
 type OptionFloat struct{
 	OptionBase
@@ -167,11 +210,23 @@ func (this *OptionFloat) Parse(arg string) error {
 		return err
 	}
 	
-	this.opt_storage = float64(argfloat);
+	//this.opt_storage = float64(argfloat);
+	var storage *float64;
+	storage = this.opt_storage.(*float64);
+	
+	*storage = float64(argfloat);
 	
 	return nil;
 }
  
+func (this *OptionFloat) SetDefault() {
+	var storage *float64;
+	var default_value float64;
+	storage = this.opt_storage.(*float64);
+	default_value = this.opt_default_value.(float64);
+    *storage = default_value;
+}
+
 type OptionGOPEntry struct{
 	OptionBase
 }
@@ -262,9 +317,21 @@ func (this *OptionGOPEntry) Parse(arg string) error {
   }
 #endif*/
 	
-	this.opt_storage = entry;
+	//this.opt_storage = entry;
+	var storage **TLibEncoder.GOPEntry;
+	storage = this.opt_storage.(**TLibEncoder.GOPEntry);
+	
+	*storage = entry;
 	
 	return nil;
+}
+
+func (this *OptionGOPEntry) SetDefault() {
+	var storage **TLibEncoder.GOPEntry;
+	var default_value *TLibEncoder.GOPEntry;
+	storage = this.opt_storage.(**TLibEncoder.GOPEntry);
+	default_value = this.opt_default_value.(*TLibEncoder.GOPEntry);
+    *storage = default_value;
 }
  
 type Options struct {
@@ -285,20 +352,21 @@ func (opts *Options) DoHelp    (columns uint){
 /* for all options in opts, set their storage to their specified default value */
 func (opts *Options) SetDefaults(){
 	for name, _:= range opts.opt_map {
-     	opts.opt_map[name].SetDefault()
+	  	//fmt.Printf("%s\n",name);
+     	opts.opt_map[name].SetDefault();
     }
 }
     
 func (opts *Options) StorePair( name string, value string) bool{
       //Options::NamesMap::iterator opt_it;
       opt, found := opts.opt_map[name];
-
+      
       if !found {
         // not found
         fmt.Printf("Unknown option: '%s' (value:`%s')\n", name, value);
         return false;
       }
-
+      
       opt.Parse(value);
       
       return true;
@@ -324,8 +392,10 @@ func (opts *Options) ScanLine  ( line string){
       	// error: badly formatted line
         return;
       }
-      name  := line[0:commaPos];
-      value := line[commaPos+1:];
+      name  := strings.TrimSpace(line[0:commaPos]);
+      value := strings.TrimSpace(line[commaPos+1:]);
+      
+      //fmt.Printf("%s : %s\n", name, value);
 
       /* store the value in option */
       opts.StorePair(name, value);
@@ -395,9 +465,9 @@ type TAppEncCfg struct{
   m_aiPad			 [2]int;                                       ///< number of padded pixels for width and height
   
   // profile/level
-  m_profile			TLibCommon.PROFILE;
-  m_levelTier		TLibCommon.TIER;
-  m_level			TLibCommon.LEVEL;
+  m_profile					int;//TLibCommon.PROFILE;
+  m_levelTier				int;TLibCommon.TIER;
+  m_level					int;TLibCommon.LEVEL;
 
   // coding structure
   m_iIntraPeriod			int;                                   ///< period of I-slice (random access period)
@@ -617,7 +687,7 @@ func  (this *TAppEncCfg) ParseCfg  ( argc int, argv []string ) error {          
   var cfg_dQPFile		string;
   var cfg_ColumnWidth	string;
   var cfg_RowHeight		string;
-  var cfg_ScalingListFile	string;
+  var cfg_ScalingListFile			string;
 //#if SIGNAL_BITRATE_PICRATE_IN_VPS
   var cfg_bitRateInfoPresentFlag	string;
   var cfg_picRateInfoPresentFlag	string;
@@ -632,212 +702,215 @@ func  (this *TAppEncCfg) ParseCfg  ( argc int, argv []string ) error {          
   //("c", po::parseConfigFile, "configuration file name")
   
   // File, I/O and source parameters
-  opts.AddOption(NewOptionString("InputFile",             cfg_InputFile,     	 string(""), "Original YUV input file name"));
-  opts.AddOption(NewOptionString("BitstreamFile",         cfg_BitstreamFile, 	 string(""), "Bitstream output file name"));
-  opts.AddOption(NewOptionString("ReconFile",             cfg_ReconFile,     	 string(""), "Reconstructed YUV output file name"));
-  opts.AddOption(NewOptionInt   ("SourceWidth",      	  this.m_iSourceWidth,        0, "Source picture width"));
-  opts.AddOption(NewOptionInt   ("SourceHeight",     	  this.m_iSourceHeight,       0, "Source picture height"));
-  opts.AddOption(NewOptionInt   ("InputBitDepth",         this.m_inputBitDepthY,      8, "Bit-depth of input file"));
-  opts.AddOption(NewOptionInt   ("OutputBitDepth",        this.m_outputBitDepthY,     0, "Bit-depth of output file (default:InternalBitDepth)"));
-  opts.AddOption(NewOptionInt   ("InternalBitDepth",      this.m_internalBitDepthY,   0, "Bit-depth the codec operates at. (default:InputBitDepth) If different to InputBitDepth, source data will be converted"));
-  opts.AddOption(NewOptionInt   ("InputBitDepthC",        this.m_inputBitDepthC,      0, "As per InputBitDepth but for chroma component. (default:InputBitDepth)"));
-  opts.AddOption(NewOptionInt   ("OutputBitDepthC",       this.m_outputBitDepthC,     0, "As per OutputBitDepth but for chroma component. (default:InternalBitDepthC)"));
-  opts.AddOption(NewOptionInt   ("InternalBitDepthC",     this.m_internalBitDepthC,   0, "As per InternalBitDepth but for chroma component. (default:IntrenalBitDepth)"));
-  opts.AddOption(NewOptionInt   ("CroppingMode",          this.m_croppingMode,        0, "Cropping mode (0: no cropping, 1:automatic padding, 2: padding, 3:cropping"));
-  opts.AddOption(NewOptionInt   ("HorizontalPadding",	  this.m_aiPad[0],            0, "Horizontal source padding for cropping mode 2"));
-  opts.AddOption(NewOptionInt   ("VerticalPadding",  	  this.m_aiPad[1],            0, "Vertical source padding for cropping mode 2"));
-  opts.AddOption(NewOptionInt   ("CropLeft",              this.m_cropLeft,            0, "Left cropping for cropping mode 3"));
-  opts.AddOption(NewOptionInt   ("CropRight",             this.m_cropRight,           0, "Right cropping for cropping mode 3"));
-  opts.AddOption(NewOptionInt   ("CropTop",               this.m_cropTop,             0, "Top cropping for cropping mode 3"));
-  opts.AddOption(NewOptionInt   ("CropBottom",            this.m_cropBottom,          0, "Bottom cropping for cropping mode 3"));
-  opts.AddOption(NewOptionInt   ("FrameRate",	          this.m_iFrameRate,          0, "Frame rate"));
-  opts.AddOption(NewOptionInt   ("FrameSkip",             this.m_FrameSkip,           0, "Number of frames to skip at start of input YUV"));
-  opts.AddOption(NewOptionInt   ("FramesToBeEncoded",     this.m_iFrameToBeEncoded,   0, "Number of frames to be encoded (default=all)"));
+  opts.AddOption(NewOptionString("InputFile",             &cfg_InputFile,     	 string(""), "Original YUV input file name"));
+  opts.AddOption(NewOptionString("BitstreamFile",         &cfg_BitstreamFile, 	 string(""), "Bitstream output file name"));
+  opts.AddOption(NewOptionString("ReconFile",             &cfg_ReconFile,     	 string(""), "Reconstructed YUV output file name"));
+  opts.AddOption(NewOptionInt   ("SourceWidth",      	  &this.m_iSourceWidth,        0, "Source picture width"));
+  opts.AddOption(NewOptionInt   ("SourceHeight",     	  &this.m_iSourceHeight,       0, "Source picture height"));
+  opts.AddOption(NewOptionInt   ("InputBitDepth",         &this.m_inputBitDepthY,      8, "Bit-depth of input file"));
+  opts.AddOption(NewOptionInt   ("OutputBitDepth",        &this.m_outputBitDepthY,     0, "Bit-depth of output file (default:InternalBitDepth)"));
+  opts.AddOption(NewOptionInt   ("InternalBitDepth",      &this.m_internalBitDepthY,   0, "Bit-depth the codec operates at. (default:InputBitDepth) If different to InputBitDepth, source data will be converted"));
+  opts.AddOption(NewOptionInt   ("InputBitDepthC",        &this.m_inputBitDepthC,      0, "As per InputBitDepth but for chroma component. (default:InputBitDepth)"));
+  opts.AddOption(NewOptionInt   ("OutputBitDepthC",       &this.m_outputBitDepthC,     0, "As per OutputBitDepth but for chroma component. (default:InternalBitDepthC)"));
+  opts.AddOption(NewOptionInt   ("InternalBitDepthC",     &this.m_internalBitDepthC,   0, "As per InternalBitDepth but for chroma component. (default:IntrenalBitDepth)"));
+  opts.AddOption(NewOptionInt   ("CroppingMode",          &this.m_croppingMode,        0, "Cropping mode (0: no cropping, 1:automatic padding, 2: padding, 3:cropping"));
+  opts.AddOption(NewOptionInt   ("HorizontalPadding",	  &this.m_aiPad[0],            0, "Horizontal source padding for cropping mode 2"));
+  opts.AddOption(NewOptionInt   ("VerticalPadding",  	  &this.m_aiPad[1],            0, "Vertical source padding for cropping mode 2"));
+  opts.AddOption(NewOptionInt   ("CropLeft",              &this.m_cropLeft,            0, "Left cropping for cropping mode 3"));
+  opts.AddOption(NewOptionInt   ("CropRight",             &this.m_cropRight,           0, "Right cropping for cropping mode 3"));
+  opts.AddOption(NewOptionInt   ("CropTop",               &this.m_cropTop,             0, "Top cropping for cropping mode 3"));
+  opts.AddOption(NewOptionInt   ("CropBottom",            &this.m_cropBottom,          0, "Bottom cropping for cropping mode 3"));
+  opts.AddOption(NewOptionInt   ("FrameRate",	          &this.m_iFrameRate,          0, "Frame rate"));
+  opts.AddOption(NewOptionUInt  ("FrameSkip",             &this.m_FrameSkip,      uint(0), "Number of frames to skip at start of input YUV"));
+  opts.AddOption(NewOptionInt   ("FramesToBeEncoded",     &this.m_iFrameToBeEncoded,   0, "Number of frames to be encoded (default=all)"));
   
   // Profile and level
-  opts.AddOption(NewOptionInt   ("Profile", this.m_profile,     0, "Profile to be used when encoding (Incomplete)"));
-  opts.AddOption(NewOptionInt   ("Level",   this.m_level,       0,   "Level limit to be used, eg 5.1 (Incomplete)"));
-  opts.AddOption(NewOptionInt   ("Tier",    this.m_levelTier,   0,   "Tier to use for interpretation of --Level"));
+  opts.AddOption(NewOptionInt   ("Profile", 				&this.m_profile,     0,   "Profile to be used when encoding (Incomplete)"));
+  opts.AddOption(NewOptionInt   ("Level",   				&this.m_level,       0,   "Level limit to be used, eg 5.1 (Incomplete)"));
+  opts.AddOption(NewOptionInt   ("Tier",    				&this.m_levelTier,   0,   "Tier to use for interpretation of --Level"));
 
   // Unit definition parameters
-  opts.AddOption(NewOptionUInt  ("MaxCUWidth",              this.m_uiMaxCUWidth,             64, ""));
-  opts.AddOption(NewOptionUInt  ("MaxCUHeight",             this.m_uiMaxCUHeight,            64, ""));
+  opts.AddOption(NewOptionUInt  ("MaxCUWidth",              &this.m_uiMaxCUWidth,             uint(64), ""));
+  opts.AddOption(NewOptionUInt  ("MaxCUHeight",             &this.m_uiMaxCUHeight,            uint(64), ""));
   // todo: remove defaults from MaxCUSize
-  opts.AddOption(NewOptionUInt  ("MaxCUSize",               this.m_uiMaxCUWidth,             64, "Maximum CU size"));
-  opts.AddOption(NewOptionUInt  ("MaxCUSize",               this.m_uiMaxCUHeight,            64, "Maximum CU size"));
-  opts.AddOption(NewOptionUInt  ("MaxPartitionDepth",       this.m_uiMaxCUDepth,              4, "CU depth"));
-  opts.AddOption(NewOptionUInt  ("QuadtreeTULog2MaxSize",   this.m_uiQuadtreeTULog2MaxSize,   6, "Maximum TU size in logarithm base 2"));
-  opts.AddOption(NewOptionUInt  ("QuadtreeTULog2MinSize",   this.m_uiQuadtreeTULog2MinSize,   2, "Minimum TU size in logarithm base 2"));
-  opts.AddOption(NewOptionUInt  ("QuadtreeTUMaxDepthIntra", this.m_uiQuadtreeTUMaxDepthIntra, 1, "Depth of TU tree for intra CUs"));
-  opts.AddOption(NewOptionUInt  ("QuadtreeTUMaxDepthInter", this.m_uiQuadtreeTUMaxDepthInter, 2, "Depth of TU tree for inter CUs"));
+  opts.AddOption(NewOptionUInt  ("MaxCUSize",               &this.m_uiMaxCUWidth,             uint(64), "Maximum CU size"));
+  opts.AddOption(NewOptionUInt  ("MaxCUSize",               &this.m_uiMaxCUHeight,            uint(64), "Maximum CU size"));
+  opts.AddOption(NewOptionUInt  ("MaxPartitionDepth",       &this.m_uiMaxCUDepth,              uint(4), "CU depth"));
+  opts.AddOption(NewOptionUInt  ("QuadtreeTULog2MaxSize",   &this.m_uiQuadtreeTULog2MaxSize,   uint(6), "Maximum TU size in logarithm base 2"));
+  opts.AddOption(NewOptionUInt  ("QuadtreeTULog2MinSize",   &this.m_uiQuadtreeTULog2MinSize,   uint(2), "Minimum TU size in logarithm base 2"));
+  opts.AddOption(NewOptionUInt  ("QuadtreeTUMaxDepthIntra", &this.m_uiQuadtreeTUMaxDepthIntra, uint(1), "Depth of TU tree for intra CUs"));
+  opts.AddOption(NewOptionUInt  ("QuadtreeTUMaxDepthInter", &this.m_uiQuadtreeTUMaxDepthInter, uint(2), "Depth of TU tree for inter CUs"));
 
   // Coding structure paramters
-  opts.AddOption(NewOptionInt   ("IntraPeriod",             this.m_iIntraPeriod,              -1, "Intra period in frames, (-1: only first frame)"));
-  opts.AddOption(NewOptionInt   ("DecodingRefreshType",     this.m_iDecodingRefreshType,       0, "Intra refresh type (0:none 1:CRA 2:IDR)"));
-  opts.AddOption(NewOptionInt   ("GOPSize",                 this.m_iGOPSize,                   1, "GOP size of temporal structure"));
-  opts.AddOption(NewOptionBool  ("ListCombination",         this.m_bUseLComb,               true, "Combined reference list for uni-prediction estimation in B-slices"));
+  opts.AddOption(NewOptionInt   ("IntraPeriod",             &this.m_iIntraPeriod,              -1, "Intra period in frames, (-1: only first frame)"));
+  opts.AddOption(NewOptionInt   ("DecodingRefreshType",     &this.m_iDecodingRefreshType,       0, "Intra refresh type (0:none 1:CRA 2:IDR)"));
+  opts.AddOption(NewOptionInt   ("GOPSize",                 &this.m_iGOPSize,                   1, "GOP size of temporal structure"));
+  opts.AddOption(NewOptionBool  ("ListCombination",         &this.m_bUseLComb,               true, "Combined reference list for uni-prediction estimation in B-slices"));
   
   // motion options
-  opts.AddOption(NewOptionInt   ("FastSearch",              this.m_iFastSearch,                1, "0:Full search  1:Diamond  2:PMVFAST"));
-  opts.AddOption(NewOptionInt   ("SearchRange",             this.m_iSearchRange,              96, "Motion search range"));
-  opts.AddOption(NewOptionBool  ("BipredSearchRange",       this.m_bipredSearchRange,          4, "Motion search range for bipred refinement"));
-  opts.AddOption(NewOptionBool  ("HadamardME",              this.m_bUseHADME,               true, "Hadamard ME for fractional-pel"));
-  opts.AddOption(NewOptionBool  ("ASR",                     this.m_bUseASR,                false, "Adaptive motion search range"));
+  opts.AddOption(NewOptionInt   ("FastSearch",              &this.m_iFastSearch,                1, "0:Full search  1:Diamond  2:PMVFAST"));
+  opts.AddOption(NewOptionInt   ("SearchRange",             &this.m_iSearchRange,              96, "Motion search range"));
+  opts.AddOption(NewOptionInt   ("BipredSearchRange",       &this.m_bipredSearchRange,          4, "Motion search range for bipred refinement"));
+  opts.AddOption(NewOptionBool  ("HadamardME",              &this.m_bUseHADME,               true, "Hadamard ME for fractional-pel"));
+  opts.AddOption(NewOptionBool  ("ASR",                     &this.m_bUseASR,                false, "Adaptive motion search range"));
  
   // Mode decision parameters
-  opts.AddOption(NewOptionFloat ("LambdaModifier0", 		this.m_adLambdaModifier[ 0 ], 1.0, "Lambda modifier for temporal layer 0"));
-  opts.AddOption(NewOptionFloat ("LambdaModifier1", 		this.m_adLambdaModifier[ 1 ], 1.0, "Lambda modifier for temporal layer 1"));
-  opts.AddOption(NewOptionFloat ("LambdaModifier2", 		this.m_adLambdaModifier[ 2 ], 1.0, "Lambda modifier for temporal layer 2"));
-  opts.AddOption(NewOptionFloat ("LambdaModifier3", 		this.m_adLambdaModifier[ 3 ], 1.0, "Lambda modifier for temporal layer 3"));
-  opts.AddOption(NewOptionFloat ("LambdaModifier4", 		this.m_adLambdaModifier[ 4 ], 1.0, "Lambda modifier for temporal layer 4"));
-  opts.AddOption(NewOptionFloat ("LambdaModifier5", 		this.m_adLambdaModifier[ 5 ], 1.0, "Lambda modifier for temporal layer 5"));
-  opts.AddOption(NewOptionFloat ("LambdaModifier6", 		this.m_adLambdaModifier[ 6 ], 1.0, "Lambda modifier for temporal layer 6"));
-  opts.AddOption(NewOptionFloat ("LambdaModifier7", 		this.m_adLambdaModifier[ 7 ], 1.0, "Lambda modifier for temporal layer 7"));
+  opts.AddOption(NewOptionFloat ("LambdaModifier0", 		&this.m_adLambdaModifier[ 0 ], 1.0, "Lambda modifier for temporal layer 0"));
+  opts.AddOption(NewOptionFloat ("LambdaModifier1", 		&this.m_adLambdaModifier[ 1 ], 1.0, "Lambda modifier for temporal layer 1"));
+  opts.AddOption(NewOptionFloat ("LambdaModifier2", 		&this.m_adLambdaModifier[ 2 ], 1.0, "Lambda modifier for temporal layer 2"));
+  opts.AddOption(NewOptionFloat ("LambdaModifier3", 		&this.m_adLambdaModifier[ 3 ], 1.0, "Lambda modifier for temporal layer 3"));
+  opts.AddOption(NewOptionFloat ("LambdaModifier4", 		&this.m_adLambdaModifier[ 4 ], 1.0, "Lambda modifier for temporal layer 4"));
+  opts.AddOption(NewOptionFloat ("LambdaModifier5", 		&this.m_adLambdaModifier[ 5 ], 1.0, "Lambda modifier for temporal layer 5"));
+  opts.AddOption(NewOptionFloat ("LambdaModifier6", 		&this.m_adLambdaModifier[ 6 ], 1.0, "Lambda modifier for temporal layer 6"));
+  opts.AddOption(NewOptionFloat ("LambdaModifier7", 		&this.m_adLambdaModifier[ 7 ], 1.0, "Lambda modifier for temporal layer 7"));
 
   /* Quantization parameters */
-  opts.AddOption(NewOptionFloat ("QP",             			this.m_fQP,             30.0, "Qp value, if value is float, QP is switched once during encoding"));
-  opts.AddOption(NewOptionUInt  ("DeltaQpRD",				this.m_uiDeltaQpRD,        0, "max dQp offset for slice"));
-  opts.AddOption(NewOptionInt   ("MaxDeltaQP",  			this.m_iMaxDeltaQP,        0, "max dQp offset for block"));
-  opts.AddOption(NewOptionInt   ("MaxCuDQPDepth",  			this.m_iMaxCuDQPDepth,     0, "max depth for a minimum CuDQP"));
-  opts.AddOption(NewOptionInt   ("CbQpOffset",  			this.m_cbQpOffset,         0, "Chroma Cb QP Offset"));
-  opts.AddOption(NewOptionInt   ("CrQpOffset",  			this.m_crQpOffset,         0, "Chroma Cr QP Offset"));
+  opts.AddOption(NewOptionFloat ("QP",             			&this.m_fQP,             30.0, "Qp value, if value is float, QP is switched once during encoding"));
+  opts.AddOption(NewOptionUInt  ("DeltaQpRD",				&this.m_uiDeltaQpRD,   uint(0), "max dQp offset for slice"));
+  opts.AddOption(NewOptionInt   ("MaxDeltaQP",  			&this.m_iMaxDeltaQP,        0, "max dQp offset for block"));
+  opts.AddOption(NewOptionInt   ("MaxCuDQPDepth",  			&this.m_iMaxCuDQPDepth,     0, "max depth for a minimum CuDQP"));
+  opts.AddOption(NewOptionInt   ("CbQpOffset",  			&this.m_cbQpOffset,         0, "Chroma Cb QP Offset"));
+  opts.AddOption(NewOptionInt   ("CrQpOffset",  			&this.m_crQpOffset,         0, "Chroma Cr QP Offset"));
 
 //#if ADAPTIVE_QP_SELECTION
-  opts.AddOption(NewOptionBool  ("AdaptiveQpSelection,-aqps",   this.m_bUseAdaptQpSelect,           false, "AdaptiveQpSelection"));
+  opts.AddOption(NewOptionBool  ("AdaptiveQpSelection",     &this.m_bUseAdaptQpSelect,           false, "AdaptiveQpSelection"));
 //#endif
 
-  opts.AddOption(NewOptionBool  ("AdaptiveQP",                    this.m_bUseAdaptiveQP,           false, "QP adaptation based on a psycho-visual model"));
-  opts.AddOption(NewOptionInt   ("MaxQPAdaptationRange",          this.m_iQPAdaptationRange,           6, "QP adaptation range"));
-  opts.AddOption(NewOptionString("dQPFile,m",                     cfg_dQPFile,           string(""), "dQP file name"));
-  opts.AddOption(NewOptionBool  ("RDOQ",                          this.m_useRDOQ,                  true, "" ));
+  opts.AddOption(NewOptionBool  ("AdaptiveQP",                    &this.m_bUseAdaptiveQP,           false, "QP adaptation based on a psycho-visual model"));
+  opts.AddOption(NewOptionInt   ("MaxQPAdaptationRange",          &this.m_iQPAdaptationRange,           6, "QP adaptation range"));
+  opts.AddOption(NewOptionString("dQPFile",                       &cfg_dQPFile,           	   string(""), "dQP file name"));
+  opts.AddOption(NewOptionBool  ("RDOQ",                          &this.m_useRDOQ,                  true, "" ));
 //#if RDOQ_TRANSFORMSKIP
-  opts.AddOption(NewOptionBool  ("RDOQTS",                        this.m_useRDOQTS,                true, "" ));
+  opts.AddOption(NewOptionBool  ("RDOQTS",                        &this.m_useRDOQTS,                true, "" ));
 //#endif  
   // Entropy coding parameters
-  opts.AddOption(NewOptionBool  ("SBACRD",                        this.m_bUseSBACRD,              true, "SBAC based RD estimation"));
+  opts.AddOption(NewOptionBool  ("SBACRD",                        &this.m_bUseSBACRD,              true, "SBAC based RD estimation"));
   
   // Deblocking filter parameters
-  opts.AddOption(NewOptionBool  ("LoopFilterDisable",              this.m_bLoopFilterDisable,             false, "" ));
-  opts.AddOption(NewOptionBool  ("LoopFilterOffsetInPPS",          this.m_loopFilterOffsetInPPS,          false, "" ));
-  opts.AddOption(NewOptionInt   ("LoopFilterBetaOffset_div2",      this.m_loopFilterBetaOffsetDiv2,           0, "" ));
-  opts.AddOption(NewOptionInt   ("LoopFilterTcOffset_div2",        this.m_loopFilterTcOffsetDiv2,             0, "" ));
-  opts.AddOption(NewOptionBool  ("DeblockingFilterControlPresent", this.m_DeblockingFilterControlPresent, false, "" ));
+  opts.AddOption(NewOptionBool  ("LoopFilterDisable",              &this.m_bLoopFilterDisable,             false, "" ));
+  opts.AddOption(NewOptionBool  ("LoopFilterOffsetInPPS",          &this.m_loopFilterOffsetInPPS,          false, "" ));
+  opts.AddOption(NewOptionInt   ("LoopFilterBetaOffset_div2",      &this.m_loopFilterBetaOffsetDiv2,           0, "" ));
+  opts.AddOption(NewOptionInt   ("LoopFilterTcOffset_div2",        &this.m_loopFilterTcOffsetDiv2,             0, "" ));
+  opts.AddOption(NewOptionBool  ("DeblockingFilterControlPresent", &this.m_DeblockingFilterControlPresent, false, "" ));
 
   // Coding tools
-  opts.AddOption(NewOptionBool  ("AMP",                     this.m_enableAMP,               true, "Enable asymmetric motion partitions"));
-  opts.AddOption(NewOptionBool  ("TransformSkip",           this.m_useTransformSkip,        false, "Intra transform skipping"));
-  opts.AddOption(NewOptionBool  ("TransformSkipFast",       this.m_useTransformSkipFast,    false, "Fast intra transform skipping"));
-  opts.AddOption(NewOptionBool  ("SAO",                     this.m_bUseSAO,                 true, "Enable Sample Adaptive Offset"));
-  opts.AddOption(NewOptionInt   ("MaxNumOffsetsPerPic",     this.m_maxNumOffsetsPerPic,     2048, "Max number of SAO offset per picture (Default: 2048)"));   
-  opts.AddOption(NewOptionBool  ("SAOLcuBoundary",          this.m_saoLcuBoundary,          false, "0: right/bottom LCU boundary areas skipped from SAO parameter estimation, 1: non-deblocked pixels are used for those areas"));
-  opts.AddOption(NewOptionBool  ("SAOLcuBasedOptimization", this.m_saoLcuBasedOptimization, true, "0: SAO picture-based optimization, 1: SAO LCU-based optimization "));
-  opts.AddOption(NewOptionInt   ("SliceMode",               this.m_iSliceMode,              0, "0: Disable all Recon slice limits, 1: Enforce max # of LCUs, 2: Enforce max # of bytes"));
-  opts.AddOption(NewOptionInt   ("SliceArgument",           this.m_iSliceArgument,          0, "if SliceMode==1 SliceArgument represents max # of LCUs. if SliceMode==2 SliceArgument represents max # of bytes."));
-  opts.AddOption(NewOptionInt   ("DependentSliceMode",      this.m_iDependentSliceMode,     0, "0: Disable all dependent slice limits, 1: Enforce max # of LCUs, 2: Enforce constraint based dependent slices"));
-  opts.AddOption(NewOptionInt   ("DependentSliceArgument",  this.m_iDependentSliceArgument, 0, "if DependentSliceMode==1 SliceArgument represents max # of LCUs. if DependentSliceMode==2 DependentSliceArgument represents max # of bins."));
+  opts.AddOption(NewOptionBool  ("AMP",                     &this.m_enableAMP,               true, "Enable asymmetric motion partitions"));
+  opts.AddOption(NewOptionBool  ("TransformSkip",           &this.m_useTransformSkip,        false, "Intra transform skipping"));
+  opts.AddOption(NewOptionBool  ("TransformSkipFast",       &this.m_useTransformSkipFast,    false, "Fast intra transform skipping"));
+  opts.AddOption(NewOptionBool  ("SAO",                     &this.m_bUseSAO,                 true, "Enable Sample Adaptive Offset"));
+  opts.AddOption(NewOptionInt   ("MaxNumOffsetsPerPic",     &this.m_maxNumOffsetsPerPic,     2048, "Max number of SAO offset per picture (Default: 2048)"));   
+  opts.AddOption(NewOptionBool  ("SAOLcuBoundary",          &this.m_saoLcuBoundary,          false, "0: right/bottom LCU boundary areas skipped from SAO parameter estimation, 1: non-deblocked pixels are used for those areas"));
+  opts.AddOption(NewOptionBool  ("SAOLcuBasedOptimization", &this.m_saoLcuBasedOptimization, true, "0: SAO picture-based optimization, 1: SAO LCU-based optimization "));
+  opts.AddOption(NewOptionInt   ("SliceMode",               &this.m_iSliceMode,              0, "0: Disable all Recon slice limits, 1: Enforce max # of LCUs, 2: Enforce max # of bytes"));
+  opts.AddOption(NewOptionInt   ("SliceArgument",           &this.m_iSliceArgument,          0, "if SliceMode==1 SliceArgument represents max # of LCUs. if SliceMode==2 SliceArgument represents max # of bytes."));
+  opts.AddOption(NewOptionInt   ("DependentSliceMode",      &this.m_iDependentSliceMode,     0, "0: Disable all dependent slice limits, 1: Enforce max # of LCUs, 2: Enforce constraint based dependent slices"));
+  opts.AddOption(NewOptionInt   ("DependentSliceArgument",  &this.m_iDependentSliceArgument, 0, "if DependentSliceMode==1 SliceArgument represents max # of LCUs. if DependentSliceMode==2 DependentSliceArgument represents max # of bins."));
 //#if DEPENDENT_SLICES && !REMOVE_ENTROPY_SLICES
 //  opts.AddOption(NewOptionBool  ("EntropySliceEnabledFlag", this.m_entropySliceEnabledFlag, false, "Enable use of entropy slices instead of dependent slices." ));
 //#endif
-  opts.AddOption(NewOptionBool  ("LFCrossSliceBoundaryFlag",this.m_bLFCrossSliceBoundaryFlag, true, "LFCrossSliceBoundaryFlag"));
-  opts.AddOption(NewOptionBool  ("ConstrainedIntraPred", 	this.m_bUseConstrainedIntraPred,  false, "Constrained Intra Prediction"));
-  opts.AddOption(NewOptionBool  ("PCMEnabledFlag", 			this.m_usePCM, 					 false, ""));
-  opts.AddOption(NewOptionUInt  ("PCMLog2MaxSize", 			this.m_pcmLog2MaxSize, 			 5,     ""));
-  opts.AddOption(NewOptionUInt  ("PCMLog2MinSize", 			this.m_uiPCMLog2MinSize, 		 3,     ""));
+  opts.AddOption(NewOptionBool  ("LFCrossSliceBoundaryFlag",&this.m_bLFCrossSliceBoundaryFlag, true, "LFCrossSliceBoundaryFlag"));
+  opts.AddOption(NewOptionBool  ("ConstrainedIntraPred", 	&this.m_bUseConstrainedIntraPred,  false, "Constrained Intra Prediction"));
+  opts.AddOption(NewOptionBool  ("PCMEnabledFlag", 			&this.m_usePCM, 					 false, ""));
+  opts.AddOption(NewOptionUInt  ("PCMLog2MaxSize", 			&this.m_pcmLog2MaxSize, 		uint(5),     ""));
+  opts.AddOption(NewOptionUInt  ("PCMLog2MinSize", 			&this.m_uiPCMLog2MinSize, 		uint(3),     ""));
 
-  opts.AddOption(NewOptionBool  ("PCMInputBitDepthFlag", 	this.m_bPCMInputBitDepthFlag, true,     ""));
-  opts.AddOption(NewOptionBool  ("PCMFilterDisableFlag", 	this.m_bPCMFilterDisableFlag, false,     ""));
-  opts.AddOption(NewOptionBool  ("LosslessCuEnabled", 		this.m_useLossless, false,     ""));
-  opts.AddOption(NewOptionBool  ("weighted_pred_flag",     	this.m_bUseWeightPred, false, "weighted prediction flag (P-Slices)"));
-  opts.AddOption(NewOptionBool  ("weighted_bipred_flag",    this.m_useWeightedBiPred,    false,    "weighted bipred flag (B-Slices)"));
-  opts.AddOption(NewOptionUInt  ("Log2ParallelMergeLevel",  this.m_log2ParallelMergeLevel,     2,          "Parallel merge estimation region"));
-  opts.AddOption(NewOptionInt   ("UniformSpacingIdc",       this.m_iUniformSpacingIdr,            0,          "Indicates if the column and row boundaries are distributed uniformly"));
-  opts.AddOption(NewOptionInt   ("NumTileColumnsMinus1",    this.m_iNumColumnsMinus1,             0,          "Number of columns in a picture minus 1"));
-  opts.AddOption(NewOptionString("ColumnWidthArray",        cfg_ColumnWidth,                 string(""), "Array containing ColumnWidth values in units of LCU"));
-  opts.AddOption(NewOptionInt   ("NumTileRowsMinus1",       this.m_iNumRowsMinus1,                0,          "Number of rows in a picture minus 1"));
-  opts.AddOption(NewOptionString("RowHeightArray",          cfg_RowHeight,                   string(""), "Array containing RowHeight values in units of LCU"));
-  opts.AddOption(NewOptionBool  ("LFCrossTileBoundaryFlag", this.m_bLFCrossTileBoundaryFlag,             true,          "1: cross-tile-boundary loop filtering. 0:non-cross-tile-boundary loop filtering"));
-  opts.AddOption(NewOptionInt   ("WaveFrontSynchro",        this.m_iWaveFrontSynchro,             0,          "0: no synchro; 1 synchro with TR; 2 TRR etc"));
-  opts.AddOption(NewOptionInt   ("ScalingList",             this.m_useScalingListId,              0,          "0: no scaling list, 1: default scaling lists, 2: scaling lists specified in ScalingListFile"));
-  opts.AddOption(NewOptionString("ScalingListFile",         cfg_ScalingListFile,             string(""), "Scaling list file name"));
-  opts.AddOption(NewOptionInt   ("SignHideFlag,-SBH",       this.m_signHideFlag, 				 1,     ""));
-  opts.AddOption(NewOptionUInt  ("MaxNumMergeCand",         this.m_maxNumMergeCand,               5,         "Maximum number of merge candidates"));
+  opts.AddOption(NewOptionBool  ("PCMInputBitDepthFlag", 	&this.m_bPCMInputBitDepthFlag, true,     ""));
+  opts.AddOption(NewOptionBool  ("PCMFilterDisableFlag", 	&this.m_bPCMFilterDisableFlag, false,     ""));
+  opts.AddOption(NewOptionBool  ("LosslessCuEnabled", 		&this.m_useLossless, false,     ""));
+  opts.AddOption(NewOptionBool  ("weighted_pred_flag",     	&this.m_bUseWeightPred, false, "weighted prediction flag (P-Slices)"));
+  opts.AddOption(NewOptionBool  ("weighted_bipred_flag",    &this.m_useWeightedBiPred,    false,    "weighted bipred flag (B-Slices)"));
+  opts.AddOption(NewOptionUInt  ("Log2ParallelMergeLevel",  &this.m_log2ParallelMergeLevel,     uint(2),          "Parallel merge estimation region"));
+  opts.AddOption(NewOptionInt   ("UniformSpacingIdc",       &this.m_iUniformSpacingIdr,            0,          "Indicates if the column and row boundaries are distributed uniformly"));
+  opts.AddOption(NewOptionInt   ("NumTileColumnsMinus1",    &this.m_iNumColumnsMinus1,             0,          "Number of columns in a picture minus 1"));
+  opts.AddOption(NewOptionString("ColumnWidthArray",        &cfg_ColumnWidth,                 string(""), "Array containing ColumnWidth values in units of LCU"));
+  opts.AddOption(NewOptionInt   ("NumTileRowsMinus1",       &this.m_iNumRowsMinus1,                0,          "Number of rows in a picture minus 1"));
+  opts.AddOption(NewOptionString("RowHeightArray",          &cfg_RowHeight,                   string(""), "Array containing RowHeight values in units of LCU"));
+  opts.AddOption(NewOptionBool  ("LFCrossTileBoundaryFlag", &this.m_bLFCrossTileBoundaryFlag,             true,          "1: cross-tile-boundary loop filtering. 0:non-cross-tile-boundary loop filtering"));
+  opts.AddOption(NewOptionInt   ("WaveFrontSynchro",        &this.m_iWaveFrontSynchro,             0,          "0: no synchro; 1 synchro with TR; 2 TRR etc"));
+  opts.AddOption(NewOptionInt   ("ScalingList",             &this.m_useScalingListId,              0,          "0: no scaling list, 1: default scaling lists, 2: scaling lists specified in ScalingListFile"));
+  opts.AddOption(NewOptionString("ScalingListFile",         &cfg_ScalingListFile,             string(""), "Scaling list file name"));
+  opts.AddOption(NewOptionInt   ("SignHideFlag,-SBH",       &this.m_signHideFlag, 				 1,     ""));
+  opts.AddOption(NewOptionUInt  ("MaxNumMergeCand",         &this.m_maxNumMergeCand,               uint(5),         "Maximum number of merge candidates"));
 
   /* Misc. */
-  opts.AddOption(NewOptionInt   ("SEIpictureDigest",  this.m_decodePictureHashSEIEnabled, 0, "Control generation of decode picture hash SEI messages"));
-  opts.AddOption(NewOptionInt   ("TMVPMode", this.m_TMVPModeId, 1, "TMVP mode 0: TMVP disable for all slices. 1: TMVP enable for all slices (default) 2: TMVP enable for certain slices only"));
-  opts.AddOption(NewOptionBool  ("FEN", this.m_bUseFastEnc, false, "fast encoder setting"));
-  opts.AddOption(NewOptionBool  ("ECU", this.m_bUseEarlyCU, false, "Early CU setting"));
-  opts.AddOption(NewOptionBool  ("FDM", this.m_useFastDecisionForMerge, true, "Fast decision for Merge RD Cost")); 
-  opts.AddOption(NewOptionBool  ("CFM", this.m_bUseCbfFastMode, false, "Cbf fast mode setting"));
-  opts.AddOption(NewOptionBool  ("ESD", this.m_useEarlySkipDetection, false, "Early SKIP detection setting"));
+  opts.AddOption(NewOptionInt   ("SEIpictureDigest",  		&this.m_decodePictureHashSEIEnabled, 0, "Control generation of decode picture hash SEI messages"));
+  opts.AddOption(NewOptionInt   ("TMVPMode", 				&this.m_TMVPModeId, 1, "TMVP mode 0: TMVP disable for all slices. 1: TMVP enable for all slices (default) 2: TMVP enable for certain slices only"));
+  opts.AddOption(NewOptionBool  ("FEN", 					&this.m_bUseFastEnc, false, "fast encoder setting"));
+  opts.AddOption(NewOptionBool  ("ECU", 					&this.m_bUseEarlyCU, false, "Early CU setting"));
+  opts.AddOption(NewOptionBool  ("FDM", 					&this.m_useFastDecisionForMerge, true, "Fast decision for Merge RD Cost")); 
+  opts.AddOption(NewOptionBool  ("CFM", 					&this.m_bUseCbfFastMode, false, "Cbf fast mode setting"));
+  opts.AddOption(NewOptionBool  ("ESD", 					&this.m_useEarlySkipDetection, false, "Early SKIP detection setting"));
 //#if RATE_CONTROL_LAMBDA_DOMAIN
-  opts.AddOption(NewOptionBool  ( "RateControl",         this.m_RCEnableRateControl,   false, "Rate control: enable rate control" ));
-  opts.AddOption(NewOptionBool  ( "TargetBitrate",       this.m_RCTargetBitrate,           0, "Rate control: target bitrate" ));
-  opts.AddOption(NewOptionBool  ( "KeepHierarchicalBit", this.m_RCKeepHierarchicalBit, false, "Rate control: keep hierarchical bit allocation in rate control algorithm" ));
-  opts.AddOption(NewOptionBool  ( "LCULevelRateControl", this.m_RCLCULevelRC,           true, "Rate control: true: LCU level RC; false: picture level RC" ));
-  opts.AddOption(NewOptionBool  ( "RCLCUSeparateModel",  this.m_RCUseLCUSeparateModel,  true, "Rate control: use LCU level separate R-lambda model" ));
-  opts.AddOption(NewOptionBool  ( "InitialQP",           this.m_RCInitialQP,               0, "Rate control: initial QP" ));
-  opts.AddOption(NewOptionBool  ( "RCForceIntraQP",      this.m_RCForceIntraQP,        false, "Rate control: force intra QP to be equal to initial QP" ));
+  opts.AddOption(NewOptionBool  ( "RateControl",         &this.m_RCEnableRateControl,   false, "Rate control: enable rate control" ));
+  opts.AddOption(NewOptionInt   ( "TargetBitrate",       &this.m_RCTargetBitrate,           0, "Rate control: target bitrate" ));
+  opts.AddOption(NewOptionBool  ( "KeepHierarchicalBit", &this.m_RCKeepHierarchicalBit, false, "Rate control: keep hierarchical bit allocation in rate control algorithm" ));
+  opts.AddOption(NewOptionBool  ( "LCULevelRateControl", &this.m_RCLCULevelRC,           true, "Rate control: true: LCU level RC; false: picture level RC" ));
+  opts.AddOption(NewOptionBool  ( "RCLCUSeparateModel",  &this.m_RCUseLCUSeparateModel,  true, "Rate control: use LCU level separate R-lambda model" ));
+  opts.AddOption(NewOptionInt   ( "InitialQP",           &this.m_RCInitialQP,               0, "Rate control: initial QP" ));
+  opts.AddOption(NewOptionBool  ( "RCForceIntraQP",      &this.m_RCForceIntraQP,        false, "Rate control: force intra QP to be equal to initial QP" ));
 /*#else
   ("RateCtrl,-rc", this.m_enableRateCtrl, false, "Rate control on/off")
   ("TargetBitrate,-tbr", this.m_targetBitrate, 0, "Input target bitrate")
   ("NumLCUInUnit,-nu", this.m_numLCUInUnit, 0, "Number of LCUs in an Unit")
 #endif*/
 
-  opts.AddOption(NewOptionBool  ("TransquantBypassEnableFlag",     this.m_TransquantBypassEnableFlag, false, "transquant_bypass_enable_flag indicator in PPS"));
-  opts.AddOption(NewOptionBool  ("CUTransquantBypassFlagValue",    this.m_CUTransquantBypassFlagValue, false, "Fixed cu_transquant_bypass_flag value, when transquant_bypass_enable_flag is enabled"));
-  opts.AddOption(NewOptionBool  ("RecalculateQPAccordingToLambda", this.m_recalculateQPAccordingToLambda, false, "Recalculate QP values according to lambda values. Do not suggest to be enabled in all intra case"));
+  opts.AddOption(NewOptionBool  ("TransquantBypassEnableFlag",     &this.m_TransquantBypassEnableFlag, false, "transquant_bypass_enable_flag indicator in PPS"));
+  opts.AddOption(NewOptionBool  ("CUTransquantBypassFlagValue",    &this.m_CUTransquantBypassFlagValue, false, "Fixed cu_transquant_bypass_flag value, when transquant_bypass_enable_flag is enabled"));
+  opts.AddOption(NewOptionBool  ("RecalculateQPAccordingToLambda", &this.m_recalculateQPAccordingToLambda, false, "Recalculate QP values according to lambda values. Do not suggest to be enabled in all intra case"));
 //#if STRONG_INTRA_SMOOTHING
-  opts.AddOption(NewOptionBool  ("StrongIntraSmoothing",           this.m_useStrongIntraSmoothing,           true, "Enable strong intra smoothing for 32x32 blocks"));
+  opts.AddOption(NewOptionBool  ("StrongIntraSmoothing",           &this.m_useStrongIntraSmoothing,           true, "Enable strong intra smoothing for 32x32 blocks"));
 //#endif
-  opts.AddOption(NewOptionInt   ("ActiveParameterSets", 		   this.m_activeParameterSetsSEIEnabled, 0, "Control generation of active parameter sets SEI messages"));
-  opts.AddOption(NewOptionBool  ("VuiParametersPresent",           this.m_vuiParametersPresentFlag,           false, "Enable generation of vui_parameters()"));
-  opts.AddOption(NewOptionBool  ("AspectRatioInfoPresent",         this.m_aspectRatioInfoPresentFlag,         false, "Signals whether aspect_ratio_idc is present"));
-  opts.AddOption(NewOptionInt   ("AspectRatioIdc",                 this.m_aspectRatioIdc,                         0, "aspect_ratio_idc"));
-  opts.AddOption(NewOptionInt   ("SarWidth",                       this.m_sarWidth,                               0, "horizontal size of the sample aspect ratio"));
-  opts.AddOption(NewOptionInt   ("SarHeight",                      this.m_sarHeight,                              0, "vertical size of the sample aspect ratio"));
-  opts.AddOption(NewOptionBool  ("OverscanInfoPresent",            this.m_overscanInfoPresentFlag,            false, "Indicates whether cropped decoded pictures are suitable for display using overscan\n"));
-  opts.AddOption(NewOptionBool  ("OverscanAppropriate",            this.m_overscanAppropriateFlag,            false, "Indicates whether cropped decoded pictures are suitable for display using overscan\n"));
-  opts.AddOption(NewOptionBool  ("VideoSignalTypePresent",         this.m_videoSignalTypePresentFlag,         false, "Signals whether video_format, video_full_range_flag, and colour_description_present_flag are present"));
-  opts.AddOption(NewOptionInt   ("VideoFormat",                    this.m_videoFormat,                            5, "Indicates representation of pictures"));
-  opts.AddOption(NewOptionBool  ("VideoFullRange",                 this.m_videoFullRangeFlag,                 false, "Indicates the black level and range of luma and chroma signals"));
-  opts.AddOption(NewOptionBool  ("ColourDescriptionPresent",       this.m_colourDescriptionPresentFlag,       false, "Signals whether colour_primaries, transfer_characteristics and matrix_coefficients are present"));
-  opts.AddOption(NewOptionInt   ("ColourPrimaries",                this.m_colourPrimaries,                        2, "Indicates chromaticity coordinates of the source primaries"));
-  opts.AddOption(NewOptionInt   ("TransferCharateristics",         this.m_transferCharacteristics,                2, "Indicates the opto-electronic transfer characteristics of the source"));
-  opts.AddOption(NewOptionInt   ("MatrixCoefficients",             this.m_matrixCoefficients,                     2, "Describes the matrix coefficients used in deriving luma and chroma from RGB primaries"));
-  opts.AddOption(NewOptionBool  ("ChromaLocInfoPresent",           this.m_chromaLocInfoPresentFlag,           false, "Signals whether chroma_sample_loc_type_top_field and chroma_sample_loc_type_bottothis.m_field are present"));
-  opts.AddOption(NewOptionInt   ("ChromaSampleLocTypeTopField",    this.m_chromaSampleLocTypeTopField,            0, "Specifies the location of chroma samples for top field"));
-  opts.AddOption(NewOptionInt   ("ChromaSampleLocTypeBottomField", this.m_chromaSampleLocTypeBottomField,         0, "Specifies the location of chroma samples for bottom field"));
-  opts.AddOption(NewOptionBool  ("NeutralChromaIndication",        this.m_neutralChromaIndicationFlag,        false, "Indicates that the value of all decoded chroma samples is equal to 1<<(BitDepthCr-1)"));
-  opts.AddOption(NewOptionBool  ("BitstreamRestriction",           this.m_bitstreamRestrictionFlag,           false, "Signals whether bitstream restriction parameters are present"));
-  opts.AddOption(NewOptionBool  ("TilesFixedStructure",            this.m_tilesFixedStructureFlag,            false, "Indicates that each active picture parameter set has the same values of the syntax elements related to tiles"));
-  opts.AddOption(NewOptionBool  ("MotionVectorsOverPicBoundaries", this.m_motionVectorsOverPicBoundariesFlag, false, "Indicates that no samples outside the picture boundaries are used for inter prediction"));
-  opts.AddOption(NewOptionInt   ("MaxBytesPerPicDenom",            this.m_maxBytesPerPicDenom,                    2, "Indicates a number of bytes not exceeded by the sum of the sizes of the VCL NAL units associated with any coded picture"));
-  opts.AddOption(NewOptionInt   ("MaxBitsPerMinCuDenom",           this.m_maxBitsPerMinCuDenom,                   1, "Indicates an upper bound for the number of bits of coding_unit() data"));
-  opts.AddOption(NewOptionInt   ("Log2MaxMvLengthHorizontal",      this.m_log2MaxMvLengthHorizontal,             15, "Indicate the maximum absolute value of a decoded horizontal MV component in quarter-pel luma units"));
-  opts.AddOption(NewOptionInt   ("Log2MaxMvLengthVertical",        this.m_log2MaxMvLengthVertical,               15, "Indicate the maximum absolute value of a decoded vertical MV component in quarter-pel luma units"));
-  opts.AddOption(NewOptionInt   ("SEIRecoveryPoint",               this.m_recoveryPointSEIEnabled,                0, "Control generation of recovery point SEI messages"));
-  opts.AddOption(NewOptionInt   ("SEIBufferingPeriod",             this.m_bufferingPeriodSEIEnabled,              0, "Control generation of buffering period SEI messages"));
-  opts.AddOption(NewOptionInt   ("SEIPictureTiming",               this.m_pictureTimingSEIEnabled,                0, "Control generation of picture timing SEI messages"));
+  opts.AddOption(NewOptionInt   ("ActiveParameterSets", 		   &this.m_activeParameterSetsSEIEnabled, 0, "Control generation of active parameter sets SEI messages"));
+  opts.AddOption(NewOptionBool  ("VuiParametersPresent",           &this.m_vuiParametersPresentFlag,           false, "Enable generation of vui_parameters()"));
+  opts.AddOption(NewOptionBool  ("AspectRatioInfoPresent",         &this.m_aspectRatioInfoPresentFlag,         false, "Signals whether aspect_ratio_idc is present"));
+  opts.AddOption(NewOptionInt   ("AspectRatioIdc",                 &this.m_aspectRatioIdc,                         0, "aspect_ratio_idc"));
+  opts.AddOption(NewOptionInt   ("SarWidth",                       &this.m_sarWidth,                               0, "horizontal size of the sample aspect ratio"));
+  opts.AddOption(NewOptionInt   ("SarHeight",                      &this.m_sarHeight,                              0, "vertical size of the sample aspect ratio"));
+  opts.AddOption(NewOptionBool  ("OverscanInfoPresent",            &this.m_overscanInfoPresentFlag,            false, "Indicates whether cropped decoded pictures are suitable for display using overscan\n"));
+  opts.AddOption(NewOptionBool  ("OverscanAppropriate",            &this.m_overscanAppropriateFlag,            false, "Indicates whether cropped decoded pictures are suitable for display using overscan\n"));
+  opts.AddOption(NewOptionBool  ("VideoSignalTypePresent",         &this.m_videoSignalTypePresentFlag,         false, "Signals whether video_format, video_full_range_flag, and colour_description_present_flag are present"));
+  opts.AddOption(NewOptionInt   ("VideoFormat",                    &this.m_videoFormat,                            5, "Indicates representation of pictures"));
+  opts.AddOption(NewOptionBool  ("VideoFullRange",                 &this.m_videoFullRangeFlag,                 false, "Indicates the black level and range of luma and chroma signals"));
+  opts.AddOption(NewOptionBool  ("ColourDescriptionPresent",       &this.m_colourDescriptionPresentFlag,       false, "Signals whether colour_primaries, transfer_characteristics and matrix_coefficients are present"));
+  opts.AddOption(NewOptionInt   ("ColourPrimaries",                &this.m_colourPrimaries,                        2, "Indicates chromaticity coordinates of the source primaries"));
+  opts.AddOption(NewOptionInt   ("TransferCharateristics",         &this.m_transferCharacteristics,                2, "Indicates the opto-electronic transfer characteristics of the source"));
+  opts.AddOption(NewOptionInt   ("MatrixCoefficients",             &this.m_matrixCoefficients,                     2, "Describes the matrix coefficients used in deriving luma and chroma from RGB primaries"));
+  opts.AddOption(NewOptionBool  ("ChromaLocInfoPresent",           &this.m_chromaLocInfoPresentFlag,           false, "Signals whether chroma_sample_loc_type_top_field and chroma_sample_loc_type_bottothis.m_field are present"));
+  opts.AddOption(NewOptionInt   ("ChromaSampleLocTypeTopField",    &this.m_chromaSampleLocTypeTopField,            0, "Specifies the location of chroma samples for top field"));
+  opts.AddOption(NewOptionInt   ("ChromaSampleLocTypeBottomField", &this.m_chromaSampleLocTypeBottomField,         0, "Specifies the location of chroma samples for bottom field"));
+  opts.AddOption(NewOptionBool  ("NeutralChromaIndication",        &this.m_neutralChromaIndicationFlag,        false, "Indicates that the value of all decoded chroma samples is equal to 1<<(BitDepthCr-1)"));
+  opts.AddOption(NewOptionBool  ("BitstreamRestriction",           &this.m_bitstreamRestrictionFlag,           false, "Signals whether bitstream restriction parameters are present"));
+  opts.AddOption(NewOptionBool  ("TilesFixedStructure",            &this.m_tilesFixedStructureFlag,            false, "Indicates that each active picture parameter set has the same values of the syntax elements related to tiles"));
+  opts.AddOption(NewOptionBool  ("MotionVectorsOverPicBoundaries", &this.m_motionVectorsOverPicBoundariesFlag, false, "Indicates that no samples outside the picture boundaries are used for inter prediction"));
+  opts.AddOption(NewOptionInt   ("MaxBytesPerPicDenom",            &this.m_maxBytesPerPicDenom,                    2, "Indicates a number of bytes not exceeded by the sum of the sizes of the VCL NAL units associated with any coded picture"));
+  opts.AddOption(NewOptionInt   ("MaxBitsPerMinCuDenom",           &this.m_maxBitsPerMinCuDenom,                   1, "Indicates an upper bound for the number of bits of coding_unit() data"));
+  opts.AddOption(NewOptionInt   ("Log2MaxMvLengthHorizontal",      &this.m_log2MaxMvLengthHorizontal,             15, "Indicate the maximum absolute value of a decoded horizontal MV component in quarter-pel luma units"));
+  opts.AddOption(NewOptionInt   ("Log2MaxMvLengthVertical",        &this.m_log2MaxMvLengthVertical,               15, "Indicate the maximum absolute value of a decoded vertical MV component in quarter-pel luma units"));
+  opts.AddOption(NewOptionInt   ("SEIRecoveryPoint",               &this.m_recoveryPointSEIEnabled,                0, "Control generation of recovery point SEI messages"));
+  opts.AddOption(NewOptionInt   ("SEIBufferingPeriod",             &this.m_bufferingPeriodSEIEnabled,              0, "Control generation of buffering period SEI messages"));
+  opts.AddOption(NewOptionInt   ("SEIPictureTiming",               &this.m_pictureTimingSEIEnabled,                0, "Control generation of picture timing SEI messages"));
 //#if SEI_DISPLAY_ORIENTATION
-  opts.AddOption(NewOptionInt   ("SEIDisplayOrientation",          this.m_displayOrientationSEIAngle,             0, "Control generation of display orientation SEI messages"));
+  opts.AddOption(NewOptionInt   ("SEIDisplayOrientation",          &this.m_displayOrientationSEIAngle,             0, "Control generation of display orientation SEI messages"));
 //#endif
 //#if SEI_TEMPORAL_LEVEL0_INDEX
-  opts.AddOption(NewOptionInt   ("SEITemporalLevel0Index",         this.m_temporalLevel0IndexSEIEnabled,          0, "Control generation of temporal level 0 index SEI messages"));
+  opts.AddOption(NewOptionInt   ("SEITemporalLevel0Index",         &this.m_temporalLevel0IndexSEIEnabled,          0, "Control generation of temporal level 0 index SEI messages"));
 //#endif
 //#if SIGNAL_BITRATE_PICRATE_IN_VPS
-  opts.AddOption(NewOptionInt   ("BitRatePicRateMaxTLayers",   	   this.m_bitRatePicRateMaxTLayers,           0, "Maximum number of sub-layers signalled; can be inferred otherwise; here for easy parsing of config. file"));
-  opts.AddOption(NewOptionString("BitRateInfoPresent",             cfg_bitRateInfoPresentFlag,          string(""), "Control signalling of bit rate information of avg. bit rate and max. bit rate in VPS"));                                                       
-  opts.AddOption(NewOptionString("PicRateInfoPresent",             cfg_picRateInfoPresentFlag,          string(""), "Control signalling of picture rate information of avg. bit rate and max. bit rate in VPS"));                                                                     
-  opts.AddOption(NewOptionString("AvgBitRate",                     cfg_avgBitRate,                    	string(""), "List of avg. bit rates for the different sub-layers; include non-negative number even if corresponding flag is 0"));
-  opts.AddOption(NewOptionString("MaxBitRate",                     cfg_maxBitRate,                    	string(""), "List of max. bit rates for the different sub-layers; include non-negative number even if corresponding flag is 0"));
-  opts.AddOption(NewOptionString("AvgPicRate",                     cfg_avgPicRate,                    	string(""), "List of avg. picture rates for the different sub-layers; include non-negative number even if corresponding flag is 0"));
-  opts.AddOption(NewOptionString("ConstantPicRateIdc",             cfg_constantPicRateIdc,            	string(""), "List of constant picture rate IDCs; include non-negative number even if corresponding flag is 0"));
+  opts.AddOption(NewOptionInt   ("BitRatePicRateMaxTLayers",   	   &this.m_bitRatePicRateMaxTLayers,           0, "Maximum number of sub-layers signalled; can be inferred otherwise; here for easy parsing of config. file"));
+  opts.AddOption(NewOptionString("BitRateInfoPresent",             &cfg_bitRateInfoPresentFlag,         string(""), "Control signalling of bit rate information of avg. bit rate and max. bit rate in VPS"));                                                       
+  opts.AddOption(NewOptionString("PicRateInfoPresent",             &cfg_picRateInfoPresentFlag,         string(""), "Control signalling of picture rate information of avg. bit rate and max. bit rate in VPS"));                                                                     
+  opts.AddOption(NewOptionString("AvgBitRate",                     &cfg_avgBitRate,                     string(""), "List of avg. bit rates for the different sub-layers; include non-negative number even if corresponding flag is 0"));
+  opts.AddOption(NewOptionString("MaxBitRate",                     &cfg_maxBitRate,                     string(""), "List of max. bit rates for the different sub-layers; include non-negative number even if corresponding flag is 0"));
+  opts.AddOption(NewOptionString("AvgPicRate",                     &cfg_avgPicRate,                     string(""), "List of avg. picture rates for the different sub-layers; include non-negative number even if corresponding flag is 0"));
+  opts.AddOption(NewOptionString("ConstantPicRateIdc",             &cfg_constantPicRateIdc,             string(""), "List of constant picture rate IDCs; include non-negative number even if corresponding flag is 0"));
 //#endif
-
+ 
+  var emptyGOPEntry *TLibEncoder.GOPEntry;
+  emptyGOPEntry=nil;
   for i:=1; i<TLibCommon.MAX_GOP+1; i++ {
-    cOSS := "Frame"+string(i);
-    opts.AddOption(NewOptionGOPEntry(cOSS, this.m_GOPList[i-1], nil, "GOPEntry"));
+    cOSS := fmt.Sprintf("Frame%d",i);
+    //fmt.Printf("%s===\n", cOSS);
+    opts.AddOption(NewOptionGOPEntry(cOSS, &this.m_GOPList[i-1], emptyGOPEntry, "GOPEntry"));
   }
   opts.SetDefaults();
     
@@ -848,14 +921,17 @@ func  (this *TAppEncCfg) ParseCfg  ( argc int, argv []string ) error {          
     return false;
   }*/
   
+  // parse cfg file
+  opts.ParseConfigFile(argv[2]);
+  
   /*
    * Set any derived parameters
    */
   /* convert std::string to c string for compatability */
-  this.m_pchInputFile 	  = cfg_InputFile;
-  this.m_pchBitstreamFile = cfg_BitstreamFile;
-  this.m_pchReconFile 	  = cfg_ReconFile;
-  this.m_pchdQPFile       = cfg_dQPFile;
+  this.m_pchInputFile 	  = string(cfg_InputFile);
+  this.m_pchBitstreamFile = string(cfg_BitstreamFile);
+  this.m_pchReconFile 	  = string(cfg_ReconFile);
+  this.m_pchdQPFile       = string(cfg_dQPFile);
   
   var err error;
   
@@ -866,7 +942,7 @@ func  (this *TAppEncCfg) ParseCfg  ( argc int, argv []string ) error {          
     //char *columnWidth;
     //i:=0;
     this.m_pColumnWidth = make([]int, this.m_iNumColumnsMinus1);
-    columnWidth := strings.Fields(cfg_ColumnWidth);//strtok(pColumnWidth, " ,-");
+    columnWidth := strings.Fields(string(cfg_ColumnWidth));//strtok(pColumnWidth, " ,-");
     if len(columnWidth) != this.m_iNumColumnsMinus1 {
     	return errors.New( "The number of columns whose width are defined is not equal to the allowed number of columns.\n" ); 
     	//return false;
@@ -903,7 +979,7 @@ func  (this *TAppEncCfg) ParseCfg  ( argc int, argv []string ) error {          
     //char *rowHeight;
     //int  i=0;
     this.m_pRowHeight = make([]int, this.m_iNumRowsMinus1);
-    rowHeight := strings.Fields(cfg_RowHeight);//strtok(pRowHeight, " ,-");
+    rowHeight := strings.Fields(string(cfg_RowHeight));//strtok(pRowHeight, " ,-");
     if len(rowHeight) != this.m_iNumRowsMinus1 {
     	return errors.New( "The number of rows whose width are defined is not equal to the allowed number of rows.\n" ); 
     	//return false;
@@ -947,7 +1023,7 @@ func  (this *TAppEncCfg) ParseCfg  ( argc int, argv []string ) error {          
   readIntString (cfg_avgPicRate,             m_bitRatePicRateMaxTLayers, m_avgPicRate,             "avg. pic rate"               );
   readIntString (cfg_constantPicRateIdc,     m_bitRatePicRateMaxTLayers, m_constantPicRateIdc,     "constant pic rate Idc"       );*/
 //#endif
-  this.m_scalingListFile = cfg_ScalingListFile;//.empty() ? NULL : strdup(cfg_ScalingListFile.c_str());
+  this.m_scalingListFile = string(cfg_ScalingListFile);//.empty() ? NULL : strdup(cfg_ScalingListFile.c_str());
   
   /* rules for input, output and internal bitdepths as per help text */
   if this.m_internalBitDepthY==0 { 
@@ -1067,6 +1143,9 @@ func  (this *TAppEncCfg) ParseCfg  ( argc int, argv []string ) error {          
   }else{
   	this.m_iWaveFrontSubstreams =  1; 
   }
+  
+  
+  
   // check validity of input parameters
   this.xCheckParameter();
   
@@ -1240,7 +1319,8 @@ func  (this *TAppEncCfg) xCheckParameter () bool{                               
 
   /* if this is an intra-only sequence, ie IntraPeriod=1, don't verify the GOP structure
    * This permits the ability to omit a GOP structure specification */
-  if this.m_iIntraPeriod == 1 && this.m_GOPList[0].GetPOC() == -1 {
+  if this.m_iIntraPeriod == 1 {
+  	// && this.m_GOPList[0].GetPOC() == -1 {
     this.m_GOPList[0] = TLibEncoder.NewGOPEntry();
     this.m_GOPList[0].SetQPFactor (1);
 //#if VARYING_DBL_PARAMS
@@ -1616,7 +1696,7 @@ func  (this *TAppEncCfg) xPrintParameter (){                                   /
   fmt.Printf("Reconstruction File          : %s\n", this.m_pchReconFile          );
   fmt.Printf("Real     Format              : %dx%d %dHz\n", this.m_iSourceWidth - this.m_cropLeft - this.m_cropRight, this.m_iSourceHeight - this.m_cropTop - this.m_cropBottom, this.m_iFrameRate );
   fmt.Printf("Internal Format              : %dx%d %dHz\n", this.m_iSourceWidth, this.m_iSourceHeight, this.m_iFrameRate );
-  fmt.Printf("Frame index                  : %u - %d (%d frames)\n", this.m_FrameSkip, int(this.m_FrameSkip)+this.m_iFrameToBeEncoded-1, this.m_iFrameToBeEncoded );
+  fmt.Printf("Frame index                  : %d - %d (%d frames)\n", this.m_FrameSkip, int(this.m_FrameSkip)+this.m_iFrameToBeEncoded-1, this.m_iFrameToBeEncoded );
   fmt.Printf("CU size / depth              : %d / %d\n", this.m_uiMaxCUWidth, this.m_uiMaxCUDepth );
   fmt.Printf("RQT trans. size (min / max)  : %d / %d\n", 1 << this.m_uiQuadtreeTULog2MinSize, 1 << this.m_uiQuadtreeTULog2MaxSize );
   fmt.Printf("Max RQT depth inter          : %d\n", this.m_uiQuadtreeTUMaxDepthInter);
@@ -1632,15 +1712,15 @@ func  (this *TAppEncCfg) xPrintParameter (){                                   /
   fmt.Printf("Cr QP Offset                 : %d\n", this.m_crQpOffset);
 
   if this.m_bUseAdaptiveQP {
-  	fmt.Printf("QP adaptation                : %d (range=%d)\n", this.m_bUseAdaptiveQP, this.m_iQPAdaptationRange );
+  	fmt.Printf("QP adaptation                : %v (range=%d)\n", this.m_bUseAdaptiveQP, this.m_iQPAdaptationRange );
   }else{
-  	fmt.Printf("QP adaptation                : %d (range=%d)\n", this.m_bUseAdaptiveQP, 0 );
+  	fmt.Printf("QP adaptation                : %v (range=%d)\n", this.m_bUseAdaptiveQP, 0 );
   }
   fmt.Printf("GOP size                     : %d\n", this.m_iGOPSize );
   fmt.Printf("Internal bit depth           : (Y:%d, C:%d)\n", this.m_internalBitDepthY, this.m_internalBitDepthC );
   fmt.Printf("PCM sample bit depth         : (Y:%d, C:%d)\n", TLibCommon.G_uiPCMBitDepthLuma, TLibCommon.G_uiPCMBitDepthChroma );
 //#if RATE_CONTROL_LAMBDA_DOMAIN
-  fmt.Printf("RateControl                  : %d\n", this.m_RCEnableRateControl );
+  fmt.Printf("RateControl                  : %v\n", this.m_RCEnableRateControl );
   if this.m_RCEnableRateControl {
     fmt.Printf("TargetBitrate                : %d\n", this.m_RCTargetBitrate );
     fmt.Printf("KeepHierarchicalBit          : %d\n", this.m_RCKeepHierarchicalBit );
@@ -1661,24 +1741,24 @@ func  (this *TAppEncCfg) xPrintParameter (){                                   /
   fmt.Printf("\n");
   
   fmt.Printf("TOOL CFG: ");
-  fmt.Printf("IBD:%d ", TLibCommon.G_bitDepthY > this.m_inputBitDepthY || TLibCommon.G_bitDepthC > this.m_inputBitDepthC);
-  fmt.Printf("HAD:%d ", this.m_bUseHADME           );
-  fmt.Printf("SRD:%d ", this.m_bUseSBACRD          );
-  fmt.Printf("RDQ:%d ", this.m_useRDOQ            );
+  fmt.Printf("IBD:%v ", TLibCommon.G_bitDepthY > this.m_inputBitDepthY || TLibCommon.G_bitDepthC > this.m_inputBitDepthC);
+  fmt.Printf("HAD:%v ", this.m_bUseHADME           );
+  fmt.Printf("SRD:%v ", this.m_bUseSBACRD          );
+  fmt.Printf("RDQ:%v ", this.m_useRDOQ            );
 //#if RDOQ_TRANSFORMSKIP
-  fmt.Printf("RDQTS:%d ", this.m_useRDOQTS        );
+  fmt.Printf("RDQTS:%v ", this.m_useRDOQTS        );
 //#endif
   fmt.Printf("SQP:%d ", this.m_uiDeltaQpRD         );
-  fmt.Printf("ASR:%d ", this.m_bUseASR             );
-  fmt.Printf("LComb:%d ", this.m_bUseLComb         );
-  fmt.Printf("FEN:%d ", this.m_bUseFastEnc         );
-  fmt.Printf("ECU:%d ", this.m_bUseEarlyCU         );
-  fmt.Printf("FDM:%d ", this.m_useFastDecisionForMerge );
-  fmt.Printf("CFM:%d ", this.m_bUseCbfFastMode         );
-  fmt.Printf("ESD:%d ", this.m_useEarlySkipDetection  );
-  fmt.Printf("RQT:%d ", 1     );
-  fmt.Printf("TransformSkip:%d ",     this.m_useTransformSkip              );
-  fmt.Printf("TransformSkipFast:%d ", this.m_useTransformSkipFast       );
+  fmt.Printf("ASR:%v ", this.m_bUseASR             );
+  fmt.Printf("LComb:%v ", this.m_bUseLComb         );
+  fmt.Printf("FEN:%v ", this.m_bUseFastEnc         );
+  fmt.Printf("ECU:%v ", this.m_bUseEarlyCU         );
+  fmt.Printf("FDM:%v ", this.m_useFastDecisionForMerge );
+  fmt.Printf("CFM:%v ", this.m_bUseCbfFastMode         );
+  fmt.Printf("ESD:%v ", this.m_useEarlySkipDetection  );
+  fmt.Printf("RQT:%v ", true     );
+  fmt.Printf("TransformSkip:%v ",     this.m_useTransformSkip              );
+  fmt.Printf("TransformSkipFast:%v ", this.m_useTransformSkipFast       );
   fmt.Printf("Slice: M=%d ", this.m_iSliceMode);
   if this.m_iSliceMode!=0 {
     fmt.Printf("A=%d ", this.m_iSliceArgument);
@@ -1687,7 +1767,7 @@ func  (this *TAppEncCfg) xPrintParameter (){                                   /
   if this.m_iDependentSliceMode!=0 {
     fmt.Printf("A=%d ", this.m_iDependentSliceArgument);
   }
-  fmt.Printf("CIP:%d ", this.m_bUseConstrainedIntraPred);
+  fmt.Printf("CIP:%v ", this.m_bUseConstrainedIntraPred);
   fmt.Printf("SAO:%d ", TLibCommon.B2U(this.m_bUseSAO));
   fmt.Printf("PCM:%d ", TLibCommon.B2U(this.m_usePCM && (1<<this.m_uiPCMLog2MinSize) <= this.m_uiMaxCUWidth));
   fmt.Printf("SAOLcuBasedOptimization:%d ", TLibCommon.B2U(this.m_saoLcuBasedOptimization));
@@ -1698,9 +1778,9 @@ func  (this *TAppEncCfg) xPrintParameter (){                                   /
   fmt.Printf("PME:%d ", this.m_log2ParallelMergeLevel);
   fmt.Printf(" WaveFrontSynchro:%d WaveFrontSubstreams:%d", this.m_iWaveFrontSynchro, this.m_iWaveFrontSubstreams);
   fmt.Printf(" ScalingList:%d ", this.m_useScalingListId );
-  fmt.Printf("TMVPMode:%d ", this.m_TMVPModeId     );
+  fmt.Printf("TMVPMode:%v ", this.m_TMVPModeId     );
 //#if ADAPTIVE_QP_SELECTION
-  fmt.Printf("AQpS:%d", this.m_bUseAdaptQpSelect   );
+  fmt.Printf("AQpS:%v", this.m_bUseAdaptQpSelect   );
 //#endif
 
   fmt.Printf(" SignBitHidingFlag:%d ", this.m_signHideFlag);
