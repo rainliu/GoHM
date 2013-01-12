@@ -48,7 +48,7 @@ const QP_BITS = 15
 // Type definition
 // ====================================================================================================================
 
-type estBitsSbacStruct struct {
+type EstBitsSbacStruct struct {
     significantCoeffGroupBits [NUM_SIG_CG_FLAG_CTX][2]int
     significantBits           [NUM_SIG_FLAG_CTX][2]int
     lastXBits                 [32]int
@@ -139,7 +139,7 @@ type TComTrQuant struct {
     m_quantCoef              [SCALING_LIST_SIZE_NUM][SCALING_LIST_NUM][SCALING_LIST_REM_NUM][]int     ///< array of quantization matrix coefficient 4x4
     m_dequantCoef            [SCALING_LIST_SIZE_NUM][SCALING_LIST_NUM][SCALING_LIST_REM_NUM][]int     ///< array of dequantization matrix coefficient 4x4
     m_errScale               [SCALING_LIST_SIZE_NUM][SCALING_LIST_NUM][SCALING_LIST_REM_NUM][]float64 ///< array of quantization matrix coefficient 4x4
-    m_pcEstBitsSbac          *estBitsSbacStruct
+    m_pcEstBitsSbac          *EstBitsSbacStruct
 }
 
 func NewTComTrQuant() *TComTrQuant {
@@ -150,7 +150,7 @@ func NewTComTrQuant() *TComTrQuant {
     pTrQuant.m_plTempCoeff = make([]int, MAX_CU_SIZE*MAX_CU_SIZE)
 
     // allocate bit estimation class  (for RDOQ)
-    pTrQuant.m_pcEstBitsSbac = &estBitsSbacStruct{}
+    pTrQuant.m_pcEstBitsSbac = &EstBitsSbacStruct{}
     pTrQuant.InitScalingList()
 
     return pTrQuant
