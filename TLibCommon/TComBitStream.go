@@ -83,18 +83,65 @@ func NewTComOutputBitstream() *TComOutputBitstream {
  * the current bitstream
  */
 func (this *TComOutputBitstream) Write(uiBits, uiNumberOfBits uint) {
+  //assert( uiNumberOfBits <= 32 );
+
+  /* any modulo 8 remainder of num_total_bits cannot be written this time,
+   * and will be held until next time. */
+  num_total_bits := uiNumberOfBits + this.m_num_held_bits;
+  next_num_held_bits := num_total_bits % 8;
+
+  /* form a byte aligned word (write_bits), by concatenating any held bits
+   * with the new bits, discarding the bits that will form the next_held_bits.
+   * eg: H = held bits, V = n new bits        /---- next_held_bits
+   * len(H)=7, len(V)=1: ... ---- HHHH HHHV . 0000 0000, next_num_held_bits=0
+   * len(H)=7, len(V)=2: ... ---- HHHH HHHV . V000 0000, next_num_held_bits=1
+   * if total_bits < 8, the value of v_ is not used */
+  next_held_bits := byte(uiBits << (8 - next_num_held_bits));
+
+  if (num_total_bits >> 3)==0 {
+    /* insufficient bits accumulated to write out, append new_held_bits to
+     * current held_bits */
+    /* NB, this requires that v only contains 0 in bit positions {31..n} */
+    this.m_held_bits |= next_held_bits;
+    this.m_num_held_bits = next_num_held_bits;
+    return;
+  }
+
+  /* topword serves to justify held_bits to align with the msb of uiBits */
+  topword := (uiNumberOfBits - uint(next_num_held_bits)) & 7;//^((1 << 3) -1);
+  write_bits := (uint(this.m_held_bits) << topword) | (uiBits >> uint(next_num_held_bits));
+
+  switch num_total_bits >> 3 {
+  case 4: this.m_fifo.PushBack(byte(write_bits >> 24));
+  case 3: this.m_fifo.PushBack(byte(write_bits >> 16));
+  case 2: this.m_fifo.PushBack(byte(write_bits >> 8));
+  case 1: this.m_fifo.PushBack(byte(write_bits));
+  }
+
+  this.m_held_bits = next_held_bits;
+  this.m_num_held_bits = next_num_held_bits;
 }
 
 /** insert one bits until the bitstream is byte-aligned */
 func (this *TComOutputBitstream) WriteAlignOne() {
+  num_bits := uint(this.GetNumBitsUntilByteAligned());
+  this.Write((1 << num_bits) - 1, num_bits);
+  return;
 }
 
 /** insert zero bits until the bitstream is byte-aligned */
 func (this *TComOutputBitstream) WriteAlignZero() {
+  if 0 == this.m_num_held_bits {
+    return;
+  }
+  this.m_fifo.PushBack(byte(this.m_held_bits));
+  this.m_held_bits = 0;
+  this.m_num_held_bits = 0;
 }
 
 /** this function should never be called */
 func (this *TComOutputBitstream) ResetBits() {
+	//do nothing
 }
 
 // utility functions
@@ -105,21 +152,24 @@ func (this *TComOutputBitstream) ResetBits() {
  * NB, data is arranged such that subsequent bytes in the
  * bytestream are stored in ascending addresses.
  */
-func (this *TComOutputBitstream) GetByteStream() *byte {
-    return nil
-}
+//func (this *TComOutputBitstream) GetByteStream() *byte {
+//    return nil;//(Char*) &this.m_fifo.Front();
+//}
 
 /**
  * Return the number of valid bytes available from  getByteStream()
  */
 func (this *TComOutputBitstream) GetByteStreamLength() uint {
-    return 0
+    return uint(this.m_fifo.Len());
 }
 
 /**
  * Reset all internal state.
  */
 func (this *TComOutputBitstream) Clear() {
+  this.m_fifo.Init();
+  this.m_held_bits = 0;
+  this.m_num_held_bits = 0;
 }
 
 /**
@@ -139,6 +189,23 @@ func (this *TComOutputBitstream) GetNumberOfWrittenBits() uint {
 }
 
 func (this *TComOutputBitstream) InsertAt(src *TComOutputBitstream, pos uint) {
+  //src_bits := src.GetNumberOfWrittenBits();
+  //assert(0 == src_bits % 8);
+  
+  i:=uint(0);
+  for e:=this.m_fifo.Front(); e!=nil; e=e.Next(){
+  	if i==pos{
+  		for f:=src.m_fifo.Front(); f!=nil; f=f.Next(){
+  			v := f.Value.(byte);
+  			this.m_fifo.InsertBefore(v, e);
+  		}
+  		break;
+  	}
+  	
+  	i++;
+  }
+  //vector<uint8_t>::iterator at = this->m_fifo->begin() + pos;
+  //this->m_fifo->insert(at, src.m_fifo->begin(), src.m_fifo->end());
 }
 
 /**
@@ -153,12 +220,44 @@ func (this *TComOutputBitstream) GetHeldBits() byte {
 }
 
 func (this *TComOutputBitstream) Copy(src *TComOutputBitstream) {
+  //vector<uint8_t>::iterator at = this->m_fifo->begin();
+  //this->m_fifo->insert(at, src.m_fifo->begin(), src.m_fifo->end());
+
+  e:=this.m_fifo.Front();
+  for f:=src.m_fifo.Front(); f!=nil; f=f.Next(){
+  	v := f.Value.(byte);
+  	this.m_fifo.InsertBefore(v, e);
+  }
+
+  this.m_num_held_bits             = src.m_num_held_bits;
+  this.m_held_bits                 = src.m_held_bits;
 }
 
 func (this *TComOutputBitstream) AddSubstream(pcSubstream *TComOutputBitstream) {
+  uiNumBits := pcSubstream.GetNumberOfWrittenBits();
+
+  rbsp := pcSubstream.GetFIFO();
+  for e := rbsp.Front(); e != nil; e=e.Next() {
+    v:= e.Value.(byte);
+    this.Write(uint(v), 8);
+  }
+  if uiNumBits&0x7!=0 {
+    this.Write(uint(pcSubstream.GetHeldBits()>>(8-(uiNumBits&0x7))), uiNumBits&0x7);
+  }
 }
 
 func (this *TComOutputBitstream) WriteByteAlignment() {
+  this.Write( 1, 1);
+  this.WriteAlignZero();
+}
+
+
+/**
+ * Write rbsp_trailing_bits to bs causing it to become byte-aligned
+ */
+func (this *TComOutputBitstream) WriteRBSPTrailingBits() {
+  this.Write( 1, 1 );
+  this.WriteAlignZero();
 }
 
 /**
