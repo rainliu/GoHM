@@ -49,15 +49,15 @@ const QP_BITS = 15
 // ====================================================================================================================
 
 type EstBitsSbacStruct struct {
-    significantCoeffGroupBits [NUM_SIG_CG_FLAG_CTX][2]int
-    significantBits           [NUM_SIG_FLAG_CTX][2]int
-    lastXBits                 [32]int
-    lastYBits                 [32]int
-    m_greaterOneBits          [NUM_ONE_FLAG_CTX][2]int
-    m_levelAbsBits            [NUM_ABS_FLAG_CTX][2]int
+    SignificantCoeffGroupBits [NUM_SIG_CG_FLAG_CTX][2]int
+    SignificantBits           [NUM_SIG_FLAG_CTX][2]int
+    LastXBits                 [32]int
+    LastYBits                 [32]int
+    GreaterOneBits          [NUM_ONE_FLAG_CTX][2]int
+    LevelAbsBits            [NUM_ABS_FLAG_CTX][2]int
 
-    blockCbpBits     [3 * NUM_QT_CBF_CTX][2]int
-    blockRootCbpBits [4][2]int
+    BlockCbpBits     [3 * NUM_QT_CBF_CTX][2]int
+    BlockRootCbpBits [4][2]int
     scanZigzag       [2]int ///< flag for zigzag scan
     scanNonZigzag    [2]int ///< flag for non zigzag scan
 }
@@ -765,18 +765,18 @@ func (this *TComTrQuant) xGetICRateCost(uiAbsLevel uint,
             iRate += float64((COEF_REMAIN_BIN_REDUCTION + length + 1 - uint(ui16AbsGoRice) + length) << 15)
         }
         if c1Idx < C1FLAG_NUMBER {
-            iRate += float64(this.m_pcEstBitsSbac.m_greaterOneBits[ui16CtxNumOne][1])
+            iRate += float64(this.m_pcEstBitsSbac.GreaterOneBits[ui16CtxNumOne][1])
 
             if c2Idx < C2FLAG_NUMBER {
-                iRate += float64(this.m_pcEstBitsSbac.m_levelAbsBits[ui16CtxNumAbs][1])
+                iRate += float64(this.m_pcEstBitsSbac.LevelAbsBits[ui16CtxNumAbs][1])
             }
         }
     } else {
         if uiAbsLevel == 1 {
-            iRate += float64(this.m_pcEstBitsSbac.m_greaterOneBits[ui16CtxNumOne][0])
+            iRate += float64(this.m_pcEstBitsSbac.GreaterOneBits[ui16CtxNumOne][0])
         } else if uiAbsLevel == 2 {
-            iRate += float64(this.m_pcEstBitsSbac.m_greaterOneBits[ui16CtxNumOne][1])
-            iRate += float64(this.m_pcEstBitsSbac.m_levelAbsBits[ui16CtxNumAbs][0])
+            iRate += float64(this.m_pcEstBitsSbac.GreaterOneBits[ui16CtxNumOne][1])
+            iRate += float64(this.m_pcEstBitsSbac.LevelAbsBits[ui16CtxNumAbs][0])
         } else {
             //assert (0);
         }
@@ -818,20 +818,20 @@ func (this *TComTrQuant) xGetICRate(uiAbsLevel uint,
         iRate += int(ui16NumBins << 15)
 
         if c1Idx < C1FLAG_NUMBER {
-            iRate += this.m_pcEstBitsSbac.m_greaterOneBits[ui16CtxNumOne][1]
+            iRate += this.m_pcEstBitsSbac.GreaterOneBits[ui16CtxNumOne][1]
 
             if c2Idx < C2FLAG_NUMBER {
-                iRate += this.m_pcEstBitsSbac.m_levelAbsBits[ui16CtxNumAbs][1]
+                iRate += this.m_pcEstBitsSbac.LevelAbsBits[ui16CtxNumAbs][1]
             }
         }
     } else {
         if uiAbsLevel == 0 {
             return 0
         } else if uiAbsLevel == 1 {
-            iRate += this.m_pcEstBitsSbac.m_greaterOneBits[ui16CtxNumOne][0]
+            iRate += this.m_pcEstBitsSbac.GreaterOneBits[ui16CtxNumOne][0]
         } else if uiAbsLevel == 2 {
-            iRate += this.m_pcEstBitsSbac.m_greaterOneBits[ui16CtxNumOne][1]
-            iRate += this.m_pcEstBitsSbac.m_levelAbsBits[ui16CtxNumAbs][0]
+            iRate += this.m_pcEstBitsSbac.GreaterOneBits[ui16CtxNumOne][1]
+            iRate += this.m_pcEstBitsSbac.LevelAbsBits[ui16CtxNumAbs][0]
         } else {
             //assert(0);
         }
@@ -841,7 +841,7 @@ func (this *TComTrQuant) xGetICRate(uiAbsLevel uint,
 func (this *TComTrQuant) xGetRateLast(uiPosX, uiPosY, uiBlkWdth uint) float64 {
     uiCtxX := G_uiGroupIdx[uiPosX]
     uiCtxY := G_uiGroupIdx[uiPosY]
-    uiCost := float64(this.m_pcEstBitsSbac.lastXBits[uiCtxX] + this.m_pcEstBitsSbac.lastYBits[uiCtxY])
+    uiCost := float64(this.m_pcEstBitsSbac.LastXBits[uiCtxX] + this.m_pcEstBitsSbac.LastYBits[uiCtxY])
     if uiCtxX > 3 {
         uiCost += float64(this.xGetIEPRate() * float64((uiCtxX-2)>>1))
     }
@@ -852,10 +852,10 @@ func (this *TComTrQuant) xGetRateLast(uiPosX, uiPosY, uiBlkWdth uint) float64 {
     return this.xGetICost(uiCost)
 }
 func (this *TComTrQuant) xGetRateSigCoeffGroup(uiSignificanceCoeffGroup, ui16CtxNumSig uint16) float64 {
-    return float64(this.xGetICost(float64(this.m_pcEstBitsSbac.significantCoeffGroupBits[ui16CtxNumSig][uiSignificanceCoeffGroup])))
+    return float64(this.xGetICost(float64(this.m_pcEstBitsSbac.SignificantCoeffGroupBits[ui16CtxNumSig][uiSignificanceCoeffGroup])))
 }
 func (this *TComTrQuant) xGetRateSigCoef(uiSignificance, ui16CtxNumSig uint16) float64 {
-    return float64(this.xGetICost(float64(this.m_pcEstBitsSbac.significantBits[ui16CtxNumSig][uiSignificance])))
+    return float64(this.xGetICost(float64(this.m_pcEstBitsSbac.SignificantBits[ui16CtxNumSig][uiSignificance])))
 }
 func (this *TComTrQuant) xGetICost(dRate float64) float64 {
     return this.m_dLambda * dRate

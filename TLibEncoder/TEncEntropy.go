@@ -623,7 +623,7 @@ func (this *TEncEntropy) encodeSaoUnitInterleaving( compIdx int, saoFlag bool, r
     }
   }
 }
-func (this *TEncEntropy) countNonZeroCoeffs( pcCoef []TLibCommon.TCoeff, uiSize uint) int {
+func TEncEntropy_countNonZeroCoeffs( pcCoef []TLibCommon.TCoeff, uiSize uint) int {
   count := 0;
   
   for i := uint(0); i < uiSize; i++ {

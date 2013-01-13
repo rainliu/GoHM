@@ -171,6 +171,10 @@ func (this *ContextModel) GetEntropyBitsTrm(val int) int {
     return m_entropyBits[126^val]
 }
 
+func ContextModel_GetEntropyBitsTrm(val int) int {
+    return m_entropyBits[126^val]
+}
+
 //#endif
 func (this *ContextModel) SetBinsCoded(val uint) {
     this.m_binsCoded = val
