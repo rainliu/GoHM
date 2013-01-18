@@ -122,14 +122,14 @@ type TComDataCU struct {
     m_pcTrCoeffCb        []TCoeff         ///< transformed coefficient buffer (Cb)
     m_pcTrCoeffCr        []TCoeff         ///< transformed coefficient buffer (Cr)
     //#if ADAPTIVE_QP_SELECTION
-    m_pcArlCoeffY                 []int ///< ARL coefficient buffer (Y)
-    m_pcArlCoeffCb                []int ///< ARL coefficient buffer (Cb)
-    m_pcArlCoeffCr                []int ///< ARL coefficient buffer (Cr)
+    m_pcArlCoeffY                 []TCoeff ///< ARL coefficient buffer (Y)
+    m_pcArlCoeffCb                []TCoeff ///< ARL coefficient buffer (Cb)
+    m_pcArlCoeffCr                []TCoeff ///< ARL coefficient buffer (Cr)
     m_ArlCoeffIsAliasedAllocation bool  ///< ARL coefficient buffer is an alias of the global buffer and must not be free()'d
 
-    m_pcGlbArlCoeffY  []int ///< ARL coefficient buffer (Y)
-    m_pcGlbArlCoeffCb []int ///< ARL coefficient buffer (Cb)
-    m_pcGlbArlCoeffCr []int ///< ARL coefficient buffer (Cr)
+    m_pcGlbArlCoeffY  []TCoeff ///< ARL coefficient buffer (Y)
+    m_pcGlbArlCoeffCb []TCoeff ///< ARL coefficient buffer (Cb)
+    m_pcGlbArlCoeffCr []TCoeff ///< ARL coefficient buffer (Cr)
     //#endif
 
     m_pcIPCMSampleY  []Pel ///< PCM sample buffer (Y)
@@ -253,18 +253,18 @@ func (this *TComDataCU) Create(uiNumPartition, uiWidth, uiHeight uint, bDecSubCu
         //#if ADAPTIVE_QP_SELECTION
         if bGlobalRMARLBuffer {
             if this.m_pcGlbArlCoeffY == nil {
-                this.m_pcGlbArlCoeffY = make([]int, uiWidth*uiHeight)
-                this.m_pcGlbArlCoeffCb = make([]int, uiWidth*uiHeight/4)
-                this.m_pcGlbArlCoeffCr = make([]int, uiWidth*uiHeight/4)
+                this.m_pcGlbArlCoeffY = make([]TCoeff, uiWidth*uiHeight)
+                this.m_pcGlbArlCoeffCb = make([]TCoeff, uiWidth*uiHeight/4)
+                this.m_pcGlbArlCoeffCr = make([]TCoeff, uiWidth*uiHeight/4)
             }
             this.m_pcArlCoeffY = this.m_pcGlbArlCoeffY
             this.m_pcArlCoeffCb = this.m_pcGlbArlCoeffCb
             this.m_pcArlCoeffCr = this.m_pcGlbArlCoeffCr
             this.m_ArlCoeffIsAliasedAllocation = true
         } else {
-            this.m_pcArlCoeffY = make([]int, uiWidth*uiHeight)
-            this.m_pcArlCoeffCb = make([]int, uiWidth*uiHeight/4)
-            this.m_pcArlCoeffCr = make([]int, uiWidth*uiHeight/4)
+            this.m_pcArlCoeffY = make([]TCoeff, uiWidth*uiHeight)
+            this.m_pcArlCoeffCb = make([]TCoeff, uiWidth*uiHeight/4)
+            this.m_pcArlCoeffCr = make([]TCoeff, uiWidth*uiHeight/4)
         }
         //#endif
 
@@ -1915,13 +1915,13 @@ func (this *TComDataCU) GetCoeffCr() []TCoeff {
 }
 
 //#if ADAPTIVE_QP_SELECTION
-func (this *TComDataCU) GetArlCoeffY() []int {
+func (this *TComDataCU) GetArlCoeffY() []TCoeff {
     return this.m_pcArlCoeffY
 }
-func (this *TComDataCU) GetArlCoeffCb() []int {
+func (this *TComDataCU) GetArlCoeffCb() []TCoeff {
     return this.m_pcArlCoeffCb
 }
-func (this *TComDataCU) GetArlCoeffCr() []int {
+func (this *TComDataCU) GetArlCoeffCr() []TCoeff {
     return this.m_pcArlCoeffCr
 }
 

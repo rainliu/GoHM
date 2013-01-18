@@ -86,10 +86,14 @@
     <ReleaseProjectStdErr>On</ReleaseProjectStdErr>
     <ReleaseProjectSaveAll>Off</ReleaseProjectSaveAll>
     <ReleaseProjectReload>Off</ReleaseProjectReload>
-    <File>GoHMDecoder.go</File>
+    <File>GoHMCodec.go</File>
     <Folder name="TAppDecoder" sorted="Yes">
         <File>TAppDecoder\TAppDecCfg.go</File>
         <File>TAppDecoder\TAppDecTop.go</File>
+    </Folder>
+    <Folder name="TAppEncoder" sorted="Yes">
+        <File>TAppEncoder\TAppEncCfg.go</File>
+        <File>TAppEncoder\TAppEncTop.go</File>
     </Folder>
     <Folder name="TLibCommon" sorted="Yes">
         <File>TLibCommon\CommonDef.go</File>
@@ -129,5 +133,22 @@
         <File>TLibDecoder\TDecSEI.go</File>
         <File>TLibDecoder\TDecSlice.go</File>
         <File>TLibDecoder\TDecTop.go</File>
+    </Folder>
+    <Folder name="TLibEncoder" sorted="Yes">
+        <File>TLibEncoder\TEncAnalyzer.go</File>
+        <File>TLibEncoder\TEncAnnexB.go</File>
+        <File>TLibEncoder\TEncCabac.go</File>
+        <File>TLibEncoder\TEncCavlc.go</File>
+        <File>TLibEncoder\TEncCfg.go</File>
+        <File>TLibEncoder\TEncCu.go</File>
+        <File>TLibEncoder\TEncEntropy.go</File>
+        <File>TLibEncoder\TEncGop.go</File>
+        <File>TLibEncoder\TEncNAL.go</File>
+        <File>TLibEncoder\TEncPic.go</File>
+        <File>TLibEncoder\TEncRateCtrl.go</File>
+        <File>TLibEncoder\TEncSao.go</File>
+        <File>TLibEncoder\TEncSearch.go</File>
+        <File>TLibEncoder\TEncSlice.go</File>
+        <File>TLibEncoder\TEncTop.go</File>
     </Folder>
 </Project>

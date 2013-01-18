@@ -420,7 +420,7 @@ const ( //enum RefPicList
 )
 
 /// distortion function index
-type Dunc uint8
+type DFunc uint8
 
 const ( //enum DFunc
     DF_DEFAULT = 0

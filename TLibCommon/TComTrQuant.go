@@ -156,6 +156,10 @@ func NewTComTrQuant() *TComTrQuant {
     return pTrQuant
 }
 
+func (this *TComTrQuant) GetEstBitsSbac() *EstBitsSbacStruct{
+    return this.m_pcEstBitsSbac
+}
+
 // initialize class
 func (this *TComTrQuant) Init(uiMaxWidth, uiMaxHeight, uiMaxTrSize uint, iSymbolMode int,
     aTable4 []uint, aTable8 []uint, aTableLastPosVlcIndex []uint, bUseRDOQ bool,
@@ -179,12 +183,12 @@ func (this *TComTrQuant) Init(uiMaxWidth, uiMaxHeight, uiMaxTrSize uint, iSymbol
 }
 
 // transform & inverse transform functions
-func (this *TComTrQuant) transformNxN(pcCU *TComDataCU,
+func (this *TComTrQuant) TransformNxN(pcCU *TComDataCU,
     pcResidual []Pel,
     uiStride uint,
     rpcCoeff []TCoeff,
     //#if ADAPTIVE_QP_SELECTION
-    rpcArlCoeff *int,
+    rpcArlCoeff []TCoeff,
     //#endif
     uiWidth uint,
     uiHeight uint,
@@ -658,7 +662,7 @@ func (this *TComTrQuant) xQuant(pcCU *TComDataCU,
     pSrc []int,
     pDes []TCoeff,
     //#if ADAPTIVE_QP_SELECTION
-    pArlDes *int,
+    pArlDes []TCoeff,
     //#endif
     iWidth int,
     iHeight int,

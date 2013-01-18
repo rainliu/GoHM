@@ -2390,7 +2390,7 @@ type WpScalingParam struct {
     iOffset           int
 
     // Weighted prediction scaling values built from above parameters (bitdepth scaled):
-    w, o, offset, shift, round int
+    W, O, Offset, Shift, Round int
 }
 
 func (this *WpScalingParam) SetPresentFlag(bPresentFlag bool) {
@@ -3884,19 +3884,19 @@ func (this *TComSlice) InitWpScaling1(wp [2][MAX_NUM_REF][3]WpScalingParam) {
                     wp[e][i][yuv].iOffset = 0
                 }
 
-                wp[e][i][yuv].w = wp[e][i][yuv].iWeight
+                wp[e][i][yuv].W = wp[e][i][yuv].iWeight
                 var bitDepth uint
                 if yuv != 0 {
                     bitDepth = uint(G_bitDepthC)
                 } else {
                     bitDepth = uint(G_bitDepthY)
                 }
-                wp[e][i][yuv].o = wp[e][i][yuv].iOffset << (bitDepth - 8)
-                wp[e][i][yuv].shift = int(wp[e][i][yuv].uiLog2WeightDenom)
+                wp[e][i][yuv].O = wp[e][i][yuv].iOffset << (bitDepth - 8)
+                wp[e][i][yuv].Shift = int(wp[e][i][yuv].uiLog2WeightDenom)
                 if wp[e][i][yuv].uiLog2WeightDenom >= 1 {
-                    wp[e][i][yuv].round = (1 << (wp[e][i][yuv].uiLog2WeightDenom - 1))
+                    wp[e][i][yuv].Round = (1 << (wp[e][i][yuv].uiLog2WeightDenom - 1))
                 } else {
-                    wp[e][i][yuv].round = (0)
+                    wp[e][i][yuv].Round = (0)
                 }
             }
         }

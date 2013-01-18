@@ -102,16 +102,16 @@ func (this *TComWeightPrediction) GetWpScaling(pcCU *TComDataCU, iRefIdx0, iRefI
             } else {
                 bitDepth = G_bitDepthY
             }
-            wp0[yuv].w = wp0[yuv].iWeight
-            wp0[yuv].o = wp0[yuv].iOffset * (1 << uint(bitDepth-8))
-            wp1[yuv].w = wp1[yuv].iWeight
-            wp1[yuv].o = wp1[yuv].iOffset * (1 << uint(bitDepth-8))
-            wp0[yuv].offset = wp0[yuv].o + wp1[yuv].o
-            wp0[yuv].shift = int(wp0[yuv].uiLog2WeightDenom) + 1
-            wp0[yuv].round = (1 << wp0[yuv].uiLog2WeightDenom)
-            wp1[yuv].offset = wp0[yuv].offset
-            wp1[yuv].shift = wp0[yuv].shift
-            wp1[yuv].round = wp0[yuv].round
+            wp0[yuv].W = wp0[yuv].iWeight
+            wp0[yuv].O = wp0[yuv].iOffset * (1 << uint(bitDepth-8))
+            wp1[yuv].W = wp1[yuv].iWeight
+            wp1[yuv].O = wp1[yuv].iOffset * (1 << uint(bitDepth-8))
+            wp0[yuv].Offset = wp0[yuv].O + wp1[yuv].O
+            wp0[yuv].Shift = int(wp0[yuv].uiLog2WeightDenom) + 1
+            wp0[yuv].Round = (1 << wp0[yuv].uiLog2WeightDenom)
+            wp1[yuv].Offset = wp0[yuv].Offset
+            wp1[yuv].Shift = wp0[yuv].Shift
+            wp1[yuv].Round = wp0[yuv].Round
         }
     } else { // Unidir
         if iRefIdx0 >= 0 {
@@ -126,13 +126,13 @@ func (this *TComWeightPrediction) GetWpScaling(pcCU *TComDataCU, iRefIdx0, iRefI
             } else {
                 bitDepth = G_bitDepthY
             }
-            pwp[yuv].w = pwp[yuv].iWeight
-            pwp[yuv].offset = pwp[yuv].iOffset * (1 << uint(bitDepth-8))
-            pwp[yuv].shift = int(pwp[yuv].uiLog2WeightDenom)
+            pwp[yuv].W = pwp[yuv].iWeight
+            pwp[yuv].Offset = pwp[yuv].iOffset * (1 << uint(bitDepth-8))
+            pwp[yuv].Shift = int(pwp[yuv].uiLog2WeightDenom)
             if pwp[yuv].uiLog2WeightDenom >= 1 {
-                pwp[yuv].round = (1 << (pwp[yuv].uiLog2WeightDenom - 1))
+                pwp[yuv].Round = (1 << (pwp[yuv].uiLog2WeightDenom - 1))
             } else {
-                pwp[yuv].round = (0)
+                pwp[yuv].Round = (0)
             }
         }
     }
@@ -156,15 +156,15 @@ func (this *TComWeightPrediction) AddWeightBi(pcYuvSrc0, pcYuvSrc1 *TComYuv, iPa
     pDstV := rpcYuvDst.GetCrAddr1(iPartUnitIdx)
 
     // Luma : --------------------------------------------
-    w0 := wp0[0].w
-    offset := wp0[0].offset
+    w0 := wp0[0].W
+    offset := wp0[0].Offset
     shiftNum := IF_INTERNAL_PREC - G_bitDepthY
-    shift := wp0[0].shift + shiftNum
+    shift := wp0[0].Shift + shiftNum
     round := 0
     if shift != 0 {
         round = (1 << uint(shift-1)) * int(B2U(bRound))
     }
-    w1 := wp1[0].w
+    w1 := wp1[0].W
 
     iSrc0Stride := int(pcYuvSrc0.GetStride())
     iSrc1Stride := int(pcYuvSrc1.GetStride())
@@ -183,16 +183,16 @@ func (this *TComWeightPrediction) AddWeightBi(pcYuvSrc0, pcYuvSrc1 *TComYuv, iPa
     }
 
     // Chroma U : --------------------------------------------
-    w0 = wp0[1].w
-    offset = wp0[1].offset
+    w0 = wp0[1].W
+    offset = wp0[1].Offset
     shiftNum = IF_INTERNAL_PREC - G_bitDepthC
-    shift = wp0[1].shift + shiftNum
+    shift = wp0[1].Shift + shiftNum
     if shift != 0 {
         round = (1 << uint(shift-1))
     } else {
         round = 0
     }
-    w1 = wp1[1].w
+    w1 = wp1[1].W
 
     iSrc0Stride = int(pcYuvSrc0.GetCStride())
     iSrc1Stride = int(pcYuvSrc1.GetCStride())
@@ -213,15 +213,15 @@ func (this *TComWeightPrediction) AddWeightBi(pcYuvSrc0, pcYuvSrc1 *TComYuv, iPa
     }
 
     // Chroma V : --------------------------------------------
-    w0 = wp0[2].w
-    offset = wp0[2].offset
-    shift = wp0[2].shift + shiftNum
+    w0 = wp0[2].W
+    offset = wp0[2].Offset
+    shift = wp0[2].Shift + shiftNum
     if shift != 0 {
         round = (1 << uint(shift-1))
     } else {
         round = 0
     }
-    w1 = wp1[2].w
+    w1 = wp1[2].W
 
     for y = iHeight - 1; y >= 0; y-- {
         for x = iWidth - 1; x >= 0; x -= 2 {
@@ -246,10 +246,10 @@ func (this *TComWeightPrediction) AddWeightUni(pcYuvSrc0 *TComYuv, iPartUnitIdx 
     pDstV := rpcYuvDst.GetCrAddr1(iPartUnitIdx)
 
     // Luma : --------------------------------------------
-    w0 := wp0[0].w
-    offset := wp0[0].offset
+    w0 := wp0[0].W
+    offset := wp0[0].Offset
     shiftNum := IF_INTERNAL_PREC - G_bitDepthY
-    shift := wp0[0].shift + shiftNum
+    shift := wp0[0].Shift + shiftNum
     round := 0
     if shift != 0 {
         round = (1 << uint(shift-1))
@@ -271,10 +271,10 @@ func (this *TComWeightPrediction) AddWeightUni(pcYuvSrc0 *TComYuv, iPartUnitIdx 
     }
 
     // Chroma U : --------------------------------------------
-    w0 = wp0[1].w
-    offset = wp0[1].offset
+    w0 = wp0[1].W
+    offset = wp0[1].Offset
     shiftNum = IF_INTERNAL_PREC - G_bitDepthC
-    shift = wp0[1].shift + shiftNum
+    shift = wp0[1].Shift + shiftNum
     if shift != 0 {
         round = (1 << uint(shift-1))
     } else {
@@ -298,9 +298,9 @@ func (this *TComWeightPrediction) AddWeightUni(pcYuvSrc0 *TComYuv, iPartUnitIdx 
     }
 
     // Chroma V : --------------------------------------------
-    w0 = wp0[2].w
-    offset = wp0[2].offset
-    shift = wp0[2].shift + shiftNum
+    w0 = wp0[2].W
+    offset = wp0[2].Offset
+    shift = wp0[2].Shift + shiftNum
     if shift != 0 {
         round = (1 << uint(shift-1))
     } else {
@@ -318,7 +318,7 @@ func (this *TComWeightPrediction) AddWeightUni(pcYuvSrc0 *TComYuv, iPartUnitIdx 
     }
 }
 
-func (this *TComWeightPrediction) xWeightedPredictionUni(pcCU *TComDataCU, pcYuvSrc *TComYuv, uiPartAddr uint, iWidth, iHeight int, eRefPicList RefPicList, rpcYuvPred *TComYuv, iPartIdx, iRefIdx int) {
+func (this *TComWeightPrediction) XWeightedPredictionUni(pcCU *TComDataCU, pcYuvSrc *TComYuv, uiPartAddr uint, iWidth, iHeight int, eRefPicList RefPicList, rpcYuvPred *TComYuv, iPartIdx, iRefIdx int) {
     var pwp []WpScalingParam
     if iRefIdx < 0 {
         iRefIdx = int(pcCU.GetCUMvField(eRefPicList).GetRefIdx(int(uiPartAddr)))
@@ -332,7 +332,7 @@ func (this *TComWeightPrediction) xWeightedPredictionUni(pcCU *TComDataCU, pcYuv
     }
     this.AddWeightUni(pcYuvSrc, uiPartAddr, iWidth, iHeight, pwp, rpcYuvPred)
 }
-func (this *TComWeightPrediction) xWeightedPredictionBi(pcCU *TComDataCU, pcYuvSrc0, pcYuvSrc1 *TComYuv, iRefIdx0, iRefIdx1 int, uiPartIdx uint, iWidth, iHeight int, rpcYuvDst *TComYuv) {
+func (this *TComWeightPrediction) XWeightedPredictionBi(pcCU *TComDataCU, pcYuvSrc0, pcYuvSrc1 *TComYuv, iRefIdx0, iRefIdx1 int, uiPartIdx uint, iWidth, iHeight int, rpcYuvDst *TComYuv) {
     var pwp0, pwp1 []WpScalingParam
     //pps := pcCU.GetSlice().GetPPS();
     //assert( pps.GetWPBiPred());
@@ -371,6 +371,37 @@ type TComPrediction struct {
 
 func NewTComPrediction() *TComPrediction {
     return &TComPrediction{m_iLumaRecStride: 0}
+}
+
+func (this *TComPrediction) GetFilteredBlock(i,j int) *TComYuv {
+	return &this.m_filteredBlock[i][j];
+}
+
+func (this *TComPrediction) GetFilteredBlockTmp(i int) *TComYuv {
+	return &this.m_filteredBlockTmp[i];
+}
+
+func (this *TComPrediction) GetYuvExt() []Pel{
+	return this.m_piYuvExt
+}
+
+func (this *TComPrediction) GetYuvExtStride() int{
+	return this.m_iYuvExtStride;
+}
+
+func (this *TComPrediction) GetYuvExtHeight() int{
+	return this.m_iYuvExtHeight;
+}
+
+func (this *TComPrediction) GetYuvPred(i int) *TComYuv{
+	return &this.m_acYuvPred[i];
+}
+
+func (this *TComPrediction) GetIf() *TComInterpolationFilter{
+	return &this.m_if;
+}
+func (this *TComPrediction) GetYuvPredTemp() *TComYuv{
+	return &this.m_cYuvPredTemp;
 }
 
 func (this *TComPrediction) InitTempBuff() {
@@ -618,8 +649,8 @@ func (this *TComPrediction) xPredInterUni(pcCU *TComDataCU, uiPartAddr uint, iWi
     iRefIdx := pcCU.GetCUMvField(eRefPicList).GetRefIdx(int(uiPartAddr)) //assert (iRefIdx >= 0);
     cMv := pcCU.GetCUMvField(eRefPicList).GetMv(int(uiPartAddr))
     pcCU.ClipMv(&cMv)
-    this.xPredInterLumaBlk(pcCU, pcCU.GetSlice().GetRefPic(eRefPicList, int(iRefIdx)).GetPicYuvRec(), uiPartAddr, &cMv, iWidth, iHeight, rpcYuvPred, bi)
-    this.xPredInterChromaBlk(pcCU, pcCU.GetSlice().GetRefPic(eRefPicList, int(iRefIdx)).GetPicYuvRec(), uiPartAddr, &cMv, iWidth, iHeight, rpcYuvPred, bi)
+    this.XPredInterLumaBlk(pcCU, pcCU.GetSlice().GetRefPic(eRefPicList, int(iRefIdx)).GetPicYuvRec(), uiPartAddr, &cMv, iWidth, iHeight, rpcYuvPred, bi)
+    this.XPredInterChromaBlk(pcCU, pcCU.GetSlice().GetRefPic(eRefPicList, int(iRefIdx)).GetPicYuvRec(), uiPartAddr, &cMv, iWidth, iHeight, rpcYuvPred, bi)
 }
 func (this *TComPrediction) xPredInterBi(pcCU *TComDataCU, uiPartAddr uint, iWidth, iHeight int, rpcYuvPred *TComYuv, iPartIdx int) {
     var pcMbYuv *TComYuv
@@ -655,14 +686,14 @@ func (this *TComPrediction) xPredInterBi(pcCU *TComDataCU, uiPartAddr uint, iWid
     }
 
     if pcCU.GetSlice().GetPPS().GetWPBiPred() && pcCU.GetSlice().GetSliceType() == B_SLICE {
-        this.xWeightedPredictionBi(pcCU, &this.m_acYuvPred[0], &this.m_acYuvPred[1], iRefIdx[0], iRefIdx[1], uiPartAddr, iWidth, iHeight, rpcYuvPred)
+        this.XWeightedPredictionBi(pcCU, &this.m_acYuvPred[0], &this.m_acYuvPred[1], iRefIdx[0], iRefIdx[1], uiPartAddr, iWidth, iHeight, rpcYuvPred)
     } else if pcCU.GetSlice().GetPPS().GetUseWP() && pcCU.GetSlice().GetSliceType() == P_SLICE {
-        this.xWeightedPredictionUni(pcCU, &this.m_acYuvPred[0], uiPartAddr, iWidth, iHeight, REF_PIC_LIST_0, rpcYuvPred, iPartIdx, -1)
+        this.XWeightedPredictionUni(pcCU, &this.m_acYuvPred[0], uiPartAddr, iWidth, iHeight, REF_PIC_LIST_0, rpcYuvPred, iPartIdx, -1)
     } else {
-        this.xWeightedAverage(pcCU, &this.m_acYuvPred[0], &this.m_acYuvPred[1], iRefIdx[0], iRefIdx[1], uiPartAddr, uint(iWidth), uint(iHeight), rpcYuvPred)
+        this.XWeightedAverage(pcCU, &this.m_acYuvPred[0], &this.m_acYuvPred[1], iRefIdx[0], iRefIdx[1], uiPartAddr, uint(iWidth), uint(iHeight), rpcYuvPred)
     }
 }
-func (this *TComPrediction) xPredInterLumaBlk(cu *TComDataCU, refPic *TComPicYuv, partAddr uint, mv *TComMv, width, height int, dstPic *TComYuv, bi bool) {
+func (this *TComPrediction) XPredInterLumaBlk(cu *TComDataCU, refPic *TComPicYuv, partAddr uint, mv *TComMv, width, height int, dstPic *TComYuv, bi bool) {
     refStride := refPic.GetStride()
     refOffset := int(mv.GetHor()>>2) + int(mv.GetVer()>>2)*refStride
 
@@ -692,7 +723,7 @@ func (this *TComPrediction) xPredInterLumaBlk(cu *TComDataCU, refPic *TComPicYuv
         this.m_if.FilterVerLuma(tmp[-(NTAPS_LUMA/2-1)*tmpStride+(halfFilterSize-1)*tmpStride:], tmpStride, dst, dstStride, width, height, yFrac, false, !bi)
     }
 }
-func (this *TComPrediction) xPredInterChromaBlk(cu *TComDataCU, refPic *TComPicYuv, partAddr uint, mv *TComMv, width, height int, dstPic *TComYuv, bi bool) {
+func (this *TComPrediction) XPredInterChromaBlk(cu *TComDataCU, refPic *TComPicYuv, partAddr uint, mv *TComMv, width, height int, dstPic *TComYuv, bi bool) {
     refStride := refPic.GetCStride()
     dstStride := int(dstPic.GetCStride())
 
@@ -738,7 +769,7 @@ func (this *TComPrediction) xPredInterChromaBlk(cu *TComDataCU, refPic *TComPicY
         this.m_if.FilterVerChroma(extY[-(NTAPS_CHROMA/2-1)*extStride+(halfFilterSize-1)*extStride:], extStride, dstCr, dstStride, cxWidth, cxHeight, yFrac, false, !bi)
     }
 }
-func (this *TComPrediction) xWeightedAverage(pcCU *TComDataCU, pcYuvSrc0 *TComYuv, pcYuvSrc1 *TComYuv, iRefIdx0, iRefIdx1 int, uiPartIdx uint, iWidth, iHeight uint, rpcYuvDst *TComYuv) {
+func (this *TComPrediction) XWeightedAverage(pcCU *TComDataCU, pcYuvSrc0 *TComYuv, pcYuvSrc1 *TComYuv, iRefIdx0, iRefIdx1 int, uiPartIdx uint, iWidth, iHeight uint, rpcYuvDst *TComYuv) {
     if iRefIdx0 >= 0 && iRefIdx1 >= 0 {
         rpcYuvDst.AddAvg(pcYuvSrc0, pcYuvSrc1, uiPartIdx, iWidth, iHeight)
     } else if iRefIdx0 >= 0 && iRefIdx1 < 0 {
@@ -799,7 +830,7 @@ func (this *TComPrediction) MotionCompensation(pcCU *TComDataCU, pcYuvPred *TCom
                 this.xPredInterUni(pcCU, uiPartAddr, iWidth, iHeight, eRefPicList, pcYuvPred, iPartIdx, false)
             }
             if pcCU.GetSlice().GetPPS().GetUseWP() {
-                this.xWeightedPredictionUni(pcCU, pcYuvPred, uiPartAddr, iWidth, iHeight, eRefPicList, pcYuvPred, iPartIdx, -1)
+                this.XWeightedPredictionUni(pcCU, pcYuvPred, uiPartAddr, iWidth, iHeight, eRefPicList, pcYuvPred, iPartIdx, -1)
             }
         } else {
             if this.xCheckIdenticalMotion(pcCU, uiPartAddr) {
@@ -821,7 +852,7 @@ func (this *TComPrediction) MotionCompensation(pcCU *TComDataCU, pcYuvPred *TCom
                 this.xPredInterUni(pcCU, uiPartAddr, iWidth, iHeight, eRefPicList, pcYuvPred, iPartIdx, false)
             }
             if pcCU.GetSlice().GetPPS().GetUseWP() {
-                this.xWeightedPredictionUni(pcCU, pcYuvPred, uiPartAddr, iWidth, iHeight, eRefPicList, pcYuvPred, iPartIdx, -1)
+                this.XWeightedPredictionUni(pcCU, pcYuvPred, uiPartAddr, iWidth, iHeight, eRefPicList, pcYuvPred, iPartIdx, -1)
             }
         } else {
             if this.xCheckIdenticalMotion(pcCU, uiPartAddr) {
