@@ -1368,3 +1368,7 @@ func (this *TEncCavlc) codeDFFlag       ( uiCode uint, pSymbolName string) {
 func (this *TEncCavlc) codeDFSvlc       ( iCode int, pSymbolName string) {
 	this.WRITE_SVLC(iCode, pSymbolName);
 }
+
+func (this *TEncCavlc) getEncBinIf() TEncBinIf{
+	return nil;
+}

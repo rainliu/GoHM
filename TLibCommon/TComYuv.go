@@ -167,11 +167,11 @@ func (this *TComYuv) CopyToPicChroma(pcPicYuvDst *TComPicYuv, iCuAddr, uiAbsZord
 }
 
 //  Copy YUV buffer from picture buffer
-func (this *TComYuv) CopyFromPicYuv2(pcPicYuvSrc *TComPicYuv, iCuAddr, uiAbsZorderIdx uint) {
-    this.CopyFromPicLuma2(pcPicYuvSrc, iCuAddr, uiAbsZorderIdx)
-    this.CopyFromPicChroma2(pcPicYuvSrc, iCuAddr, uiAbsZorderIdx)
+func (this *TComYuv) CopyFromPicYuv(pcPicYuvSrc *TComPicYuv, iCuAddr, uiAbsZorderIdx uint) {
+    this.CopyFromPicLuma(pcPicYuvSrc, iCuAddr, uiAbsZorderIdx)
+    this.CopyFromPicChroma(pcPicYuvSrc, iCuAddr, uiAbsZorderIdx)
 }
-func (this *TComYuv) CopyFromPicLuma2(pcPicYuvSrc *TComPicYuv, iCuAddr, uiAbsZorderIdx uint) {
+func (this *TComYuv) CopyFromPicLuma(pcPicYuvSrc *TComPicYuv, iCuAddr, uiAbsZorderIdx uint) {
     var x, y uint
     pDst := this.m_apiBufY
     pSrc := pcPicYuvSrc.GetLumaAddr2(int(iCuAddr), int(uiAbsZorderIdx))
@@ -184,7 +184,7 @@ func (this *TComYuv) CopyFromPicLuma2(pcPicYuvSrc *TComPicYuv, iCuAddr, uiAbsZor
         }
     }
 }
-func (this *TComYuv) CopyFromPicChroma2(pcPicYuvSrc *TComPicYuv, iCuAddr, uiAbsZorderIdx uint) {
+func (this *TComYuv) CopyFromPicChroma(pcPicYuvSrc *TComPicYuv, iCuAddr, uiAbsZorderIdx uint) {
     var x, y uint
 
     pDstU := this.m_apiBufU

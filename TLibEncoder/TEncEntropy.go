@@ -105,6 +105,8 @@ type TEncEntropyIf interface{
 
   codeDFFlag ( uiCode uint, pSymbolName string) ;
   codeDFSvlc ( iCode int,   pSymbolName string) ;
+  
+  getEncBinIf() TEncBinIf;
 }
 
 /// entropy encoder class

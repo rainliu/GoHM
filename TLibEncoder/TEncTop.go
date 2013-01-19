@@ -37,3 +37,7 @@ import (
 
 )
 
+
+type TEncTop struct{
+	m_pcEncCfg	*TEncCfg
+}

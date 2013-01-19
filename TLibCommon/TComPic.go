@@ -41,6 +41,58 @@ import (
 // Class definition
 // ====================================================================================================================
 
+/// Unit block for storing image characteristics
+type TEncQPAdaptationUnit struct{
+  m_dActivity	float64;
+}
+
+
+func NewTEncQPAdaptationUnit() *TEncQPAdaptationUnit{
+	return &TEncQPAdaptationUnit{};
+}
+
+func (this *TEncQPAdaptationUnit) SetActivity( d float64) { this.m_dActivity = d; }
+func (this *TEncQPAdaptationUnit) GetActivity() float64   { return this.m_dActivity; }
+
+
+/// Local image characteristics for CUs on a specific depth
+type TEncPicQPAdaptationLayer struct{
+  m_uiAQPartWidth			uint;
+  m_uiAQPartHeight			uint;
+  m_uiNumAQPartInWidth		uint;
+  m_uiNumAQPartInHeight		uint;
+  m_acTEncAQU				[]TEncQPAdaptationUnit;
+  m_dAvgActivity			float64;
+}
+
+func NewTEncPicQPAdaptationLayer() *TEncPicQPAdaptationLayer{
+	return &TEncPicQPAdaptationLayer{};
+}
+
+func (this *TEncPicQPAdaptationLayer)  create( iWidth, iHeight int, uiAQPartWidth, uiAQPartHeight uint){
+  this.m_uiAQPartWidth = uiAQPartWidth;
+  this.m_uiAQPartHeight = uiAQPartHeight;
+  this.m_uiNumAQPartInWidth  = (uint(iWidth)  + this.m_uiAQPartWidth -1) / this.m_uiAQPartWidth;
+  this.m_uiNumAQPartInHeight = (uint(iHeight) + this.m_uiAQPartHeight-1) / this.m_uiAQPartHeight;
+  this.m_acTEncAQU = make([]TEncQPAdaptationUnit, this.m_uiNumAQPartInWidth * this.m_uiNumAQPartInHeight );
+}
+func (this *TEncPicQPAdaptationLayer)  destroy(){
+	//do nothing
+}
+
+func (this *TEncPicQPAdaptationLayer)  GetAQPartWidth()        uint{ return this.m_uiAQPartWidth;       }
+func (this *TEncPicQPAdaptationLayer)  GetAQPartHeight()       uint{ return this.m_uiAQPartHeight;      }
+func (this *TEncPicQPAdaptationLayer)  GetNumAQPartInWidth()   uint{ return this.m_uiNumAQPartInWidth;  }
+func (this *TEncPicQPAdaptationLayer)  GetNumAQPartInHeight()  uint{ return this.m_uiNumAQPartInHeight; }
+func (this *TEncPicQPAdaptationLayer)  GetAQPartStride()       uint{ return this.m_uiNumAQPartInWidth;  }
+func (this *TEncPicQPAdaptationLayer)  GetQPAdaptationUnit()   []TEncQPAdaptationUnit{ return this.m_acTEncAQU;           }
+func (this *TEncPicQPAdaptationLayer)  GetAvgActivity()        float64{ return this.m_dAvgActivity;        }
+func (this *TEncPicQPAdaptationLayer)  SetAvgActivity( d float64)  { this.m_dAvgActivity = d; }
+
+
+
+
+
 /// picture class (symbol + YUV buffers)
 type TComPic struct {
     //private:
@@ -70,6 +122,10 @@ type TComPic struct {
     m_vSliceCUDataLink map[int]*list.List //std::vector<std::vector<TComDataCU*> > ;
 
     m_SEIs *SEImessages ///< Any SEI messages that have been received.  If !NULL we own the object.
+   
+/// Picture class including local image characteristics information for QP adaptation
+  	m_acAQLayer		[]TEncPicQPAdaptationLayer;
+  	m_uiMaxAQDepth	uint;   
 }
 
 //public:
@@ -77,7 +133,7 @@ func NewTComPic() *TComPic {
     return &TComPic{}
 }
 
-func (this *TComPic) Create(iWidth, iHeight int, uiMaxWidth, uiMaxHeight, uiMaxDepth uint,
+func (this *TComPic) Create(iWidth, iHeight int, uiMaxWidth, uiMaxHeight, uiMaxDepth, uiMaxAQDepth uint,
     croppingWindow *CroppingWindow, numReorderPics []int, bIsVirtual bool) {
     this.m_apcPicSym = NewTComPicSym()
     this.m_apcPicSym.Create(iWidth, iHeight, uiMaxWidth, uiMaxHeight, uiMaxDepth)
@@ -101,8 +157,93 @@ func (this *TComPic) Create(iWidth, iHeight int, uiMaxWidth, uiMaxHeight, uiMaxD
     }
     //memcpy(m_numReorderPics, numReorderPics, MAX_TLAYER*sizeof(Int));
 
-    return
+    this.m_uiMaxAQDepth = uiMaxAQDepth;
+  	if uiMaxAQDepth > 0 {
+    	this.m_acAQLayer = make([]TEncPicQPAdaptationLayer, this.m_uiMaxAQDepth ); 
+    	for d := uint(0); d < this.m_uiMaxAQDepth; d++ {
+      		this.m_acAQLayer[d].create( iWidth, iHeight, uiMaxWidth>>d, uiMaxHeight>>d );
+    	}
+  	}	
 }
+
+func (this *TComPic)  GetAQLayer( uiDepth uint) *TEncPicQPAdaptationLayer  { return &this.m_acAQLayer[uiDepth]; }
+
+func (this *TComPic)  GetMaxAQDepth()     uint        { return this.m_uiMaxAQDepth;        }
+
+func (this *TComPic)  XPreanalyze(){
+  pcPicYuv := this.GetPicYuvOrg();
+  iWidth := pcPicYuv.GetWidth();
+  iHeight := pcPicYuv.GetHeight();
+  iStride := pcPicYuv.GetStride();
+
+  for d := uint(0); d < this.GetMaxAQDepth(); d++ {
+    pLineY := pcPicYuv.GetLumaAddr();
+    pcAQLayer := this.GetAQLayer(d);
+    uiAQPartWidth := pcAQLayer.GetAQPartWidth();
+    uiAQPartHeight := pcAQLayer.GetAQPartHeight();
+    pcAQU := pcAQLayer.GetQPAdaptationUnit();
+
+    dSumAct := float64(0.0);
+    for y := 0; y < iHeight; y += int(uiAQPartHeight) {
+      uiCurrAQPartHeight := uint(MIN(int(uiAQPartHeight), int(iHeight-y)).(int));
+      for x := 0; x < iWidth; x += int(uiAQPartWidth) {
+        uiCurrAQPartWidth := uint(MIN(int(uiAQPartWidth), int(iWidth-x)).(int));
+        pBlkY := pLineY[x:];
+        var uiSum	=[4]uint{0, 0, 0, 0};
+        var uiSumSq=[4]uint{0, 0, 0, 0};
+        uiNumPixInAQPart := uint(0);
+        by := uint(0);
+        for  ; by < uiCurrAQPartHeight>>1; by++ {
+          bx := uint(0);
+          for  ; bx < uiCurrAQPartWidth>>1; bx++{
+            uiSum  [0] += uint(pBlkY[bx]);
+            uiSumSq[0] += uint(pBlkY[bx]) * uint(pBlkY[bx]);
+            uiNumPixInAQPart++ ;
+          }
+          for  ; bx < uiCurrAQPartWidth; bx++ {
+            uiSum  [1] += uint(pBlkY[bx]);
+            uiSumSq[1] += uint(pBlkY[bx]) * uint(pBlkY[bx]);
+            uiNumPixInAQPart++;
+          }
+          pBlkY = pBlkY[iStride:]//+= iStride;
+        }
+        for  ; by < uiCurrAQPartHeight; by++ {
+          bx := uint(0);
+          for  ; bx < uiCurrAQPartWidth>>1; bx++ {
+            uiSum  [2] += uint(pBlkY[bx]);
+            uiSumSq[2] += uint(pBlkY[bx]) * uint(pBlkY[bx]);
+            uiNumPixInAQPart++;
+          }
+          for ; bx < uiCurrAQPartWidth; bx++ {
+            uiSum  [3] += uint(pBlkY[bx]);
+            uiSumSq[3] += uint(pBlkY[bx]) * uint(pBlkY[bx]);
+            uiNumPixInAQPart++;
+          }
+          pBlkY = pBlkY[iStride:]//+= iStride;
+        }
+
+        dMinVar := float64(MAX_DOUBLE);
+        for i:=int(0); i<4; i++ {
+          dAverage := float64(uiSum[i]) / float64(uiNumPixInAQPart);
+          dVariance := float64(uiSumSq[i]) / float64(uiNumPixInAQPart) - dAverage * dAverage;
+          if dMinVar > dVariance {
+          	dMinVar = dVariance;
+          }
+        }
+        dActivity := 1.0 + dMinVar;
+        pcAQU[0].SetActivity( dActivity );
+        dSumAct += dActivity;
+        
+        pcAQU = pcAQU[1:]//++
+      }
+      pLineY =pLineY[uint(iStride) * uiCurrAQPartHeight:]//+= iStride * uiCurrAQPartHeight;
+    }
+
+    dAvgAct := dSumAct / float64(pcAQLayer.GetNumAQPartInWidth() * pcAQLayer.GetNumAQPartInHeight());
+    pcAQLayer.SetAvgActivity( dAvgAct );
+  }
+}
+
 func (this *TComPic) Destroy() {
 }
 
@@ -448,7 +589,7 @@ func (this *TComPic) CreateNonDBFilterInfoLCU(tileID, sliceID int, pcCU *TComDat
     maxNumSUInLCUWidth := this.GetNumPartInWidth()
     var LPelX, TPelY, currSU uint
 
-    //get the number of valid NBFilterBLock
+    //Get the number of valid NBFilterBLock
     currSU = startSU
     for currSU <= endSU {
         LPelX = LCUX + G_auiRasterToPelX[G_auiZscanToRaster[currSU]]

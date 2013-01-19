@@ -52,6 +52,23 @@ type TComBitIf interface {
     GetNumberOfWrittenBits() uint
 }
 
+
+/// class for counting bits
+type TComBitCounter struct{
+    m_uiBitCounter uint;
+}  
+
+func NewTComBitCounter() *TComBitCounter {
+	return &TComBitCounter{}
+}
+  
+func (this *TComBitCounter)  WriteAlignOne() {}
+func (this *TComBitCounter)  WriteAlignZero() {}
+func (this *TComBitCounter)  Write                 ( uiBits,  uiNumberOfBits uint)  { this.m_uiBitCounter += uiNumberOfBits; }
+func (this *TComBitCounter)  ResetBits             ()                               { this.m_uiBitCounter = 0;               }
+func (this *TComBitCounter)  GetNumberOfWrittenBits() uint { return this.m_uiBitCounter; }
+
+
 /**
  * Model of a writable bitstream that accumulates bits to produce a
  * bytestream.
