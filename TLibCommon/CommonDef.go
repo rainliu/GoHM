@@ -232,6 +232,10 @@ func MIN(a, b interface{}) interface{} {
         if a.(int) > b.(int) {
             return b
         }
+    case float64:
+    	if a.(float64) > b.(float64) {
+    		return b
+    	}
     default:
         fmt.Printf("unsupport data type\n")
     }
@@ -257,6 +261,10 @@ func ABS(a interface{}) interface{} {
         if a.(int) < 0 {
             return -a.(int)
         }
+    case float64:
+    	if a.(float64) < 0 {
+    		return -a.(float64)
+    	}
     default:
         fmt.Printf("unsupport data type\n")
     }
