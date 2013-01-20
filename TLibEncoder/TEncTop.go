@@ -104,14 +104,14 @@ func NewTEncTop() *TEncTop{
 	return &TEncTop{m_iPOCLast:-1}
 }
  
-func (this *TEncTop)      create          (){
+func (this *TEncTop)      Create          (){
 }
-func (this *TEncTop)      destroy         (){}
-func (this *TEncTop)      init            (){
+func (this *TEncTop)      Destroy         (){}
+func (this *TEncTop)      Init            (){
 }
-func (this *TEncTop)      deletePicBuffer (){}
+func (this *TEncTop)      DeletePicBuffer (){}
 
-func (this *TEncTop)      createWPPCoders( iNumSubstreams int){
+func (this *TEncTop)      CreateWPPCoders( iNumSubstreams int){
 }
   
   // -------------------------------------------------------------------------------------------------------------------
@@ -128,7 +128,8 @@ func (this *TEncTop)  xInitPPSforTiles  (){
 }
 func (this *TEncTop)  xInitRPS          (){                             ///< initialize PPS from encoder options
 }
-func (this *TEncTop)  getEncCfg             () *TEncCfg		  {return this.m_pcEncCfg; }
+func (this *TEncTop)  GetEncCfg             () *TEncCfg		  {return this.m_pcEncCfg; }
+func (this *TEncTop)  SetEncCfg             (pcEncCfg *TEncCfg)		  { this.m_pcEncCfg = pcEncCfg; }
 func (this *TEncTop)  getListPic            () *list.List     { return  this.m_cListPic;             }
 func (this *TEncTop)  getPredSearch         () *TEncSearch             { return  this.m_cSearch;              }
   
@@ -164,9 +165,9 @@ func (this *TEncTop)  getScalingList        () *TLibCommon.TComScalingList      
   // -------------------------------------------------------------------------------------------------------------------
 
   /// encode several number of pictures until end-of-sequence
-func (this *TEncTop) encode(  bEos bool, pcPicYuvOrg *TLibCommon.TComPicYuv, rcListPicYuvRecOut *list.List, accessUnitsOut *list.List, iNumEncoded *int ){
+func (this *TEncTop) Encode(  bEos bool, pcPicYuvOrg *TLibCommon.TComPicYuv, rcListPicYuvRecOut *list.List, accessUnitsOut *AccessUnits, iNumEncoded *int ){
 }  
 
-func (this *TEncTop) printSummary() { 
+func (this *TEncTop) PrintSummary() { 
 	this.m_cGOPEncoder.printOutSummary (this.m_uiNumAllPicCoded); 
 }

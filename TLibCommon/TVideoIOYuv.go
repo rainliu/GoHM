@@ -47,6 +47,7 @@ type TVideoIOYuv struct {
     m_fileBitDepthC  int      ///< bitdepth of input/output video file chroma component
     m_bitDepthShiftY int      ///< number of bits to increase or decrease luma by before/after write/read
     m_bitDepthShiftC int      ///< number of bits to increase or decrease chroma by before/after write/read
+	m_eof			 bool
 }
 
 func NewTVideoIOYuv() *TVideoIOYuv {
@@ -136,6 +137,10 @@ func (this *TVideoIOYuv) SkipFrames(numFrames, width, height uint) (err error) {
        this.m_cHandle.Read(buf, offset_mod_bufsize);*/
 }
 
+func (this *TVideoIOYuv) IsEof() bool{
+	return this.m_eof;
+}
+
 ///< read  one YUV frame with padding parameter
 /**
  * Read one Y'CbCr frame, performing any required input scaling to change
@@ -152,9 +157,9 @@ func (this *TVideoIOYuv) SkipFrames(numFrames, width, height uint) (err error) {
  */
 func (this *TVideoIOYuv) Read(pPicYuv *TComPicYuv, aiPad []int) bool {
     // check end-of-file
-    //if this.IsEof() {
-    //	return false;
-    //}
+    if this.IsEof() {
+    	return false;
+    }
 
     iStride := pPicYuv.GetStride()
 
@@ -320,6 +325,7 @@ func (this *TVideoIOYuv) readPlane(dst []Pel, fd *os.File, is16bit bool, stride,
     for y = 0; y < height; y++ {
         n, err := fd.Read(buf)
         if err == io.EOF || n != read_len {
+        	this.m_eof = true;
             return false
         }
 

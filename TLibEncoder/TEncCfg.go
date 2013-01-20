@@ -329,9 +329,9 @@ type TEncCfg struct{
   m_loopFilterAcrossTilesEnabledFlag	bool;
   m_iUniformSpacingIdr	int;
   m_iNumColumnsMinus1	int;
-  m_puiColumnWidth	[]uint;
+  m_puiColumnWidth	[]int;
   m_iNumRowsMinus1	int;
-  m_puiRowHeight	[]uint;
+  m_puiRowHeight	[]int;
 
   m_iWaveFrontSynchro	int;
   m_iWaveFrontSubstreams	int;
@@ -413,208 +413,208 @@ func NewTEncCfg() *TEncCfg {
 }
 
   
-func (this *TEncCfg)  setProfile(profile TLibCommon.PROFILE) { this.m_profile = profile; }
-func (this *TEncCfg)  setLevel(tier TLibCommon.TIER, level TLibCommon.LEVEL) { this.m_levelTier = tier; this.m_level = level; }
+func (this *TEncCfg)  SetProfile(profile TLibCommon.PROFILE) { this.m_profile = profile; }
+func (this *TEncCfg)  SetLevel(tier TLibCommon.TIER, level TLibCommon.LEVEL) { this.m_levelTier = tier; this.m_level = level; }
 
-func (this *TEncCfg)  setFrameRate                    ( i int )      { this.m_iFrameRate = i; }
-func (this *TEncCfg)  setFrameSkip                    ( i uint )     { this.m_FrameSkip = i; }
-func (this *TEncCfg)  setSourceWidth                  ( i int )      { this.m_iSourceWidth = i; }
-func (this *TEncCfg)  setSourceHeight                 ( i int )      { this.m_iSourceHeight = i; }
+func (this *TEncCfg)  SetFrameRate                    ( i int )      { this.m_iFrameRate = i; }
+func (this *TEncCfg)  SetFrameSkip                    ( i uint )     { this.m_FrameSkip = i; }
+func (this *TEncCfg)  SetSourceWidth                  ( i int )      { this.m_iSourceWidth = i; }
+func (this *TEncCfg)  SetSourceHeight                 ( i int )      { this.m_iSourceHeight = i; }
 
-func (this *TEncCfg)  getPicCroppingWindow() *TLibCommon.CroppingWindow         { return this.m_picCroppingWindow; }
-func (this *TEncCfg)  setPicCroppingWindow ( cropLeft,  cropRight,  cropTop,  cropBottom int) { this.m_picCroppingWindow.SetPicCropping (cropLeft, cropRight, cropTop, cropBottom); }
+func (this *TEncCfg)  GetPicCroppingWindow() *TLibCommon.CroppingWindow         { return this.m_picCroppingWindow; }
+func (this *TEncCfg)  SetPicCroppingWindow ( cropLeft,  cropRight,  cropTop,  cropBottom int) { this.m_picCroppingWindow.SetPicCropping (cropLeft, cropRight, cropTop, cropBottom); }
 
-func (this *TEncCfg)  setFrameToBeEncoded             ( i int )      { this.m_iFrameToBeEncoded = i; }
+func (this *TEncCfg)  SetFrameToBeEncoded             ( i int )      { this.m_iFrameToBeEncoded = i; }
   
   //====== Coding Structure ========
-func (this *TEncCfg)  setIntraPeriod                  ( i int )      { this.m_uiIntraPeriod = uint(i); }
-func (this *TEncCfg)  setDecodingRefreshType          ( i int )      { this.m_uiDecodingRefreshType = uint(i); }
-func (this *TEncCfg)  setGOPSize                      ( i int )      { this.m_iGOPSize = i; }
-func (this *TEncCfg)  setGopList                      ( GOPList []*GOPEntry) {  
+func (this *TEncCfg)  SetIntraPeriod                  ( i int )      { this.m_uiIntraPeriod = uint(i); }
+func (this *TEncCfg)  SetDecodingRefreshType          ( i int )      { this.m_uiDecodingRefreshType = uint(i); }
+func (this *TEncCfg)  SetGOPSize                      ( i int )      { this.m_iGOPSize = i; }
+func (this *TEncCfg)  SetGopList                      ( GOPList []*GOPEntry) {  
 	for i := 0; i < TLibCommon.MAX_GOP; i++ {
 	 	this.m_GOPList[i] = GOPList[i]; 
 	}
 }
-func (this *TEncCfg)  setExtraRPSs                    ( i int )      { this.m_extraRPSs = i; }
-func (this *TEncCfg)  getGOPEntry                     ( i int ) *GOPEntry     { return this.m_GOPList[i]; }
-func (this *TEncCfg)  setMaxDecPicBuffering           ( u, tlayer uint ) { this.m_maxDecPicBuffering[tlayer] = int(u);    }
-func (this *TEncCfg)  setNumReorderPics               ( i int, tlayer uint ) { this.m_numReorderPics[tlayer] = i;    }
+func (this *TEncCfg)  SetExtraRPSs                    ( i int )      { this.m_extraRPSs = i; }
+func (this *TEncCfg)  GetGOPEntry                     ( i int ) *GOPEntry     { return this.m_GOPList[i]; }
+func (this *TEncCfg)  SetMaxDecPicBuffering           ( u, tlayer uint ) { this.m_maxDecPicBuffering[tlayer] = int(u);    }
+func (this *TEncCfg)  SetNumReorderPics               ( i int, tlayer uint ) { this.m_numReorderPics[tlayer] = i;    }
   
-func (this *TEncCfg)  setQP                           ( i int)      { this.m_iQP = i; }
+func (this *TEncCfg)  SetQP                           ( i int)      { this.m_iQP = i; }
   
-func (this *TEncCfg)  setPad                          ( iPad  []int                 )      { 
+func (this *TEncCfg)  SetPad                          ( iPad  []int                 )      { 
 	for i := 0; i < 2; i++ {
 		this.m_aiPad[i] = iPad[i]; 
 	}
 }
-func (this *TEncCfg)  getMaxRefPicNum                 ()   int                           { return this.m_iMaxRefPicNum;           }
-func (this *TEncCfg)  setMaxRefPicNum                 ( iMaxRefPicNum int )           { this.m_iMaxRefPicNum = iMaxRefPicNum;  }
+func (this *TEncCfg)  GetMaxRefPicNum                 ()   int                           { return this.m_iMaxRefPicNum;           }
+func (this *TEncCfg)  SetMaxRefPicNum                 ( iMaxRefPicNum int )           { this.m_iMaxRefPicNum = iMaxRefPicNum;  }
 
-func (this *TEncCfg)  getMaxTempLayer                 ()    int                          { return this.m_maxTempLayer;              } 
-func (this *TEncCfg)  setMaxTempLayer                 ( maxTempLayer int)            { this.m_maxTempLayer = maxTempLayer;      }
+func (this *TEncCfg)  GetMaxTempLayer                 ()    int                          { return this.m_maxTempLayer;              } 
+func (this *TEncCfg)  SetMaxTempLayer                 ( maxTempLayer int)            { this.m_maxTempLayer = maxTempLayer;      }
   //======== Transform =============
-func (this *TEncCfg)  setQuadtreeTULog2MaxSize        ( u uint )      { this.m_uiQuadtreeTULog2MaxSize = u; }
-func (this *TEncCfg)  setQuadtreeTULog2MinSize        ( u uint )      { this.m_uiQuadtreeTULog2MinSize = u; }
-func (this *TEncCfg)  setQuadtreeTUMaxDepthInter      ( u uint )      { this.m_uiQuadtreeTUMaxDepthInter = u; }
-func (this *TEncCfg)  setQuadtreeTUMaxDepthIntra      ( u uint )      { this.m_uiQuadtreeTUMaxDepthIntra = u; }
+func (this *TEncCfg)  SetQuadtreeTULog2MaxSize        ( u uint )      { this.m_uiQuadtreeTULog2MaxSize = u; }
+func (this *TEncCfg)  SetQuadtreeTULog2MinSize        ( u uint )      { this.m_uiQuadtreeTULog2MinSize = u; }
+func (this *TEncCfg)  SetQuadtreeTUMaxDepthInter      ( u uint )      { this.m_uiQuadtreeTUMaxDepthInter = u; }
+func (this *TEncCfg)  SetQuadtreeTUMaxDepthIntra      ( u uint )      { this.m_uiQuadtreeTUMaxDepthIntra = u; }
   
-func (this *TEncCfg)  setUseAMP( b bool ) { this.m_useAMP = b; }
+func (this *TEncCfg)  SetUseAMP( b bool ) { this.m_useAMP = b; }
   
   //====== Loop/Deblock Filter ========
-func (this *TEncCfg)  setLoopFilterDisable            ( b bool )      { this.m_bLoopFilterDisable       = b; }
-func (this *TEncCfg)  setLoopFilterOffsetInPPS        ( b bool )      { this.m_loopFilterOffsetInPPS      = b; }
-func (this *TEncCfg)  setLoopFilterBetaOffset         ( i int)      { this.m_loopFilterBetaOffsetDiv2  = i; }
-func (this *TEncCfg)  setLoopFilterTcOffset           ( i int )      { this.m_loopFilterTcOffsetDiv2    = i; }
-func (this *TEncCfg)  setDeblockingFilterControlPresent ( b bool ) { this.m_DeblockingFilterControlPresent = b; }
+func (this *TEncCfg)  SetLoopFilterDisable            ( b bool )      { this.m_bLoopFilterDisable       = b; }
+func (this *TEncCfg)  SetLoopFilterOffsetInPPS        ( b bool )      { this.m_loopFilterOffsetInPPS      = b; }
+func (this *TEncCfg)  SetLoopFilterBetaOffset         ( i int)      { this.m_loopFilterBetaOffsetDiv2  = i; }
+func (this *TEncCfg)  SetLoopFilterTcOffset           ( i int )      { this.m_loopFilterTcOffsetDiv2    = i; }
+func (this *TEncCfg)  SetDeblockingFilterControlPresent ( b bool ) { this.m_DeblockingFilterControlPresent = b; }
 
   //====== Motion search ========
-func (this *TEncCfg)  setFastSearch                   ( i int )      { this.m_iFastSearch = i; }
-func (this *TEncCfg)  setSearchRange                  ( i int )      { this.m_iSearchRange = i; }
-func (this *TEncCfg)  setBipredSearchRange            ( i int )      { this.m_bipredSearchRange = i; }
+func (this *TEncCfg)  SetFastSearch                   ( i int )      { this.m_iFastSearch = i; }
+func (this *TEncCfg)  SetSearchRange                  ( i int )      { this.m_iSearchRange = i; }
+func (this *TEncCfg)  SetBipredSearchRange            ( i int )      { this.m_bipredSearchRange = i; }
 
   //====== Quality control ========
-func (this *TEncCfg)  setMaxDeltaQP                   ( i int )      { this.m_iMaxDeltaQP = i; }
-func (this *TEncCfg)  setMaxCuDQPDepth                ( i int )      { this.m_iMaxCuDQPDepth = i; }
+func (this *TEncCfg)  SetMaxDeltaQP                   ( i int )      { this.m_iMaxDeltaQP = i; }
+func (this *TEncCfg)  SetMaxCuDQPDepth                ( i int )      { this.m_iMaxCuDQPDepth = i; }
 
-func (this *TEncCfg)  setChromaCbQpOffset             ( i int )      { this.m_chromaCbQpOffset = i; }
-func (this *TEncCfg)  setChromaCrQpOffset             ( i int )      { this.m_chromaCrQpOffset = i; }
+func (this *TEncCfg)  SetChromaCbQpOffset             ( i int )      { this.m_chromaCbQpOffset = i; }
+func (this *TEncCfg)  SetChromaCrQpOffset             ( i int )      { this.m_chromaCrQpOffset = i; }
 
 //#if ADAPTIVE_QP_SELECTION
-func (this *TEncCfg)  setUseAdaptQpSelect             (i bool) { this.m_bUseAdaptQpSelect    = i; }
-func (this *TEncCfg)  getUseAdaptQpSelect             ()  bool         { return   this.m_bUseAdaptQpSelect; }
+func (this *TEncCfg)  SetUseAdaptQpSelect             (i bool) { this.m_bUseAdaptQpSelect    = i; }
+func (this *TEncCfg)  GetUseAdaptQpSelect             ()  bool         { return   this.m_bUseAdaptQpSelect; }
 //#endif
 
-func (this *TEncCfg)  setUseAdaptiveQP                ( b bool )      { this.m_bUseAdaptiveQP = b; }
-func (this *TEncCfg)  setQPAdaptationRange            ( i int )      { this.m_iQPAdaptationRange = i; }
+func (this *TEncCfg)  SetUseAdaptiveQP                ( b bool )      { this.m_bUseAdaptiveQP = b; }
+func (this *TEncCfg)  SetQPAdaptationRange            ( i int )      { this.m_iQPAdaptationRange = i; }
   
   //====== Lossless ========
-func (this *TEncCfg)  setUseLossless                  ( b bool )        { this.m_useLossless = b;  }
+func (this *TEncCfg)  SetUseLossless                  ( b bool )        { this.m_useLossless = b;  }
   //====== Sequence ========
-func (this *TEncCfg)  getFrameRate                    ()  int     { return  this.m_iFrameRate; }
-func (this *TEncCfg)  getFrameSkip                    ()  uint    { return  this.m_FrameSkip; }
-func (this *TEncCfg)  getSourceWidth                  ()  int     { return  this.m_iSourceWidth; }
-func (this *TEncCfg)  getSourceHeight                 ()  int     { return  this.m_iSourceHeight; }
-func (this *TEncCfg)  getFrameToBeEncoded             ()  int     { return  this.m_iFrameToBeEncoded; }
-func (this *TEncCfg)  setLambdaModifier                    ( uiIndex uint,  dValue float64) { this.m_adLambdaModifier[ uiIndex ] = dValue; }
-func (this *TEncCfg)  getLambdaModifier                  ( uiIndex uint ) float64 { return this.m_adLambdaModifier[ uiIndex ]; }
+func (this *TEncCfg)  GetFrameRate                    ()  int     { return  this.m_iFrameRate; }
+func (this *TEncCfg)  GetFrameSkip                    ()  uint    { return  this.m_FrameSkip; }
+func (this *TEncCfg)  GetSourceWidth                  ()  int     { return  this.m_iSourceWidth; }
+func (this *TEncCfg)  GetSourceHeight                 ()  int     { return  this.m_iSourceHeight; }
+func (this *TEncCfg)  GetFrameToBeEncoded             ()  int     { return  this.m_iFrameToBeEncoded; }
+func (this *TEncCfg)  SetLambdaModifier                    ( uiIndex uint,  dValue float64) { this.m_adLambdaModifier[ uiIndex ] = dValue; }
+func (this *TEncCfg)  GetLambdaModifier                  ( uiIndex uint ) float64 { return this.m_adLambdaModifier[ uiIndex ]; }
 
   //==== Coding Structure ========
-func (this *TEncCfg)  getIntraPeriod                  ()   uint   { return  this.m_uiIntraPeriod; }
-func (this *TEncCfg)  getDecodingRefreshType          ()   uint   { return  this.m_uiDecodingRefreshType; }
-func (this *TEncCfg)  getGOPSize                      ()   int    { return  this.m_iGOPSize; }
-func (this *TEncCfg)  getMaxDecPicBuffering           ( tlayer uint) int { return this.m_maxDecPicBuffering[tlayer]; }
-func (this *TEncCfg)  getNumReorderPics               ( tlayer uint) int { return this.m_numReorderPics[tlayer]; }
-func (this *TEncCfg)  getQP                           ()   int    { return  this.m_iQP; }
+func (this *TEncCfg)  GetIntraPeriod                  ()   uint   { return  this.m_uiIntraPeriod; }
+func (this *TEncCfg)  GetDecodingRefreshType          ()   uint   { return  this.m_uiDecodingRefreshType; }
+func (this *TEncCfg)  GetGOPSize                      ()   int    { return  this.m_iGOPSize; }
+func (this *TEncCfg)  GetMaxDecPicBuffering           ( tlayer uint) int { return this.m_maxDecPicBuffering[tlayer]; }
+func (this *TEncCfg)  GetNumReorderPics               ( tlayer uint) int { return this.m_numReorderPics[tlayer]; }
+func (this *TEncCfg)  GetQP                           ()   int    { return  this.m_iQP; }
   
-func (this *TEncCfg)  getPad                          ( i int ) int     {  return  this.m_aiPad[i]; }
+func (this *TEncCfg)  GetPad                          ( i int ) int     {  return  this.m_aiPad[i]; }
   
   //======== Transform =============
-func (this *TEncCfg)  getQuadtreeTULog2MaxSize        ()      uint { return this.m_uiQuadtreeTULog2MaxSize; }
-func (this *TEncCfg)  getQuadtreeTULog2MinSize        ()      uint { return this.m_uiQuadtreeTULog2MinSize; }
-func (this *TEncCfg)  getQuadtreeTUMaxDepthInter      ()      uint { return this.m_uiQuadtreeTUMaxDepthInter; }
-func (this *TEncCfg)  getQuadtreeTUMaxDepthIntra      ()      uint { return this.m_uiQuadtreeTUMaxDepthIntra; }
+func (this *TEncCfg)  GetQuadtreeTULog2MaxSize        ()      uint { return this.m_uiQuadtreeTULog2MaxSize; }
+func (this *TEncCfg)  GetQuadtreeTULog2MinSize        ()      uint { return this.m_uiQuadtreeTULog2MinSize; }
+func (this *TEncCfg)  GetQuadtreeTUMaxDepthInter      ()      uint { return this.m_uiQuadtreeTUMaxDepthInter; }
+func (this *TEncCfg)  GetQuadtreeTUMaxDepthIntra      ()      uint { return this.m_uiQuadtreeTUMaxDepthIntra; }
  
   //==== Loop/Deblock Filter ========
-func (this *TEncCfg)  getLoopFilterDisable            ()      bool{ return  this.m_bLoopFilterDisable;       }
-func (this *TEncCfg)  getLoopFilterOffsetInPPS        ()      bool{ return this.m_loopFilterOffsetInPPS; }
-func (this *TEncCfg)  getLoopFilterBetaOffset         ()      int { return this.m_loopFilterBetaOffsetDiv2; }
-func (this *TEncCfg)  getLoopFilterTcOffset           ()      int { return this.m_loopFilterTcOffsetDiv2; }
-func (this *TEncCfg)  getDeblockingFilterControlPresent()  	bool{ return  this.m_DeblockingFilterControlPresent; }
+func (this *TEncCfg)  GetLoopFilterDisable            ()      bool{ return  this.m_bLoopFilterDisable;       }
+func (this *TEncCfg)  GetLoopFilterOffsetInPPS        ()      bool{ return this.m_loopFilterOffsetInPPS; }
+func (this *TEncCfg)  GetLoopFilterBetaOffset         ()      int { return this.m_loopFilterBetaOffsetDiv2; }
+func (this *TEncCfg)  GetLoopFilterTcOffset           ()      int { return this.m_loopFilterTcOffsetDiv2; }
+func (this *TEncCfg)  GetDeblockingFilterControlPresent()  	bool{ return  this.m_DeblockingFilterControlPresent; }
 
   //==== Motion search ========
-func (this *TEncCfg)  getFastSearch                   ()      int{ return  this.m_iFastSearch; }
-func (this *TEncCfg)  getSearchRange                  ()      int{ return  this.m_iSearchRange; }
+func (this *TEncCfg)  GetFastSearch                   ()      int{ return  this.m_iFastSearch; }
+func (this *TEncCfg)  GetSearchRange                  ()      int{ return  this.m_iSearchRange; }
 
   //==== Quality control ========
-func (this *TEncCfg)  getMaxDeltaQP                   ()      int{ return  this.m_iMaxDeltaQP; }
-func (this *TEncCfg)  getMaxCuDQPDepth                ()      int{ return  this.m_iMaxCuDQPDepth; }
-func (this *TEncCfg)  getUseAdaptiveQP                ()      bool{ return  this.m_bUseAdaptiveQP; }
-func (this *TEncCfg)  getQPAdaptationRange            ()      int{ return  this.m_iQPAdaptationRange; }
+func (this *TEncCfg)  GetMaxDeltaQP                   ()      int{ return  this.m_iMaxDeltaQP; }
+func (this *TEncCfg)  GetMaxCuDQPDepth                ()      int{ return  this.m_iMaxCuDQPDepth; }
+func (this *TEncCfg)  GetUseAdaptiveQP                ()      bool{ return  this.m_bUseAdaptiveQP; }
+func (this *TEncCfg)  GetQPAdaptationRange            ()      int{ return  this.m_iQPAdaptationRange; }
   //====== Lossless ========
-func (this *TEncCfg)  getUseLossless                  ()      bool{ return  this.m_useLossless;  }
+func (this *TEncCfg)  GetUseLossless                  ()      bool{ return  this.m_useLossless;  }
   
   //==== Tool list ========
-func (this *TEncCfg)  setUseSBACRD                    ( b bool )     { this.m_bUseSBACRD  = b; }
-func (this *TEncCfg)  setUseASR                       ( b bool )     { this.m_bUseASR     = b; }
-func (this *TEncCfg)  setUseHADME                     ( b bool )     { this.m_bUseHADME   = b; }
-func (this *TEncCfg)  setUseLComb                     ( b bool )     { this.m_bUseLComb   = b; }
-func (this *TEncCfg)  setUseRDOQ                      ( b bool )     { this.m_useRDOQ    = b; }
+func (this *TEncCfg)  SetUseSBACRD                    ( b bool )     { this.m_bUseSBACRD  = b; }
+func (this *TEncCfg)  SetUseASR                       ( b bool )     { this.m_bUseASR     = b; }
+func (this *TEncCfg)  SetUseHADME                     ( b bool )     { this.m_bUseHADME   = b; }
+func (this *TEncCfg)  SetUseLComb                     ( b bool )     { this.m_bUseLComb   = b; }
+func (this *TEncCfg)  SetUseRDOQ                      ( b bool )     { this.m_useRDOQ    = b; }
 //#if RDOQ_TRANSFORMSKIP
-func (this *TEncCfg)  setUseRDOQTS                    ( b bool )     { this.m_useRDOQTS  = b; }
+func (this *TEncCfg)  SetUseRDOQTS                    ( b bool )     { this.m_useRDOQTS  = b; }
 //#endif
-func (this *TEncCfg)  setUseFastEnc                   ( b bool )     { this.m_bUseFastEnc = b; }
-func (this *TEncCfg)  setUseEarlyCU                   ( b bool )     { this.m_bUseEarlyCU = b; }
-func (this *TEncCfg)  setUseFastDecisionForMerge      ( b bool )     { this.m_useFastDecisionForMerge = b; }
-func (this *TEncCfg)  setUseCbfFastMode            ( b bool )     { this.m_bUseCbfFastMode = b; }
-func (this *TEncCfg)  setUseEarlySkipDetection        ( b bool )     { this.m_useEarlySkipDetection = b; }
-func (this *TEncCfg)  setUseConstrainedIntraPred      ( b bool )     { this.m_bUseConstrainedIntraPred = b; }
-func (this *TEncCfg)  setPCMInputBitDepthFlag         ( b bool )     { this.m_bPCMInputBitDepthFlag = b; }
-func (this *TEncCfg)  setPCMFilterDisableFlag         ( b bool )     {  this.m_bPCMFilterDisableFlag = b; }
-func (this *TEncCfg)  setUsePCM                       ( b bool )     {  this.m_usePCM = b;               }
-func (this *TEncCfg)  setPCMLog2MaxSize               ( u uint )      { this.m_pcmLog2MaxSize = u;      }
-func (this *TEncCfg)  setPCMLog2MinSize               ( u uint )     { this.m_uiPCMLog2MinSize = u;      }
-func (this *TEncCfg)  setdQPs                         ( p []int )     { this.m_aidQP       = p; }
-func (this *TEncCfg)  setDeltaQpRD                    ( u uint )     {this.m_uiDeltaQpRD  = u; }
-func (this *TEncCfg)  getUseSBACRD                    ()   bool   { return this.m_bUseSBACRD;  }
-func (this *TEncCfg)  getUseASR                       ()   bool   { return this.m_bUseASR;     }
-func (this *TEncCfg)  getUseHADME                     ()   bool   { return this.m_bUseHADME;   }
-func (this *TEncCfg)  getUseLComb                     ()   bool   { return this.m_bUseLComb;   }
-func (this *TEncCfg)  getUseRDOQ                      ()   bool   { return this.m_useRDOQ;    }
+func (this *TEncCfg)  SetUseFastEnc                   ( b bool )     { this.m_bUseFastEnc = b; }
+func (this *TEncCfg)  SetUseEarlyCU                   ( b bool )     { this.m_bUseEarlyCU = b; }
+func (this *TEncCfg)  SetUseFastDecisionForMerge      ( b bool )     { this.m_useFastDecisionForMerge = b; }
+func (this *TEncCfg)  SetUseCbfFastMode            ( b bool )     { this.m_bUseCbfFastMode = b; }
+func (this *TEncCfg)  SetUseEarlySkipDetection        ( b bool )     { this.m_useEarlySkipDetection = b; }
+func (this *TEncCfg)  SetUseConstrainedIntraPred      ( b bool )     { this.m_bUseConstrainedIntraPred = b; }
+func (this *TEncCfg)  SetPCMInputBitDepthFlag         ( b bool )     { this.m_bPCMInputBitDepthFlag = b; }
+func (this *TEncCfg)  SetPCMFilterDisableFlag         ( b bool )     {  this.m_bPCMFilterDisableFlag = b; }
+func (this *TEncCfg)  SetUsePCM                       ( b bool )     {  this.m_usePCM = b;               }
+func (this *TEncCfg)  SetPCMLog2MaxSize               ( u uint )      { this.m_pcmLog2MaxSize = u;      }
+func (this *TEncCfg)  SetPCMLog2MinSize               ( u uint )     { this.m_uiPCMLog2MinSize = u;      }
+func (this *TEncCfg)  SetdQPs                         ( p []int )     { this.m_aidQP       = p; }
+func (this *TEncCfg)  SetDeltaQpRD                    ( u uint )     {this.m_uiDeltaQpRD  = u; }
+func (this *TEncCfg)  GetUseSBACRD                    ()   bool   { return this.m_bUseSBACRD;  }
+func (this *TEncCfg)  GetUseASR                       ()   bool   { return this.m_bUseASR;     }
+func (this *TEncCfg)  GetUseHADME                     ()   bool   { return this.m_bUseHADME;   }
+func (this *TEncCfg)  GetUseLComb                     ()   bool   { return this.m_bUseLComb;   }
+func (this *TEncCfg)  GetUseRDOQ                      ()   bool   { return this.m_useRDOQ;    }
 //#if RDOQ_TRANSFORMSKIP
-func (this *TEncCfg)  getUseRDOQTS                    ()   bool   { return this.m_useRDOQTS;  }
+func (this *TEncCfg)  GetUseRDOQTS                    ()   bool   { return this.m_useRDOQTS;  }
 //#endif
-func (this *TEncCfg)  getUseFastEnc                   ()  bool   { return this.m_bUseFastEnc; }
-func (this *TEncCfg)  getUseEarlyCU                   ()  bool   { return this.m_bUseEarlyCU; }
-func (this *TEncCfg)  getUseFastDecisionForMerge      ()  bool   { return this.m_useFastDecisionForMerge; }
-func (this *TEncCfg)  getUseCbfFastMode               ()  bool   { return this.m_bUseCbfFastMode; }
-func (this *TEncCfg)  getUseEarlySkipDetection        ()  bool   { return this.m_useEarlySkipDetection; }
-func (this *TEncCfg)  getUseConstrainedIntraPred      ()  bool   { return this.m_bUseConstrainedIntraPred; }
-func (this *TEncCfg)  getPCMInputBitDepthFlag         ()  bool   { return this.m_bPCMInputBitDepthFlag;   }
-func (this *TEncCfg)  getPCMFilterDisableFlag         ()  bool   { return this.m_bPCMFilterDisableFlag;   } 
-func (this *TEncCfg)  getUsePCM                       ()  bool   { return this.m_usePCM;                 }
-func (this *TEncCfg)  getPCMLog2MaxSize               ()  uint   { return this.m_pcmLog2MaxSize;  }
-func (this *TEncCfg)  getPCMLog2MinSize               ()  uint   { return  this.m_uiPCMLog2MinSize;  }
+func (this *TEncCfg)  GetUseFastEnc                   ()  bool   { return this.m_bUseFastEnc; }
+func (this *TEncCfg)  GetUseEarlyCU                   ()  bool   { return this.m_bUseEarlyCU; }
+func (this *TEncCfg)  GetUseFastDecisionForMerge      ()  bool   { return this.m_useFastDecisionForMerge; }
+func (this *TEncCfg)  GetUseCbfFastMode               ()  bool   { return this.m_bUseCbfFastMode; }
+func (this *TEncCfg)  GetUseEarlySkipDetection        ()  bool   { return this.m_useEarlySkipDetection; }
+func (this *TEncCfg)  GetUseConstrainedIntraPred      ()  bool   { return this.m_bUseConstrainedIntraPred; }
+func (this *TEncCfg)  GetPCMInputBitDepthFlag         ()  bool   { return this.m_bPCMInputBitDepthFlag;   }
+func (this *TEncCfg)  GetPCMFilterDisableFlag         ()  bool   { return this.m_bPCMFilterDisableFlag;   } 
+func (this *TEncCfg)  GetUsePCM                       ()  bool   { return this.m_usePCM;                 }
+func (this *TEncCfg)  GetPCMLog2MaxSize               ()  uint   { return this.m_pcmLog2MaxSize;  }
+func (this *TEncCfg)  GetPCMLog2MinSize               ()  uint   { return  this.m_uiPCMLog2MinSize;  }
 
-func (this *TEncCfg)  getUseTransformSkip                  ()  bool    { return this.m_useTransformSkip;        }
-func (this *TEncCfg)  setUseTransformSkip                  ( b bool ) { this.m_useTransformSkip  = b;       }
-func (this *TEncCfg)  getUseTransformSkipFast              ()  bool    { return this.m_useTransformSkipFast;    }
-func (this *TEncCfg)  setUseTransformSkipFast              ( b bool ) { this.m_useTransformSkipFast  = b;   }
-func (this *TEncCfg)  getdQPs                         ()  []int    { return this.m_aidQP;       }
-func (this *TEncCfg)  getDeltaQpRD                    ()  uint    { return this.m_uiDeltaQpRD; }
+func (this *TEncCfg)  GetUseTransformSkip                  ()  bool    { return this.m_useTransformSkip;        }
+func (this *TEncCfg)  SetUseTransformSkip                  ( b bool ) { this.m_useTransformSkip  = b;       }
+func (this *TEncCfg)  GetUseTransformSkipFast              ()  bool    { return this.m_useTransformSkipFast;    }
+func (this *TEncCfg)  SetUseTransformSkipFast              ( b bool ) { this.m_useTransformSkipFast  = b;   }
+func (this *TEncCfg)  GetdQPs                         ()  []int    { return this.m_aidQP;       }
+func (this *TEncCfg)  GetDeltaQpRD                    ()  uint    { return this.m_uiDeltaQpRD; }
 
   //====== Slice ========
-func (this *TEncCfg)  setSliceMode                   ( i int )       { this.m_iSliceMode = i;              }
-func (this *TEncCfg)  setSliceArgument               ( i int )       { this.m_iSliceArgument = i;          }
-func (this *TEncCfg)  getSliceMode                   ()      int        { return this.m_iSliceMode;           }
-func (this *TEncCfg)  getSliceArgument               ()      int        { return this.m_iSliceArgument;       }
+func (this *TEncCfg)  SetSliceMode                   ( i int )       { this.m_iSliceMode = i;              }
+func (this *TEncCfg)  SetSliceArgument               ( i int )       { this.m_iSliceArgument = i;          }
+func (this *TEncCfg)  GetSliceMode                   ()      int        { return this.m_iSliceMode;           }
+func (this *TEncCfg)  GetSliceArgument               ()      int        { return this.m_iSliceArgument;       }
   //====== Dependent Slice ========
-func (this *TEncCfg)  setDependentSliceMode            ( i int )      { this.m_iDependentSliceMode = i;       }
-func (this *TEncCfg)  setDependentSliceArgument        ( i int )      { this.m_iDependentSliceArgument = i;   }
-func (this *TEncCfg)  getDependentSliceMode            ()    int          { return this.m_iDependentSliceMode;    }
-func (this *TEncCfg)  getDependentSliceArgument        ()    int          { return this.m_iDependentSliceArgument;}
+func (this *TEncCfg)  SetDependentSliceMode            ( i int )      { this.m_iDependentSliceMode = i;       }
+func (this *TEncCfg)  SetDependentSliceArgument        ( i int )      { this.m_iDependentSliceArgument = i;   }
+func (this *TEncCfg)  GetDependentSliceMode            ()    int          { return this.m_iDependentSliceMode;    }
+func (this *TEncCfg)  GetDependentSliceArgument        ()    int          { return this.m_iDependentSliceArgument;}
 //#if DEPENDENT_SLICES && !REMOVE_ENTROPY_SLICES
-func (this *TEncCfg)  setEntropySliceEnabledFlag       ( b bool )     { this.m_entropySliceEnabledFlag = b;    }
-func (this *TEncCfg)  getEntropySliceEnabledFlag       ()    bool          { return this.m_entropySliceEnabledFlag; }
+func (this *TEncCfg)  SetEntropySliceEnabledFlag       ( b bool )     { this.m_entropySliceEnabledFlag = b;    }
+func (this *TEncCfg)  GetEntropySliceEnabledFlag       ()    bool          { return this.m_entropySliceEnabledFlag; }
 //#endif
-func (this *TEncCfg)  setLFCrossSliceBoundaryFlag     ( bValue bool  )    { this.m_bLFCrossSliceBoundaryFlag = bValue; }
-func (this *TEncCfg)  getLFCrossSliceBoundaryFlag     ()   bool                 { return this.m_bLFCrossSliceBoundaryFlag;   }
+func (this *TEncCfg)  SetLFCrossSliceBoundaryFlag     ( bValue bool  )    { this.m_bLFCrossSliceBoundaryFlag = bValue; }
+func (this *TEncCfg)  GetLFCrossSliceBoundaryFlag     ()   bool                 { return this.m_bLFCrossSliceBoundaryFlag;   }
 
-func (this *TEncCfg)  setUseSAO                  (bVal bool)     {this.m_bUseSAO = bVal;}
-func (this *TEncCfg)  getUseSAO                  ()    bool          {return this.m_bUseSAO;}
-func (this *TEncCfg)  setMaxNumOffsetsPerPic                   (iVal int)            { this.m_maxNumOffsetsPerPic = iVal; }
-func (this *TEncCfg)  getMaxNumOffsetsPerPic                   ()   int                 { return this.m_maxNumOffsetsPerPic; }
-func (this *TEncCfg)  setSaoLcuBoundary              ( val bool)      { this.m_saoLcuBoundary = val; }
-func (this *TEncCfg)  getSaoLcuBoundary              ()       bool       { return this.m_saoLcuBoundary; }
-func (this *TEncCfg)  setSaoLcuBasedOptimization               (val bool)            { this.m_saoLcuBasedOptimization = val; }
-func (this *TEncCfg)  getSaoLcuBasedOptimization               ()    bool                { return this.m_saoLcuBasedOptimization; }
-func (this *TEncCfg)  setLFCrossTileBoundaryFlag               ( val bool  )       { this.m_loopFilterAcrossTilesEnabledFlag = val; }
-func (this *TEncCfg)  getLFCrossTileBoundaryFlag               ()    bool                { return this.m_loopFilterAcrossTilesEnabledFlag;   }
-func (this *TEncCfg)  setUniformSpacingIdr           ( i int )           { this.m_iUniformSpacingIdr = i; }
-func (this *TEncCfg)  getUniformSpacingIdr           ()   int               { return this.m_iUniformSpacingIdr; }
-func (this *TEncCfg)  setNumColumnsMinus1            ( i int )           { this.m_iNumColumnsMinus1 = i; }
-func (this *TEncCfg)  getNumColumnsMinus1            ()   int               { return this.m_iNumColumnsMinus1; }
+func (this *TEncCfg)  SetUseSAO                  (bVal bool)     {this.m_bUseSAO = bVal;}
+func (this *TEncCfg)  GetUseSAO                  ()    bool          {return this.m_bUseSAO;}
+func (this *TEncCfg)  SetMaxNumOffsetsPerPic                   (iVal int)            { this.m_maxNumOffsetsPerPic = iVal; }
+func (this *TEncCfg)  GetMaxNumOffsetsPerPic                   ()   int                 { return this.m_maxNumOffsetsPerPic; }
+func (this *TEncCfg)  SetSaoLcuBoundary              ( val bool)      { this.m_saoLcuBoundary = val; }
+func (this *TEncCfg)  GetSaoLcuBoundary              ()       bool       { return this.m_saoLcuBoundary; }
+func (this *TEncCfg)  SetSaoLcuBasedOptimization               (val bool)            { this.m_saoLcuBasedOptimization = val; }
+func (this *TEncCfg)  GetSaoLcuBasedOptimization               ()    bool                { return this.m_saoLcuBasedOptimization; }
+func (this *TEncCfg)  SetLFCrossTileBoundaryFlag               ( val bool  )       { this.m_loopFilterAcrossTilesEnabledFlag = val; }
+func (this *TEncCfg)  GetLFCrossTileBoundaryFlag               ()    bool                { return this.m_loopFilterAcrossTilesEnabledFlag;   }
+func (this *TEncCfg)  SetUniformSpacingIdr           ( i int )           { this.m_iUniformSpacingIdr = i; }
+func (this *TEncCfg)  GetUniformSpacingIdr           ()   int               { return this.m_iUniformSpacingIdr; }
+func (this *TEncCfg)  SetNumColumnsMinus1            ( i int )           { this.m_iNumColumnsMinus1 = i; }
+func (this *TEncCfg)  GetNumColumnsMinus1            ()   int               { return this.m_iNumColumnsMinus1; }
 //#if MIN_SPATIAL_SEGMENTATION
-func (this *TEncCfg)  setColumnWidth ( columnWidth []uint ) {
+func (this *TEncCfg)  SetColumnWidth ( columnWidth []int ) {
     if this.m_iUniformSpacingIdr == 0 && this.m_iNumColumnsMinus1 > 0 {
       var m_iWidthInCU int
       if this.m_iSourceWidth%int(TLibCommon.G_uiMaxCUWidth)!=0 {
@@ -622,7 +622,7 @@ func (this *TEncCfg)  setColumnWidth ( columnWidth []uint ) {
       }else{
       	m_iWidthInCU = this.m_iSourceWidth/int(TLibCommon.G_uiMaxCUWidth);
       }
-      this.m_puiColumnWidth = make([]uint, this.m_iNumColumnsMinus1);
+      this.m_puiColumnWidth = make([]int, this.m_iNumColumnsMinus1);
 
       for i :=0; i<this.m_iNumColumnsMinus1; i++ {
         this.m_puiColumnWidth[i] = columnWidth[i];
@@ -631,7 +631,7 @@ func (this *TEncCfg)  setColumnWidth ( columnWidth []uint ) {
     }
   }
 /*#else
-  Void  setColumnWidth ( Char* str )
+  Void  SetColumnWidth ( Char* str )
   {
     Char *columnWidth;
     i int=0;
@@ -662,11 +662,11 @@ func (this *TEncCfg)  setColumnWidth ( columnWidth []uint ) {
     }
   }
 #endif*/
-func (this *TEncCfg)  getColumnWidth                 ( columnidx uint ) uint { return this.m_puiColumnWidth [columnidx]; }
-func (this *TEncCfg)  setNumRowsMinus1               ( i int )           	   { this.m_iNumRowsMinus1 = i; }
-func (this *TEncCfg)  getNumRowsMinus1               ()                 int  { return this.m_iNumRowsMinus1; }
+func (this *TEncCfg)  GetColumnWidth                 ( columnidx int ) int { return this.m_puiColumnWidth [columnidx]; }
+func (this *TEncCfg)  SetNumRowsMinus1               ( i int )           	   { this.m_iNumRowsMinus1 = i; }
+func (this *TEncCfg)  GetNumRowsMinus1               ()                 int  { return this.m_iNumRowsMinus1; }
 //#if MIN_SPATIAL_SEGMENTATION
-func (this *TEncCfg)  setRowHeight (rowHeight []uint) {
+func (this *TEncCfg)  SetRowHeight (rowHeight []int) {
     if this.m_iUniformSpacingIdr == 0 && this.m_iNumRowsMinus1 > 0 {
       var m_iHeightInCU int
       if this.m_iSourceHeight%int(TLibCommon.G_uiMaxCUHeight)!=0 {
@@ -674,7 +674,7 @@ func (this *TEncCfg)  setRowHeight (rowHeight []uint) {
       }else{
       	m_iHeightInCU = this.m_iSourceHeight/int(TLibCommon.G_uiMaxCUHeight);
       }
-      this.m_puiRowHeight = make([]uint, this.m_iNumRowsMinus1 );
+      this.m_puiRowHeight = make([]int, this.m_iNumRowsMinus1 );
 
       for i:=0; i<this.m_iNumRowsMinus1; i++ {
         this.m_puiRowHeight[i] = rowHeight[i];
@@ -683,7 +683,7 @@ func (this *TEncCfg)  setRowHeight (rowHeight []uint) {
     }
   }
 /*#else
-  Void  setRowHeight (Char* str)
+  Void  SetRowHeight (Char* str)
   {
     Char *rowHeight;
     i int=0;
@@ -714,135 +714,135 @@ func (this *TEncCfg)  setRowHeight (rowHeight []uint) {
     }
   }
 #endif*/
-func (this *TEncCfg)  getRowHeight                   ( rowIdx uint )  uint   { return this.m_puiRowHeight [ rowIdx ]; }
-func (this *TEncCfg)  xCheckGSParameters() {
+func (this *TEncCfg)  GetRowHeight                   ( rowIdx int )  int   { return this.m_puiRowHeight [ rowIdx ]; }
+func (this *TEncCfg)  XCheckGSParameters() {
 }
-func (this *TEncCfg)  setWaveFrontSynchro(iWaveFrontSynchro int)       { this.m_iWaveFrontSynchro = iWaveFrontSynchro; }
-func (this *TEncCfg)  getWaveFrontsynchro()                           int { return this.m_iWaveFrontSynchro; }
-func (this *TEncCfg)  setWaveFrontSubstreams(iWaveFrontSubstreams int) { this.m_iWaveFrontSubstreams = iWaveFrontSubstreams; }
-func (this *TEncCfg)  getWaveFrontSubstreams()                        int { return this.m_iWaveFrontSubstreams; }
-func (this *TEncCfg)  setDecodedPictureHashSEIEnabled(b int)           { this.m_decodedPictureHashSEIEnabled = b; }
-func (this *TEncCfg)  getDecodedPictureHashSEIEnabled()               int { return this.m_decodedPictureHashSEIEnabled; }
-func (this *TEncCfg)  setBufferingPeriodSEIEnabled(b int)              { this.m_bufferingPeriodSEIEnabled = b; }
-func (this *TEncCfg)  getBufferingPeriodSEIEnabled()                  int { return this.m_bufferingPeriodSEIEnabled; }
-func (this *TEncCfg)  setPictureTimingSEIEnabled(b int)                { this.m_pictureTimingSEIEnabled = b; }
-func (this *TEncCfg)  getPictureTimingSEIEnabled()                    int { return this.m_pictureTimingSEIEnabled; }
-func (this *TEncCfg)  setRecoveryPointSEIEnabled(b int)                { this.m_recoveryPointSEIEnabled = b; }
-func (this *TEncCfg)  getRecoveryPointSEIEnabled()                    int { return this.m_recoveryPointSEIEnabled; }
+func (this *TEncCfg)  SetWaveFrontSynchro(iWaveFrontSynchro int)       { this.m_iWaveFrontSynchro = iWaveFrontSynchro; }
+func (this *TEncCfg)  GetWaveFrontsynchro()                           int { return this.m_iWaveFrontSynchro; }
+func (this *TEncCfg)  SetWaveFrontSubstreams(iWaveFrontSubstreams int) { this.m_iWaveFrontSubstreams = iWaveFrontSubstreams; }
+func (this *TEncCfg)  GetWaveFrontSubstreams()                        int { return this.m_iWaveFrontSubstreams; }
+func (this *TEncCfg)  SetDecodedPictureHashSEIEnabled(b int)           { this.m_decodedPictureHashSEIEnabled = b; }
+func (this *TEncCfg)  GetDecodedPictureHashSEIEnabled()               int { return this.m_decodedPictureHashSEIEnabled; }
+func (this *TEncCfg)  SetBufferingPeriodSEIEnabled(b int)              { this.m_bufferingPeriodSEIEnabled = b; }
+func (this *TEncCfg)  GetBufferingPeriodSEIEnabled()                  int { return this.m_bufferingPeriodSEIEnabled; }
+func (this *TEncCfg)  SetPictureTimingSEIEnabled(b int)                { this.m_pictureTimingSEIEnabled = b; }
+func (this *TEncCfg)  GetPictureTimingSEIEnabled()                    int { return this.m_pictureTimingSEIEnabled; }
+func (this *TEncCfg)  SetRecoveryPointSEIEnabled(b int)                { this.m_recoveryPointSEIEnabled = b; }
+func (this *TEncCfg)  GetRecoveryPointSEIEnabled()                    int { return this.m_recoveryPointSEIEnabled; }
 //#if SEI_DISPLAY_ORIENTATION
-func (this *TEncCfg)  setDisplayOrientationSEIAngle(b int)             { this.m_displayOrientationSEIAngle = b; }
-func (this *TEncCfg)  getDisplayOrientationSEIAngle()                 int { return this.m_displayOrientationSEIAngle; }
+func (this *TEncCfg)  SetDisplayOrientationSEIAngle(b int)             { this.m_displayOrientationSEIAngle = b; }
+func (this *TEncCfg)  GetDisplayOrientationSEIAngle()                 int { return this.m_displayOrientationSEIAngle; }
 //#endif
 //#if SEI_TEMPORAL_LEVEL0_INDEX
-func (this *TEncCfg)  setTemporalLevel0IndexSEIEnabled(b int)          { this.m_temporalLevel0IndexSEIEnabled = b; }
-func (this *TEncCfg)  getTemporalLevel0IndexSEIEnabled()              int { return this.m_temporalLevel0IndexSEIEnabled; }
+func (this *TEncCfg)  SetTemporalLevel0IndexSEIEnabled(b int)          { this.m_temporalLevel0IndexSEIEnabled = b; }
+func (this *TEncCfg)  GetTemporalLevel0IndexSEIEnabled()              int { return this.m_temporalLevel0IndexSEIEnabled; }
 //#endif
-func (this *TEncCfg)  setUseWP               ( b bool )   { this.m_bUseWeightPred    = b;    }
-func (this *TEncCfg)  setWPBiPred            ( b bool )    { this.m_useWeightedBiPred = b;    }
-func (this *TEncCfg)  getUseWP               () bool           { return this.m_bUseWeightPred;    }
-func (this *TEncCfg)  getWPBiPred            () bool           { return this.m_useWeightedBiPred; }
-func (this *TEncCfg)  setLog2ParallelMergeLevelMinus2   ( u uint )    { this.m_log2ParallelMergeLevelMinus2       = u;    }
-func (this *TEncCfg)  getLog2ParallelMergeLevelMinus2   () uint           { return this.m_log2ParallelMergeLevelMinus2;       }
-func (this *TEncCfg)  setMaxNumMergeCand                ( u uint )    { this.m_maxNumMergeCand = u;      }
-func (this *TEncCfg)  getMaxNumMergeCand                () uint           { return this.m_maxNumMergeCand;   }
-func (this *TEncCfg)  setUseScalingListId    (  u int)    { this.m_useScalingListId       = u;   }
-func (this *TEncCfg)  getUseScalingListId    ()  int          { return this.m_useScalingListId;      }
-func (this *TEncCfg)  setScalingListFile     ( pch string){ this.m_scalingListFile     = pch; }
-func (this *TEncCfg)  getScalingListFile     ()  string          { return this.m_scalingListFile;    }
-func (this *TEncCfg)  setTMVPModeId ( u int) { this.m_TMVPModeId = u;    }
-func (this *TEncCfg)  getTMVPModeId ()   int      { return this.m_TMVPModeId; }
-func (this *TEncCfg)  setSignHideFlag( signHideFlag int) { this.m_signHideFlag = signHideFlag; }
-func (this *TEncCfg)  getSignHideFlag()  int                  { return this.m_signHideFlag; }
+func (this *TEncCfg)  SetUseWP               ( b bool )   { this.m_bUseWeightPred    = b;    }
+func (this *TEncCfg)  SetWPBiPred            ( b bool )    { this.m_useWeightedBiPred = b;    }
+func (this *TEncCfg)  GetUseWP               () bool           { return this.m_bUseWeightPred;    }
+func (this *TEncCfg)  GetWPBiPred            () bool           { return this.m_useWeightedBiPred; }
+func (this *TEncCfg)  SetLog2ParallelMergeLevelMinus2   ( u uint )    { this.m_log2ParallelMergeLevelMinus2       = u;    }
+func (this *TEncCfg)  GetLog2ParallelMergeLevelMinus2   () uint           { return this.m_log2ParallelMergeLevelMinus2;       }
+func (this *TEncCfg)  SetMaxNumMergeCand                ( u uint )    { this.m_maxNumMergeCand = u;      }
+func (this *TEncCfg)  GetMaxNumMergeCand                () uint           { return this.m_maxNumMergeCand;   }
+func (this *TEncCfg)  SetUseScalingListId    (  u int)    { this.m_useScalingListId       = u;   }
+func (this *TEncCfg)  GetUseScalingListId    ()  int          { return this.m_useScalingListId;      }
+func (this *TEncCfg)  SetScalingListFile     ( pch string){ this.m_scalingListFile     = pch; }
+func (this *TEncCfg)  GetScalingListFile     ()  string          { return this.m_scalingListFile;    }
+func (this *TEncCfg)  SetTMVPModeId ( u int) { this.m_TMVPModeId = u;    }
+func (this *TEncCfg)  GetTMVPModeId ()   int      { return this.m_TMVPModeId; }
+func (this *TEncCfg)  SetSignHideFlag( signHideFlag int) { this.m_signHideFlag = signHideFlag; }
+func (this *TEncCfg)  GetSignHideFlag()  int                  { return this.m_signHideFlag; }
 //#if RATE_CONTROL_LAMBDA_DOMAIN
-func (this *TEncCfg)  getUseRateCtrl         ()   bool           { return this.m_RCEnableRateControl;   }
-func (this *TEncCfg)  setUseRateCtrl         ( b bool )      { this.m_RCEnableRateControl = b;      }
-func (this *TEncCfg)  getTargetBitrate       ()   int           { return this.m_RCTargetBitrate;       }
-func (this *TEncCfg)  setTargetBitrate       ( bitrate int ) { this.m_RCTargetBitrate  = bitrate;   }
-func (this *TEncCfg)  getKeepHierBit         ()   bool           { return this.m_RCKeepHierarchicalBit; }
-func (this *TEncCfg)  setKeepHierBit         ( b bool )      { this.m_RCKeepHierarchicalBit = b;    }
-func (this *TEncCfg)  getLCULevelRC          ()   bool           { return this.m_RCLCULevelRC; }
-func (this *TEncCfg)  setLCULevelRC          ( b bool )      { this.m_RCLCULevelRC = b; }
-func (this *TEncCfg)  getUseLCUSeparateModel ()   bool           { return this.m_RCUseLCUSeparateModel; }
-func (this *TEncCfg)  setUseLCUSeparateModel ( b bool )      { this.m_RCUseLCUSeparateModel = b;    }
-func (this *TEncCfg)  getInitialQP           ()   int           { return this.m_RCInitialQP;           }
-func (this *TEncCfg)  setInitialQP           ( QP int )      { this.m_RCInitialQP = QP;             }
-func (this *TEncCfg)  getForceIntraQP        ()   bool           { return this.m_RCForceIntraQP;        }
-func (this *TEncCfg)  setForceIntraQP        ( b bool )      { this.m_RCForceIntraQP = b;           }
+func (this *TEncCfg)  GetUseRateCtrl         ()   bool           { return this.m_RCEnableRateControl;   }
+func (this *TEncCfg)  SetUseRateCtrl         ( b bool )      { this.m_RCEnableRateControl = b;      }
+func (this *TEncCfg)  GetTargetBitrate       ()   int           { return this.m_RCTargetBitrate;       }
+func (this *TEncCfg)  SetTargetBitrate       ( bitrate int ) { this.m_RCTargetBitrate  = bitrate;   }
+func (this *TEncCfg)  GetKeepHierBit         ()   bool           { return this.m_RCKeepHierarchicalBit; }
+func (this *TEncCfg)  SetKeepHierBit         ( b bool )      { this.m_RCKeepHierarchicalBit = b;    }
+func (this *TEncCfg)  GetLCULevelRC          ()   bool           { return this.m_RCLCULevelRC; }
+func (this *TEncCfg)  SetLCULevelRC          ( b bool )      { this.m_RCLCULevelRC = b; }
+func (this *TEncCfg)  GetUseLCUSeparateModel ()   bool           { return this.m_RCUseLCUSeparateModel; }
+func (this *TEncCfg)  SetUseLCUSeparateModel ( b bool )      { this.m_RCUseLCUSeparateModel = b;    }
+func (this *TEncCfg)  GetInitialQP           ()   int           { return this.m_RCInitialQP;           }
+func (this *TEncCfg)  SetInitialQP           ( QP int )      { this.m_RCInitialQP = QP;             }
+func (this *TEncCfg)  GetForceIntraQP        ()   bool           { return this.m_RCForceIntraQP;        }
+func (this *TEncCfg)  SetForceIntraQP        ( b bool )      { this.m_RCForceIntraQP = b;           }
 /*#else
-func (this *TEncCfg)  getUseRateCtrl    ()                { return this.m_enableRateCtrl;    }
-func (this *TEncCfg)  setUseRateCtrl    (Bool flag)       { this.m_enableRateCtrl = flag;    }
-func (this *TEncCfg)  getTargetBitrate  ()                { return this.m_targetBitrate;     }
-func (this *TEncCfg)  setTargetBitrate  (Int target)      { this.m_targetBitrate  = target;  }
-func (this *TEncCfg)  getNumLCUInUnit   ()                { return this.m_numLCUInUnit;      }
-func (this *TEncCfg)  setNumLCUInUnit   (Int numLCUs)     { this.m_numLCUInUnit   = numLCUs; }
+func (this *TEncCfg)  GetUseRateCtrl    ()                { return this.m_enableRateCtrl;    }
+func (this *TEncCfg)  SetUseRateCtrl    (Bool flag)       { this.m_enableRateCtrl = flag;    }
+func (this *TEncCfg)  GetTargetBitrate  ()                { return this.m_targetBitrate;     }
+func (this *TEncCfg)  SetTargetBitrate  (Int target)      { this.m_targetBitrate  = target;  }
+func (this *TEncCfg)  GetNumLCUInUnit   ()                { return this.m_numLCUInUnit;      }
+func (this *TEncCfg)  SetNumLCUInUnit   (Int numLCUs)     { this.m_numLCUInUnit   = numLCUs; }
 #endif*/
-func (this *TEncCfg)  getTransquantBypassEnableFlag()   bool        { return this.m_TransquantBypassEnableFlag; }
-func (this *TEncCfg)  setTransquantBypassEnableFlag( flag bool)  { this.m_TransquantBypassEnableFlag = flag; }
-func (this *TEncCfg)  getCUTransquantBypassFlagValue()   bool       { return this.m_CUTransquantBypassFlagValue; }
-func (this *TEncCfg)  setCUTransquantBypassFlagValue( flag bool) { this.m_CUTransquantBypassFlagValue = flag; }
-func (this *TEncCfg)  setVPS(p *TLibCommon.TComVPS) { this.m_cVPS = p; }
-func (this *TEncCfg)  getVPS() *TLibCommon.TComVPS{ return this.m_cVPS; }
-func (this *TEncCfg)  setUseRecalculateQPAccordingToLambda ( b bool ) { this.m_recalculateQPAccordingToLambda = b;    }
-func (this *TEncCfg)  getUseRecalculateQPAccordingToLambda ()  bool       { return this.m_recalculateQPAccordingToLambda; }
+func (this *TEncCfg)  GetTransquantBypassEnableFlag()   bool        { return this.m_TransquantBypassEnableFlag; }
+func (this *TEncCfg)  SetTransquantBypassEnableFlag( flag bool)  { this.m_TransquantBypassEnableFlag = flag; }
+func (this *TEncCfg)  GetCUTransquantBypassFlagValue()   bool       { return this.m_CUTransquantBypassFlagValue; }
+func (this *TEncCfg)  SetCUTransquantBypassFlagValue( flag bool) { this.m_CUTransquantBypassFlagValue = flag; }
+func (this *TEncCfg)  SetVPS(p *TLibCommon.TComVPS) { this.m_cVPS = p; }
+func (this *TEncCfg)  GetVPS() *TLibCommon.TComVPS{ return this.m_cVPS; }
+func (this *TEncCfg)  SetUseRecalculateQPAccordingToLambda ( b bool ) { this.m_recalculateQPAccordingToLambda = b;    }
+func (this *TEncCfg)  GetUseRecalculateQPAccordingToLambda ()  bool       { return this.m_recalculateQPAccordingToLambda; }
 
 //#if STRONG_INTRA_SMOOTHING
-func (this *TEncCfg)  setUseStrongIntraSmoothing ( b bool ) { this.m_useStrongIntraSmoothing = b;    }
-func (this *TEncCfg)  getUseStrongIntraSmoothing ()  bool       { return this.m_useStrongIntraSmoothing; }
+func (this *TEncCfg)  SetUseStrongIntraSmoothing ( b bool ) { this.m_useStrongIntraSmoothing = b;    }
+func (this *TEncCfg)  GetUseStrongIntraSmoothing ()  bool       { return this.m_useStrongIntraSmoothing; }
 //#endif
 
-func (this *TEncCfg)  setActiveParameterSetsSEIEnabled ( b int )  { this.m_activeParameterSetsSEIEnabled = b; }  
-func (this *TEncCfg)  getActiveParameterSetsSEIEnabled ()  int       { return this.m_activeParameterSetsSEIEnabled; }
-func (this *TEncCfg)  getVuiParametersPresentFlag()        bool         { return this.m_vuiParametersPresentFlag; }
-func (this *TEncCfg)  setVuiParametersPresentFlag(i bool)           { this.m_vuiParametersPresentFlag = i; }
-func (this *TEncCfg)  getAspectRatioInfoPresentFlag()      bool         { return this.m_aspectRatioInfoPresentFlag; }
-func (this *TEncCfg)  setAspectRatioInfoPresentFlag(i bool)         { this.m_aspectRatioInfoPresentFlag = i; }
-func (this *TEncCfg)  getAspectRatioIdc()                  int         { return this.m_aspectRatioIdc; }
-func (this *TEncCfg)  setAspectRatioIdc(i int)                      { this.m_aspectRatioIdc = i; }
-func (this *TEncCfg)  getSarWidth()                        int         { return this.m_sarWidth; }
-func (this *TEncCfg)  setSarWidth(i int)                            { this.m_sarWidth = i; }
-func (this *TEncCfg)  getSarHeight()                       int         { return this.m_sarHeight; }
-func (this *TEncCfg)  setSarHeight(i int)                           { this.m_sarHeight = i; }
-func (this *TEncCfg)  getOverscanInfoPresentFlag()         bool         { return this.m_overscanInfoPresentFlag; }
-func (this *TEncCfg)  setOverscanInfoPresentFlag(i bool)            { this.m_overscanInfoPresentFlag = i; }
-func (this *TEncCfg)  getOverscanAppropriateFlag()         bool         { return this.m_overscanAppropriateFlag; }
-func (this *TEncCfg)  setOverscanAppropriateFlag(i bool)            { this.m_overscanAppropriateFlag = i; }
-func (this *TEncCfg)  getVideoSignalTypePresentFlag()      bool         { return this.m_videoSignalTypePresentFlag; }
-func (this *TEncCfg)  setVideoSignalTypePresentFlag(i bool)         { this.m_videoSignalTypePresentFlag = i; }
-func (this *TEncCfg)  getVideoFormat()                     int         { return this.m_videoFormat; }
-func (this *TEncCfg)  setVideoFormat(i int)                         { this.m_videoFormat = i; }
-func (this *TEncCfg)  getVideoFullRangeFlag()              bool         { return this.m_videoFullRangeFlag; }
-func (this *TEncCfg)  setVideoFullRangeFlag(i bool)                 { this.m_videoFullRangeFlag = i; }
-func (this *TEncCfg)  getColourDescriptionPresentFlag()    bool         { return this.m_colourDescriptionPresentFlag; }
-func (this *TEncCfg)  setColourDescriptionPresentFlag(i bool)       { this.m_colourDescriptionPresentFlag = i; }
-func (this *TEncCfg)  getColourPrimaries()                 int         { return this.m_colourPrimaries; }
-func (this *TEncCfg)  setColourPrimaries(i int)                     { this.m_colourPrimaries = i; }
-func (this *TEncCfg)  getTransferCharacteristics()         int         { return this.m_transferCharacteristics; }
-func (this *TEncCfg)  setTransferCharacteristics(i int)             { this.m_transferCharacteristics = i; }
-func (this *TEncCfg)  getMatrixCoefficients()              int         { return this.m_matrixCoefficients; }
-func (this *TEncCfg)  setMatrixCoefficients(i int)                  { this.m_matrixCoefficients = i; }
-func (this *TEncCfg)  getChromaLocInfoPresentFlag()        bool         { return this.m_chromaLocInfoPresentFlag; }
-func (this *TEncCfg)  setChromaLocInfoPresentFlag(i bool)           { this.m_chromaLocInfoPresentFlag = i; }
-func (this *TEncCfg)  getChromaSampleLocTypeTopField()     int         { return this.m_chromaSampleLocTypeTopField; }
-func (this *TEncCfg)  setChromaSampleLocTypeTopField(i int)         { this.m_chromaSampleLocTypeTopField = i; }
-func (this *TEncCfg)  getChromaSampleLocTypeBottomField()  int        { return this.m_chromaSampleLocTypeBottomField; }
-func (this *TEncCfg)  setChromaSampleLocTypeBottomField(i int)      { this.m_chromaSampleLocTypeBottomField = i; }
-func (this *TEncCfg)  getNeutralChromaIndicationFlag()     bool         { return this.m_neutralChromaIndicationFlag; }
-func (this *TEncCfg)  setNeutralChromaIndicationFlag(i bool)        { this.m_neutralChromaIndicationFlag = i; }
-func (this *TEncCfg)  getBitstreamRestrictionFlag()        bool         { return this.m_bitstreamRestrictionFlag; }
-func (this *TEncCfg)  setBitstreamRestrictionFlag(i bool)           { this.m_bitstreamRestrictionFlag = i; }
-func (this *TEncCfg)  getTilesFixedStructureFlag()         bool         { return this.m_tilesFixedStructureFlag; }
-func (this *TEncCfg)  setTilesFixedStructureFlag(i bool)            { this.m_tilesFixedStructureFlag = i; }
-func (this *TEncCfg)  getMotionVectorsOverPicBoundariesFlag() bool      { return this.m_motionVectorsOverPicBoundariesFlag; }
-func (this *TEncCfg)  setMotionVectorsOverPicBoundariesFlag(i bool) { this.m_motionVectorsOverPicBoundariesFlag = i; }
+func (this *TEncCfg)  SetActiveParameterSetsSEIEnabled ( b int )  { this.m_activeParameterSetsSEIEnabled = b; }  
+func (this *TEncCfg)  GetActiveParameterSetsSEIEnabled ()  int       { return this.m_activeParameterSetsSEIEnabled; }
+func (this *TEncCfg)  GetVuiParametersPresentFlag()        bool         { return this.m_vuiParametersPresentFlag; }
+func (this *TEncCfg)  SetVuiParametersPresentFlag(i bool)           { this.m_vuiParametersPresentFlag = i; }
+func (this *TEncCfg)  GetAspectRatioInfoPresentFlag()      bool         { return this.m_aspectRatioInfoPresentFlag; }
+func (this *TEncCfg)  SetAspectRatioInfoPresentFlag(i bool)         { this.m_aspectRatioInfoPresentFlag = i; }
+func (this *TEncCfg)  GetAspectRatioIdc()                  int         { return this.m_aspectRatioIdc; }
+func (this *TEncCfg)  SetAspectRatioIdc(i int)                      { this.m_aspectRatioIdc = i; }
+func (this *TEncCfg)  GetSarWidth()                        int         { return this.m_sarWidth; }
+func (this *TEncCfg)  SetSarWidth(i int)                            { this.m_sarWidth = i; }
+func (this *TEncCfg)  GetSarHeight()                       int         { return this.m_sarHeight; }
+func (this *TEncCfg)  SetSarHeight(i int)                           { this.m_sarHeight = i; }
+func (this *TEncCfg)  GetOverscanInfoPresentFlag()         bool         { return this.m_overscanInfoPresentFlag; }
+func (this *TEncCfg)  SetOverscanInfoPresentFlag(i bool)            { this.m_overscanInfoPresentFlag = i; }
+func (this *TEncCfg)  GetOverscanAppropriateFlag()         bool         { return this.m_overscanAppropriateFlag; }
+func (this *TEncCfg)  SetOverscanAppropriateFlag(i bool)            { this.m_overscanAppropriateFlag = i; }
+func (this *TEncCfg)  GetVideoSignalTypePresentFlag()      bool         { return this.m_videoSignalTypePresentFlag; }
+func (this *TEncCfg)  SetVideoSignalTypePresentFlag(i bool)         { this.m_videoSignalTypePresentFlag = i; }
+func (this *TEncCfg)  GetVideoFormat()                     int         { return this.m_videoFormat; }
+func (this *TEncCfg)  SetVideoFormat(i int)                         { this.m_videoFormat = i; }
+func (this *TEncCfg)  GetVideoFullRangeFlag()              bool         { return this.m_videoFullRangeFlag; }
+func (this *TEncCfg)  SetVideoFullRangeFlag(i bool)                 { this.m_videoFullRangeFlag = i; }
+func (this *TEncCfg)  GetColourDescriptionPresentFlag()    bool         { return this.m_colourDescriptionPresentFlag; }
+func (this *TEncCfg)  SetColourDescriptionPresentFlag(i bool)       { this.m_colourDescriptionPresentFlag = i; }
+func (this *TEncCfg)  GetColourPrimaries()                 int         { return this.m_colourPrimaries; }
+func (this *TEncCfg)  SetColourPrimaries(i int)                     { this.m_colourPrimaries = i; }
+func (this *TEncCfg)  GetTransferCharacteristics()         int         { return this.m_transferCharacteristics; }
+func (this *TEncCfg)  SetTransferCharacteristics(i int)             { this.m_transferCharacteristics = i; }
+func (this *TEncCfg)  GetMatrixCoefficients()              int         { return this.m_matrixCoefficients; }
+func (this *TEncCfg)  SetMatrixCoefficients(i int)                  { this.m_matrixCoefficients = i; }
+func (this *TEncCfg)  GetChromaLocInfoPresentFlag()        bool         { return this.m_chromaLocInfoPresentFlag; }
+func (this *TEncCfg)  SetChromaLocInfoPresentFlag(i bool)           { this.m_chromaLocInfoPresentFlag = i; }
+func (this *TEncCfg)  GetChromaSampleLocTypeTopField()     int         { return this.m_chromaSampleLocTypeTopField; }
+func (this *TEncCfg)  SetChromaSampleLocTypeTopField(i int)         { this.m_chromaSampleLocTypeTopField = i; }
+func (this *TEncCfg)  GetChromaSampleLocTypeBottomField()  int        { return this.m_chromaSampleLocTypeBottomField; }
+func (this *TEncCfg)  SetChromaSampleLocTypeBottomField(i int)      { this.m_chromaSampleLocTypeBottomField = i; }
+func (this *TEncCfg)  GetNeutralChromaIndicationFlag()     bool         { return this.m_neutralChromaIndicationFlag; }
+func (this *TEncCfg)  SetNeutralChromaIndicationFlag(i bool)        { this.m_neutralChromaIndicationFlag = i; }
+func (this *TEncCfg)  GetBitstreamRestrictionFlag()        bool         { return this.m_bitstreamRestrictionFlag; }
+func (this *TEncCfg)  SetBitstreamRestrictionFlag(i bool)           { this.m_bitstreamRestrictionFlag = i; }
+func (this *TEncCfg)  GetTilesFixedStructureFlag()         bool         { return this.m_tilesFixedStructureFlag; }
+func (this *TEncCfg)  SetTilesFixedStructureFlag(i bool)            { this.m_tilesFixedStructureFlag = i; }
+func (this *TEncCfg)  GetMotionVectorsOverPicBoundariesFlag() bool      { return this.m_motionVectorsOverPicBoundariesFlag; }
+func (this *TEncCfg)  SetMotionVectorsOverPicBoundariesFlag(i bool) { this.m_motionVectorsOverPicBoundariesFlag = i; }
 //#if MIN_SPATIAL_SEGMENTATION
-func (this *TEncCfg)  getMinSpatialSegmentationIdc()       int         { return this.m_minSpatialSegmentationIdc; }
-func (this *TEncCfg)  setMinSpatialSegmentationIdc(i int)           { this.m_minSpatialSegmentationIdc = i; }
+func (this *TEncCfg)  GetMinSpatialSegmentationIdc()       int         { return this.m_minSpatialSegmentationIdc; }
+func (this *TEncCfg)  SetMinSpatialSegmentationIdc(i int)           { this.m_minSpatialSegmentationIdc = i; }
 //#endif
-func (this *TEncCfg)  getMaxBytesPerPicDenom()             int         { return this.m_maxBytesPerPicDenom; }
-func (this *TEncCfg)  setMaxBytesPerPicDenom(i int)                 { this.m_maxBytesPerPicDenom = i; }
-func (this *TEncCfg)  getMaxBitsPerMinCuDenom()            int          { return this.m_maxBitsPerMinCuDenom; }
-func (this *TEncCfg)  setMaxBitsPerMinCuDenom(i int)                { this.m_maxBitsPerMinCuDenom = i; }
-func (this *TEncCfg)  getLog2MaxMvLengthHorizontal()       int         { return this.m_log2MaxMvLengthHorizontal; }
-func (this *TEncCfg)  setLog2MaxMvLengthHorizontal(i int)           { this.m_log2MaxMvLengthHorizontal = i; }
-func (this *TEncCfg)  getLog2MaxMvLengthVertical()         int         { return this.m_log2MaxMvLengthVertical; }
-func (this *TEncCfg)  setLog2MaxMvLengthVertical(i int)             { this.m_log2MaxMvLengthVertical = i; }
+func (this *TEncCfg)  GetMaxBytesPerPicDenom()             int         { return this.m_maxBytesPerPicDenom; }
+func (this *TEncCfg)  SetMaxBytesPerPicDenom(i int)                 { this.m_maxBytesPerPicDenom = i; }
+func (this *TEncCfg)  GetMaxBitsPerMinCuDenom()            int          { return this.m_maxBitsPerMinCuDenom; }
+func (this *TEncCfg)  SetMaxBitsPerMinCuDenom(i int)                { this.m_maxBitsPerMinCuDenom = i; }
+func (this *TEncCfg)  GetLog2MaxMvLengthHorizontal()       int         { return this.m_log2MaxMvLengthHorizontal; }
+func (this *TEncCfg)  SetLog2MaxMvLengthHorizontal(i int)           { this.m_log2MaxMvLengthHorizontal = i; }
+func (this *TEncCfg)  GetLog2MaxMvLengthVertical()         int         { return this.m_log2MaxMvLengthVertical; }
+func (this *TEncCfg)  SetLog2MaxMvLengthVertical(i int)             { this.m_log2MaxMvLengthVertical = i; }

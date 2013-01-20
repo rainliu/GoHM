@@ -39,19 +39,21 @@ import (
 	"gohm/TLibCommon"
 )
 
-/*
-class AccessUnit : public std::list<NALUnitEBSP*>
-{
-public:
-  ~AccessUnit()
-  {
-    for (AccessUnit::iterator it = this->begin(); it != this->end(); it++)
-    {
-      delete *it;
-    }
-  }
-};
-*/
+type AccessUnit struct{
+ 	*list.List
+}
+
+func NewAccessUnit() *AccessUnit{
+	return &AccessUnit{list.New()}
+}
+
+type AccessUnits struct{
+	*list.List
+}
+
+func NewAccessUnits() *AccessUnits{
+	return &AccessUnits{list.New()}
+}
 
 /**
  * write all NALunits in au to bytestream out in a manner satisfying
@@ -62,7 +64,7 @@ public:
  */
 var start_code_prefix=[4]byte{0,0,0,1};
  
-func writeAnnexB( out io.Writer, au *list.List) *list.List {
+func WriteAnnexB( out io.Writer, au *AccessUnit) *list.List {
   annexBsizes := list.New();
 
   for  it:= au.Front(); it != nil; it=it.Next() {

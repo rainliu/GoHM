@@ -268,7 +268,7 @@ func (this *TEncSearch) init(pcEncCfg *TEncCfg,
 
     this.m_pTempPel = make([]TLibCommon.Pel, TLibCommon.G_uiMaxCUWidth*TLibCommon.G_uiMaxCUHeight)
 
-    uiNumLayersToAllocate := pcEncCfg.getQuadtreeTULog2MaxSize() - pcEncCfg.getQuadtreeTULog2MinSize() + 1
+    uiNumLayersToAllocate := pcEncCfg.GetQuadtreeTULog2MaxSize() - pcEncCfg.GetQuadtreeTULog2MinSize() + 1
     this.m_ppcQTTempCoeffY = make([][]TLibCommon.TCoeff, uiNumLayersToAllocate)
     this.m_ppcQTTempCoeffCb = make([][]TLibCommon.TCoeff, uiNumLayersToAllocate)
     this.m_ppcQTTempCoeffCr = make([][]TLibCommon.TCoeff, uiNumLayersToAllocate)
@@ -333,7 +333,7 @@ func (this *TEncSearch) xTZSearchHelp(pcPatternKey *TLibCommon.TComPattern, rcSt
     this.m_pcRdCost.setDistParam2(pcPatternKey, piRefSrch, rcStruct.iYStride, &this.m_cDistParam)
 
     // fast encoder decision: use subsampled SAD when rows > 8 for integer ME
-    if this.m_pcEncCfg.getUseFastEnc() {
+    if this.m_pcEncCfg.GetUseFastEnc() {
         if this.m_cDistParam.iRows > 8 {
             this.m_cDistParam.iSubShift = 1
         }
@@ -628,9 +628,9 @@ func (this *TEncSearch) xPatternRefinement(pcPatternKey *TLibCommon.TComPattern,
     var piRefPos []TLibCommon.Pel
     iRefStride := int(this.GetFilteredBlock(0, 0).GetStride())
     //#if NS_HAD
-    //  this.m_pcRdCost.setDistParam3( pcPatternKey, this.GetFilteredBlock(0,0).GetLumaAddr(), iRefStride, 1, &this.m_cDistParam, this.m_pcEncCfg.getUseHADME(), this.m_pcEncCfg.getUseNSQT() );
+    //  this.m_pcRdCost.setDistParam3( pcPatternKey, this.GetFilteredBlock(0,0).GetLumaAddr(), iRefStride, 1, &this.m_cDistParam, this.m_pcEncCfg.GetUseHADME(), this.m_pcEncCfg.GetUseNSQT() );
     //#else
-    this.m_pcRdCost.setDistParam3(pcPatternKey, this.GetFilteredBlock(0, 0).GetLumaAddr(), iRefStride, 1, &this.m_cDistParam, this.m_pcEncCfg.getUseHADME())
+    this.m_pcRdCost.setDistParam3(pcPatternKey, this.GetFilteredBlock(0, 0).GetLumaAddr(), iRefStride, 1, &this.m_cDistParam, this.m_pcEncCfg.GetUseHADME())
     //#endif
 
     var pcMvRefine []*TLibCommon.TComMv
@@ -690,9 +690,9 @@ func (this *TEncSearch) xGetInterPredictionError(pcCU *TLibCommon.TComDataCU, pc
         pcYuvOrg.GetLumaAddr1(uiAbsPartIdx), int(pcYuvOrg.GetStride()),
         this.m_tmpYuvPred.GetLumaAddr1(uiAbsPartIdx), int(this.m_tmpYuvPred.GetStride()),
         //#if NS_HAD
-        //                            iWidth, iHeight, this.m_pcEncCfg.getUseHADME(), this.m_pcEncCfg.GetUseNSQT() );
+        //                            iWidth, iHeight, this.m_pcEncCfg.GetUseHADME(), this.m_pcEncCfg.GetUseNSQT() );
         //#else
-        iWidth, iHeight, this.m_pcEncCfg.getUseHADME())
+        iWidth, iHeight, this.m_pcEncCfg.GetUseHADME())
     //#endif
     *ruiErr = cDistParam.DistFunc(&cDistParam)
 }
@@ -1418,13 +1418,13 @@ func (this *TEncSearch) predInterSearch(pcCU *TLibCommon.TComDataCU,
                 iNumIter := 4
 
                 // fast encoder setting: only one iteration
-                if this.m_pcEncCfg.getUseFastEnc() || pcCU.GetSlice().GetMvdL1ZeroFlag() {
+                if this.m_pcEncCfg.GetUseFastEnc() || pcCU.GetSlice().GetMvdL1ZeroFlag() {
                     iNumIter = 1
                 }
 
                 for iIter := 0; iIter < iNumIter; iIter++ {
                     iRefList := iIter % 2
-                    if this.m_pcEncCfg.getUseFastEnc() && (pcCU.GetSlice().GetNoBackPredFlag() || (pcCU.GetSlice().GetNumRefIdx(TLibCommon.REF_PIC_LIST_C) > 0 && pcCU.GetSlice().GetRefIdxOfL0FromRefIdxOfL1(0) == 0)) {
+                    if this.m_pcEncCfg.GetUseFastEnc() && (pcCU.GetSlice().GetNoBackPredFlag() || (pcCU.GetSlice().GetNumRefIdx(TLibCommon.REF_PIC_LIST_C) > 0 && pcCU.GetSlice().GetRefIdxOfL0FromRefIdxOfL1(0) == 0)) {
                         iRefList = 1
                     }
                     var eRefPicList TLibCommon.RefPicList
@@ -1524,7 +1524,7 @@ func (this *TEncSearch) predInterSearch(pcCU *TLibCommon.TComDataCU,
               	            pcCU.GetCUMvField( TLibCommon.REF_PIC_LIST_0 ).SetAllMvField( aacAMVPInfo[0][iL0RefIdxTemp].this.MvCand[iL0MVPIdx], iL0RefIdxTemp, ePartSize, uiPartAddr, iPartIdx, 0 );
               	            pcCU.GetCUMvField( TLibCommon.REF_PIC_LIST_1 ).SetAllMvField( aacAMVPInfo[1][iL1RefIdxTemp].this.MvCand[iL1MVPIdx], iL1RefIdxTemp, ePartSize, uiPartAddr, iPartIdx, 0 );
 
-              	            this.xGetInterPredictionError( pcCU, pcOrgYuv, iPartIdx, uiZeroMvdDistTemp, this.m_pcEncCfg.getUseHADME() );
+              	            this.xGetInterPredictionError( pcCU, pcOrgYuv, iPartIdx, uiZeroMvdDistTemp, this.m_pcEncCfg.GetUseHADME() );
               	            uiZeroMvdCostTemp = uiZeroMvdDistTemp + this.m_pcRdCost.GetCost( uiZeroMvdBitsTemp );
               	            if uiZeroMvdCostTemp < uiZeroMvdCost {
               	              uiZeroMvdCost = uiZeroMvdCostTemp;
@@ -1679,13 +1679,13 @@ func (this *TEncSearch) predInterSearch(pcCU *TLibCommon.TComDataCU,
             uiMECost := uint(TLibCommon.MAX_UINT)
 
             if bTestNormalMC {
-                this.xGetInterPredictionError(pcCU, pcOrgYuv, iPartIdx, &uiMEError, this.m_pcEncCfg.getUseHADME())
+                this.xGetInterPredictionError(pcCU, pcOrgYuv, iPartIdx, &uiMEError, this.m_pcEncCfg.GetUseHADME())
                 uiMECost = uiMEError + this.m_pcRdCost.getCost1(uiMEBits)
             }
             //#else
             // calculate ME cost
             //      UInt uiMEError = MAX_UINT;
-            //      xGetInterPredictionError( pcCU, pcOrgYuv, iPartIdx, uiMEError, this.m_pcEncCfg.getUseHADME() );
+            //      xGetInterPredictionError( pcCU, pcOrgYuv, iPartIdx, uiMEError, this.m_pcEncCfg.GetUseHADME() );
             //      UInt uiMECost = uiMEError + this.m_pcRdCost.GetCost( uiMEBits );
             //#endif
             // save ME result.
@@ -2414,9 +2414,9 @@ func (this *TEncSearch) xIntraCodingLumaBlk(pcCU *TLibCommon.TComDataCU,
     //#if RDOQ_TRANSFORMSKIP
     var rdoqflag bool
     if useTransformSkip {
-        rdoqflag = this.m_pcEncCfg.getUseRDOQTS()
+        rdoqflag = this.m_pcEncCfg.GetUseRDOQTS()
     } else {
-        rdoqflag = this.m_pcEncCfg.getUseRDOQ()
+        rdoqflag = this.m_pcEncCfg.GetUseRDOQ()
     }
     if rdoqflag {
         //#else
@@ -2622,14 +2622,14 @@ func (this *TEncSearch) xIntraCodingChromaBlk(pcCU *TLibCommon.TComDataCU,
         //--- init rate estimation arrays for RDOQ ---
         var rdoqflag bool
         if useTransformSkipChroma {
-            rdoqflag = this.m_pcEncCfg.getUseRDOQTS()
+            rdoqflag = this.m_pcEncCfg.GetUseRDOQTS()
         } else {
-            rdoqflag = this.m_pcEncCfg.getUseRDOQ()
+            rdoqflag = this.m_pcEncCfg.GetUseRDOQ()
         }
         //#if RDOQ_TRANSFORMSKIP
         if rdoqflag {
             //#else
-            //    if( this.m_pcEncCfg.getUseRDOQ() && !useTransformSkipChroma)
+            //    if( this.m_pcEncCfg.GetUseRDOQ() && !useTransformSkipChroma)
             //#endif
             this.m_pcEntropyCoder.estimateBit(this.m_pcTrQuant.GetEstBitsSbac(), int(uiWidth), int(uiWidth), eText)
         }
@@ -2739,7 +2739,7 @@ func (this *TEncSearch) xRecurIntraCodingQT(pcCU *TLibCommon.TComDataCU,
     checkTransformSkip = checkTransformSkip && (widthTransformSkip == 4 && heightTransformSkip == 4)
     checkTransformSkip = checkTransformSkip &&  (!pcCU.GetCUTransquantBypass1(0))
     checkTransformSkip = checkTransformSkip &&  (!((pcCU.GetQP1(0) == 0) && (pcCU.GetSlice().GetSPS().GetUseLossless())))
-    if this.m_pcEncCfg.getUseTransformSkipFast() {
+    if this.m_pcEncCfg.GetUseTransformSkipFast() {
         checkTransformSkip = checkTransformSkip &&  (pcCU.GetPartitionSize1(uiAbsPartIdx) == TLibCommon.SIZE_NxN)
     }
     if bCheckFull {
@@ -3104,7 +3104,7 @@ func (this *TEncSearch) xRecurIntraChromaCodingQT(pcCU *TLibCommon.TComDataCU,
         }
 
         checkTransformSkip = checkTransformSkip && (uiLog2TrSize <= 3)
-        if this.m_pcEncCfg.getUseTransformSkipFast() {
+        if this.m_pcEncCfg.GetUseTransformSkipFast() {
             checkTransformSkip = checkTransformSkip && (uiLog2TrSize < 3)
             if checkTransformSkip {
                 nbLumaSkip := 0
@@ -3817,9 +3817,9 @@ func (this *TEncSearch) xGetTemplateCost(pcCU *TLibCommon.TComDataCU,
                                   pcOrgYuv.GetLumaAddr(uiPartAddr), pcOrgYuv.GetStride(),
                                   pcTemplateCand.GetLumaAddr(uiPartAddr), pcTemplateCand.GetStride(),
       #if NS_HAD
-                                  iSizeX, iSizeY, this.m_pcEncCfg.getUseHADME(), this.m_pcEncCfg.GetUseNSQT() );
+                                  iSizeX, iSizeY, this.m_pcEncCfg.GetUseHADME(), this.m_pcEncCfg.GetUseNSQT() );
       #else
-                                  iSizeX, iSizeY, this.m_pcEncCfg.getUseHADME() );
+                                  iSizeX, iSizeY, this.m_pcEncCfg.GetUseHADME() );
       #endif
         ruiDist = cDistParam.DistFunc( &cDistParam );
         uiCost = ruiDist + this.m_pcRdCost.getCost( this.m_auiMVPIdxCost[iMVPIdx][iMVPNum] );
@@ -3948,9 +3948,9 @@ func (this *TEncSearch) xMergeEstimation(pcCU *TLibCommon.TComDataCU,
         pcCU.GetCUMvField(TLibCommon.REF_PIC_LIST_0).SetAllMvField(&cMvFieldNeighbours[0+2*uiMergeCand], ePartSize, int(uiAbsPartIdx), 0, iPUIdx)
         pcCU.GetCUMvField(TLibCommon.REF_PIC_LIST_1).SetAllMvField(&cMvFieldNeighbours[1+2*uiMergeCand], ePartSize, int(uiAbsPartIdx), 0, iPUIdx)
 
-        this.xGetInterPredictionError(pcCU, pcYuvOrg, iPUIdx, &uiCostCand, this.m_pcEncCfg.getUseHADME())
+        this.xGetInterPredictionError(pcCU, pcYuvOrg, iPUIdx, &uiCostCand, this.m_pcEncCfg.GetUseHADME())
         uiBitsCand = uiMergeCand + 1
-        if uiMergeCand == this.m_pcEncCfg.getMaxNumMergeCand()-1 {
+        if uiMergeCand == this.m_pcEncCfg.GetMaxNumMergeCand()-1 {
             uiBitsCand--
         }
         uiCostCand = uiCostCand + this.m_pcRdCost.getCost1(uiBitsCand)
@@ -4290,7 +4290,7 @@ func (this *TEncSearch) xPatternSearch(pcPatternKey *TLibCommon.TComPattern,
     this.m_pcRdCost.setDistParam2(pcPatternKey, piRefY, iRefStride, &this.m_cDistParam)
 
     // fast encoder decision: use subsampled SAD for integer ME
-    if this.m_pcEncCfg.getUseFastEnc() {
+    if this.m_pcEncCfg.GetUseFastEnc() {
         if this.m_cDistParam.iRows > 8 {
             this.m_cDistParam.iSubShift = 1
         }
@@ -4696,7 +4696,7 @@ func (this *TEncSearch) xEstimateResidualQT(pcCU *TLibCommon.TComDataCU, uiQuadr
             pcCU.SetTransformSkipSubParts4(false, TLibCommon.TEXT_CHROMA_V, uiAbsPartIdx, uint(pcCU.GetDepth1(0))+uiTrModeC)
         }
 
-        if this.m_pcEncCfg.getUseRDOQ() {
+        if this.m_pcEncCfg.GetUseRDOQ() {
             this.m_pcEntropyCoder.estimateBit(this.m_pcTrQuant.GetEstBitsSbac(), int(trWidth), int(trHeight), TLibCommon.TEXT_LUMA)
         }
 
@@ -4718,7 +4718,7 @@ func (this *TEncSearch) xEstimateResidualQT(pcCU *TLibCommon.TComDataCU, uiQuadr
         }
 
         if bCodeChroma {
-            if this.m_pcEncCfg.getUseRDOQ() {
+            if this.m_pcEncCfg.GetUseRDOQ() {
                 this.m_pcEntropyCoder.estimateBit(this.m_pcTrQuant.GetEstBitsSbac(), int(trWidthC), int(trHeightC), TLibCommon.TEXT_CHROMA)
             }
 
@@ -5020,9 +5020,9 @@ func (this *TEncSearch) xEstimateResidualQT(pcCU *TLibCommon.TComDataCU, uiQuadr
             pcCU.SetTransformSkipSubParts4(true, TLibCommon.TEXT_LUMA, uiAbsPartIdx, uiDepth)
 
             //#if RDOQ_TRANSFORMSKIP
-            if this.m_pcEncCfg.getUseRDOQTS() {
+            if this.m_pcEncCfg.GetUseRDOQTS() {
                 //#else
-                //      if (this.m_pcEncCfg.getUseRDOQ())
+                //      if (this.m_pcEncCfg.GetUseRDOQ())
                 //#endif
                 this.m_pcEntropyCoder.estimateBit(this.m_pcTrQuant.GetEstBitsSbac(), int(trWidth), int(trHeight), TLibCommon.TEXT_LUMA)
             }
@@ -5124,9 +5124,9 @@ func (this *TEncSearch) xEstimateResidualQT(pcCU *TLibCommon.TComDataCU, uiQuadr
             pcCU.SetTransformSkipSubParts4(true, TLibCommon.TEXT_CHROMA_V, uiAbsPartIdx, uint(pcCU.GetDepth1(0))+uiTrModeC)
 
             //#if RDOQ_TRANSFORMSKIP
-            if this.m_pcEncCfg.getUseRDOQTS() {
+            if this.m_pcEncCfg.GetUseRDOQTS() {
                 //#else
-                //      if (this.m_pcEncCfg.getUseRDOQ())
+                //      if (this.m_pcEncCfg.GetUseRDOQ())
                 //#endif
                 this.m_pcEntropyCoder.estimateBit(this.m_pcTrQuant.GetEstBitsSbac(), int(trWidthC), int(trHeightC), TLibCommon.TEXT_CHROMA)
             }

@@ -127,7 +127,7 @@ func (this *TEncGOP)  init        ( pcTEncTop *TEncTop){
   //fmt.Printf("not init yet in TEncGop\n");
   
   this.m_pcEncTop     		  = pcTEncTop;
-  this.m_pcCfg                = pcTEncTop.getEncCfg();
+  this.m_pcCfg                = pcTEncTop.GetEncCfg();
   this.m_pcSliceEncoder       = pcTEncTop.getSliceEncoder();
   this.m_pcListPic            = pcTEncTop.getListPic();
   
@@ -172,8 +172,8 @@ func (this *TEncGOP)  compressGOP ( iPOCLast, iNumPicRcvd int, rcListPic, rcList
     //select uiColDir
     iCloseLeft:=1
     iCloseRight:=-1;
-    for i := 0; i<this.m_pcCfg.getGOPEntry(iGOPid).m_numRefPics; i++ {
-      iRef := this.m_pcCfg.getGOPEntry(iGOPid).m_referencePics[i];
+    for i := 0; i<this.m_pcCfg.GetGOPEntry(iGOPid).m_numRefPics; i++ {
+      iRef := this.m_pcCfg.GetGOPEntry(iGOPid).m_referencePics[i];
       if iRef>0&&(iRef<iCloseRight||iCloseRight==-1) {
         iCloseRight=iRef;
       }else if iRef<0&&(iRef>iCloseLeft||iCloseLeft==1) {
@@ -181,10 +181,10 @@ func (this *TEncGOP)  compressGOP ( iPOCLast, iNumPicRcvd int, rcListPic, rcList
       }
     }
     if iCloseRight>-1 {
-      iCloseRight=iCloseRight+this.m_pcCfg.getGOPEntry(iGOPid).m_POC-1;
+      iCloseRight=iCloseRight+this.m_pcCfg.GetGOPEntry(iGOPid).m_POC-1;
     }
     if iCloseLeft<1 {
-      iCloseLeft=iCloseLeft+this.m_pcCfg.getGOPEntry(iGOPid).m_POC-1;
+      iCloseLeft=iCloseLeft+this.m_pcCfg.GetGOPEntry(iGOPid).m_POC-1;
       for iCloseLeft<0 {
         iCloseLeft+=this.m_iGopSize;
       }
@@ -192,11 +192,11 @@ func (this *TEncGOP)  compressGOP ( iPOCLast, iNumPicRcvd int, rcListPic, rcList
     iLeftQP:=0;
     iRightQP:=0;
     for i:=0; i<this.m_iGopSize; i++ {
-      if this.m_pcCfg.getGOPEntry(i).m_POC==(iCloseLeft%this.m_iGopSize)+1 {
-        iLeftQP= this.m_pcCfg.getGOPEntry(i).m_QPOffset;
+      if this.m_pcCfg.GetGOPEntry(i).m_POC==(iCloseLeft%this.m_iGopSize)+1 {
+        iLeftQP= this.m_pcCfg.GetGOPEntry(i).m_QPOffset;
       }
-      if this.m_pcCfg.getGOPEntry(i).m_POC==(iCloseRight%this.m_iGopSize)+1 {
-        iRightQP=this.m_pcCfg.getGOPEntry(i).m_QPOffset;
+      if this.m_pcCfg.GetGOPEntry(i).m_POC==(iCloseRight%this.m_iGopSize)+1 {
+        iRightQP=this.m_pcCfg.GetGOPEntry(i).m_QPOffset;
       }
     }
     if iCloseRight>-1&&iRightQP<iLeftQP {
@@ -204,13 +204,13 @@ func (this *TEncGOP)  compressGOP ( iPOCLast, iNumPicRcvd int, rcListPic, rcList
     }
 
     /////////////////////////////////////////////////////////////////////////////////////////////////// Initial to start encoding
-    pocCurr := iPOCLast -iNumPicRcvd+ this.m_pcCfg.getGOPEntry(iGOPid).m_POC;
-    iTimeOffset := this.m_pcCfg.getGOPEntry(iGOPid).m_POC;
+    pocCurr := iPOCLast -iNumPicRcvd+ this.m_pcCfg.GetGOPEntry(iGOPid).m_POC;
+    iTimeOffset := this.m_pcCfg.GetGOPEntry(iGOPid).m_POC;
     if iPOCLast == 0 {
       pocCurr=0;
       iTimeOffset = 1;
     }
-    if pocCurr>=this.m_pcCfg.getFrameToBeEncoded() {
+    if pocCurr>=this.m_pcCfg.GetFrameToBeEncoded() {
       continue;
     }
 
@@ -247,7 +247,7 @@ func (this *TEncGOP)  compressGOP ( iPOCLast, iNumPicRcvd int, rcListPic, rcList
       this.m_pcEncTop.getTrQuant().setScalingList(pcSlice.GetScalingList());
       this.m_pcEncTop.getTrQuant().setUseScalingList(true);
     }else if this.m_pcEncTop.getUseScalingListId() == SCALING_LIST_FILE_READ {
-      if pcSlice.GetScalingList().xParseScalingList(this.m_pcCfg.getScalingListFile()) {
+      if pcSlice.GetScalingList().xParseScalingList(this.m_pcCfg.GetScalingListFile()) {
         pcSlice.setDefaultScalingList ();
       }
       pcSlice.GetScalingList().checkDcOfMatrix();
@@ -260,7 +260,7 @@ func (this *TEncGOP)  compressGOP ( iPOCLast, iNumPicRcvd int, rcListPic, rcList
       //assert(0);
     }
 
-    if pcSlice.GetSliceType()==TLibCommon.B_SLICE&&this.m_pcCfg.getGOPEntry(iGOPid).m_sliceType=="P"{
+    if pcSlice.GetSliceType()==TLibCommon.B_SLICE&&this.m_pcCfg.GetGOPEntry(iGOPid).m_sliceType=="P"{
       pcSlice.setSliceType(TLibCommon.P_SLICE);
     }
     // Set the nal unit type
@@ -290,20 +290,20 @@ func (this *TEncGOP)  compressGOP ( iPOCLast, iNumPicRcvd int, rcListPic, rcList
         }
       }else if pcSlice.isStepwiseTemporalLayerSwitchingPointCandidate(rcListPic, pcSlice.GetRPS()) {
         isSTSA:=true;
-        for ii:=iGOPid+1;(ii<this.m_pcCfg.getGOPSize() && isSTSA==true);ii++ {
-          lTid := this.m_pcCfg.getGOPEntry(ii).m_temporalId;
+        for ii:=iGOPid+1;(ii<this.m_pcCfg.GetGOPSize() && isSTSA==true);ii++ {
+          lTid := this.m_pcCfg.GetGOPEntry(ii).m_temporalId;
           if lTid==pcSlice.GetTLayer() {
             nRPS := pcSlice.GetSPS().getRPSList().getReferencePictureSet(ii);
             for jj:=0;jj<nRPS.getNumberOfPictures();jj++ {
               if nRPS.getUsed(jj) {
-                tPoc:=this.m_pcCfg.getGOPEntry(ii).m_POC+nRPS.getDeltaPOC(jj);
+                tPoc:=this.m_pcCfg.GetGOPEntry(ii).m_POC+nRPS.getDeltaPOC(jj);
                 kk:=0;
-                for kk=0;kk<this.m_pcCfg.getGOPSize();kk++ {
-                  if this.m_pcCfg.getGOPEntry(kk).m_POC==tPoc{
+                for kk=0;kk<this.m_pcCfg.GetGOPSize();kk++ {
+                  if this.m_pcCfg.GetGOPEntry(kk).m_POC==tPoc{
                     break;
                   }
                 }
-                tTid:=this.m_pcCfg.getGOPEntry(kk).m_temporalId;
+                tTid:=this.m_pcCfg.GetGOPEntry(kk).m_temporalId;
                 if tTid >= pcSlice.GetTLayer() {
                   isSTSA=false;
                   break;
@@ -325,8 +325,8 @@ func (this *TEncGOP)  compressGOP ( iPOCLast, iNumPicRcvd int, rcListPic, rcList
     TLibCommon.TComRefPicListModification* refPicListModification = pcSlice.GetRefPicListModification();
     refPicListModification.setRefPicListModificationFlagL0(0);
     refPicListModification.setRefPicListModificationFlagL1(0);
-    pcSlice.setNumRefIdx(TLibCommon.REF_PIC_LIST_0,min(this.m_pcCfg.getGOPEntry(iGOPid).m_numRefPicsActive,pcSlice.GetRPS().getNumberOfPictures()));
-    pcSlice.setNumRefIdx(TLibCommon.REF_PIC_LIST_1,min(this.m_pcCfg.getGOPEntry(iGOPid).m_numRefPicsActive,pcSlice.GetRPS().getNumberOfPictures()));
+    pcSlice.setNumRefIdx(TLibCommon.REF_PIC_LIST_0,min(this.m_pcCfg.GetGOPEntry(iGOPid).m_numRefPicsActive,pcSlice.GetRPS().getNumberOfPictures()));
+    pcSlice.setNumRefIdx(TLibCommon.REF_PIC_LIST_1,min(this.m_pcCfg.GetGOPEntry(iGOPid).m_numRefPicsActive,pcSlice.GetRPS().getNumberOfPictures()));
 
 //#if ADAPTIVE_QP_SELECTION
     pcSlice.setTrQuant( this.m_pcEncTop.getTrQuant() );
@@ -410,7 +410,7 @@ func (this *TEncGOP)  compressGOP ( iPOCLast, iNumPicRcvd int, rcListPic, rcList
     }
     /////////////////////////////////////////////////////////////////////////////////////////////////// Compress a slice
     //  Slice compression
-    if this.m_pcCfg.getUseASR() {
+    if this.m_pcCfg.GetUseASR() {
       this.m_pcSliceEncoder.setSearchRange(pcSlice);
     }
 
@@ -441,7 +441,7 @@ func (this *TEncGOP)  compressGOP ( iPOCLast, iNumPicRcvd int, rcListPic, rcList
      actualTotalBits      := 0;
      estimatedBits        := 0;
      tmpBitsBeforeWriting := 0;
-    if  this.m_pcCfg.getUseRateCtrl() {
+    if  this.m_pcCfg.GetUseRateCtrl() {
        frameLevel := this.m_pcRateCtrl.getRCSeq().getGOPID2Level( iGOPid );
       if  pcPic.GetSlice(0).getSliceType() == TLibCommon.I_SLICE {
         frameLevel = 0;
@@ -449,9 +449,9 @@ func (this *TEncGOP)  compressGOP ( iPOCLast, iNumPicRcvd int, rcListPic, rcList
       this.m_pcRateCtrl.initRCPic( frameLevel );
       estimatedBits = this.m_pcRateCtrl.getRCPic().getTargetBits();
 
-      if  ( pcSlice.GetPOC() == 0 && this.m_pcCfg.getInitialQP() > 0 ) || ( frameLevel == 0 && this.m_pcCfg.getForceIntraQP() ) { // QP is specified
-        sliceQP              = this.m_pcCfg.getInitialQP();
-            NumberBFrames := ( this.m_pcCfg.getGOPSize() - 1 );
+      if  ( pcSlice.GetPOC() == 0 && this.m_pcCfg.GetInitialQP() > 0 ) || ( frameLevel == 0 && this.m_pcCfg.GetForceIntraQP() ) { // QP is specified
+        sliceQP              = this.m_pcCfg.GetInitialQP();
+            NumberBFrames := ( this.m_pcCfg.GetGOPSize() - 1 );
          dLambda_scale := 1.0 - TLibCommon.CLIP3( 0.0, 0.5, 0.05*float64(NumberBFrames) ).(float64);
          dQPFactor     := 0.57*dLambda_scale;
             SHIFT_QP      := 12;
@@ -459,7 +459,7 @@ func (this *TEncGOP)  compressGOP ( iPOCLast, iNumPicRcvd int, rcListPic, rcList
          qp_temp := float64( sliceQP )+ bitdepth_luma_qp_scale - TLibCommon.SHIFT_QP;
         lambda = dQPFactor*pow( 2.0, qp_temp/3.0 );
       }else if frameLevel == 0 {  // intra case, but use the model
-        if  this.m_pcCfg.getIntraPeriod() != 1 {  // do not refine allocated bits for all intra case
+        if  this.m_pcCfg.GetIntraPeriod() != 1 {  // do not refine allocated bits for all intra case
           bits := this.m_pcRateCtrl.getRCSeq().getLeftAverageBits();
           bits = this.m_pcRateCtrl.getRCSeq().getRefineBitsForIntra( bits );
           if bits < 200 {
@@ -597,7 +597,7 @@ func (this *TEncGOP)  compressGOP ( iPOCLast, iNumPicRcvd int, rcListPic, rcList
       this.m_pcSliceEncoder.compressSlice   ( pcPic );
 
       bNoBinBitConstraintViolated := (!pcSlice.isNextSlice() && !pcSlice.isNextDependentSlice());
-      if pcSlice.isNextSlice() || (bNoBinBitConstraintViolated && this.m_pcCfg.getSliceMode()==TLibCommon.AD_HOC_SLICES_FIXED_NUMBER_OF_LCU_IN_SLICE) {
+      if pcSlice.isNextSlice() || (bNoBinBitConstraintViolated && this.m_pcCfg.GetSliceMode()==TLibCommon.AD_HOC_SLICES_FIXED_NUMBER_OF_LCU_IN_SLICE) {
         uiStartCUAddrSlice = pcSlice.GetSliceCurEndCUAddr();
         // Reconstruction slice
         this.m_storedStartCUAddrForEncodingSlice.push_back(uiStartCUAddrSlice);
@@ -620,7 +620,7 @@ func (this *TEncGOP)  compressGOP ( iPOCLast, iNumPicRcvd int, rcListPic, rcList
           pcSlice.setSliceBits(0);
           uiNumSlices ++;
         }
-      }else if pcSlice.isNextDependentSlice() || (bNoBinBitConstraintViolated && this.m_pcCfg.getDependentSliceMode()==TLibCommon.SHARP_FIXED_NUMBER_OF_LCU_IN_DEPENDENT_SLICE) {
+      }else if pcSlice.isNextDependentSlice() || (bNoBinBitConstraintViolated && this.m_pcCfg.GetDependentSliceMode()==TLibCommon.SHARP_FIXED_NUMBER_OF_LCU_IN_DEPENDENT_SLICE) {
         uiStartCUAddrDependentSlice                                                     = pcSlice.GetDependentSliceCurEndCUAddr();
         this.m_storedStartCUAddrForEncodingDependentSlice.push_back(uiStartCUAddrDependentSlice);
         uiStartCUAddrDependentSliceIdx++;
@@ -644,7 +644,7 @@ func (this *TEncGOP)  compressGOP ( iPOCLast, iNumPicRcvd int, rcListPic, rcList
     pcSlice = pcPic.GetSlice(0);
 
     // SAO parameter estimation using non-deblocked pixels for LCU bottom and right boundary areas
-    if this.m_pcCfg.getSaoLcuBasedOptimization() && this.m_pcCfg.getSaoLcuBoundary() {
+    if this.m_pcCfg.GetSaoLcuBasedOptimization() && this.m_pcCfg.GetSaoLcuBoundary() {
       this.m_pcSAO.resetStats();
       this.m_pcSAO.calcSaoStatsCu_BeforeDblk( pcPic );
     }
@@ -699,10 +699,10 @@ func (this *TEncGOP)  compressGOP ( iPOCLast, iNumPicRcvd int, rcListPic, rcList
           pcSlice.GetSPS().setUsedByCurrPicLtSPSFlag(k, this.m_ltRefPicUsedByCurrPicFlag[k]);
         }
       }
-      if this.m_pcCfg.getPictureTimingSEIEnabled()  {
-         maxCU := this.m_pcCfg.getSliceArgument() >> ( pcSlice.GetSPS().getMaxCUDepth() << 1);
+      if this.m_pcCfg.GetPictureTimingSEIEnabled()  {
+         maxCU := this.m_pcCfg.GetSliceArgument() >> ( pcSlice.GetSPS().getMaxCUDepth() << 1);
         var numDU uint;
-        if this.m_pcCfg.getSliceMode() == 1 {
+        if this.m_pcCfg.GetSliceMode() == 1 {
         	numDU = ( pcPic.GetNumCUsInFrame() / maxCU );
         }else{
         	numDU = ( 0 );
@@ -712,9 +712,9 @@ func (this *TEncGOP)  compressGOP ( iPOCLast, iNumPicRcvd int, rcListPic, rcList
           numDU ++;
         }
         pcSlice.GetSPS().getVuiParameters().setNumDU( numDU );
-        pcSlice.GetSPS().setHrdParameters( this.m_pcCfg.getFrameRate(), numDU, this.m_pcCfg.getTargetBitrate(), ( this.m_pcCfg.getIntraPeriod() > 0 ) );
+        pcSlice.GetSPS().setHrdParameters( this.m_pcCfg.GetFrameRate(), numDU, this.m_pcCfg.GetTargetBitrate(), ( this.m_pcCfg.GetIntraPeriod() > 0 ) );
       }
-      if this.m_pcCfg.getBufferingPeriodSEIEnabled() || this.m_pcCfg.getPictureTimingSEIEnabled() {
+      if this.m_pcCfg.GetBufferingPeriodSEIEnabled() || this.m_pcCfg.GetPictureTimingSEIEnabled() {
         pcSlice.GetSPS().getVuiParameters().setHrdParametersPresentFlag( true );
       }
       this.m_pcEntropyCoder.encodeSPS(pcSlice.GetSPS());
@@ -733,10 +733,10 @@ func (this *TEncGOP)  compressGOP ( iPOCLast, iNumPicRcvd int, rcListPic, rcList
       actualTotalBits += unt(accessUnit.back().m_nalUnitData.str().size()) * 8;
 //#endif
 
-      if this.m_pcCfg.getActiveParameterSetsSEIEnabled() {
+      if this.m_pcCfg.GetActiveParameterSetsSEIEnabled() {
         var sei_active_parameter_sets SEIActiveParameterSets; 
-        sei_active_parameter_sets.activeVPSId = this.m_pcCfg.getVPS().getVPSId(); 
-        if this.m_pcCfg.getActiveParameterSetsSEIEnabled()==2 {
+        sei_active_parameter_sets.activeVPSId = this.m_pcCfg.GetVPS().getVPSId(); 
+        if this.m_pcCfg.GetActiveParameterSetsSEIEnabled()==2 {
         	sei_active_parameter_sets.activeSPSIdPresentFlag =  0;
         }else{
         	sei_active_parameter_sets.activeSPSIdPresentFlag =  0;
@@ -756,12 +756,12 @@ func (this *TEncGOP)  compressGOP ( iPOCLast, iNumPicRcvd int, rcListPic, rcList
         accessUnit.push_back(NewNALUnitEBSP(nalu));
       }
 //#if SEI_DISPLAY_ORIENTATION
-      if this.m_pcCfg.getDisplayOrientationSEIAngle() {
+      if this.m_pcCfg.GetDisplayOrientationSEIAngle() {
         var sei_display_orientation SEIDisplayOrientation;
         sei_display_orientation.cancelFlag = false;
         sei_display_orientation.horFlip = false;
         sei_display_orientation.verFlip = false;
-        sei_display_orientation.anticlockwiseRotation = this.m_pcCfg.getDisplayOrientationSEIAngle();
+        sei_display_orientation.anticlockwiseRotation = this.m_pcCfg.GetDisplayOrientationSEIAngle();
 
         nalu = NALUnit(TLibCommon.NAL_UNIT_SEI); 
         this.m_pcEntropyCoder.setBitstream(&nalu.m_Bitstream);
@@ -774,7 +774,7 @@ func (this *TEncGOP)  compressGOP ( iPOCLast, iNumPicRcvd int, rcListPic, rcList
       this.m_bSeqFirst = false;
     }
 
-    if  ( this.m_pcCfg.getPictureTimingSEIEnabled() ) &&
+    if  ( this.m_pcCfg.GetPictureTimingSEIEnabled() ) &&
         ( pcSlice.GetSPS().getVuiParametersPresentFlag() ) && 
         ( ( pcSlice.GetSPS().getVuiParameters().getNalHrdParametersPresentFlag() ) || 
         ( pcSlice.GetSPS().getVuiParameters().getVclHrdParametersPresentFlag() ) ) {
@@ -799,7 +799,7 @@ func (this *TEncGOP)  compressGOP ( iPOCLast, iNumPicRcvd int, rcListPic, rcList
       pictureTimingSEI.m_auCpbRemovalDelay = this.m_totalCoded - this.m_lastBPSEI;
       pictureTimingSEI.m_picDpbOutputDelay = pcSlice.GetSPS().getNumReorderPics(0) + pcSlice.GetPOC() - this.m_totalCoded;
     }
-    if  ( this.m_pcCfg.getBufferingPeriodSEIEnabled() ) && ( pcSlice.GetSliceType() == TLibCommon.I_SLICE ) &&
+    if  ( this.m_pcCfg.GetBufferingPeriodSEIEnabled() ) && ( pcSlice.GetSliceType() == TLibCommon.I_SLICE ) &&
         ( pcSlice.GetSPS().getVuiParametersPresentFlag() ) && 
         ( ( pcSlice.GetSPS().getVuiParameters().getNalHrdParametersPresentFlag() ) || 
         ( pcSlice.GetSPS().getVuiParameters().getVclHrdParametersPresentFlag() ) ) {
@@ -1090,7 +1090,7 @@ func (this *TEncGOP)  compressGOP ( iPOCLast, iNumPicRcvd int, rcListPic, rcList
             uiOneBitstreamPerSliceLength += nalu.m_Bitstream.getNumberOfWrittenBits() + 24; // length of bitstream after byte-alignment + 3 byte startcode 0x000001
           }
 
-          if  ( this.m_pcCfg.getPictureTimingSEIEnabled() ) &&
+          if  ( this.m_pcCfg.GetPictureTimingSEIEnabled() ) &&
               ( pcSlice.GetSPS().getVuiParametersPresentFlag() ) && 
               ( ( pcSlice.GetSPS().getVuiParameters().getNalHrdParametersPresentFlag() ) || 
               ( pcSlice.GetSPS().getVuiParameters().getVclHrdParametersPresentFlag() ) ) &&
@@ -1164,20 +1164,20 @@ func (this *TEncGOP)  compressGOP ( iPOCLast, iNumPicRcvd int, rcListPic, rcList
       dEncTime := time.Now().Sub(iBeforeTime) //Double dEncTime = (Double)(clock()-iBeforeTime) / CLOCKS_PER_SEC;
 
       var digestStr string;
-      if this.m_pcCfg.getDecodedPictureHashSEIEnabled() {
+      if this.m_pcCfg.GetDecodedPictureHashSEIEnabled() {
         //calculate MD5sum for entire reconstructed picture 
         
         var sei_recon_picture_digest	SEIDecodedPictureHash;
-        if this.m_pcCfg.getDecodedPictureHashSEIEnabled() == 1 {
+        if this.m_pcCfg.GetDecodedPictureHashSEIEnabled() == 1 {
           sei_recon_picture_digest.method = SEIDecodedPictureHash::MD5;
           calcMD5(*pcPic.GetPicYuvRec(), sei_recon_picture_digest.digest);
           digestStr = digestToString(sei_recon_picture_digest.digest, 16);
-        }else if(this.m_pcCfg.getDecodedPictureHashSEIEnabled() == 2{
+        }else if(this.m_pcCfg.GetDecodedPictureHashSEIEnabled() == 2{
           sei_recon_picture_digest.method = SEIDecodedPictureHash::CRC;
           calcCRC(*pcPic.GetPicYuvRec(), sei_recon_picture_digest.digest);
           digestStr = digestToString(sei_recon_picture_digest.digest, 2);
         }
-        else if(this.m_pcCfg.getDecodedPictureHashSEIEnabled() == 3)
+        else if(this.m_pcCfg.GetDecodedPictureHashSEIEnabled() == 3)
         {
           sei_recon_picture_digest.method = SEIDecodedPictureHash::CHECKSUM;
           calcChecksum(*pcPic.GetPicYuvRec(), sei_recon_picture_digest.digest);
@@ -1204,7 +1204,7 @@ func (this *TEncGOP)  compressGOP ( iPOCLast, iNumPicRcvd int, rcListPic, rcList
 		
       }
 //#if SEI_TEMPORAL_LEVEL0_INDEX
-      if this.m_pcCfg.getTemporalLevel0IndexSEIEnabled() {
+      if this.m_pcCfg.GetTemporalLevel0IndexSEIEnabled() {
         var sei_temporal_level0_index	SEITemporalLevel0Index;
         if pcSlice.GetRapPicFlag() {
           this.m_tl0Idx = 0;
@@ -1235,16 +1235,16 @@ func (this *TEncGOP)  compressGOP ( iPOCLast, iNumPicRcvd int, rcListPic, rcList
       this.xCalculateAddPSNR( pcPic, pcPic.GetPicYuvRec(), accessUnit, dEncTime );
 
       if digestStr {
-        if this.m_pcCfg.getDecodedPictureHashSEIEnabled() == 1 {
+        if this.m_pcCfg.GetDecodedPictureHashSEIEnabled() == 1 {
           fmt.Printf(" [MD5:%s]", digestStr);
-        }else if this.m_pcCfg.getDecodedPictureHashSEIEnabled() == 2 {
+        }else if this.m_pcCfg.GetDecodedPictureHashSEIEnabled() == 2 {
           fmt.Printf(" [CRC:%s]", digestStr);
-        }else if this.m_pcCfg.getDecodedPictureHashSEIEnabled() == 3 {
+        }else if this.m_pcCfg.GetDecodedPictureHashSEIEnabled() == 3 {
           fmt.Printf(" [Checksum:%s]", digestStr);
         }
       }
 //#if RATE_CONTROL_LAMBDA_DOMAIN
-      if  this.m_pcCfg.getUseRateCtrl() {
+      if  this.m_pcCfg.GetUseRateCtrl() {
          effectivePercentage := this.m_pcRateCtrl.getRCPic().getEffectivePercentage();
          avgQP     := this.m_pcRateCtrl.getRCPic().calAverageQP();
          avgLambda := this.m_pcRateCtrl.getRCPic().calAverageLambda();
@@ -1262,13 +1262,13 @@ func (this *TEncGOP)  compressGOP ( iPOCLast, iNumPicRcvd int, rcListPic, rcList
         }
       }
 //#else
-//      if(this.m_pcCfg.getUseRateCtrl())
+//      if(this.m_pcCfg.GetUseRateCtrl())
 //      {
 //        UInt  frameBits = this.m_vRVM_RP[this.m_vRVM_RP.size()-1];
 //        this.m_pcRateCtrl.updataRCFrameStatus((Int)frameBits, pcSlice.GetSliceType());
 //      }
 //#endif
-      if  ( this.m_pcCfg.getPictureTimingSEIEnabled() ) &&
+      if  ( this.m_pcCfg.GetPictureTimingSEIEnabled() ) &&
           ( pcSlice.GetSPS().getVuiParametersPresentFlag() ) && 
           ( ( pcSlice.GetSPS().getVuiParameters().getNalHrdParametersPresentFlag() ) || 
           ( pcSlice.GetSPS().getVuiParameters().getVclHrdParametersPresentFlag() ) ) {
@@ -1288,7 +1288,7 @@ func (this *TEncGOP)  compressGOP ( iPOCLast, iNumPicRcvd int, rcListPic, rcList
             	pictureTimingSEI.m_numNalusInDuMinus1[ i ]       =  ( accumNalsDU[ i ] - accumNalsDU[ i - 1] - 1 );
             }
             ui64Tmp = ( ( ( accumBitsDU[ pictureTimingSEI.m_numDecodingUnitsMinus1 ] - accumBitsDU[ i ] ) * ( vui.getTimeScale() / vui.getNumUnitsInTick() ) * ( vui.getTickDivisorMinus2() + 2 ) ) /
-                         ( this.m_pcCfg.getTargetBitrate() << 10 ) );
+                         ( this.m_pcCfg.GetTargetBitrate() << 10 ) );
 
             uiTmp = uint(ui64Tmp);
             if uiTmp >= ( vui.getTickDivisorMinus2() + 2 ) {
@@ -1330,7 +1330,7 @@ func (this *TEncGOP)  compressGOP ( iPOCLast, iNumPicRcvd int, rcListPic, rcList
 */
   
 /*#if !RATE_CONTROL_LAMBDA_DOMAIN
-  if(m_pcCfg.getUseRateCtrl())
+  if(m_pcCfg.GetUseRateCtrl())
   {
     this.m_pcRateCtrl.updateRCGOPStatus();
   }
@@ -1383,10 +1383,10 @@ func (this *TEncGOP)  printOutSummary      (  uiNumAllPicCoded uint){
   //assert (uiNumAllPicCoded == this.m_gcAnalyzeAll.getNumPic());
   
   //--CFG_KDY
-  this.m_gcAnalyzeAll.setFrmRate( float64(this.m_pcCfg.getFrameRate()) );
-  this.m_gcAnalyzeI.setFrmRate( float64(this.m_pcCfg.getFrameRate()) );
-  this.m_gcAnalyzeP.setFrmRate( float64(this.m_pcCfg.getFrameRate()) );
-  this.m_gcAnalyzeB.setFrmRate( float64(this.m_pcCfg.getFrameRate()) );
+  this.m_gcAnalyzeAll.setFrmRate( float64(this.m_pcCfg.GetFrameRate()) );
+  this.m_gcAnalyzeI.setFrmRate( float64(this.m_pcCfg.GetFrameRate()) );
+  this.m_gcAnalyzeP.setFrmRate( float64(this.m_pcCfg.GetFrameRate()) );
+  this.m_gcAnalyzeB.setFrmRate( float64(this.m_pcCfg.GetFrameRate()) );
   
   //-- all
   fmt.Printf( "\n\nSUMMARY --------------------------------------------------------\n" );
@@ -1417,9 +1417,9 @@ func (this *TEncGOP)  preLoopFilterPicAll  ( pcPic *TLibCommon.TComPic, ruiDist 
   pcSlice := pcPic.GetSlice(pcPic.GetCurrSliceIdx());
   bCalcDist := false;
 //#if VARYING_DBL_PARAMS
-  this.m_pcLoopFilter.SetCfg(this.m_pcCfg.getLFCrossTileBoundaryFlag());
+  this.m_pcLoopFilter.SetCfg(this.m_pcCfg.GetLFCrossTileBoundaryFlag());
 //#else
-//  this.m_pcLoopFilter.setCfg(m_pcCfg.getLFCrossTileBoundaryFlag());
+//  this.m_pcLoopFilter.setCfg(m_pcCfg.GetLFCrossTileBoundaryFlag());
 //#endif
   this.m_pcLoopFilter.LoopFilterPic( pcPic );
   
@@ -1453,10 +1453,10 @@ func (this *TEncGOP)  getNalUnitType( pocCurr int ) TLibCommon.NalUnitType{
   if pocCurr == 0 {
     return TLibCommon.NAL_UNIT_CODED_SLICE_IDR;
   }
-  if pocCurr % int(this.m_pcCfg.getIntraPeriod()) == 0 {
-    if this.m_pcCfg.getDecodingRefreshType() == 1 {
+  if pocCurr % int(this.m_pcCfg.GetIntraPeriod()) == 0 {
+    if this.m_pcCfg.GetDecodingRefreshType() == 1 {
       return TLibCommon.NAL_UNIT_CODED_SLICE_CRA;
-    }else if this.m_pcCfg.getDecodingRefreshType() == 2 {
+    }else if this.m_pcCfg.GetDecodingRefreshType() == 2 {
       return TLibCommon.NAL_UNIT_CODED_SLICE_IDR;
     }
   }
@@ -1651,7 +1651,7 @@ func (this *TEncGOP)  xInitGOP          (  iPOCLast,  iNumPicRcvd int, rcListPic
   if iPOCLast == 0 {
     this.m_iGopSize    = 1;
   }else{
-    this.m_iGopSize    = this.m_pcCfg.getGOPSize();
+    this.m_iGopSize    = this.m_pcCfg.GetGOPSize();
   }
   //assert (m_iGopSize > 0); 
 
@@ -1701,8 +1701,8 @@ func (this *TEncGOP)  xCalculateAddPSNR ( pcPic *TLibCommon.TComPic, pcPicD *TLi
   
   var   iWidth,   iHeight int;
   
-  iWidth  = pcPicD.GetWidth () - this.m_pcEncTop.m_pcEncCfg.getPad(0);
-  iHeight = pcPicD.GetHeight() - this.m_pcEncTop.m_pcEncCfg.getPad(1);
+  iWidth  = pcPicD.GetWidth () - this.m_pcEncTop.m_pcEncCfg.GetPad(0);
+  iHeight = pcPicD.GetHeight() - this.m_pcEncTop.m_pcEncCfg.GetPad(1);
   
      iSize   := iWidth*iHeight;
   
@@ -1907,7 +1907,7 @@ func (this *TEncGOP)  xCalculateRVM() float64{
   dRVM := float64(0);
   fmt.Printf("not implement yet xCalculateRVM\n");
   /*
-  if this.m_pcCfg.getGOPSize() == 1 && this.m_pcCfg.getIntraPeriod() != 1 && this.m_pcCfg.getFrameToBeEncoded() > TLibCommon.RVM_VCEGAM10_M * 2 {
+  if this.m_pcCfg.GetGOPSize() == 1 && this.m_pcCfg.GetIntraPeriod() != 1 && this.m_pcCfg.GetFrameToBeEncoded() > TLibCommon.RVM_VCEGAM10_M * 2 {
     // calculate RVM only for lowdelay configurations
     std::vector<Double> vRL , vB;
     size_t N = this.m_vRVM_RP.size();

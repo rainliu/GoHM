@@ -94,7 +94,7 @@ func NewTEncCu() *TEncCu{
 func (this *TEncCu)  init ( pcEncTop *TEncTop ){
   //fmt.Printf("not added yet\n");
 
-  this.m_pcEncCfg           = pcEncTop.getEncCfg();
+  this.m_pcEncCfg           = pcEncTop.GetEncCfg();
   this.m_pcPredSearch       = pcEncTop.getPredSearch();
   this.m_pcTrQuant          = pcEncTop.getTrQuant();
   this.m_pcBitCounter       = pcEncTop.getBitCounter();
@@ -108,7 +108,7 @@ func (this *TEncCu)  init ( pcEncTop *TEncTop ){
   this.m_pppcRDSbacCoder   = pcEncTop.getRDSbacCoder();
   this.m_pcRDGoOnSbacCoder = pcEncTop.getRDGoOnSbacCoder();
   
-  this.m_bUseSBACRD        = pcEncTop.getEncCfg().getUseSBACRD();
+  this.m_bUseSBACRD        = pcEncTop.GetEncCfg().GetUseSBACRD();
   this.m_pcRateCtrl        = pcEncTop.getRateCtrl();
 }
   
@@ -188,7 +188,7 @@ func (this *TEncCu)  compressCU          (  rpcCU *TLibCommon.TComDataCU){
   this.xCompressCU( this.m_ppcBestCU[0], this.m_ppcTempCU[0], 0, TLibCommon.SIZE_NONE );
 
 //#if ADAPTIVE_QP_SELECTION
-  if this.m_pcEncCfg.getUseAdaptQpSelect() {
+  if this.m_pcEncCfg.GetUseAdaptQpSelect() {
     if rpcCU.GetSlice().GetSliceType()!=TLibCommon.I_SLICE { //IIII
       this.xLcuCollectARLStats( rpcCU);
     }
@@ -287,7 +287,7 @@ func (this *TEncCu)  finishCU            ( pcCU *TLibCommon.TComDataCU,  uiAbsPa
     return;
   }
   // Set dependent slice end parameter
-  if this.m_pcEncCfg.getUseSBACRD() {
+  if this.m_pcEncCfg.GetUseSBACRD() {
     pppcRDSbacCoder := this.m_pppcRDSbacCoder[0][TLibCommon.CI_CURR_BEST].getEncBinIf().getTEncBinCABAC();
     uiBinsCoded := pppcRDSbacCoder.getBinsCoded();
     if pcSlice.GetDependentSliceMode()==TLibCommon.SHARP_MULTIPLE_CONSTRAINT_BASED_DEPENDENT_SLICE&&!pcSlice.GetFinalized()&&pcSlice.GetDependentSliceCounter()+uiBinsCoded>pcSlice.GetDependentSliceArgument() {
@@ -302,7 +302,7 @@ func (this *TEncCu)  finishCU            ( pcCU *TLibCommon.TComDataCU,  uiAbsPa
   }
   if granularityBoundary {
     pcSlice.SetSliceBits( pcSlice.GetSliceBits() + uint(numberOfWrittenBits) );
-    if this.m_pcEncCfg.getUseSBACRD() {
+    if this.m_pcEncCfg.GetUseSBACRD() {
       pppcRDSbacCoder := this.m_pppcRDSbacCoder[0][TLibCommon.CI_CURR_BEST].getEncBinIf().getTEncBinCABAC();
       pcSlice.SetDependentSliceCounter(pcSlice.GetDependentSliceCounter()+pppcRDSbacCoder.getBinsCoded());
       pppcRDSbacCoder.setBinsCoded( 0 );
@@ -358,7 +358,7 @@ func (this *TEncCu)  xCompressCU         ( rpcBestCU *TLibCommon.TComDataCU, rpc
    lowestQP := -rpcTempCU.GetSlice().GetSPS().GetQpBDOffsetY();
 
   if (TLibCommon.G_uiMaxCUWidth>>uiDepth) >= rpcTempCU.GetSlice().GetPPS().GetMinCuDQPSize() {
-     idQP := this.m_pcEncCfg.getMaxDeltaQP();
+     idQP := this.m_pcEncCfg.GetMaxDeltaQP();
     iMinQP = TLibCommon.CLIP3( -rpcTempCU.GetSlice().GetSPS().GetQpBDOffsetY(), TLibCommon.MAX_QP, iBaseQP-idQP ).(int);
     iMaxQP = TLibCommon.CLIP3( -rpcTempCU.GetSlice().GetSPS().GetQpBDOffsetY(), TLibCommon.MAX_QP, iBaseQP+idQP ).(int);
     if  (rpcTempCU.GetSlice().GetSPS().GetUseLossless()) && (lowestQP < iMinQP) && rpcTempCU.GetSlice().GetPPS().GetUseDQP()  {
@@ -372,12 +372,12 @@ func (this *TEncCu)  xCompressCU         ( rpcBestCU *TLibCommon.TComDataCU, rpc
   }
 
 //#if RATE_CONTROL_LAMBDA_DOMAIN
-  if  this.m_pcEncCfg.getUseRateCtrl()  {
+  if  this.m_pcEncCfg.GetUseRateCtrl()  {
     iMinQP = this.m_pcRateCtrl.getRCQP();
     iMaxQP = this.m_pcRateCtrl.getRCQP();
   }
 /*#else
-  if this.m_pcEncCfg.getUseRateCtrl(){
+  if this.m_pcEncCfg.GetUseRateCtrl(){
     qp := this.m_pcRateCtrl.getUnitQP();
     iMinQP  = TLibCommon.CLIP3( TLibCommon.MIN_QP, TLibCommon.MAX_QP, qp).(int);
     iMaxQP  = TLibCommon.CLIP3( TLibCommon.MIN_QP, TLibCommon.MAX_QP, qp).(int);
@@ -405,7 +405,7 @@ func (this *TEncCu)  xCompressCU         ( rpcBestCU *TLibCommon.TComDataCU, rpc
       // do inter modes, SKIP and 2Nx2N
       if rpcBestCU.GetSlice().GetSliceType() != TLibCommon.I_SLICE {
         // 2Nx2N
-        if this.m_pcEncCfg.getUseEarlySkipDetection() {
+        if this.m_pcEncCfg.GetUseEarlySkipDetection() {
           this.xCheckRDCostInter( rpcBestCU, rpcTempCU, TLibCommon.SIZE_2Nx2N, false );  
           rpcTempCU.InitEstData( uiDepth, iQP );//by Competition for inter_2Nx2N
         }
@@ -414,7 +414,7 @@ func (this *TEncCu)  xCompressCU         ( rpcBestCU *TLibCommon.TComDataCU, rpc
         rpcTempCU.InitEstData( uiDepth, iQP );
 
         // fast encoder decision for early skip
-        if  this.m_pcEncCfg.getUseFastEnc()  {
+        if  this.m_pcEncCfg.GetUseFastEnc()  {
            iIdx := TLibCommon.G_aucConvertToBit[ rpcBestCU.GetWidth1(0) ];
           if  aiNum [ iIdx ] > 5 && fRD_Skip < TLibCommon.EARLY_SKIP_THRES*afCost[ iIdx ]/float64(aiNum[ iIdx ]) {
             bEarlySkip = true;
@@ -422,12 +422,12 @@ func (this *TEncCu)  xCompressCU         ( rpcBestCU *TLibCommon.TComDataCU, rpc
           }
         }
 
-    if !this.m_pcEncCfg.getUseEarlySkipDetection() {
+    if !this.m_pcEncCfg.GetUseEarlySkipDetection() {
         // 2Nx2N, NxN
         if  !bEarlySkip  {
           this.xCheckRDCostInter( rpcBestCU, rpcTempCU, TLibCommon.SIZE_2Nx2N, false );  
           rpcTempCU.InitEstData( uiDepth, iQP );
-          if this.m_pcEncCfg.getUseCbfFastMode() {
+          if this.m_pcEncCfg.GetUseCbfFastMode() {
             doNotBlockPu = rpcBestCU.GetQtRootCbf( 0 ) != false;
           }
         }
@@ -477,14 +477,14 @@ func (this *TEncCu)  xCompressCU         ( rpcBestCU *TLibCommon.TComDataCU, rpc
           if doNotBlockPu {
             this.xCheckRDCostInter( rpcBestCU, rpcTempCU, TLibCommon.SIZE_Nx2N, false  );
             rpcTempCU.InitEstData( uiDepth, iQP );
-            if this.m_pcEncCfg.getUseCbfFastMode() && rpcBestCU.GetPartitionSize1(0) == TLibCommon.SIZE_Nx2N {
+            if this.m_pcEncCfg.GetUseCbfFastMode() && rpcBestCU.GetPartitionSize1(0) == TLibCommon.SIZE_Nx2N {
               doNotBlockPu = rpcBestCU.GetQtRootCbf( 0 ) != false;
             }
           }
           if doNotBlockPu {
             this.xCheckRDCostInter      ( rpcBestCU, rpcTempCU, TLibCommon.SIZE_2NxN, false  );
             rpcTempCU.InitEstData( uiDepth, iQP );
-            if this.m_pcEncCfg.getUseCbfFastMode() && rpcBestCU.GetPartitionSize1(0) == TLibCommon.SIZE_2NxN {
+            if this.m_pcEncCfg.GetUseCbfFastMode() && rpcBestCU.GetPartitionSize1(0) == TLibCommon.SIZE_2NxN {
               doNotBlockPu = rpcBestCU.GetQtRootCbf( 0 ) != false;
             }
           }
@@ -511,14 +511,14 @@ func (this *TEncCu)  xCompressCU         ( rpcBestCU *TLibCommon.TComDataCU, rpc
             if doNotBlockPu {
               this.xCheckRDCostInter( rpcBestCU, rpcTempCU, TLibCommon.SIZE_2NxnU, false );
               rpcTempCU.InitEstData( uiDepth, iQP );
-              if this.m_pcEncCfg.getUseCbfFastMode() && rpcBestCU.GetPartitionSize1(0) == TLibCommon.SIZE_2NxnU {
+              if this.m_pcEncCfg.GetUseCbfFastMode() && rpcBestCU.GetPartitionSize1(0) == TLibCommon.SIZE_2NxnU {
                 doNotBlockPu = rpcBestCU.GetQtRootCbf( 0 ) != false;
               }
             }
             if doNotBlockPu {
               this.xCheckRDCostInter( rpcBestCU, rpcTempCU, TLibCommon.SIZE_2NxnD, false );
               rpcTempCU.InitEstData( uiDepth, iQP );
-              if this.m_pcEncCfg.getUseCbfFastMode() && rpcBestCU.GetPartitionSize1(0) == TLibCommon.SIZE_2NxnD  {
+              if this.m_pcEncCfg.GetUseCbfFastMode() && rpcBestCU.GetPartitionSize1(0) == TLibCommon.SIZE_2NxnD  {
                 doNotBlockPu = rpcBestCU.GetQtRootCbf( 0 ) != false;
               }
             }
@@ -527,14 +527,14 @@ func (this *TEncCu)  xCompressCU         ( rpcBestCU *TLibCommon.TComDataCU, rpc
             if doNotBlockPu {
               this.xCheckRDCostInter( rpcBestCU, rpcTempCU, TLibCommon.SIZE_2NxnU, true );
               rpcTempCU.InitEstData( uiDepth, iQP );
-              if this.m_pcEncCfg.getUseCbfFastMode() && rpcBestCU.GetPartitionSize1(0) == TLibCommon.SIZE_2NxnU {
+              if this.m_pcEncCfg.GetUseCbfFastMode() && rpcBestCU.GetPartitionSize1(0) == TLibCommon.SIZE_2NxnU {
                 doNotBlockPu = rpcBestCU.GetQtRootCbf( 0 ) != false;
               }
             }
             if doNotBlockPu {
               this.xCheckRDCostInter( rpcBestCU, rpcTempCU, TLibCommon.SIZE_2NxnD, true );
               rpcTempCU.InitEstData( uiDepth, iQP );
-              if this.m_pcEncCfg.getUseCbfFastMode() && rpcBestCU.GetPartitionSize1(0) == TLibCommon.SIZE_2NxnD  {
+              if this.m_pcEncCfg.GetUseCbfFastMode() && rpcBestCU.GetPartitionSize1(0) == TLibCommon.SIZE_2NxnD  {
                 doNotBlockPu = rpcBestCU.GetQtRootCbf( 0 ) != false;
               }
             }
@@ -546,7 +546,7 @@ func (this *TEncCu)  xCompressCU         ( rpcBestCU *TLibCommon.TComDataCU, rpc
             if doNotBlockPu {
               this.xCheckRDCostInter( rpcBestCU, rpcTempCU, TLibCommon.SIZE_nLx2N, false );
               rpcTempCU.InitEstData( uiDepth, iQP );
-              if this.m_pcEncCfg.getUseCbfFastMode() && rpcBestCU.GetPartitionSize1(0) == TLibCommon.SIZE_nLx2N  {
+              if this.m_pcEncCfg.GetUseCbfFastMode() && rpcBestCU.GetPartitionSize1(0) == TLibCommon.SIZE_nLx2N  {
                 doNotBlockPu = rpcBestCU.GetQtRootCbf( 0 ) != false;
               }
             }
@@ -559,7 +559,7 @@ func (this *TEncCu)  xCompressCU         ( rpcBestCU *TLibCommon.TComDataCU, rpc
             if doNotBlockPu {
               this.xCheckRDCostInter( rpcBestCU, rpcTempCU, TLibCommon.SIZE_nLx2N, true );
               rpcTempCU.InitEstData( uiDepth, iQP );
-              if this.m_pcEncCfg.getUseCbfFastMode() && rpcBestCU.GetPartitionSize1(0) == TLibCommon.SIZE_nLx2N  {
+              if this.m_pcEncCfg.GetUseCbfFastMode() && rpcBestCU.GetPartitionSize1(0) == TLibCommon.SIZE_nLx2N  {
                 doNotBlockPu = rpcBestCU.GetQtRootCbf( 0 ) != false;
               }
             }
@@ -631,13 +631,13 @@ func (this *TEncCu)  xCompressCU         ( rpcBestCU *TLibCommon.TComDataCU, rpc
     this.m_pcEntropyCoder.resetBits();
     this.m_pcEntropyCoder.encodeSplitFlag( rpcBestCU, 0, uiDepth, true );
     rpcBestCU.SetTotalBits(rpcBestCU.GetTotalBits() + this.m_pcEntropyCoder.getNumberOfWrittenBits()); // split bits
-    if this.m_pcEncCfg.getUseSBACRD() {
+    if this.m_pcEncCfg.GetUseSBACRD() {
       rpcBestCU.SetTotalBins (rpcBestCU.GetTotalBins() + this.m_pcEntropyCoder.m_pcEntropyCoderIf.getEncBinIf().getTEncBinCABAC().getBinsCoded());
     }
     rpcBestCU.SetTotalCost( this.m_pcRdCost.calcRdCost( rpcBestCU.GetTotalBits(), rpcBestCU.GetTotalDistortion(), false, TLibCommon.DF_DEFAULT ));
 
     // accumulate statistics for early skip
-    if  this.m_pcEncCfg.getUseFastEnc()  {
+    if  this.m_pcEncCfg.GetUseFastEnc()  {
       if rpcBestCU.IsSkipped(0) {
         iIdx := TLibCommon.G_aucConvertToBit[ rpcBestCU.GetWidth1(0) ];
         afCost[ iIdx ] += rpcBestCU.GetTotalCost();
@@ -646,7 +646,7 @@ func (this *TEncCu)  xCompressCU         ( rpcBestCU *TLibCommon.TComDataCU, rpc
     }
 
     // Early CU determination
-    if this.m_pcEncCfg.getUseEarlyCU() && rpcBestCU.IsSkipped(0)  {
+    if this.m_pcEncCfg.GetUseEarlyCU() && rpcBestCU.IsSkipped(0)  {
       bSubBranch = false;
     }else{
       bSubBranch = true;
@@ -663,7 +663,7 @@ func (this *TEncCu)  xCompressCU         ( rpcBestCU *TLibCommon.TComDataCU, rpc
     this.xFillPCMBuffer(rpcBestCU, this.m_ppcOrigYuv[uiDepth]);
   }
   if (TLibCommon.G_uiMaxCUWidth>>uiDepth) == rpcTempCU.GetSlice().GetPPS().GetMinCuDQPSize()  {
-    idQP := this.m_pcEncCfg.getMaxDeltaQP();
+    idQP := this.m_pcEncCfg.GetMaxDeltaQP();
     iMinQP = TLibCommon.CLIP3( -rpcTempCU.GetSlice().GetSPS().GetQpBDOffsetY(), TLibCommon.MAX_QP, iBaseQP-idQP ).(int);
     iMaxQP = TLibCommon.CLIP3( -rpcTempCU.GetSlice().GetSPS().GetQpBDOffsetY(), TLibCommon.MAX_QP, iBaseQP+idQP ).(int);
     if  (rpcTempCU.GetSlice().GetSPS().GetUseLossless()) && (lowestQP < iMinQP) && rpcTempCU.GetSlice().GetPPS().GetUseDQP()  {
@@ -685,12 +685,12 @@ func (this *TEncCu)  xCompressCU         ( rpcBestCU *TLibCommon.TComDataCU, rpc
     iMaxQP = iStartQP;
   }
 //#if RATE_CONTROL_LAMBDA_DOMAIN
-  if  this.m_pcEncCfg.getUseRateCtrl() {
+  if  this.m_pcEncCfg.GetUseRateCtrl() {
     iMinQP = this.m_pcRateCtrl.getRCQP();
     iMaxQP = this.m_pcRateCtrl.getRCQP();
   }
 /*#else
-  if(this.m_pcEncCfg.getUseRateCtrl())
+  if(this.m_pcEncCfg.GetUseRateCtrl())
   {
     Int qp = this.m_pcRateCtrl.GetUnitQP();
     iMinQP  = Clip3( MIN_QP, MAX_QP, qp);
@@ -746,7 +746,7 @@ func (this *TEncCu)  xCompressCU         ( rpcBestCU *TLibCommon.TComDataCU, rpc
         this.m_pcEntropyCoder.encodeSplitFlag( rpcTempCU, 0, uiDepth, true );
 
         rpcTempCU.SetTotalBits(rpcTempCU.GetTotalBits() + this.m_pcEntropyCoder.getNumberOfWrittenBits()); // split bits
-        if this.m_pcEncCfg.getUseSBACRD() {
+        if this.m_pcEncCfg.GetUseSBACRD() {
           rpcTempCU.SetTotalBins (rpcTempCU.GetTotalBins() + this.m_pcEntropyCoder.m_pcEntropyCoderIf.getEncBinIf().getTEncBinCABAC().getBinsCoded());
         }
       }
@@ -773,7 +773,7 @@ func (this *TEncCu)  xCompressCU         ( rpcBestCU *TLibCommon.TComDataCU, rpc
           this.m_pcEntropyCoder.resetBits();
           this.m_pcEntropyCoder.encodeQP( rpcTempCU, uiTargetPartIdx, false );
           rpcTempCU.SetTotalBits(rpcTempCU.GetTotalBits() + this.m_pcEntropyCoder.getNumberOfWrittenBits()); // dQP bits
-          if this.m_pcEncCfg.getUseSBACRD() {
+          if this.m_pcEncCfg.GetUseSBACRD() {
             rpcTempCU.SetTotalBins(rpcTempCU.GetTotalBins()+ this.m_pcEntropyCoder.m_pcEntropyCoderIf.getEncBinIf().getTEncBinCABAC().getBinsCoded());
           }
           rpcTempCU.SetTotalCost( this.m_pcRdCost.calcRdCost( rpcTempCU.GetTotalBits(), rpcTempCU.GetTotalDistortion(), false, TLibCommon.DF_DEFAULT ));
@@ -793,7 +793,7 @@ func (this *TEncCu)  xCompressCU         ( rpcBestCU *TLibCommon.TComDataCU, rpc
        bEntropyLimit:=false;
        bSliceLimit	:=false;
       bSliceLimit=rpcBestCU.GetSlice().GetSliceMode()==TLibCommon.SHARP_MULTIPLE_CONSTRAINT_BASED_DEPENDENT_SLICE&&(rpcBestCU.GetTotalBits()>rpcBestCU.GetSlice().GetSliceArgument()<<3);
-      if rpcBestCU.GetSlice().GetDependentSliceMode()==TLibCommon.SHARP_MULTIPLE_CONSTRAINT_BASED_DEPENDENT_SLICE&&this.m_pcEncCfg.getUseSBACRD() {
+      if rpcBestCU.GetSlice().GetDependentSliceMode()==TLibCommon.SHARP_MULTIPLE_CONSTRAINT_BASED_DEPENDENT_SLICE&&this.m_pcEncCfg.GetUseSBACRD() {
         if rpcBestCU.GetTotalBins()>rpcBestCU.GetSlice().GetDependentSliceArgument(){
           bEntropyLimit=true;
         }
@@ -926,7 +926,7 @@ func (this *TEncCu)  xEncodeCU           ( pcCU *TLibCommon.TComDataCU,  uiAbsPa
 func (this *TEncCu)  xComputeQP          ( pcCU *TLibCommon.TComDataCU, uiDepth uint) int{
   iBaseQp := pcCU.GetSlice().GetSliceQp();
   iQpOffset := 0;
-  if  this.m_pcEncCfg.getUseAdaptiveQP()  {
+  if  this.m_pcEncCfg.GetUseAdaptiveQP()  {
     pcEPic := pcCU.GetPic();
     uiAQDepth := uint(TLibCommon.MIN( int(uiDepth), int(pcEPic.GetMaxAQDepth()-1) ).(int)); 
     pcAQLayer := pcEPic.GetAQLayer( uiAQDepth );
@@ -935,7 +935,7 @@ func (this *TEncCu)  xComputeQP          ( pcCU *TLibCommon.TComDataCU, uiDepth 
     uiAQUStride := pcAQLayer.GetAQPartStride();
     acAQU := pcAQLayer.GetQPAdaptationUnit();
 
-     dMaxQScale := math.Pow(2.0, float64(this.m_pcEncCfg.getQPAdaptationRange())/6.0);
+     dMaxQScale := math.Pow(2.0, float64(this.m_pcEncCfg.GetQPAdaptationRange())/6.0);
      dAvgAct := pcAQLayer.GetAvgActivity();
      dCUAct := acAQU[uiAQUPosY * uiAQUStride + uiAQUPosX].GetActivity();
      dNormAct := (dMaxQScale*dCUAct + dAvgAct) / (dCUAct + dMaxQScale*dAvgAct);
@@ -983,7 +983,7 @@ func (this *TEncCu)  xCheckRDCostMerge2Nx2N( rpcBestCU *TLibCommon.TComDataCU, r
   }
   uhDepth := uint(rpcTempCU.GetDepth1( 0 ));
   rpcTempCU.SetPartSizeSubParts( TLibCommon.SIZE_2Nx2N, 0, uhDepth ); // interprets depth relative to LCU level
-  rpcTempCU.SetCUTransquantBypassSubParts( this.m_pcEncCfg.getCUTransquantBypassFlagValue(), 0, uhDepth );
+  rpcTempCU.SetCUTransquantBypassSubParts( this.m_pcEncCfg.GetCUTransquantBypassFlagValue(), 0, uhDepth );
   rpcTempCU.GetInterMergeCandidates( 0, 0, cMvFieldNeighbours[:], uhInterDirNeighbours[:], &numValidMergeCand, -1 );
 
   var mergeCandBuffer	[TLibCommon.MRG_MAX_NUM_CANDS]int;
@@ -1008,7 +1008,7 @@ func (this *TEncCu)  xCheckRDCostMerge2Nx2N( rpcBestCU *TLibCommon.TComDataCU, r
         if !(bestIsSkip && uiNoResidual == 0) {
           // set MC parameters
           rpcTempCU.SetPredModeSubParts( TLibCommon.MODE_INTER, 0, uhDepth ); // interprets depth relative to LCU level
-          rpcTempCU.SetCUTransquantBypassSubParts( this.m_pcEncCfg.getCUTransquantBypassFlagValue(),     0, uhDepth );
+          rpcTempCU.SetCUTransquantBypassSubParts( this.m_pcEncCfg.GetCUTransquantBypassFlagValue(),     0, uhDepth );
           rpcTempCU.SetPartSizeSubParts( TLibCommon.SIZE_2Nx2N, 0, uhDepth ); // interprets depth relative to LCU level
           rpcTempCU.SetMergeFlagSubParts( true, 0, 0, uhDepth ); // interprets depth relative to LCU level
           rpcTempCU.SetMergeIndexSubParts( uiMergeCand, 0, 0, uhDepth ); // interprets depth relative to LCU level
@@ -1041,7 +1041,7 @@ func (this *TEncCu)  xCheckRDCostMerge2Nx2N( rpcBestCU *TLibCommon.TComDataCU, r
           rpcTempCU.InitEstData( uhDepth, orgQP );
 
 
-      if this.m_pcEncCfg.getUseFastDecisionForMerge() && !bestIsSkip {
+      if this.m_pcEncCfg.GetUseFastDecisionForMerge() && !bestIsSkip {
         bestIsSkip = rpcBestCU.GetQtRootCbf(0) == false;
       }
 
@@ -1050,7 +1050,7 @@ func (this *TEncCu)  xCheckRDCostMerge2Nx2N( rpcBestCU *TLibCommon.TComDataCU, r
    }
   }
 
-  if uiNoResidual == 0 && this.m_pcEncCfg.getUseEarlySkipDetection() {
+  if uiNoResidual == 0 && this.m_pcEncCfg.GetUseEarlySkipDetection() {
     if rpcBestCU.GetQtRootCbf( 0 ) == false{
       if  rpcBestCU.GetMergeFlag1( 0 ){
         *earlyDetectionSkipMode = true;
@@ -1085,7 +1085,7 @@ func (this *TEncCu)  xCheckRDCostInter   ( rpcBestCU *TLibCommon.TComDataCU, rpc
 
   rpcTempCU.SetPartSizeSubParts  ( ePartSize,  0, uhDepth );
   rpcTempCU.SetPredModeSubParts  ( TLibCommon.MODE_INTER, 0, uhDepth );
-  rpcTempCU.SetCUTransquantBypassSubParts  ( this.m_pcEncCfg.getCUTransquantBypassFlagValue(),      0, uhDepth );
+  rpcTempCU.SetCUTransquantBypassSubParts  ( this.m_pcEncCfg.GetCUTransquantBypassFlagValue(),      0, uhDepth );
   
 //#if AMP_MRG
   rpcTempCU.SetMergeAMP (true);
@@ -1101,7 +1101,7 @@ func (this *TEncCu)  xCheckRDCostInter   ( rpcBestCU *TLibCommon.TComDataCU, rpc
 //#endif
 
 //#if RATE_CONTROL_LAMBDA_DOMAIN
-  if this.m_pcEncCfg.getUseRateCtrl() && this.m_pcEncCfg.getLCULevelRC() && ePartSize == TLibCommon.SIZE_2Nx2N && uhDepth <= uint(this.m_addSADDepth) {
+  if this.m_pcEncCfg.GetUseRateCtrl() && this.m_pcEncCfg.GetLCULevelRC() && ePartSize == TLibCommon.SIZE_2Nx2N && uhDepth <= uint(this.m_addSADDepth) {
     SAD := this.m_pcRdCost.getSADPart( TLibCommon.G_bitDepthY, this.m_ppcPredYuvTemp[uhDepth].GetLumaAddr(), int(this.m_ppcPredYuvTemp[uhDepth].GetStride()),
       this.m_ppcOrigYuv[uhDepth].GetLumaAddr(), int(this.m_ppcOrigYuv[uhDepth].GetStride()),
       int(rpcTempCU.GetWidth1(0)), int(rpcTempCU.GetHeight1(0)) );
@@ -1125,7 +1125,7 @@ func (this *TEncCu)  xCheckRDCostIntra   ( rpcBestCU *TLibCommon.TComDataCU, rpc
 
   rpcTempCU.SetPartSizeSubParts( eSize, 0, uiDepth );
   rpcTempCU.SetPredModeSubParts( TLibCommon.MODE_INTRA, 0, uiDepth );
-  rpcTempCU.SetCUTransquantBypassSubParts( this.m_pcEncCfg.getCUTransquantBypassFlagValue(), 0, uiDepth );
+  rpcTempCU.SetCUTransquantBypassSubParts( this.m_pcEncCfg.GetCUTransquantBypassFlagValue(), 0, uiDepth );
   
   bSeparateLumaChroma := true; // choose estimation mode
    uiPreCalcDistC      := uint(0);
@@ -1157,7 +1157,7 @@ func (this *TEncCu)  xCheckRDCostIntra   ( rpcBestCU *TLibCommon.TComDataCU, rpc
    this.m_pcRDGoOnSbacCoder.store(this.m_pppcRDSbacCoder[uiDepth][TLibCommon.CI_TEMP_BEST]);
   }
   rpcTempCU.SetTotalBits( this.m_pcEntropyCoder.getNumberOfWrittenBits());
-  if this.m_pcEncCfg.getUseSBACRD(){
+  if this.m_pcEncCfg.GetUseSBACRD(){
     rpcTempCU.SetTotalBins(this.m_pcEntropyCoder.m_pcEntropyCoderIf.getEncBinIf().getTEncBinCABAC().getBinsCoded());
   } 
   rpcTempCU.SetTotalCost( this.m_pcRdCost.calcRdCost( rpcTempCU.GetTotalBits(), rpcTempCU.GetTotalDistortion(), false, TLibCommon.DF_DEFAULT ));
@@ -1205,7 +1205,7 @@ func (this *TEncCu)  xCheckDQP           ( pcCU *TLibCommon.TComDataCU){
       this.m_pcEntropyCoder.resetBits();
       this.m_pcEntropyCoder.encodeQP( pcCU, 0, false );
       pcCU.SetTotalBits(pcCU.GetTotalBits()+ this.m_pcEntropyCoder.getNumberOfWrittenBits()); // dQP bits
-      if this.m_pcEncCfg.getUseSBACRD(){
+      if this.m_pcEncCfg.GetUseSBACRD(){
         pcCU.SetTotalBins(pcCU.GetTotalBins() + this.m_pcEntropyCoder.m_pcEntropyCoderIf.getEncBinIf().getTEncBinCABAC().getBinsCoded());
       }
       pcCU.SetTotalCost(this.m_pcRdCost.calcRdCost( pcCU.GetTotalBits(), pcCU.GetTotalDistortion(), false, TLibCommon.DF_DEFAULT ));
@@ -1229,7 +1229,7 @@ func (this *TEncCu)  xCheckIntraPCM      ( rpcBestCU *TLibCommon.TComDataCU, rpc
   rpcTempCU.SetPartSizeSubParts( TLibCommon.SIZE_2Nx2N, 0, uiDepth );
   rpcTempCU.SetPredModeSubParts( TLibCommon.MODE_INTRA, 0, uiDepth );
   rpcTempCU.SetTrIdxSubParts ( 0, 0, uiDepth );
-  rpcTempCU.SetCUTransquantBypassSubParts( this.m_pcEncCfg.getCUTransquantBypassFlagValue(), 0, uiDepth );
+  rpcTempCU.SetCUTransquantBypassSubParts( this.m_pcEncCfg.GetCUTransquantBypassFlagValue(), 0, uiDepth );
 
   this.m_pcPredSearch.IPCMSearch( rpcTempCU, this.m_ppcOrigYuv[uiDepth], this.m_ppcPredYuvTemp[uiDepth], this.m_ppcResiYuvTemp[uiDepth], this.m_ppcRecoYuvTemp[uiDepth]);
 
@@ -1251,7 +1251,7 @@ func (this *TEncCu)  xCheckIntraPCM      ( rpcBestCU *TLibCommon.TComDataCU, rpc
   }
 
   rpcTempCU.SetTotalBits(this.m_pcEntropyCoder.getNumberOfWrittenBits());
-  if this.m_pcEncCfg.getUseSBACRD() {
+  if this.m_pcEncCfg.GetUseSBACRD() {
     rpcTempCU.SetTotalBins(this.m_pcEntropyCoder.m_pcEntropyCoderIf.getEncBinIf().getTEncBinCABAC().getBinsCoded());
   }
   rpcTempCU.SetTotalCost(this.m_pcRdCost.calcRdCost( rpcTempCU.GetTotalBits(), rpcTempCU.GetTotalDistortion(), false, TLibCommon.DF_DEFAULT ));
