@@ -76,10 +76,10 @@ type TEncTop struct{
   // RD cost computation
   m_cBitCounter		*TLibCommon.TComBitCounter;                  ///< bit counter for RD optimization
   m_cRdCost			*TEncRdCost;                      ///< RD cost computation class
-  m_pppcRDSbacCoder	[][][]TEncSbac;              ///< temporal storage for RD computation
+  m_pppcRDSbacCoder	[][]*TEncSbac;              ///< temporal storage for RD computation
   m_cRDGoOnSbacCoder	*TEncSbac;             ///< going on SBAC model for RD stage
 //#if FAST_BIT_EST
-  m_pppcBinCoderCABAC	[][][]TEncBinCABACCounter;            ///< temporal CABAC state storage for RD computation
+  m_pppcBinCoderCABAC	[][]*TEncBinCABACCounter;            ///< temporal CABAC state storage for RD computation
   m_cRDGoOnBinCoderCABAC	*TEncBinCABACCounter;         ///< going on bin coder CABAC for RD stage
 //#else
 //  TEncBinCABAC***         m_pppcBinCoderCABAC;            ///< temporal CABAC state storage for RD computation
@@ -128,7 +128,7 @@ func (this *TEncTop)  xInitPPSforTiles  (){
 }
 func (this *TEncTop)  xInitRPS          (){                             ///< initialize PPS from encoder options
 }
-  
+func (this *TEncTop)  getEncCfg             () *TEncCfg		  {return this.m_pcEncCfg; }
 func (this *TEncTop)  getListPic            () *list.List     { return  this.m_cListPic;             }
 func (this *TEncTop)  getPredSearch         () *TEncSearch             { return  this.m_cSearch;              }
   
@@ -147,7 +147,7 @@ func (this *TEncTop)  getBinCABACs          () []*TEncBinCABAC           { retur
   
 func (this *TEncTop)  getBitCounter         () *TLibCommon.TComBitCounter         { return  this.m_cBitCounter;          }
 func (this *TEncTop)  getRdCost             () *TEncRdCost             { return  this.m_cRdCost;              }
-func (this *TEncTop)  getRDSbacCoder        () [][][]TEncSbac             { return  this.m_pppcRDSbacCoder;       }
+func (this *TEncTop)  getRDSbacCoder        () [][]*TEncSbac             { return  this.m_pppcRDSbacCoder;       }
 func (this *TEncTop)  getRDGoOnSbacCoder    () *TEncSbac               { return  this.m_cRDGoOnSbacCoder;     }
 func (this *TEncTop)  getBitCounters        () *TLibCommon.TComBitCounter         { return  this.m_pcBitCounters;         }
 func (this *TEncTop)  getRdCosts            () *TEncRdCost             { return  this.m_pcRdCosts;             }

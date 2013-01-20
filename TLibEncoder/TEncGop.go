@@ -124,10 +124,10 @@ func (this *TEncGOP)  create      (  iWidth,  iHeight int,  uiMaxCUWidth,  uiMax
 func (this *TEncGOP)  destroy     () {}
   
 func (this *TEncGOP)  init        ( pcTEncTop *TEncTop){
-  fmt.Printf("not init yet in TEncGop\n");
-  /*
+  //fmt.Printf("not init yet in TEncGop\n");
+  
   this.m_pcEncTop     		  = pcTEncTop;
-  this.m_pcCfg                = pcTEncTop;
+  this.m_pcCfg                = pcTEncTop.getEncCfg();
   this.m_pcSliceEncoder       = pcTEncTop.getSliceEncoder();
   this.m_pcListPic            = pcTEncTop.getListPic();
   
@@ -141,12 +141,13 @@ func (this *TEncGOP)  init        ( pcTEncTop *TEncTop){
   //--Adaptive Loop filter
   this.m_pcSAO                = pcTEncTop.getSAO();
   this.m_pcRateCtrl           = pcTEncTop.getRateCtrl();
-  */
+  
   this.m_lastBPSEI          = 0;
   this.m_totalCoded         = 0;
 }
 
 func (this *TEncGOP)  compressGOP ( iPOCLast, iNumPicRcvd int, rcListPic, rcListPicYuvRecOut *list.List, accessUnitsInGOP *list.List ){
+	fmt.Printf("not compressGOP yet in TEncGop\n");
 /*
   var        pcPic *TLibCommon.TComPic;
   var    pcPicYuvRecOut	*TLibCommon.TComPicYuv;

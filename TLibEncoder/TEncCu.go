@@ -34,7 +34,7 @@
 package TLibEncoder
 
 import (
-	"fmt"
+	//"fmt"
 	"math"
 	"gohm/TLibCommon"
 )
@@ -92,8 +92,8 @@ func NewTEncCu() *TEncCu{
 
   /// copy parameters from encoder class
 func (this *TEncCu)  init ( pcEncTop *TEncTop ){
-	fmt.Printf("not added yet\n");
-/*
+  //fmt.Printf("not added yet\n");
+
   this.m_pcEncCfg           = pcEncTop.getEncCfg();
   this.m_pcPredSearch       = pcEncTop.getPredSearch();
   this.m_pcTrQuant          = pcEncTop.getTrQuant();
@@ -108,9 +108,8 @@ func (this *TEncCu)  init ( pcEncTop *TEncTop ){
   this.m_pppcRDSbacCoder   = pcEncTop.getRDSbacCoder();
   this.m_pcRDGoOnSbacCoder = pcEncTop.getRDGoOnSbacCoder();
   
-  this.m_bUseSBACRD        = pcEncTop.getUseSBACRD();
+  this.m_bUseSBACRD        = pcEncTop.getEncCfg().getUseSBACRD();
   this.m_pcRateCtrl        = pcEncTop.getRateCtrl();
-*/
 }
   
   /// create internal buffers

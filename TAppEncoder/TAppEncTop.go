@@ -37,6 +37,7 @@ import (
 	"io"
 	"container/list"
 	"gohm/TLibCommon"
+	"gohm/TLibEncoder"
 )
 
 // ====================================================================================================================
@@ -48,9 +49,9 @@ type TAppEncTop struct{
 	TAppEncCfg
 
   // class interface
-  //m_cTEncTop				TEncTop;                    ///< encoder class
-  m_cTVideoIOYuvInputFile	TLibCommon.TVideoIOYuv;       ///< input YUV file
-  m_cTVideoIOYuvReconFile	TLibCommon.TVideoIOYuv;       ///< output reconstruction file
+  m_cTEncTop				*TLibEncoder.TEncTop;                    ///< encoder class
+  m_cTVideoIOYuvInputFile	*TLibCommon.TVideoIOYuv;       ///< input YUV file
+  m_cTVideoIOYuvReconFile	*TLibCommon.TVideoIOYuv;       ///< output reconstruction file
   
   m_cListPicYuvRec			*list.List;              ///< list of reconstruction YUV files TComList<TComPicYuv*>      
   
