@@ -37,3 +37,5 @@ import (
 
 )
 
+type TEncSlice struct{
+}

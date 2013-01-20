@@ -34,6 +34,9 @@
 package TLibEncoder
 
 import (
-
+	"gohm/TLibCommon"
 )
 
+type TEncSampleAdaptiveOffset struct{
+	TLibCommon.TComSampleAdaptiveOffset
+}

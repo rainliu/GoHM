@@ -103,9 +103,9 @@ func NewTEncRdCostWeightPrediction() *TEncRdCostWeightPrediction {
     return &TEncRdCostWeightPrediction{}
 }
 
-func (this *TEncRdCostWeightPrediction) DISTORTION_PRECISION_ADJUSTMENT(x int) uint {
+/*func (this *TEncRdCostWeightPrediction) DISTORTION_PRECISION_ADJUSTMENT(x int) uint {
     return uint(x)
-}
+}*/
 
 func (this *TEncRdCostWeightPrediction) xSetWPscale(w0, w1, shift, offset, round int) {
     this.m_w0 = w0
@@ -136,8 +136,8 @@ func (this *TEncRdCostWeightPrediction) xGetSSEw(pcDtParam *DistParam) uint {
     shift := uint(wpCur.Shift)
     round := wpCur.Round
 
-    uiSum := uint(0)
-    uiShift := uint(this.DISTORTION_PRECISION_ADJUSTMENT((pcDtParam.bitDepth - 8) << 1))
+    uiSum := uint(0) 
+    uiShift := TLibCommon.DISTORTION_PRECISION_ADJUSTMENT(uint(pcDtParam.bitDepth - 8) << 1).(uint)
 
     var iTemp int
 
@@ -187,7 +187,7 @@ func (this *TEncRdCostWeightPrediction) xGetSADw(pcDtParam *DistParam) uint {
 
     pcDtParam.uiComp = 255 // reset for DEBUG (assert test)
 
-    return uiSum >> uint(this.DISTORTION_PRECISION_ADJUSTMENT(pcDtParam.bitDepth-8))
+    return uiSum >> TLibCommon.DISTORTION_PRECISION_ADJUSTMENT(uint(pcDtParam.bitDepth-8)).(uint)
 }
 func (this *TEncRdCostWeightPrediction) xGetHADs4w(pcDtParam *DistParam) uint {
     piOrg := pcDtParam.pOrg
@@ -208,7 +208,7 @@ func (this *TEncRdCostWeightPrediction) xGetHADs4w(pcDtParam *DistParam) uint {
         piCur = piCur[iOffsetCur:]
     }
 
-    return uiSum >> uint(this.DISTORTION_PRECISION_ADJUSTMENT(pcDtParam.bitDepth-8))
+    return uiSum >> TLibCommon.DISTORTION_PRECISION_ADJUSTMENT(uint(pcDtParam.bitDepth-8)).(uint)
 }
 func (this *TEncRdCostWeightPrediction) xGetHADs8w(pcDtParam *DistParam) uint {
     piOrg := pcDtParam.pOrg
@@ -234,7 +234,7 @@ func (this *TEncRdCostWeightPrediction) xGetHADs8w(pcDtParam *DistParam) uint {
         }
     }
 
-    return uiSum >> this.DISTORTION_PRECISION_ADJUSTMENT(pcDtParam.bitDepth-8)
+    return uiSum >> TLibCommon.DISTORTION_PRECISION_ADJUSTMENT(uint(pcDtParam.bitDepth-8)).(uint)
 }
 func (this *TEncRdCostWeightPrediction) xGetHADsw(pcDtParam *DistParam) uint {
     piOrg := pcDtParam.pOrg
@@ -288,7 +288,7 @@ func (this *TEncRdCostWeightPrediction) xGetHADsw(pcDtParam *DistParam) uint {
 
     this.m_xSetDone = false
 
-    return uiSum >> this.DISTORTION_PRECISION_ADJUSTMENT(pcDtParam.bitDepth-8)
+    return uiSum >> TLibCommon.DISTORTION_PRECISION_ADJUSTMENT(uint(pcDtParam.bitDepth-8)).(uint)
 }
 func (this *TEncRdCostWeightPrediction) xCalcHADs2x2w(piOrg []TLibCommon.Pel, piCur []TLibCommon.Pel, iStrideOrg, iStrideCur, iStep int) uint {
     var satd int
@@ -862,7 +862,7 @@ func (this *TEncRdCost) calcHAD(bitDepth int, pi0 []TLibCommon.Pel, iStride0 int
         }
     }
 
-    return uiSum >> this.DISTORTION_PRECISION_ADJUSTMENT(bitDepth-8)
+    return uiSum >> TLibCommon.DISTORTION_PRECISION_ADJUSTMENT(uint(bitDepth-8)).(uint)
 }
 
 // for motion cost
@@ -954,7 +954,7 @@ func (this *TEncRdCost) getDistPart(bitDepth int, piCur []TLibCommon.Pel, iCurSt
 //#if RATE_CONTROL_LAMBDA_DOMAIN
 func (this *TEncRdCost) getSADPart(bitDepth int, pelCur []TLibCommon.Pel, curStride int, pelOrg []TLibCommon.Pel, orgStride int, width, height int) uint {
     SAD := uint(0)
-    shift := this.DISTORTION_PRECISION_ADJUSTMENT(bitDepth - 8)
+    shift := TLibCommon.DISTORTION_PRECISION_ADJUSTMENT(uint(bitDepth - 8)).(uint)
     for i := 0; i < height; i++ {
         for j := 0; j < width; j++ {
             SAD += uint(TLibCommon.ABS(int(pelCur[j]-pelOrg[j])).(int)) >> shift
@@ -979,7 +979,7 @@ func (this *TEncRdCost) xGetSSE(pcDtParam *DistParam) uint {
     iStrideCur := pcDtParam.iStrideCur
 
     uiSum := uint(0)
-    uiShift := this.DISTORTION_PRECISION_ADJUSTMENT((pcDtParam.bitDepth - 8) << 1)
+    uiShift := TLibCommon.DISTORTION_PRECISION_ADJUSTMENT(uint(pcDtParam.bitDepth - 8) << 1).(uint)
 
     var iTemp int
 
@@ -1007,7 +1007,7 @@ func (this *TEncRdCost) xGetSSE4(pcDtParam *DistParam) uint {
     iStrideCur := pcDtParam.iStrideCur
 
     uiSum := uint(0)
-    uiShift := this.DISTORTION_PRECISION_ADJUSTMENT((pcDtParam.bitDepth - 8) << 1)
+    uiShift := TLibCommon.DISTORTION_PRECISION_ADJUSTMENT(uint(pcDtParam.bitDepth - 8) << 1).(uint)
 
     var iTemp int
 
@@ -1040,7 +1040,7 @@ func (this *TEncRdCost) xGetSSE8(pcDtParam *DistParam) uint {
     iStrideCur := pcDtParam.iStrideCur
 
     uiSum := uint(0)
-    uiShift := this.DISTORTION_PRECISION_ADJUSTMENT((pcDtParam.bitDepth - 8) << 1)
+    uiShift := TLibCommon.DISTORTION_PRECISION_ADJUSTMENT(uint(pcDtParam.bitDepth - 8) << 1).(uint) 
 
     var iTemp int
 
@@ -1080,7 +1080,7 @@ func (this *TEncRdCost) xGetSSE16(pcDtParam *DistParam) uint {
     iStrideCur := pcDtParam.iStrideCur
 
     uiSum := uint(0)
-    uiShift := this.DISTORTION_PRECISION_ADJUSTMENT((pcDtParam.bitDepth - 8) << 1)
+    uiShift := TLibCommon.DISTORTION_PRECISION_ADJUSTMENT(uint(pcDtParam.bitDepth - 8) << 1).(uint)
 
     var iTemp int
 
@@ -1137,7 +1137,7 @@ func (this *TEncRdCost) xGetSSE32(pcDtParam *DistParam) uint {
     iStrideCur := pcDtParam.iStrideCur
 
     uiSum := uint(0)
-    uiShift := this.DISTORTION_PRECISION_ADJUSTMENT((pcDtParam.bitDepth - 8) << 1)
+    uiShift := TLibCommon.DISTORTION_PRECISION_ADJUSTMENT(uint(pcDtParam.bitDepth - 8) << 1).(uint)
     var iTemp int
 
     for ; iRows != 0; iRows-- {
@@ -1225,7 +1225,7 @@ func (this *TEncRdCost) xGetSSE64(pcDtParam *DistParam) uint {
     iStrideCur := pcDtParam.iStrideCur
 
     uiSum := uint(0)
-    uiShift := this.DISTORTION_PRECISION_ADJUSTMENT((pcDtParam.bitDepth - 8) << 1)
+    uiShift := TLibCommon.DISTORTION_PRECISION_ADJUSTMENT(uint(pcDtParam.bitDepth - 8) << 1).(uint)
     var iTemp int
 
     for ; iRows != 0; iRows-- {
@@ -1377,7 +1377,7 @@ func (this *TEncRdCost) xGetSSE16N(pcDtParam *DistParam) uint {
     iStrideCur := pcDtParam.iStrideCur
 
     uiSum := uint(0)
-    uiShift := this.DISTORTION_PRECISION_ADJUSTMENT((pcDtParam.bitDepth - 8) << 1)
+    uiShift := TLibCommon.DISTORTION_PRECISION_ADJUSTMENT(uint(pcDtParam.bitDepth - 8) << 1).(uint)
     var iTemp int
 
     for ; iRows != 0; iRows-- {
@@ -1444,7 +1444,7 @@ func (this *TEncRdCost) xGetSAD(pcDtParam *DistParam) uint {
         piCur = piCur[iStrideCur:]
     }
 
-    return uiSum >> this.DISTORTION_PRECISION_ADJUSTMENT(pcDtParam.bitDepth-8)
+    return uiSum >> TLibCommon.DISTORTION_PRECISION_ADJUSTMENT(uint(pcDtParam.bitDepth-8)).(uint)
 }
 
 func (this *TEncRdCost) xGetSAD4(pcDtParam *DistParam) uint {
@@ -1472,7 +1472,7 @@ func (this *TEncRdCost) xGetSAD4(pcDtParam *DistParam) uint {
     }
 
     uiSum <<= uint(iSubShift)
-    return uiSum >> this.DISTORTION_PRECISION_ADJUSTMENT(pcDtParam.bitDepth-8)
+    return uiSum >> TLibCommon.DISTORTION_PRECISION_ADJUSTMENT(uint(pcDtParam.bitDepth-8)).(uint)
 }
 
 func (this *TEncRdCost) xGetSAD8(pcDtParam *DistParam) uint {
@@ -1504,7 +1504,7 @@ func (this *TEncRdCost) xGetSAD8(pcDtParam *DistParam) uint {
     }
 
     uiSum <<= uint(iSubShift)
-    return uiSum >> this.DISTORTION_PRECISION_ADJUSTMENT(pcDtParam.bitDepth-8)
+    return uiSum >> TLibCommon.DISTORTION_PRECISION_ADJUSTMENT(uint(pcDtParam.bitDepth-8)).(uint)
 }
 
 func (this *TEncRdCost) xGetSAD16(pcDtParam *DistParam) uint {
@@ -1544,7 +1544,7 @@ func (this *TEncRdCost) xGetSAD16(pcDtParam *DistParam) uint {
     }
 
     uiSum <<= uint(iSubShift)
-    return uiSum >> this.DISTORTION_PRECISION_ADJUSTMENT(pcDtParam.bitDepth-8)
+    return uiSum >> TLibCommon.DISTORTION_PRECISION_ADJUSTMENT(uint(pcDtParam.bitDepth-8)).(uint)
 }
 
 func (this *TEncRdCost) xGetSAD32(pcDtParam *DistParam) uint {
@@ -1600,7 +1600,7 @@ func (this *TEncRdCost) xGetSAD32(pcDtParam *DistParam) uint {
     }
 
     uiSum <<= uint(iSubShift)
-    return uiSum >> this.DISTORTION_PRECISION_ADJUSTMENT(pcDtParam.bitDepth-8)
+    return uiSum >> TLibCommon.DISTORTION_PRECISION_ADJUSTMENT(uint(pcDtParam.bitDepth-8)).(uint)
 }
 
 func (this *TEncRdCost) xGetSAD64(pcDtParam *DistParam) uint {
@@ -1688,7 +1688,7 @@ func (this *TEncRdCost) xGetSAD64(pcDtParam *DistParam) uint {
     }
 
     uiSum <<= uint(iSubShift)
-    return uiSum >> this.DISTORTION_PRECISION_ADJUSTMENT(pcDtParam.bitDepth-8)
+    return uiSum >> TLibCommon.DISTORTION_PRECISION_ADJUSTMENT(uint(pcDtParam.bitDepth-8)).(uint)
 }
 
 func (this *TEncRdCost) xGetSAD16N(pcDtParam *DistParam) uint {
@@ -1727,7 +1727,7 @@ func (this *TEncRdCost) xGetSAD16N(pcDtParam *DistParam) uint {
     }
 
     uiSum <<= uint(iSubShift)
-    return uiSum >> this.DISTORTION_PRECISION_ADJUSTMENT(pcDtParam.bitDepth-8)
+    return uiSum >> TLibCommon.DISTORTION_PRECISION_ADJUSTMENT(uint(pcDtParam.bitDepth-8)).(uint)
 }
 
 //#if AMP_SAD
@@ -1764,7 +1764,7 @@ func (this *TEncRdCost) xGetSAD12(pcDtParam *DistParam) uint {
     }
 
     uiSum <<= uint(iSubShift)
-    return uiSum >> this.DISTORTION_PRECISION_ADJUSTMENT(pcDtParam.bitDepth-8)
+    return uiSum >> TLibCommon.DISTORTION_PRECISION_ADJUSTMENT(uint(pcDtParam.bitDepth-8)).(uint)
 }
 
 func (this *TEncRdCost) xGetSAD24(pcDtParam *DistParam) uint {
@@ -1812,7 +1812,7 @@ func (this *TEncRdCost) xGetSAD24(pcDtParam *DistParam) uint {
     }
 
     uiSum <<= uint(iSubShift)
-    return uiSum >> this.DISTORTION_PRECISION_ADJUSTMENT(pcDtParam.bitDepth-8)
+    return uiSum >> TLibCommon.DISTORTION_PRECISION_ADJUSTMENT(uint(pcDtParam.bitDepth-8)).(uint)
 }
 
 func (this *TEncRdCost) xGetSAD48(pcDtParam *DistParam) uint {
@@ -1884,7 +1884,7 @@ func (this *TEncRdCost) xGetSAD48(pcDtParam *DistParam) uint {
     }
 
     uiSum <<= uint(iSubShift)
-    return uiSum >> this.DISTORTION_PRECISION_ADJUSTMENT(pcDtParam.bitDepth-8)
+    return uiSum >> TLibCommon.DISTORTION_PRECISION_ADJUSTMENT(uint(pcDtParam.bitDepth-8)).(uint)
 }
 
 //#endif
@@ -1911,7 +1911,7 @@ func (this *TEncRdCost) xGetHADs4(pcDtParam *DistParam) uint {
         piCur = piCur[iOffsetCur:]
     }
 
-    return uiSum >> this.DISTORTION_PRECISION_ADJUSTMENT(pcDtParam.bitDepth-8)
+    return uiSum >> TLibCommon.DISTORTION_PRECISION_ADJUSTMENT(uint(pcDtParam.bitDepth-8)).(uint)
 }
 
 func (this *TEncRdCost) xGetHADs8(pcDtParam *DistParam) uint {
@@ -1941,7 +1941,7 @@ func (this *TEncRdCost) xGetHADs8(pcDtParam *DistParam) uint {
         }
     }
 
-    return uiSum >> this.DISTORTION_PRECISION_ADJUSTMENT(pcDtParam.bitDepth-8)
+    return uiSum >> TLibCommon.DISTORTION_PRECISION_ADJUSTMENT(uint(pcDtParam.bitDepth-8)).(uint)
 }
 
 func (this *TEncRdCost) xGetHADs(pcDtParam *DistParam) uint {
@@ -2029,7 +2029,7 @@ func (this *TEncRdCost) xGetHADs(pcDtParam *DistParam) uint {
         //    assert(false);
     }
 
-    return uiSum >> this.DISTORTION_PRECISION_ADJUSTMENT(pcDtParam.bitDepth-8)
+    return uiSum >> TLibCommon.DISTORTION_PRECISION_ADJUSTMENT(uint(pcDtParam.bitDepth-8)).(uint)
 }
 
 func (this *TEncRdCost) xCalcHADs2x2(piOrg []TLibCommon.Pel, piCur []TLibCommon.Pel, iStrideOrg, iStrideCur, iStep int) uint {

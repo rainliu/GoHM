@@ -34,6 +34,7 @@
 package TLibEncoder
 
 import (
+	"fmt"
 	"math"
 	"gohm/TLibCommon"
 )
@@ -91,6 +92,7 @@ func NewTEncCu() *TEncCu{
 
   /// copy parameters from encoder class
 func (this *TEncCu)  init ( pcEncTop *TEncTop ){
+	fmt.Printf("not added yet\n");
 /*
   this.m_pcEncCfg           = pcEncTop.getEncCfg();
   this.m_pcPredSearch       = pcEncTop.getPredSearch();
