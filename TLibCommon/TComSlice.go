@@ -3923,9 +3923,9 @@ func (this *TComSlice) InitWpAcDcParam() {
     }
 }
 
-//func (this *TComSlice) SetTileLocationCount(cnt uint) {
-//	return this.m_tileByteLocation.Resize(cnt);
-//}
+func (this *TComSlice) SetTileLocationCount1(cnt uint) {
+	this.m_tileByteLocation = make(map[int]uint, cnt)
+}
 func (this *TComSlice) GetTileLocationCount() uint {
     return uint(len(this.m_tileByteLocation))
 }
