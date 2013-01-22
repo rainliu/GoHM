@@ -338,7 +338,7 @@ func (this *TDecTop) xGetNewPicBuffer(pcSlice *TLibCommon.TComSlice) (rpcPic *TL
 
     rpcPic.Destroy()
     rpcPic.Create(int(pcSlice.GetSPS().GetPicWidthInLumaSamples()), int(pcSlice.GetSPS().GetPicHeightInLumaSamples()),
-        TLibCommon.G_uiMaxCUWidth, TLibCommon.G_uiMaxCUHeight, TLibCommon.G_uiMaxCUDepth, 0, 
+        TLibCommon.G_uiMaxCUWidth, TLibCommon.G_uiMaxCUHeight, TLibCommon.G_uiMaxCUDepth, 0,
         picCroppingWindow, numReorderPics[:], true)
     rpcPic.GetPicSym().AllocSaoParam(this.m_cSAO)
 
@@ -502,8 +502,8 @@ func (this *TDecTop) xDecodeSlice(nalu *InputNALUnit, iSkipFrame *int, iPOCLastD
         for j = 0; j < pcSlice.GetPPS().GetNumRowsMinus1()+1; j++ {
             uiCummulativeTileWidth = 0
             for i = 0; i < pcSlice.GetPPS().GetNumColumnsMinus1(); i++ {
-                this.m_pcPic.GetPicSym().GetTComTile(uint(j*(pcSlice.GetPPS().GetNumColumnsMinus1()+1) + i)).SetTileWidth(pcSlice.GetPPS().GetColumnWidth(uint(i)))
-                uiCummulativeTileWidth += pcSlice.GetPPS().GetColumnWidth(uint(i))
+                this.m_pcPic.GetPicSym().GetTComTile(uint(j*(pcSlice.GetPPS().GetNumColumnsMinus1()+1) + i)).SetTileWidth(uint(pcSlice.GetPPS().GetColumnWidth(int(i))))
+                uiCummulativeTileWidth += uint(pcSlice.GetPPS().GetColumnWidth(int(i)))
             }
             this.m_pcPic.GetPicSym().GetTComTile(uint(j*(pcSlice.GetPPS().GetNumColumnsMinus1()+1) + i)).SetTileWidth(this.m_pcPic.GetPicSym().GetFrameWidthInCU() - uiCummulativeTileWidth)
         }
@@ -512,8 +512,8 @@ func (this *TDecTop) xDecodeSlice(nalu *InputNALUnit, iSkipFrame *int, iPOCLastD
         for j = 0; j < pcSlice.GetPPS().GetNumColumnsMinus1()+1; j++ {
             uiCummulativeTileHeight = 0
             for i = 0; i < pcSlice.GetPPS().GetNumRowsMinus1(); i++ {
-                this.m_pcPic.GetPicSym().GetTComTile(uint(i*(pcSlice.GetPPS().GetNumColumnsMinus1()+1) + j)).SetTileHeight(pcSlice.GetPPS().GetRowHeight(uint(i)))
-                uiCummulativeTileHeight += pcSlice.GetPPS().GetRowHeight(uint(i))
+                this.m_pcPic.GetPicSym().GetTComTile(uint(i*(pcSlice.GetPPS().GetNumColumnsMinus1()+1) + j)).SetTileHeight(uint(pcSlice.GetPPS().GetRowHeight(int(i))))
+                uiCummulativeTileHeight += uint(pcSlice.GetPPS().GetRowHeight(int(i)))
             }
             this.m_pcPic.GetPicSym().GetTComTile(uint(i*(pcSlice.GetPPS().GetNumColumnsMinus1()+1) + j)).SetTileHeight(this.m_pcPic.GetPicSym().GetFrameHeightInCU() - uiCummulativeTileHeight)
         }

@@ -146,7 +146,7 @@ func (this *TEncGOP)  init        ( pcTEncTop *TEncTop){
   this.m_totalCoded         = 0;
 }
 
-func (this *TEncGOP)  compressGOP ( iPOCLast, iNumPicRcvd int, rcListPic, rcListPicYuvRecOut *list.List, accessUnitsInGOP *list.List ){
+func (this *TEncGOP)  compressGOP ( iPOCLast, iNumPicRcvd int, rcListPic, rcListPicYuvRecOut *list.List, accessUnitsInGOP *AccessUnits ){
 	fmt.Printf("not compressGOP yet in TEncGop\n");
 /*
   var        pcPic *TLibCommon.TComPic;

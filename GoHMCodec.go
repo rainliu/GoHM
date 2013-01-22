@@ -34,82 +34,82 @@
 package main
 
 import (
-    "fmt"
-    "log"
-    "os"
-    "time"
-    "gohm/TLibCommon"
-    "gohm/TAppDecoder"
-    "gohm/TAppEncoder"
+	"fmt"
+	"gohm/TAppDecoder"
+	"gohm/TAppEncoder"
+	"gohm/TLibCommon"
+	"log"
+	"os"
+	"time"
 )
 
-func Encoder(){
-  	cTAppEncTop := TAppEncoder.NewTAppEncTop();
+func Encoder() {
+	cTAppEncTop := TAppEncoder.NewTAppEncTop()
 
-  	// create application encoder class
-  	cTAppEncTop.Create();
+	// create application encoder class
+	cTAppEncTop.Create()
 
-  	// parse configuration
-  	if err := cTAppEncTop.ParseCfg(len(os.Args), os.Args); err != nil {
-  		log.Fatal(err)
-    	return
-    }
+	// parse configuration
+	if err := cTAppEncTop.ParseCfg(len(os.Args), os.Args); err != nil {
+		log.Fatal(err)
+		return
+	}
 
-    // starting time
-    lBefore := time.Now()
+	// starting time
+	lBefore := time.Now()
 
-    // call encoding function
-    cTAppEncTop.Encode()
+	// call encoding function
+	cTAppEncTop.Encode()
 
-    // ending time
-    lAfter := time.Now()
+	// ending time
+	lAfter := time.Now()
 
-    fmt.Printf("\n\nTotal Encoding Time: %v.\n", lAfter.Sub(lBefore))
+	fmt.Printf("\n\nTotal Encoding Time: %v.\n", lAfter.Sub(lBefore))
 
-    // destroy application encoder class
-    cTAppEncTop.Destroy()
+	// destroy application encoder class
+	cTAppEncTop.Destroy()
 }
 
-func Decoder(){
+func Decoder() {
 	cTAppDecTop := TAppDecoder.NewTAppDecTop()
 
-    // create application decoder class
-    cTAppDecTop.Create()
+	// create application decoder class
+	cTAppDecTop.Create()
 
-    // parse configuration
-    if err := cTAppDecTop.ParseCfg(len(os.Args), os.Args); err != nil {
-    	log.Fatal(err)
-        return
-    }
+	// parse configuration
+	if err := cTAppDecTop.ParseCfg(len(os.Args), os.Args); err != nil {
+		log.Fatal(err)
+		return
+	}
 
-    // starting time
-    lBefore := time.Now()
+	// starting time
+	lBefore := time.Now()
 
-    // call decoding function
-    cTAppDecTop.Decode()
+	// call decoding function
+	cTAppDecTop.Decode()
 
-    // ending time
-    lAfter := time.Now()
+	// ending time
+	lAfter := time.Now()
 
-    fmt.Printf("\n\nTotal Decoding Time: %v.\n", lAfter.Sub(lBefore))
+	fmt.Printf("\n\nTotal Decoding Time: %v.\n", lAfter.Sub(lBefore))
 
-    // destroy application decoder class
-    cTAppDecTop.Destroy()
+	// destroy application decoder class
+	cTAppDecTop.Destroy()
 }
 
 func main() {
-    fmt.Printf("GoHM Software Version [%s]\n", TLibCommon.NV_VERSION)
-	if len(os.Args) <=2 {
-		fmt.Printf("Usage: \n");
-		fmt.Printf("	HM Encoder: gohm.exe -e encoder.cfg\n");
-		fmt.Printf("	HM Decoder: gohm.exe -d test.bin test.yuv [n trace.txt]\n");
-	}else{
+	fmt.Printf("GoHM Software Version [%s]\n", TLibCommon.NV_VERSION)
+	if len(os.Args) <= 2 {
+		fmt.Printf("Usage: \n")
+		fmt.Printf("	HM Encoder: gohm.exe -e encoder.cfg [trace.txt]\n")
+		fmt.Printf("	HM Decoder: gohm.exe -d test.bin test.yuv [n trace.txt]\n")
+	} else {
 		if os.Args[1] == "-e" {
-			Encoder();
-		}else if os.Args[1] == "-d" {
-			Decoder();
-		}else{
-			fmt.Printf("Unknown argment %s\n", os.Args[1]);
+			Encoder()
+		} else if os.Args[1] == "-d" {
+			Decoder()
+		} else {
+			fmt.Printf("Unknown argment %s\n", os.Args[1])
 		}
 	}
 }

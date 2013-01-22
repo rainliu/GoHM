@@ -868,7 +868,7 @@ func NewTEncRateCtrl() *TEncRateCtrl{
 	return &TEncRateCtrl{}
 }
 
-func (this *TEncRateCtrl)   init(  totalFrames,  targetBitrate,  frameRate,  GOPSize,  picWidth,  picHeight,  LCUWidth,  LCUHeight int, keepHierBits,  useLCUSeparateModel bool,  GOPList	[TLibCommon.MAX_GOP]GOPEntry ){
+func (this *TEncRateCtrl)   init(  totalFrames,  targetBitrate,  frameRate,  GOPSize,  picWidth,  picHeight,  LCUWidth,  LCUHeight int, keepHierBits,  useLCUSeparateModel bool,  GOPList	[TLibCommon.MAX_GOP]*GOPEntry ){
    isLowdelay := true;
   for  i:=0; i<GOPSize-1; i++ {
     if  GOPList[i].m_POC > GOPList[i+1].m_POC {

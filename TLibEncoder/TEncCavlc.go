@@ -717,10 +717,10 @@ func (this *TEncCavlc)  codePPS                 ( pcPPS *TLibCommon.TComPPS){
     this.WRITE_FLAG( uint(TLibCommon.B2U(pcPPS.GetUniformSpacingFlag())),                                  "uniform_spacing_flag" );
     if pcPPS.GetUniformSpacingFlag() == false {
       for i:=uint(0); i<uint(pcPPS.GetNumColumnsMinus1()); i++ {
-        this.WRITE_UVLC( pcPPS.GetColumnWidth(i)-1,                                  "column_width_minus1" );
+        this.WRITE_UVLC( uint(pcPPS.GetColumnWidth(int(i))-1),                                  "column_width_minus1" );
       }
       for i:=uint(0); i<uint(pcPPS.GetNumRowsMinus1()); i++ {
-        this.WRITE_UVLC( pcPPS.GetRowHeight(i)-1,                                    "row_height_minus1" );
+        this.WRITE_UVLC( uint(pcPPS.GetRowHeight(int(i))-1),                                    "row_height_minus1" );
       }
     }
     if pcPPS.GetNumColumnsMinus1() !=0 || pcPPS.GetNumRowsMinus1() !=0 {
@@ -1217,7 +1217,7 @@ func (this *TEncCavlc) codeInterDir      ( pcCU *TLibCommon.TComDataCU,  uiAbsPa
 func (this *TEncCavlc) codeRefFrmIdx     ( pcCU *TLibCommon.TComDataCU,  uiAbsPartIdx uint, eRefList TLibCommon.RefPicList ) {}
 func (this *TEncCavlc) codeMvd           ( pcCU *TLibCommon.TComDataCU,  uiAbsPartIdx uint, eRefList TLibCommon.RefPicList ) {}
 func (this *TEncCavlc) codeDeltaQP       ( pcCU *TLibCommon.TComDataCU,  uiAbsPartIdx uint ){}
-func (this *TEncCavlc) codeCoeffNxN      ( pcCU *TLibCommon.TComDataCU, pcCoef *TLibCommon.TCoeff, uiAbsPartIdx, uiWidth, uiHeight, uiDepth uint, eTType TLibCommon.TextType ) {}
+func (this *TEncCavlc) codeCoeffNxN      ( pcCU *TLibCommon.TComDataCU, pcCoef []TLibCommon.TCoeff, uiAbsPartIdx, uiWidth, uiHeight, uiDepth uint, eTType TLibCommon.TextType ) {}
 func (this *TEncCavlc) codeTransformSkipFlags ( pcCU *TLibCommon.TComDataCU,  uiAbsPartIdx uint, width, height, uiDepth uint, eTType TLibCommon.TextType ) {}
 func (this *TEncCavlc) estBit               (pcEstBitsSbac *TLibCommon.EstBitsSbacStruct, width, height int, eTType TLibCommon.TextType ) {}
 

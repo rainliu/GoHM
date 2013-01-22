@@ -2012,9 +2012,9 @@ type TComPPS struct {
     m_loopFilterAcrossTilesEnabledFlag bool
     m_uniformSpacingFlag               bool
     m_iNumColumnsMinus1                int
-    m_puiColumnWidth                   []uint
+    m_puiColumnWidth                   []int
     m_iNumRowsMinus1                   int
-    m_puiRowHeight                     []uint
+    m_puiRowHeight                     []int
 
     m_iNumSubstreams int
 
@@ -2245,15 +2245,15 @@ func (this *TComPPS) SetNumColumnsMinus1(i int) {
 func (this *TComPPS) GetNumColumnsMinus1() int {
     return this.m_iNumColumnsMinus1
 }
-func (this *TComPPS) SetColumnWidth(columnWidth []uint) {
+func (this *TComPPS) SetColumnWidth(columnWidth []int) {
     if this.m_uniformSpacingFlag == false && this.m_iNumColumnsMinus1 > 0 {
-        this.m_puiColumnWidth = make([]uint, this.m_iNumColumnsMinus1)
+        this.m_puiColumnWidth = make([]int, this.m_iNumColumnsMinus1)
         for i := 0; i < this.m_iNumColumnsMinus1; i++ {
             this.m_puiColumnWidth[i] = columnWidth[i]
         }
     }
 }
-func (this *TComPPS) GetColumnWidth(columnIdx uint) uint {
+func (this *TComPPS) GetColumnWidth(columnIdx int) int {
     return this.m_puiColumnWidth[columnIdx]
 }
 func (this *TComPPS) SetNumRowsMinus1(i int) {
@@ -2262,15 +2262,15 @@ func (this *TComPPS) SetNumRowsMinus1(i int) {
 func (this *TComPPS) GetNumRowsMinus1() int {
     return this.m_iNumRowsMinus1
 }
-func (this *TComPPS) SetRowHeight(rowHeight []uint) {
+func (this *TComPPS) SetRowHeight(rowHeight []int) {
     if this.m_uniformSpacingFlag == false && this.m_iNumRowsMinus1 > 0 {
-        this.m_puiRowHeight = make([]uint, this.m_iNumRowsMinus1)
+        this.m_puiRowHeight = make([]int, this.m_iNumRowsMinus1)
         for i := 0; i < this.m_iNumRowsMinus1; i++ {
             this.m_puiRowHeight[i] = rowHeight[i]
         }
     }
 }
-func (this *TComPPS) GetRowHeight(rowIdx uint) uint {
+func (this *TComPPS) GetRowHeight(rowIdx int) int {
     return this.m_puiRowHeight[rowIdx]
 }
 func (this *TComPPS) SetNumSubstreams(iNumSubstreams int) {

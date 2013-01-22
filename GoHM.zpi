@@ -144,7 +144,6 @@
         <File>TLibEncoder\TEncEntropy.go</File>
         <File>TLibEncoder\TEncGop.go</File>
         <File>TLibEncoder\TEncNAL.go</File>
-        <File>TLibEncoder\TEncPic.go</File>
         <File>TLibEncoder\TEncRateCtrl.go</File>
         <File>TLibEncoder\TEncSao.go</File>
         <File>TLibEncoder\TEncSearch.go</File>

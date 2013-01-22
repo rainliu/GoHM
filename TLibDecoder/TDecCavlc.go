@@ -841,18 +841,18 @@ func (this *TDecCavlc) ParsePPS(pcPPS *TLibCommon.TComPPS) {
         pcPPS.SetUniformSpacingFlag(uiCode != 0)
 
         if !pcPPS.GetUniformSpacingFlag() {
-            columnWidth := make([]uint, pcPPS.GetNumColumnsMinus1()) //UInt* columnWidth = (UInt*)malloc(pcPPS.GetNumColumnsMinus1()*sizeof(UInt));
+            columnWidth := make([]int, pcPPS.GetNumColumnsMinus1()) //UInt* columnWidth = (UInt*)malloc(pcPPS.GetNumColumnsMinus1()*sizeof(UInt));
             for i := 0; i < pcPPS.GetNumColumnsMinus1(); i++ {
                 this.READ_UVLC(&uiCode, "column_width_minus1")
-                columnWidth[i] = uiCode + 1
+                columnWidth[i] = int(uiCode) + 1
             }
             pcPPS.SetColumnWidth(columnWidth)
             //free(columnWidth);
 
-            rowHeight := make([]uint, pcPPS.GetNumRowsMinus1()) //UInt* rowHeight = (UInt*)malloc(pcPPS.GetNumRowsMinus1()*sizeof(UInt));
+            rowHeight := make([]int, pcPPS.GetNumRowsMinus1()) //UInt* rowHeight = (UInt*)malloc(pcPPS.GetNumRowsMinus1()*sizeof(UInt));
             for i := 0; i < pcPPS.GetNumRowsMinus1(); i++ {
                 this.READ_UVLC(&uiCode, "row_height_minus1")
-                rowHeight[i] = uiCode + 1
+                rowHeight[i] = int(uiCode) + 1
             }
             pcPPS.SetRowHeight(rowHeight)
             //free(rowHeight);
