@@ -126,8 +126,6 @@ func (this *TEncGOP)  create  (  iWidth,  iHeight int,  uiMaxCUWidth,  uiMaxCUHe
 func (this *TEncGOP)  destroy () {}
   
 func (this *TEncGOP)  init ( pcTEncTop *TEncTop){
-  //fmt.Printf("not init yet in TEncGop\n");
-  
   this.m_pcEncTop     		  = pcTEncTop;
   this.m_pcCfg                = pcTEncTop.GetEncCfg();
   this.m_pcSliceEncoder       = pcTEncTop.getSliceEncoder();
@@ -149,8 +147,6 @@ func (this *TEncGOP)  init ( pcTEncTop *TEncTop){
 }
 
 func (this *TEncGOP)  compressGOP ( iPOCLast, iNumPicRcvd int, rcListPic, rcListPicYuvRecOut *list.List, accessUnitsInGOP *AccessUnits ){
-	fmt.Printf("not compressGOP yet in TEncGop\n");
-
   var        pcPic *TLibCommon.TComPic;
   var    pcPicYuvRecOut	*TLibCommon.TComPicYuv;
   var      pcSlice	*TLibCommon.TComSlice;
@@ -259,7 +255,7 @@ func (this *TEncGOP)  compressGOP ( iPOCLast, iNumPicRcvd int, rcListPic, rcList
       this.m_pcEncTop.getTrQuant().SetUseScalingList(true);
     }else{
       fmt.Printf("error : ScalingList == %d no support\n",this.m_pcCfg.GetUseScalingListId());
-      //assert(0);
+      return; //assert(0);
     }
 
     if pcSlice.GetSliceType()==TLibCommon.B_SLICE&&this.m_pcCfg.GetGOPEntry(iGOPid).m_sliceType=="P"{

@@ -1139,45 +1139,58 @@ func (this *TEncSlice)    encodeSlice         ( rpcPic *TLibCommon.TComPic , rpc
       {
           uiCounter := uint(0);
           rbsp   := pcSubstreams[uiSubStrm].GetFIFO();
-          for it := rbsp.Front(); it != nil; {  //(vector<uint8_t>::iterator
-            /* 1) find the next emulated 00 00 {00,01,02,03}
-             * 2a) if not found, write all remaining bytes out, stop.
-             * 2b) otherwise, write all non-emulated bytes out
-             * 3) insert emulation_prevention_three_byte
-             */
-            fmt.Printf("not implent yet\n")
-            /*
-            found := it;
-            for {
-              // NB, end()-1, prevents finding a trailing two byte sequence
-              found = search_n(found, rbsp.end()-1, 2, 0);
-              found++;
-              // if not found, found == end, otherwise found = second zero byte
-              if (found == rbsp.end())
-              {
-                break;
-              }
-              if (*(++found) <= 3)
-              {
-                break;
-              }
-            }
-            it = found;
-            if (found != rbsp.end())
-            {
-              it++;
-              uiCounter++;
-            }
-            */
-          }
+          var v0, v1 byte;
+		  for it := rbsp.Front(); it != nil; it = it.Next() {
+		    /* 1) find the next emulated 00 00 {00,01,02,03}
+		     * 2a) if not found, write all remaining bytes out, stop.
+		     * 2b) otherwise, write all non-emulated bytes out
+		     * 3) insert emulation_prevention_three_byte
+		     */
+		    found := it;
+		    for {
+		      /* NB, end()-1, prevents finding a trailing two byte sequence */
+		      //found = search_n(found, rbsp.end()-1, 2, 0);
+		      for found!=rbsp.Back() {
+		      	v0 =found.Value.(byte);
+		      	if found.Next()!=rbsp.Back(){
+		      		v1 = found.Next().Value.(byte);
+		      	}else{
+		      		v1 = 0xFF;
+		      	}
+		      	found=found.Next();
+		      	
+		      	if v0==0 && v1==0 {
+		      		break;
+		      	}      	
+		      }
+		      
+		      found=found.Next();
+				
+		      /* if not found, found == end, otherwise found = second zero byte */
+		      if found == nil{
+		        break;
+		      }
+		      
+		      found=found.Next();
+				
+		      if found.Value.(byte) <= 3 {
+		        break;
+		      }
+		    }
+		
+		    it = found;
+		    if found != nil {
+		      it = rbsp.InsertBefore(emulation_prevention_three_byte[0], found);
+		    }
+		  }
 
-        uiAccumulatedSubstreamLength := uint(0);
-        for iSubstrmIdx:=0; iSubstrmIdx < iNumSubstreams; iSubstrmIdx++       {
-          uiAccumulatedSubstreamLength += pcSubstreams[iSubstrmIdx].GetNumberOfWrittenBits();
-        }
-        // add bits coded in previous dependent slices + bits coded so far
-        // add number of emulation prevention byte count in the tile
-        pcSlice.AddTileLocation( ((pcSlice.GetTileOffstForMultES() + uiAccumulatedSubstreamLength - uiBitsOriginallyInSubstreams) >> 3) + uiCounter );
+          uiAccumulatedSubstreamLength := uint(0);
+          for iSubstrmIdx:=0; iSubstrmIdx < iNumSubstreams; iSubstrmIdx++       {
+            uiAccumulatedSubstreamLength += pcSubstreams[iSubstrmIdx].GetNumberOfWrittenBits();
+          }
+          // add bits coded in previous dependent slices + bits coded so far
+          // add number of emulation prevention byte count in the tile
+          pcSlice.AddTileLocation( ((pcSlice.GetTileOffstForMultES() + uiAccumulatedSubstreamLength - uiBitsOriginallyInSubstreams) >> 3) + uiCounter );
       }
     }
 
