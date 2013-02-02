@@ -42,6 +42,10 @@ import (
 // ====================================================================================================================
 // Class definition
 // ====================================================================================================================
+//to be delete
+type TEncSampleAdaptiveOffset struct{
+	TLibCommon.TComSampleAdaptiveOffset
+}
 
 type TEncTop struct{
   m_pcEncCfg	*TEncCfg
@@ -105,7 +109,7 @@ func NewTEncTop() *TEncTop{
 	return &TEncTop{m_iPOCLast:-1}
 }
  
-func (this *TEncTop)      Create          (){
+func (this *TEncTop)  Create          (){
   // initialize global variables
   TLibCommon.InitROM();
   
@@ -170,7 +174,7 @@ func (this *TEncTop)      Create          (){
   }
 }
 
-func (this *TEncTop)      Destroy         (){
+func (this *TEncTop)  Destroy         (){
   // destroy processing unit classes
   this.m_cGOPEncoder.        destroy();
   this.m_cSliceEncoder.      destroy();
@@ -233,7 +237,7 @@ func (this *TEncTop)      Destroy         (){
   return;
 }
 
-func (this *TEncTop)      Init            (){
+func (this *TEncTop)  Init            (){
   var aTable4, aTable8,aTableLastPosVlcIndex []uint;
   
   // initialize SPS
@@ -277,7 +281,7 @@ func (this *TEncTop)      Init            (){
   this.GetEncCfg().m_iMaxRefPicNum = 0;
 }
 
-func (this *TEncTop)      DeletePicBuffer (){
+func (this *TEncTop)  DeletePicBuffer (){
   for iterPic := this.m_cListPic.Front(); iterPic!=nil; iterPic=iterPic.Next() {
     pcPic := iterPic.Value.(*TLibCommon.TComPic)
     pcPic.Destroy();	
@@ -286,7 +290,7 @@ func (this *TEncTop)      DeletePicBuffer (){
   this.m_cListPic.Init();
 }
 
-func (this *TEncTop)      CreateWPPCoders( iNumSubstreams int){
+func (this *TEncTop)  CreateWPPCoders( iNumSubstreams int){
   if this.m_pcSbacCoders != nil {
     return; // already generated.
   }
@@ -804,7 +808,7 @@ func (this *TEncTop)  selectReferencePictureSet(slice *TLibCommon.TComSlice, POC
   // -------------------------------------------------------------------------------------------------------------------
 
   /// encode several number of pictures until end-of-sequence
-func (this *TEncTop) Encode(  flush bool, pcPicYuvOrg *TLibCommon.TComPicYuv, rcListPicYuvRecOut *list.List, accessUnitsOut *AccessUnits, iNumEncoded *int ){
+func (this *TEncTop)  Encode(  flush bool, pcPicYuvOrg *TLibCommon.TComPicYuv, rcListPicYuvRecOut *list.List, accessUnitsOut *AccessUnits, iNumEncoded *int ){
   if pcPicYuvOrg!=nil {
     // get original YUV
     pcPicCurr := this.xGetNewPicBuffer();
@@ -841,7 +845,7 @@ func (this *TEncTop) Encode(  flush bool, pcPicYuvOrg *TLibCommon.TComPicYuv, rc
   this.m_uiNumAllPicCoded += uint(*iNumEncoded);
 }  
 
-func (this *TEncTop) PrintSummary() { 
+func (this *TEncTop)  PrintSummary() { 
 	this.m_cGOPEncoder.printOutSummary (this.m_uiNumAllPicCoded); 
 }
 

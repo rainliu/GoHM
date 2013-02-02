@@ -70,7 +70,7 @@ func NewTEncAnalyze() *TEncAnalyze {
 	//m_dPSNRSumY = m_dPSNRSumU = m_dPSNRSumV = m_dAddBits = m_uiNumPic = 0;  
 }
   
-func (this *TEncAnalyze) addResult(  psnrY,  psnrU,  psnrV,  bits float64) {
+func (this *TEncAnalyze)  addResult(  psnrY,  psnrU,  psnrV,  bits float64) {
     this.m_dPSNRSumY += psnrY;
     this.m_dPSNRSumU += psnrU;
     this.m_dPSNRSumV += psnrV;
@@ -119,7 +119,7 @@ func (this *TEncAnalyze)  printSummaryOut (){
     fclose(pFile);*/
 }
   
-func (this *TEncAnalyze)    printSummary(ch string) {
+func (this *TEncAnalyze)  printSummary(ch string) {
     /*FILE* pFile = NULL;
     
     switch( ch ) 

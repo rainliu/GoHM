@@ -1319,10 +1319,10 @@ func (this *TEncSlice)    setSearchRange      ( pcSlice *TLibCommon.TComSlice  )
     }
   }
 }
-func (this *TEncSlice)  getTotalBits        ()  uint64{ return this.m_uiPicTotalBits; }
+func (this *TEncSlice)    getTotalBits        ()  uint64{ return this.m_uiPicTotalBits; }
 
-func (this *TEncSlice)  getCUEncoder() *TEncCu        { return this.m_pcCuEncoder; }                        ///< CU encoder
-func (this *TEncSlice)  xDetermineStartAndBoundingCUAddr  ( uiStartCUAddr, uiBoundingCUAddr *uint, rpcPic *TLibCommon.TComPic, bEncodeSlice bool){
+func (this *TEncSlice)    getCUEncoder() *TEncCu        { return this.m_pcCuEncoder; }                        ///< CU encoder
+func (this *TEncSlice)    xDetermineStartAndBoundingCUAddr  ( uiStartCUAddr, uiBoundingCUAddr *uint, rpcPic *TLibCommon.TComPic, bEncodeSlice bool){
   pcSlice := rpcPic.GetSlice(this.getSliceIdx());
   var uiStartCUAddrSlice, uiBoundingCUAddrSlice uint;
   var tileIdxIncrement, tileIdx, tileWidthInLcu, tileHeightInLcu, tileTotalCount uint;
@@ -1601,10 +1601,10 @@ func (this *TEncSlice)  xDetermineStartAndBoundingCUAddr  ( uiStartCUAddr, uiBou
   }
 }
 
-func (this *TEncSlice)  getSliceIdx()   uint      { return this.m_uiSliceIdx;                    }
-func (this *TEncSlice)  setSliceIdx(i uint)   { this.m_uiSliceIdx = i;                       }
+func (this *TEncSlice)    getSliceIdx()   uint      { return this.m_uiSliceIdx;                    }
+func (this *TEncSlice)    setSliceIdx(i uint)   { this.m_uiSliceIdx = i;                       }
 //#if DEPENDENT_SLICES
-func (this *TEncSlice)  initCtxMem( i uint){
+func (this *TEncSlice)    initCtxMem( i uint){
   //for j := CTXMem.Front(); j != nil; j=j.Next() {
     //i := j.Value.(*TEncSbac);
     //delete (*j);
@@ -1613,7 +1613,7 @@ func (this *TEncSlice)  initCtxMem( i uint){
   this.CTXMem = make(map[int]*TEncSbac, i);
 }
 
-func (this *TEncSlice)  setCtxMem( sb *TEncSbac, b int)   { this.CTXMem[b] = sb; }
+func (this *TEncSlice)    setCtxMem( sb *TEncSbac, b int)   { this.CTXMem[b] = sb; }
 //#endif
 
 //private:

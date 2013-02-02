@@ -64,7 +64,7 @@ func NewSyntaxElementWriter() *SyntaxElementWriter{
 	return &SyntaxElementWriter{};
 }
 
-func (this *SyntaxElementWriter)  setBitstream          ( p TLibCommon.TComBitIf)  { this.m_pcBitIf = p;  }
+func (this *SyntaxElementWriter) setBitstream          ( p TLibCommon.TComBitIf)  { this.m_pcBitIf = p;  }
 
 
 func (this *SyntaxElementWriter) SetTraceFile(traceFile io.Writer) {
@@ -259,7 +259,7 @@ func (this *TEncCavlc)  xWriteUnaryMaxSymbol  ( uiSymbol, uiMaxSymbol uint){
   return;
 }
 //#if SPS_INTER_REF_SET_PRED
-func (this *TEncCavlc) codeShortTermRefPicSet              ( pcSPS *TLibCommon.TComSPS, rps *TLibCommon.TComReferencePictureSet, calledFromSliceHeader bool, idx int){
+func (this *TEncCavlc)  codeShortTermRefPicSet              ( pcSPS *TLibCommon.TComSPS, rps *TLibCommon.TComReferencePictureSet, calledFromSliceHeader bool, idx int){
 //#else
 //func (this *TEncCavlc) codeShortTermRefPicSet              ( TComSPS* pcSPS, TComReferencePictureSet* pcRPS, Bool calledFromSliceHeader );
 //#endif
