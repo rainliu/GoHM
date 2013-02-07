@@ -458,8 +458,8 @@ func (this *TEncSlice)    initEncSlice  ( pcPic *TLibCommon.TComPic, pocLast, po
   pcPic.SetPicYuvResi( this.m_apcPicYuvResi );
   rpcSlice.SetSliceMode            ( uint(this.m_pcCfg.GetSliceMode())            );
   rpcSlice.SetSliceArgument        ( uint(this.m_pcCfg.GetSliceArgument())        );
-  rpcSlice.SetDependentSliceMode     ( uint(this.m_pcCfg.GetDependentSliceMode())     );
-  rpcSlice.SetDependentSliceArgument ( uint(this.m_pcCfg.GetDependentSliceArgument()) );
+  rpcSlice.SetSliceSegmentMode     ( uint(this.m_pcCfg.GetSliceSegmentMode())     );
+  rpcSlice.SetSliceSegmentArgument ( uint(this.m_pcCfg.GetSliceSegmentArgument()) );
   rpcSlice.SetMaxNumMergeCand        ( this.m_pcCfg.GetMaxNumMergeCand()        );
   this.xStoreWPparam( pPPS.GetUseWP(), pPPS.GetWPBiPred() );
 }
@@ -610,7 +610,7 @@ func (this *TEncSlice)    precompressSlice    ( rpcPic *TLibCommon.TComPic      
 
 func (this *TEncSlice)    compressSlice       ( rpcPic  *TLibCommon.TComPic                              ){      ///< analysis stage of slice
   var  uiCUAddr,  uiStartCUAddr, uiBoundingCUAddr uint;
-  rpcPic.GetSlice(this.getSliceIdx()).SetDependentSliceCounter(0);
+  rpcPic.GetSlice(this.getSliceIdx()).SetSliceSegmentBits(0);
   var pppcRDSbacCoder *TEncBinCABAC;
   pcSlice := rpcPic.GetSlice(this.getSliceIdx());
   this.xDetermineStartAndBoundingCUAddr ( &uiStartCUAddr, &uiBoundingCUAddr, rpcPic, false );
@@ -649,7 +649,7 @@ func (this *TEncSlice)    compressSlice       ( rpcPic  *TLibCommon.TComPic     
     //------------------------------------------------------------------------------
     //  Weighted Prediction implemented at Slice level. SliceMode=2 is not supported yet.
     //------------------------------------------------------------------------------
-    if  pcSlice.GetSliceMode()==2 || pcSlice.GetDependentSliceMode()==2     {
+    if  pcSlice.GetSliceMode()==2 || pcSlice.GetSliceSegmentMode()==2     {
       fmt.Printf("Weighted Prediction is not supported with slice mode determined by max number of bins.\n");
       return
     }
@@ -719,14 +719,14 @@ func (this *TEncSlice)    compressSlice       ( rpcPic  *TLibCommon.TComPic     
 //#if DEPENDENT_SLICES
    bAllowDependence := false;
 //#if REMOVE_ENTROPY_SLICES
-  if pcSlice.GetPPS().GetDependentSliceEnabledFlag() {
+  if pcSlice.GetPPS().GetDependentSliceSegmentsEnabledFlag() {
 //#else
 //  if( pcSlice.GetPPS().getDependentSliceEnabledFlag()&&(!pcSlice.GetPPS().getEntropySliceEnabledFlag()) )
 //#endif
     bAllowDependence = true;
   }
   if bAllowDependence   {
-    if pcSlice.GetDependentSliceCurStartCUAddr()!= pcSlice.GetSliceCurStartCUAddr()    {
+    if pcSlice.GetSliceSegmentCurStartCUAddr()!= pcSlice.GetSliceCurStartCUAddr()    {
       if this.m_pcCfg.GetWaveFrontsynchro()!=0       {
         this.m_pcBufferSbacCoders[uiTileCol].loadContexts( this.CTXMem[1] );
       }
@@ -799,7 +799,7 @@ func (this *TEncSlice)    compressSlice       ( rpcPic  *TLibCommon.TComPic     
              (pcCUTR.GetSCUAddr()+uiMaxParts-1 < pcSlice.GetSliceCurStartCUAddr()) ||
              ((rpcPic.GetPicSym().GetTileIdxMap( int(pcCUTR.GetAddr()) ) != rpcPic.GetPicSym().GetTileIdxMap(int(uiCUAddr)))) )||
              ((pcCUTR==nil) || (pcCUTR.GetSlice()==nil) ||
-             (pcCUTR.GetSCUAddr()+uiMaxParts-1 < pcSlice.GetDependentSliceCurStartCUAddr()) ||
+             (pcCUTR.GetSCUAddr()+uiMaxParts-1 < pcSlice.GetSliceSegmentCurStartCUAddr()) ||
              ((rpcPic.GetPicSym().GetTileIdxMap( int(pcCUTR.GetAddr()) ) != rpcPic.GetPicSym().GetTileIdxMap(int(uiCUAddr)))) ){
 //#if DEPENDENT_SLICES
           if  (uiCUAddr != 0) && pcCUTR!=nil && (pcCUTR.GetSCUAddr()+uiMaxParts-1 >= pcSlice.GetSliceCurStartCUAddr())  && bAllowDependence          {
@@ -819,7 +819,7 @@ func (this *TEncSlice)    compressSlice       ( rpcPic  *TLibCommon.TComPic     
     if uiCUAddr == rpcPic.GetPicSym().GetTComTile(rpcPic.GetPicSym().GetTileIdxMap(int(uiCUAddr))).GetFirstCUAddr() &&                                   // must be first CU of tile
         uiCUAddr!=0 &&                                                                                                                                    // cannot be first CU of picture
 //#if DEPENDENT_SLICES
-        uiCUAddr!=rpcPic.GetPicSym().GetPicSCUAddr(rpcPic.GetSlice(rpcPic.GetCurrSliceIdx()).GetDependentSliceCurStartCUAddr())/rpcPic.GetNumPartInCU() &&
+        uiCUAddr!=rpcPic.GetPicSym().GetPicSCUAddr(rpcPic.GetSlice(rpcPic.GetCurrSliceIdx()).GetSliceSegmentCurStartCUAddr())/rpcPic.GetNumPartInCU() &&
 //#endif
         uiCUAddr!=rpcPic.GetPicSym().GetPicSCUAddr(rpcPic.GetSlice(rpcPic.GetCurrSliceIdx()).GetSliceCurStartCUAddr())/rpcPic.GetNumPartInCU() {     // cannot be first CU of slice
        sliceType := pcSlice.GetSliceType();
@@ -910,8 +910,8 @@ func (this *TEncSlice)    compressSlice       ( rpcPic  *TLibCommon.TComPic     
         pcSlice.SetNextSlice( true );
         break;
       }
-      if this.m_pcCfg.GetDependentSliceMode()==TLibCommon.SHARP_MULTIPLE_CONSTRAINT_BASED_DEPENDENT_SLICE && pcSlice.GetDependentSliceCounter()+pppcRDSbacCoder.getBinsCoded() > uint(this.m_pcCfg.GetDependentSliceArgument()) &&pcSlice.GetSliceCurEndCUAddr()!=pcSlice.GetDependentSliceCurEndCUAddr()      {
-        pcSlice.SetNextDependentSlice( true );
+      if this.m_pcCfg.GetSliceSegmentMode()==TLibCommon.SHARP_MULTIPLE_CONSTRAINT_BASED_DEPENDENT_SLICE && pcSlice.GetSliceSegmentBits()+pppcRDSbacCoder.getBinsCoded() > uint(this.m_pcCfg.GetSliceSegmentArgument()) &&pcSlice.GetSliceCurEndCUAddr()!=pcSlice.GetSliceSegmentCurEndCUAddr()      {
+        pcSlice.SetNextSliceSegment( true );
         break;
       }
       if this.m_pcCfg.GetUseSBACRD()       {
@@ -934,8 +934,8 @@ func (this *TEncSlice)    compressSlice       ( rpcPic  *TLibCommon.TComPic     
         pcSlice.SetNextSlice( true );
         break;
       }
-      if this.m_pcCfg.GetDependentSliceMode()==TLibCommon.SHARP_MULTIPLE_CONSTRAINT_BASED_DEPENDENT_SLICE && pcSlice.GetDependentSliceCounter()+ this.m_pcEntropyCoder.getNumberOfWrittenBits()> uint(this.m_pcCfg.GetDependentSliceArgument())&&pcSlice.GetSliceCurEndCUAddr()!=pcSlice.GetDependentSliceCurEndCUAddr()      {
-        pcSlice.SetNextDependentSlice( true );
+      if this.m_pcCfg.GetSliceSegmentMode()==TLibCommon.SHARP_MULTIPLE_CONSTRAINT_BASED_DEPENDENT_SLICE && pcSlice.GetSliceSegmentBits()+ this.m_pcEntropyCoder.getNumberOfWrittenBits()> uint(this.m_pcCfg.GetSliceSegmentArgument())&&pcSlice.GetSliceCurEndCUAddr()!=pcSlice.GetSliceSegmentCurEndCUAddr()      {
+        pcSlice.SetNextSliceSegment( true );
         break;
       }
     }
@@ -979,8 +979,8 @@ func (this *TEncSlice)    encodeSlice         ( rpcPic *TLibCommon.TComPic , rpc
   var uiCUAddr,uiStartCUAddr,uiBoundingCUAddr uint;
   pcSlice := rpcPic.GetSlice(this.getSliceIdx());
 
-  uiStartCUAddr=pcSlice.GetDependentSliceCurStartCUAddr();
-  uiBoundingCUAddr=pcSlice.GetDependentSliceCurEndCUAddr();
+  uiStartCUAddr=pcSlice.GetSliceSegmentCurStartCUAddr();
+  uiBoundingCUAddr=pcSlice.GetSliceSegmentCurEndCUAddr();
   // choose entropy coder
   {
     this.m_pcSbacCoder.init( this.m_pcBinCABAC );
@@ -1026,7 +1026,7 @@ func (this *TEncSlice)    encodeSlice         ( rpcPic *TLibCommon.TComPic , rpc
 //#if DEPENDENT_SLICES
   bAllowDependence := false;
 //#if REMOVE_ENTROPY_SLICES
-  if pcSlice.GetPPS().GetDependentSliceEnabledFlag() {
+  if pcSlice.GetPPS().GetDependentSliceSegmentsEnabledFlag() {
 //#else
 //  if( pcSlice.GetPPS().getDependentSliceEnabledFlag()&&(!pcSlice.GetPPS().getEntropySliceEnabledFlag()) )
 //#endif
@@ -1098,7 +1098,7 @@ func (this *TEncSlice)    encodeSlice         ( rpcPic *TLibCommon.TComPic , rpc
              ((rpcPic.GetPicSym().GetTileIdxMap( int(pcCUTR.GetAddr()) ) != rpcPic.GetPicSym().GetTileIdxMap(int(uiCUAddr)))) ))||
              (true/*bEnforceDependentSliceRestriction*/ &&
              ((pcCUTR==nil) || (pcCUTR.GetSlice()==nil) ||
-             (pcCUTR.GetSCUAddr()+uiMaxParts-1 < pcSlice.GetDependentSliceCurStartCUAddr()) ||
+             (pcCUTR.GetSCUAddr()+uiMaxParts-1 < pcSlice.GetSliceSegmentCurStartCUAddr()) ||
              ((rpcPic.GetPicSym().GetTileIdxMap( int(pcCUTR.GetAddr()) ) != rpcPic.GetPicSym().GetTileIdxMap(int(uiCUAddr)))) )) {
 //#if DEPENDENT_SLICES
           if (uiCUAddr != 0) && pcCUTR!=nil && ( pcCUTR.GetSCUAddr()+uiMaxParts-1 >= pcSlice.GetSliceCurStartCUAddr() ) && bAllowDependence          {
@@ -1117,7 +1117,7 @@ func (this *TEncSlice)    encodeSlice         ( rpcPic *TLibCommon.TComPic , rpc
     if  uiCUAddr == rpcPic.GetPicSym().GetTComTile(uint(rpcPic.GetPicSym().GetTileIdxMap(int(uiCUAddr)))).GetFirstCUAddr() &&                                   // must be first CU of tile
         uiCUAddr!=0 &&                                                                                                                                    // cannot be first CU of picture
 //#if DEPENDENT_SLICES
-        uiCUAddr!=rpcPic.GetPicSym().GetPicSCUAddr(rpcPic.GetSlice(rpcPic.GetCurrSliceIdx()).GetDependentSliceCurStartCUAddr())/rpcPic.GetNumPartInCU() &&
+        uiCUAddr!=rpcPic.GetPicSym().GetPicSCUAddr(rpcPic.GetSlice(rpcPic.GetCurrSliceIdx()).GetSliceSegmentCurStartCUAddr())/rpcPic.GetNumPartInCU() &&
 //#endif
         uiCUAddr!=rpcPic.GetPicSym().GetPicSCUAddr(rpcPic.GetSlice(rpcPic.GetCurrSliceIdx()).GetSliceCurStartCUAddr())/rpcPic.GetNumPartInCU() {     // cannot be first CU of slice
       {
@@ -1158,26 +1158,26 @@ func (this *TEncSlice)    encodeSlice         ( rpcPic *TLibCommon.TComPic , rpc
 		      		v1 = 0xFF;
 		      	}
 		      	found=found.Next();
-		      	
+
 		      	if v0==0 && v1==0 {
 		      		break;
-		      	}      	
+		      	}
 		      }
-		      
+
 		      found=found.Next();
-				
+
 		      /* if not found, found == end, otherwise found = second zero byte */
 		      if found == nil{
 		        break;
 		      }
-		      
+
 		      found=found.Next();
-				
+
 		      if found.Value.(byte) <= 3 {
 		        break;
 		      }
 		    }
-		
+
 		    it = found;
 		    if found != nil {
 		      it = rbsp.InsertBefore(emulation_prevention_three_byte[0], found);
@@ -1244,7 +1244,7 @@ func (this *TEncSlice)    encodeSlice         ( rpcPic *TLibCommon.TComPic , rpc
 //#if ENC_DEC_TRACE
 //    TLibCommon.G_bJustDoIt = TLibCommon.G_bEncDecTraceEnable;
 //#endif
-    if  (this.m_pcCfg.GetSliceMode()!=0 || this.m_pcCfg.GetDependentSliceMode()!=0) &&
+    if  (this.m_pcCfg.GetSliceMode()!=0 || this.m_pcCfg.GetSliceSegmentMode()!=0) &&
         uiCUAddr == rpcPic.GetPicSym().GetCUOrderMap(int((uiBoundingCUAddr+rpcPic.GetNumPartInCU()-1)/rpcPic.GetNumPartInCU()-1))     {
       this.m_pcCuEncoder.encodeCU( pcCU, true );
     }else{
@@ -1282,7 +1282,7 @@ func (this *TEncSlice)    encodeSlice         ( rpcPic *TLibCommon.TComPic , rpc
   }
 //#endif
   if pcSlice.GetPPS().GetCabacInitPresentFlag()  {
-    if pcSlice.GetPPS().GetDependentSliceEnabledFlag()    {
+    if pcSlice.GetPPS().GetDependentSliceSegmentsEnabledFlag()    {
       pcSlice.GetPPS().SetEncCABACTableIdx( uint(pcSlice.GetSliceType()) );
     }else{
       this.m_pcEntropyCoder.determineCabacInitIdx();
@@ -1435,13 +1435,13 @@ func (this *TEncSlice)    xDetermineStartAndBoundingCUAddr  ( uiStartCUAddr, uiB
 
   // Dependent slice
   var uiStartCUAddrDependentSlice, uiBoundingCUAddrDependentSlice uint;
-  uiStartCUAddrDependentSlice    = pcSlice.GetDependentSliceCurStartCUAddr();
+  uiStartCUAddrDependentSlice    = pcSlice.GetSliceSegmentCurStartCUAddr();
   uiBoundingCUAddrDependentSlice = uiNumberOfCUsInFrame;
   if bEncodeSlice  {
     var uiCUAddrIncrement uint;
-    switch this.m_pcCfg.GetDependentSliceMode()    {
+    switch this.m_pcCfg.GetSliceSegmentMode()    {
     case TLibCommon.SHARP_FIXED_NUMBER_OF_LCU_IN_DEPENDENT_SLICE:
-      uiCUAddrIncrement               = uint(this.m_pcCfg.GetDependentSliceArgument());
+      uiCUAddrIncrement               = uint(this.m_pcCfg.GetSliceSegmentArgument());
       if ((uiStartCUAddrDependentSlice + uiCUAddrIncrement) < uiNumberOfCUsInFrame*rpcPic.GetNumPartInCU() ) {
         uiBoundingCUAddrDependentSlice    =   (uiStartCUAddrDependentSlice + uiCUAddrIncrement);
       }else{
@@ -1450,15 +1450,15 @@ func (this *TEncSlice)    xDetermineStartAndBoundingCUAddr  ( uiStartCUAddr, uiB
 
     case TLibCommon.SHARP_MULTIPLE_CONSTRAINT_BASED_DEPENDENT_SLICE:
       uiCUAddrIncrement               = rpcPic.GetNumCUsInFrame();
-      uiBoundingCUAddrDependentSlice    = pcSlice.GetDependentSliceCurEndCUAddr();
+      uiBoundingCUAddrDependentSlice    = pcSlice.GetSliceSegmentCurEndCUAddr();
 
 //#if DEPENDENT_SLICES
     case TLibCommon.FIXED_NUMBER_OF_TILES_IN_DEPENDENT_SLICE:
-      tileIdx                = rpcPic.GetPicSym().GetTileIdxMap(int(rpcPic.GetPicSym().GetCUOrderMap(int(pcSlice.GetDependentSliceCurStartCUAddr()/rpcPic.GetNumPartInCU()))));
+      tileIdx                = rpcPic.GetPicSym().GetTileIdxMap(int(rpcPic.GetPicSym().GetCUOrderMap(int(pcSlice.GetSliceSegmentCurStartCUAddr()/rpcPic.GetNumPartInCU()))));
       uiCUAddrIncrement        = 0;
       tileTotalCount         = uint(rpcPic.GetPicSym().GetNumColumnsMinus1()+1) * uint(rpcPic.GetPicSym().GetNumRowsMinus1()+1);
 
-      for tileIdxIncrement = 0; tileIdxIncrement < uint(this.m_pcCfg.GetDependentSliceArgument()); tileIdxIncrement++{
+      for tileIdxIncrement = 0; tileIdxIncrement < uint(this.m_pcCfg.GetSliceSegmentArgument()); tileIdxIncrement++{
         if (tileIdx + tileIdxIncrement) < tileTotalCount        {
           tileWidthInLcu   = rpcPic.GetPicSym().GetTComTile(tileIdx + tileIdxIncrement).GetTileWidth();
           tileHeightInLcu  = rpcPic.GetPicSym().GetTComTile(tileIdx + tileIdxIncrement).GetTileHeight();
@@ -1480,12 +1480,12 @@ func (this *TEncSlice)    xDetermineStartAndBoundingCUAddr  ( uiStartCUAddr, uiB
     if pcSlice.GetPPS().GetNumSubstreams() > 1 && (uiStartCUAddrDependentSlice % (rpcPic.GetFrameWidthInCU()*rpcPic.GetNumPartInCU()) != 0)    {
       uiBoundingCUAddrDependentSlice = TLibCommon.MIN(uiBoundingCUAddrDependentSlice, uiStartCUAddrDependentSlice - (uiStartCUAddrDependentSlice % (rpcPic.GetFrameWidthInCU()*rpcPic.GetNumPartInCU())) + (rpcPic.GetFrameWidthInCU()*rpcPic.GetNumPartInCU())).(uint);
     }
-    pcSlice.SetDependentSliceCurEndCUAddr( uiBoundingCUAddrDependentSlice );
+    pcSlice.SetSliceSegmentCurEndCUAddr( uiBoundingCUAddrDependentSlice );
   }else{
     var uiCUAddrIncrement uint;
-    switch this.m_pcCfg.GetDependentSliceMode()    {
+    switch this.m_pcCfg.GetSliceSegmentMode()    {
     case TLibCommon.SHARP_FIXED_NUMBER_OF_LCU_IN_DEPENDENT_SLICE:
-      uiCUAddrIncrement               = uint(this.m_pcCfg.GetDependentSliceArgument());
+      uiCUAddrIncrement               = uint(this.m_pcCfg.GetSliceSegmentArgument());
       if (uiStartCUAddrDependentSlice + uiCUAddrIncrement) < uiNumberOfCUsInFrame*rpcPic.GetNumPartInCU()  {
         uiBoundingCUAddrDependentSlice    =   (uiStartCUAddrDependentSlice + uiCUAddrIncrement);
       }else{
@@ -1493,11 +1493,11 @@ func (this *TEncSlice)    xDetermineStartAndBoundingCUAddr  ( uiStartCUAddr, uiB
       }
 //#if DEPENDENT_SLICES
     case TLibCommon.FIXED_NUMBER_OF_TILES_IN_DEPENDENT_SLICE:
-      tileIdx                = rpcPic.GetPicSym().GetTileIdxMap(int(rpcPic.GetPicSym().GetCUOrderMap(int(pcSlice.GetDependentSliceCurStartCUAddr()/rpcPic.GetNumPartInCU()))));
+      tileIdx                = rpcPic.GetPicSym().GetTileIdxMap(int(rpcPic.GetPicSym().GetCUOrderMap(int(pcSlice.GetSliceSegmentCurStartCUAddr()/rpcPic.GetNumPartInCU()))));
       uiCUAddrIncrement        = 0;
       tileTotalCount         = uint(rpcPic.GetPicSym().GetNumColumnsMinus1()+1) * uint(rpcPic.GetPicSym().GetNumRowsMinus1()+1);
 
-      for tileIdxIncrement = 0; tileIdxIncrement < uint(this.m_pcCfg.GetDependentSliceArgument()); tileIdxIncrement++      {
+      for tileIdxIncrement = 0; tileIdxIncrement < uint(this.m_pcCfg.GetSliceSegmentArgument()); tileIdxIncrement++      {
         if (tileIdx + tileIdxIncrement) < tileTotalCount        {
           tileWidthInLcu   = rpcPic.GetPicSym().GetTComTile(tileIdx + tileIdxIncrement).GetTileWidth();
           tileHeightInLcu  = rpcPic.GetPicSym().GetTComTile(tileIdx + tileIdxIncrement).GetTileHeight();
@@ -1519,15 +1519,15 @@ func (this *TEncSlice)    xDetermineStartAndBoundingCUAddr  ( uiStartCUAddr, uiB
     if pcSlice.GetPPS().GetNumSubstreams() > 1 && (uiStartCUAddrDependentSlice % (rpcPic.GetFrameWidthInCU()*rpcPic.GetNumPartInCU()) != 0)    {
       uiBoundingCUAddrDependentSlice = TLibCommon.MIN(uiBoundingCUAddrDependentSlice, uiStartCUAddrDependentSlice - (uiStartCUAddrDependentSlice % (rpcPic.GetFrameWidthInCU()*rpcPic.GetNumPartInCU())) + (rpcPic.GetFrameWidthInCU()*rpcPic.GetNumPartInCU())).(uint);
     }
-    pcSlice.SetDependentSliceCurEndCUAddr( uiBoundingCUAddrDependentSlice );
+    pcSlice.SetSliceSegmentCurEndCUAddr( uiBoundingCUAddrDependentSlice );
   }
   if uiBoundingCUAddrDependentSlice>uiBoundingCUAddrSlice {
     uiBoundingCUAddrDependentSlice = uiBoundingCUAddrSlice;
-    pcSlice.SetDependentSliceCurEndCUAddr(uiBoundingCUAddrSlice);
+    pcSlice.SetSliceSegmentCurEndCUAddr(uiBoundingCUAddrSlice);
   }
   //calculate real dependent slice start address
-  uiInternalAddress := rpcPic.GetPicSym().GetPicSCUAddr(pcSlice.GetDependentSliceCurStartCUAddr()) % rpcPic.GetNumPartInCU();
-  uiExternalAddress := rpcPic.GetPicSym().GetPicSCUAddr(pcSlice.GetDependentSliceCurStartCUAddr()) / rpcPic.GetNumPartInCU();
+  uiInternalAddress := rpcPic.GetPicSym().GetPicSCUAddr(pcSlice.GetSliceSegmentCurStartCUAddr()) % rpcPic.GetNumPartInCU();
+  uiExternalAddress := rpcPic.GetPicSym().GetPicSCUAddr(pcSlice.GetSliceSegmentCurStartCUAddr()) / rpcPic.GetNumPartInCU();
   uiPosX := ( uiExternalAddress % rpcPic.GetFrameWidthInCU() ) * TLibCommon.G_uiMaxCUWidth + TLibCommon.G_auiRasterToPelX[ TLibCommon.G_auiZscanToRaster[uiInternalAddress] ];
   uiPosY := ( uiExternalAddress / rpcPic.GetFrameWidthInCU() ) * TLibCommon.G_uiMaxCUHeight+ TLibCommon.G_auiRasterToPelY[ TLibCommon.G_auiZscanToRaster[uiInternalAddress] ];
   uiWidth := pcSlice.GetSPS().GetPicWidthInLumaSamples();
@@ -1543,7 +1543,7 @@ func (this *TEncSlice)    xDetermineStartAndBoundingCUAddr  ( uiStartCUAddr, uiB
   }
   uiRealStartAddress := rpcPic.GetPicSym().GetPicSCUEncOrder(uiExternalAddress*rpcPic.GetNumPartInCU()+uiInternalAddress);
 
-  pcSlice.SetDependentSliceCurStartCUAddr(uiRealStartAddress);
+  pcSlice.SetSliceSegmentCurStartCUAddr(uiRealStartAddress);
   uiStartCUAddrDependentSlice=uiRealStartAddress;
 
   //calculate real slice start address
@@ -1575,28 +1575,28 @@ func (this *TEncSlice)    xDetermineStartAndBoundingCUAddr  ( uiStartCUAddr, uiB
   if !bEncodeSlice  {
     // For fixed number of LCU within an entropy and reconstruction slice we already know whether we will encounter end of entropy and/or reconstruction slice
     // first. Set the flags accordingly.
-    if (this.m_pcCfg.GetSliceMode()==TLibCommon.AD_HOC_SLICES_FIXED_NUMBER_OF_LCU_IN_SLICE && this.m_pcCfg.GetDependentSliceMode()==TLibCommon.SHARP_FIXED_NUMBER_OF_LCU_IN_DEPENDENT_SLICE) ||
-       (this.m_pcCfg.GetSliceMode()==0 && this.m_pcCfg.GetDependentSliceMode()==TLibCommon.SHARP_FIXED_NUMBER_OF_LCU_IN_DEPENDENT_SLICE) ||
-       (this.m_pcCfg.GetSliceMode()==TLibCommon.AD_HOC_SLICES_FIXED_NUMBER_OF_LCU_IN_SLICE && this.m_pcCfg.GetDependentSliceMode()==0)   ||
-       (this.m_pcCfg.GetSliceMode()==TLibCommon.AD_HOC_SLICES_FIXED_NUMBER_OF_TILES_IN_SLICE && this.m_pcCfg.GetDependentSliceMode()==TLibCommon.SHARP_FIXED_NUMBER_OF_LCU_IN_DEPENDENT_SLICE) ||
-       (this.m_pcCfg.GetSliceMode()==TLibCommon.AD_HOC_SLICES_FIXED_NUMBER_OF_TILES_IN_SLICE && this.m_pcCfg.GetDependentSliceMode()==0) ||
+    if (this.m_pcCfg.GetSliceMode()==TLibCommon.AD_HOC_SLICES_FIXED_NUMBER_OF_LCU_IN_SLICE && this.m_pcCfg.GetSliceSegmentMode()==TLibCommon.SHARP_FIXED_NUMBER_OF_LCU_IN_DEPENDENT_SLICE) ||
+       (this.m_pcCfg.GetSliceMode()==0 && this.m_pcCfg.GetSliceSegmentMode()==TLibCommon.SHARP_FIXED_NUMBER_OF_LCU_IN_DEPENDENT_SLICE) ||
+       (this.m_pcCfg.GetSliceMode()==TLibCommon.AD_HOC_SLICES_FIXED_NUMBER_OF_LCU_IN_SLICE && this.m_pcCfg.GetSliceSegmentMode()==0)   ||
+       (this.m_pcCfg.GetSliceMode()==TLibCommon.AD_HOC_SLICES_FIXED_NUMBER_OF_TILES_IN_SLICE && this.m_pcCfg.GetSliceSegmentMode()==TLibCommon.SHARP_FIXED_NUMBER_OF_LCU_IN_DEPENDENT_SLICE) ||
+       (this.m_pcCfg.GetSliceMode()==TLibCommon.AD_HOC_SLICES_FIXED_NUMBER_OF_TILES_IN_SLICE && this.m_pcCfg.GetSliceSegmentMode()==0) ||
 //#if DEPENDENT_SLICES
-       (this.m_pcCfg.GetDependentSliceMode()==TLibCommon.FIXED_NUMBER_OF_TILES_IN_DEPENDENT_SLICE && this.m_pcCfg.GetSliceMode()==0) ||
+       (this.m_pcCfg.GetSliceSegmentMode()==TLibCommon.FIXED_NUMBER_OF_TILES_IN_DEPENDENT_SLICE && this.m_pcCfg.GetSliceMode()==0) ||
 //#endif
        tileBoundary {
       if uiBoundingCUAddrSlice < uiBoundingCUAddrDependentSlice      {
         pcSlice.SetNextSlice       ( true );
-        pcSlice.SetNextDependentSlice( false );
+        pcSlice.SetNextSliceSegment( false );
       }else if uiBoundingCUAddrSlice > uiBoundingCUAddrDependentSlice      {
         pcSlice.SetNextSlice       ( false );
-        pcSlice.SetNextDependentSlice( true );
+        pcSlice.SetNextSliceSegment( true );
       }else      {
         pcSlice.SetNextSlice       ( true );
-        pcSlice.SetNextDependentSlice( true );
+        pcSlice.SetNextSliceSegment( true );
       }
     }else    {
       pcSlice.SetNextSlice       ( false );
-      pcSlice.SetNextDependentSlice( false );
+      pcSlice.SetNextSliceSegment( false );
     }
   }
 }

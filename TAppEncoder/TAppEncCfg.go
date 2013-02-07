@@ -56,7 +56,7 @@ type Option interface{
 //template<typename T>
 type OptionBase struct{
 	opt_name        	string;
-  	opt_desc        	string; 
+  	opt_desc        	string;
     opt_storage     	interface{};
     opt_default_value 	interface{};
 }
@@ -79,9 +79,9 @@ func (this *OptionString) Parse(arg string) error{
    //this.opt_storage = arg;
    var storage *string;
    storage = this.opt_storage.(*string);
-	
+
    *storage = arg;
-   
+
    return nil;
 }
 
@@ -109,13 +109,13 @@ func (this *OptionInt) Parse(arg string) error {
 	if err!=nil{
 		return err
 	}
-	
+
 	//this.opt_storage = argint;
 	var storage *int;
 	storage = this.opt_storage.(*int);
-	
+
 	*storage = argint;
-	
+
 	return nil;
 }
 
@@ -143,16 +143,16 @@ func (this *OptionUInt) Parse(arg string) error {
 	if err!=nil{
 		return err
 	}
-	
+
 	//this.opt_storage = uint(argint);
 	var storage *uint;
 	storage = this.opt_storage.(*uint);
-	
+
 	*storage = uint(argint);
-	
+
 	return nil;
 }
- 
+
 func (this *OptionUInt) SetDefault() {
 	var storage *uint;
 	var default_value uint;
@@ -176,13 +176,13 @@ func (this *OptionBool) Parse(arg string) error {
 	if err!=nil{
 		return err
 	}
-	
+
 	//this.opt_storage = argint!=0;
 	var storage *bool;
 	storage = this.opt_storage.(*bool);
-	
+
 	*storage = argint!=0;
-	
+
 	return nil;
 }
 
@@ -209,16 +209,16 @@ func (this *OptionFloat) Parse(arg string) error {
 	if err!=nil{
 		return err
 	}
-	
+
 	//this.opt_storage = float64(argfloat);
 	var storage *float64;
 	storage = this.opt_storage.(*float64);
-	
+
 	*storage = float64(argfloat);
-	
+
 	return nil;
 }
- 
+
 func (this *OptionFloat) SetDefault() {
 	var storage *float64;
 	var default_value float64;
@@ -240,40 +240,40 @@ func NewOptionGOPEntry(name string, storage interface{}, default_value interface
 func (this *OptionGOPEntry) Parse(arg string) error {
   arglist := strings.Fields(arg);
   entry   := TLibEncoder.NewGOPEntry();
-  
+
   in:=0;
   entry.SetSliceType(arglist[in]);
-  
+
   in++;
   poc, _ := strconv.Atoi(arglist[in]);
   entry.SetPOC(poc);
-  
+
   in++;
   qpoffset, _:= strconv.Atoi(arglist[in]);
   entry.SetQPOffset(qpoffset);
-  
+
   in++;
   qpfactor, _:= strconv.ParseFloat(arglist[in], 64);
   entry.SetQPFactor(qpfactor);
-  
+
 //#if VARYING_DBL_PARAMS
-  in++;	
+  in++;
   tcOffsetDiv2, _:= strconv.Atoi(arglist[in]);
   entry.SetTcOffsetDiv2(tcOffsetDiv2);
-  
+
   in++;
   betaOffsetDiv2, _:= strconv.Atoi(arglist[in]);
   entry.SetBetaOffsetDiv2(betaOffsetDiv2);
-  
+
 //#endif
   in++;
   temporalId, _:= strconv.Atoi(arglist[in]);
   entry.SetTemporalId(temporalId);
-  
+
   in++;
   numRefPicsActive, _:= strconv.Atoi(arglist[in]);
   entry.SetNumRefPicsActive(numRefPicsActive);
-  
+
   in++;
   numRefPics, _:= strconv.Atoi(arglist[in]);
   entry.SetNumRefPics(numRefPics);
@@ -282,7 +282,7 @@ func (this *OptionGOPEntry) Parse(arg string) error {
   	referencePics, _:= strconv.Atoi(arglist[in]);
     entry.SetReferencePics(i, referencePics);
   }
-  
+
   in++;
   interRPSPrediction, _:= strconv.Atoi(arglist[in]);
   entry.SetInterRPSPrediction(interRPSPrediction);
@@ -291,7 +291,7 @@ func (this *OptionGOPEntry) Parse(arg string) error {
     in++;
     deltaRPS, _:= strconv.Atoi(arglist[in]);
     entry.SetDeltaRPS(deltaRPS);
-    
+
     in++;
     numRefIdc, _:= strconv.Atoi(arglist[in]);
     entry.SetNumRefIdc(numRefIdc);
@@ -316,13 +316,13 @@ func (this *OptionGOPEntry) Parse(arg string) error {
     }
   }
 #endif*/
-	
+
 	//this.opt_storage = entry;
 	var storage **TLibEncoder.GOPEntry;
 	storage = this.opt_storage.(**TLibEncoder.GOPEntry);
-	
+
 	*storage = entry;
-	
+
 	return nil;
 }
 
@@ -333,7 +333,7 @@ func (this *OptionGOPEntry) SetDefault() {
 	default_value = this.opt_default_value.(*TLibEncoder.GOPEntry);
     *storage = default_value;
 }
- 
+
 type Options struct {
   opt_map 	map[string]Option; //std::list<Names*>
 };
@@ -356,19 +356,19 @@ func (opts *Options) SetDefaults(){
      	opts.opt_map[name].SetDefault();
     }
 }
-    
+
 func (opts *Options) StorePair( name string, value string) bool{
       //Options::NamesMap::iterator opt_it;
       opt, found := opts.opt_map[name];
-      
+
       if !found {
         // not found
         fmt.Printf("Unknown option: '%s' (value:`%s')\n", name, value);
         return false;
       }
-      
+
       opt.Parse(value);
-      
+
       return true;
 }
 
@@ -394,7 +394,7 @@ func (opts *Options) ScanLine  ( line string){
       }
       name  := strings.TrimSpace(line[0:commaPos]);
       value := strings.TrimSpace(line[commaPos+1:]);
-      
+
       //fmt.Printf("%s : %s\n", name, value);
 
       /* store the value in option */
@@ -415,7 +415,7 @@ func (opts *Options) ScanFile  ( in io.Reader) (err error){
 
     for !eof {
     	opts.ScanLine(line);
-    	
+
     	line, err = reader.ReadString('\n')
 	    if err == io.EOF {
 	        err = nil
@@ -424,7 +424,7 @@ func (opts *Options) ScanFile  ( in io.Reader) (err error){
 	        return err
 	    }
     }
-    
+
     return nil;
 }
 
@@ -434,7 +434,7 @@ func (opts *Options) ParseConfigFile( filename string){
 		log.Fatal(err)
 	}
 	defer cfgstream.Close()
-	
+
 	opts.ScanFile(cfgstream);
 }
 
@@ -463,7 +463,7 @@ type TAppEncCfg struct{
   m_cropBottom		int;
   m_iFrameToBeEncoded	int;                              ///< number of encoded frames
   m_aiPad			 [2]int;                                       ///< number of padded pixels for width and height
-  
+
   // profile/level
   m_profile					int;//TLibCommon.PROFILE;
   m_levelTier				int;TLibCommon.TIER;
@@ -490,7 +490,7 @@ type TAppEncCfg struct{
   m_uiDeltaQpRD			uint;                                    ///< dQP range for multi-pass slice QP optimization
   m_iMaxCuDQPDepth		int;                                 ///< Max. depth for a minimum CuDQPSize (0:default)
 
-  m_cbQpOffset			int;                                     ///< Chroma Cb QP Offset (0:default) 
+  m_cbQpOffset			int;                                     ///< Chroma Cb QP Offset (0:default)
   m_crQpOffset			int;                                     ///< Chroma Cr QP Offset (0:default)
 
 //#if ADAPTIVE_QP_SELECTION
@@ -499,21 +499,21 @@ type TAppEncCfg struct{
 
   m_bUseAdaptiveQP		bool;                                 ///< Flag for enabling QP adaptation based on a psycho-visual model
   m_iQPAdaptationRange	int;                             ///< dQP range by QP adaptation
-  
+
   m_maxTempLayer			int;                                  ///< Max temporal layer
 
   // coding unit (CU) definition
   m_uiMaxCUWidth			uint;                                   ///< max. CU width in pixel
   m_uiMaxCUHeight			uint;                                  ///< max. CU height in pixel
   m_uiMaxCUDepth			uint;                                   ///< max. CU depth
-  
+
   // transfom unit (TU) definition
   m_uiQuadtreeTULog2MaxSize	uint;
   m_uiQuadtreeTULog2MinSize	uint;
-  
+
   m_uiQuadtreeTUMaxDepthInter	uint;
   m_uiQuadtreeTUMaxDepthIntra	uint;
-  
+
   // coding tools (bit-depth)
   m_inputBitDepthY			int;                               ///< bit-depth of input file (luma component)
   m_inputBitDepthC			int;                               ///< bit-depth of input file (chroma component)
@@ -527,7 +527,7 @@ type TAppEncCfg struct{
 
   // coding tool (lossless)
   m_useLossless				bool;                                    ///< flag for using lossless coding
-  m_bUseSAO					bool; 
+  m_bUseSAO					bool;
   m_maxNumOffsetsPerPic		int;                            ///< SAO maximun number of offset per picture
   m_saoLcuBoundary			bool;                                 ///< SAO parameter estimation using non-deblocked pixels for LCU bottom and right boundary areas
   m_saoLcuBasedOptimization	bool;                        ///< SAO LCU-based optimization
@@ -537,7 +537,7 @@ type TAppEncCfg struct{
   m_loopFilterBetaOffsetDiv2	int;                     ///< beta offset for deblocking filter
   m_loopFilterTcOffsetDiv2	int;                       ///< tc offset for deblocking filter
   m_DeblockingFilterControlPresent	bool;                 ///< deblocking filter control present flag in PPS
- 
+
   // coding tools (PCM)
   m_usePCM					bool;                                         ///< flag for using IPCM
   m_pcmLog2MaxSize			uint;                                 ///< log2 of maximum PCM block size
@@ -557,7 +557,7 @@ type TAppEncCfg struct{
   m_bipredSearchRange			int;                              ///< ME search range for bipred refinement
   m_bUseFastEnc				bool;                                    ///< flag for using fast encoder setting
   m_bUseEarlyCU				bool;                                    ///< flag for using Early CU setting
-  m_useFastDecisionForMerge	bool;                        ///< flag for using Fast Decision Merge RD-Cost 
+  m_useFastDecisionForMerge	bool;                        ///< flag for using Fast Decision Merge RD-Cost
   m_bUseCbfFastMode			bool;                              ///< flag for using Cbf Fast PU Mode Decision
   m_useEarlySkipDetection		bool;                         ///< flag for using Early SKIP Detection
   m_iSliceMode				int;           ///< 0: Disable all Recon slice limits, 1 : Maximum number of largest coding units per slice, 2: Maximum number of bytes in a slice
@@ -583,7 +583,7 @@ type TAppEncCfg struct{
   m_iWaveFrontSubstreams		int; //< If iWaveFrontSynchro, this is the number of substreams per frame (dependent tiles) or per tile (independent tiles).
 
   m_bUseConstrainedIntraPred	bool;                       ///< flag for using constrained intra prediction
-  
+
   m_decodePictureHashSEIEnabled	int;                    ///< Checksum(3)/CRC(2)/MD5(1)/disable(0) acting on decoded picture hash SEI message
   m_recoveryPointSEIEnabled		int;
   m_bufferingPeriodSEIEnabled		int;
@@ -597,7 +597,7 @@ type TAppEncCfg struct{
   // weighted prediction
   m_bUseWeightPred				bool;                                 ///< Use of explicit Weighting Prediction for P_SLICE
   m_useWeightedBiPred				bool;                                    ///< Use of Bi-Directional Weighting Prediction (B_SLICE)
-  
+
   m_log2ParallelMergeLevel		uint;                         ///< Parallel merge estimation region
   m_maxNumMergeCand				uint;                                ///< Max number of merge candidates
 
@@ -656,7 +656,7 @@ type TAppEncCfg struct{
   m_maxBitsPerMinCuDenom			int;                           ///< Indicates an upper bound for the number of bits of codinTLibCommon.G_unit() data
   m_log2MaxMvLengthHorizontal		int;                      ///< Indicate the maximum absolute value of a decoded horizontal MV component in quarter-pel luma units
   m_log2MaxMvLengthVertical		int;                        ///< Indicate the maximum absolute value of a decoded vertical MV component in quarter-pel luma units
-                   
+
 //#if SIGNAL_BITRATE_PICRATE_IN_VPS
   m_bitRatePicRateMaxTLayers		int;                       ///< Indicates max. number of sub-layers for which bit rate is signalled.
   m_bitRateInfoPresentFlag		[]bool;                         ///< Indicates whether bit rate information is signalled
@@ -671,7 +671,7 @@ type TAppEncCfg struct{
 func NewTAppEncCfg() *TAppEncCfg{
 	return &TAppEncCfg{};
 }
-  
+
 func  (this *TAppEncCfg) Create    (){                                        ///< create option handling class
 	//do nothing
 }
@@ -680,7 +680,7 @@ func  (this *TAppEncCfg) Destroy   (){                                        //
 }
 func  (this *TAppEncCfg) ParseCfg  ( argc int, argv []string ) error {                 ///< parse configuration file to fill member variables
   //do_help := false;
-  
+
   var cfg_InputFile		string;
   var cfg_BitstreamFile	string;
   var cfg_ReconFile		string;
@@ -697,10 +697,10 @@ func  (this *TAppEncCfg) ParseCfg  ( argc int, argv []string ) error {          
   var cfg_constantPicRateIdc		string;
 //#endif
   opts := NewOptions();
-  
+
   //("help", do_help, false, "this help text")
   //("c", po::parseConfigFile, "configuration file name")
-  
+
   // File, I/O and source parameters
   opts.AddOption(NewOptionString("InputFile",             &cfg_InputFile,     	 string(""), "Original YUV input file name"));
   opts.AddOption(NewOptionString("BitstreamFile",         &cfg_BitstreamFile, 	 string(""), "Bitstream output file name"));
@@ -723,7 +723,7 @@ func  (this *TAppEncCfg) ParseCfg  ( argc int, argv []string ) error {          
   opts.AddOption(NewOptionInt   ("FrameRate",	          &this.m_iFrameRate,          0, "Frame rate"));
   opts.AddOption(NewOptionUInt  ("FrameSkip",             &this.m_FrameSkip,      uint(0), "Number of frames to skip at start of input YUV"));
   opts.AddOption(NewOptionInt   ("FramesToBeEncoded",     &this.m_iFrameToBeEncoded,   0, "Number of frames to be encoded (default=all)"));
-  
+
   // Profile and level
   opts.AddOption(NewOptionInt   ("Profile", 				&this.m_profile,     0,   "Profile to be used when encoding (Incomplete)"));
   opts.AddOption(NewOptionInt   ("Level",   				&this.m_level,       0,   "Level limit to be used, eg 5.1 (Incomplete)"));
@@ -746,14 +746,14 @@ func  (this *TAppEncCfg) ParseCfg  ( argc int, argv []string ) error {          
   opts.AddOption(NewOptionInt   ("DecodingRefreshType",     &this.m_iDecodingRefreshType,       0, "Intra refresh type (0:none 1:CRA 2:IDR)"));
   opts.AddOption(NewOptionInt   ("GOPSize",                 &this.m_iGOPSize,                   1, "GOP size of temporal structure"));
   opts.AddOption(NewOptionBool  ("ListCombination",         &this.m_bUseLComb,               true, "Combined reference list for uni-prediction estimation in B-slices"));
-  
+
   // motion options
   opts.AddOption(NewOptionInt   ("FastSearch",              &this.m_iFastSearch,                1, "0:Full search  1:Diamond  2:PMVFAST"));
   opts.AddOption(NewOptionInt   ("SearchRange",             &this.m_iSearchRange,              96, "Motion search range"));
   opts.AddOption(NewOptionInt   ("BipredSearchRange",       &this.m_bipredSearchRange,          4, "Motion search range for bipred refinement"));
   opts.AddOption(NewOptionBool  ("HadamardME",              &this.m_bUseHADME,               true, "Hadamard ME for fractional-pel"));
   opts.AddOption(NewOptionBool  ("ASR",                     &this.m_bUseASR,                false, "Adaptive motion search range"));
- 
+
   // Mode decision parameters
   opts.AddOption(NewOptionFloat ("LambdaModifier0", 		&this.m_adLambdaModifier[ 0 ], 1.0, "Lambda modifier for temporal layer 0"));
   opts.AddOption(NewOptionFloat ("LambdaModifier1", 		&this.m_adLambdaModifier[ 1 ], 1.0, "Lambda modifier for temporal layer 1"));
@@ -782,10 +782,10 @@ func  (this *TAppEncCfg) ParseCfg  ( argc int, argv []string ) error {          
   opts.AddOption(NewOptionBool  ("RDOQ",                          &this.m_useRDOQ,                  true, "" ));
 //#if RDOQ_TRANSFORMSKIP
   opts.AddOption(NewOptionBool  ("RDOQTS",                        &this.m_useRDOQTS,                true, "" ));
-//#endif  
+//#endif
   // Entropy coding parameters
   opts.AddOption(NewOptionBool  ("SBACRD",                        &this.m_bUseSBACRD,              true, "SBAC based RD estimation"));
-  
+
   // Deblocking filter parameters
   opts.AddOption(NewOptionBool  ("LoopFilterDisable",              &this.m_bLoopFilterDisable,             false, "" ));
   opts.AddOption(NewOptionBool  ("LoopFilterOffsetInPPS",          &this.m_loopFilterOffsetInPPS,          false, "" ));
@@ -798,7 +798,7 @@ func  (this *TAppEncCfg) ParseCfg  ( argc int, argv []string ) error {          
   opts.AddOption(NewOptionBool  ("TransformSkip",           &this.m_useTransformSkip,        false, "Intra transform skipping"));
   opts.AddOption(NewOptionBool  ("TransformSkipFast",       &this.m_useTransformSkipFast,    false, "Fast intra transform skipping"));
   opts.AddOption(NewOptionBool  ("SAO",                     &this.m_bUseSAO,                 true, "Enable Sample Adaptive Offset"));
-  opts.AddOption(NewOptionInt   ("MaxNumOffsetsPerPic",     &this.m_maxNumOffsetsPerPic,     2048, "Max number of SAO offset per picture (Default: 2048)"));   
+  opts.AddOption(NewOptionInt   ("MaxNumOffsetsPerPic",     &this.m_maxNumOffsetsPerPic,     2048, "Max number of SAO offset per picture (Default: 2048)"));
   opts.AddOption(NewOptionBool  ("SAOLcuBoundary",          &this.m_saoLcuBoundary,          false, "0: right/bottom LCU boundary areas skipped from SAO parameter estimation, 1: non-deblocked pixels are used for those areas"));
   opts.AddOption(NewOptionBool  ("SAOLcuBasedOptimization", &this.m_saoLcuBasedOptimization, true, "0: SAO picture-based optimization, 1: SAO LCU-based optimization "));
   opts.AddOption(NewOptionInt   ("SliceMode",               &this.m_iSliceMode,              0, "0: Disable all Recon slice limits, 1: Enforce max # of LCUs, 2: Enforce max # of bytes"));
@@ -837,7 +837,7 @@ func  (this *TAppEncCfg) ParseCfg  ( argc int, argv []string ) error {          
   opts.AddOption(NewOptionInt   ("TMVPMode", 				&this.m_TMVPModeId, 1, "TMVP mode 0: TMVP disable for all slices. 1: TMVP enable for all slices (default) 2: TMVP enable for certain slices only"));
   opts.AddOption(NewOptionBool  ("FEN", 					&this.m_bUseFastEnc, false, "fast encoder setting"));
   opts.AddOption(NewOptionBool  ("ECU", 					&this.m_bUseEarlyCU, false, "Early CU setting"));
-  opts.AddOption(NewOptionBool  ("FDM", 					&this.m_useFastDecisionForMerge, true, "Fast decision for Merge RD Cost")); 
+  opts.AddOption(NewOptionBool  ("FDM", 					&this.m_useFastDecisionForMerge, true, "Fast decision for Merge RD Cost"));
   opts.AddOption(NewOptionBool  ("CFM", 					&this.m_bUseCbfFastMode, false, "Cbf fast mode setting"));
   opts.AddOption(NewOptionBool  ("ESD", 					&this.m_useEarlySkipDetection, false, "Early SKIP detection setting"));
 //#if RATE_CONTROL_LAMBDA_DOMAIN
@@ -897,14 +897,14 @@ func  (this *TAppEncCfg) ParseCfg  ( argc int, argv []string ) error {          
 //#endif
 //#if SIGNAL_BITRATE_PICRATE_IN_VPS
   opts.AddOption(NewOptionInt   ("BitRatePicRateMaxTLayers",   	   &this.m_bitRatePicRateMaxTLayers,           0, "Maximum number of sub-layers signalled; can be inferred otherwise; here for easy parsing of config. file"));
-  opts.AddOption(NewOptionString("BitRateInfoPresent",             &cfg_bitRateInfoPresentFlag,         string(""), "Control signalling of bit rate information of avg. bit rate and max. bit rate in VPS"));                                                       
-  opts.AddOption(NewOptionString("PicRateInfoPresent",             &cfg_picRateInfoPresentFlag,         string(""), "Control signalling of picture rate information of avg. bit rate and max. bit rate in VPS"));                                                                     
+  opts.AddOption(NewOptionString("BitRateInfoPresent",             &cfg_bitRateInfoPresentFlag,         string(""), "Control signalling of bit rate information of avg. bit rate and max. bit rate in VPS"));
+  opts.AddOption(NewOptionString("PicRateInfoPresent",             &cfg_picRateInfoPresentFlag,         string(""), "Control signalling of picture rate information of avg. bit rate and max. bit rate in VPS"));
   opts.AddOption(NewOptionString("AvgBitRate",                     &cfg_avgBitRate,                     string(""), "List of avg. bit rates for the different sub-layers; include non-negative number even if corresponding flag is 0"));
   opts.AddOption(NewOptionString("MaxBitRate",                     &cfg_maxBitRate,                     string(""), "List of max. bit rates for the different sub-layers; include non-negative number even if corresponding flag is 0"));
   opts.AddOption(NewOptionString("AvgPicRate",                     &cfg_avgPicRate,                     string(""), "List of avg. picture rates for the different sub-layers; include non-negative number even if corresponding flag is 0"));
   opts.AddOption(NewOptionString("ConstantPicRateIdc",             &cfg_constantPicRateIdc,             string(""), "List of constant picture rate IDCs; include non-negative number even if corresponding flag is 0"));
 //#endif
- 
+
   var emptyGOPEntry *TLibEncoder.GOPEntry;
   emptyGOPEntry=nil;
   for i:=1; i<TLibCommon.MAX_GOP+1; i++ {
@@ -913,17 +913,17 @@ func  (this *TAppEncCfg) ParseCfg  ( argc int, argv []string ) error {          
     opts.AddOption(NewOptionGOPEntry(cOSS, &this.m_GOPList[i-1], emptyGOPEntry, "GOPEntry"));
   }
   opts.SetDefaults();
-    
+
   /*if (argc == 1)
   {
-    // argc == 1: no options have been specified 
+    // argc == 1: no options have been specified
     po::doHelp(cout, opts);
     return false;
   }*/
-  
+
   // parse cfg file
   opts.ParseConfigFile(argv[2]);
-  
+
   /*
    * Set any derived parameters
    */
@@ -932,9 +932,9 @@ func  (this *TAppEncCfg) ParseCfg  ( argc int, argv []string ) error {          
   this.m_pchBitstreamFile = string(cfg_BitstreamFile);
   this.m_pchReconFile 	  = string(cfg_ReconFile);
   this.m_pchdQPFile       = string(cfg_dQPFile);
-  
+
   var err error;
-  
+
 //#if MIN_SPATIAL_SEGMENTATION
   //Char* pColumnWidth = cfg_ColumnWidth.empty() ? NULL: strdup(cfg_ColumnWidth.c_str());
   //Char* pRowHeight = cfg_RowHeight.empty() ? NULL : strdup(cfg_RowHeight.c_str());
@@ -944,13 +944,13 @@ func  (this *TAppEncCfg) ParseCfg  ( argc int, argv []string ) error {          
     this.m_pColumnWidth = make([]int, this.m_iNumColumnsMinus1);
     columnWidth := strings.Fields(string(cfg_ColumnWidth));//strtok(pColumnWidth, " ,-");
     if len(columnWidth) != this.m_iNumColumnsMinus1 {
-    	return errors.New( "The number of columns whose width are defined is not equal to the allowed number of columns.\n" ); 
+    	return errors.New( "The number of columns whose width are defined is not equal to the allowed number of columns.\n" );
     	//return false;
     }else{
     	for i:=0; i<this.m_iNumColumnsMinus1; i++ {
     		this.m_pColumnWidth[i], err = strconv.Atoi(columnWidth[i]);
     		if err!=nil{
-    			return errors.New( "Can't convert columnWidth[i] to integer\n"); 
+    			return errors.New( "Can't convert columnWidth[i] to integer\n");
     			//return false;
     		}
     	}
@@ -981,13 +981,13 @@ func  (this *TAppEncCfg) ParseCfg  ( argc int, argv []string ) error {          
     this.m_pRowHeight = make([]int, this.m_iNumRowsMinus1);
     rowHeight := strings.Fields(string(cfg_RowHeight));//strtok(pRowHeight, " ,-");
     if len(rowHeight) != this.m_iNumRowsMinus1 {
-    	return errors.New( "The number of rows whose width are defined is not equal to the allowed number of rows.\n" ); 
+    	return errors.New( "The number of rows whose width are defined is not equal to the allowed number of rows.\n" );
     	//return false;
     }else{
     	for i:=0; i<this.m_iNumRowsMinus1; i++ {
     		this.m_pRowHeight[i], err = strconv.Atoi(rowHeight[i]);
     		if err!=nil{
-    			return errors.New( "Can't convert rowHeight[i] to integer\n"); 
+    			return errors.New( "Can't convert rowHeight[i] to integer\n");
     			//return false;
     		}
     	}
@@ -1024,26 +1024,26 @@ func  (this *TAppEncCfg) ParseCfg  ( argc int, argv []string ) error {          
   readIntString (cfg_constantPicRateIdc,     m_bitRatePicRateMaxTLayers, m_constantPicRateIdc,     "constant pic rate Idc"       );*/
 //#endif
   this.m_scalingListFile = string(cfg_ScalingListFile);//.empty() ? NULL : strdup(cfg_ScalingListFile.c_str());
-  
+
   /* rules for input, output and internal bitdepths as per help text */
-  if this.m_internalBitDepthY==0 { 
-  	this.m_internalBitDepthY = this.m_inputBitDepthY; 
+  if this.m_internalBitDepthY==0 {
+  	this.m_internalBitDepthY = this.m_inputBitDepthY;
   }
-  if this.m_internalBitDepthC==0 { 
-  	this.m_internalBitDepthC = this.m_internalBitDepthY; 
+  if this.m_internalBitDepthC==0 {
+  	this.m_internalBitDepthC = this.m_internalBitDepthY;
   }
-  if this.m_inputBitDepthC==0    { 
-  	this.m_inputBitDepthC    = this.m_inputBitDepthY; 
+  if this.m_inputBitDepthC==0    {
+  	this.m_inputBitDepthC    = this.m_inputBitDepthY;
   }
-  if this.m_outputBitDepthY==0   { 
-  	this.m_outputBitDepthY   = this.m_internalBitDepthY; 
+  if this.m_outputBitDepthY==0   {
+  	this.m_outputBitDepthY   = this.m_internalBitDepthY;
   }
-  if this.m_outputBitDepthC==0   { 
-  	this.m_outputBitDepthC   = this.m_internalBitDepthC; 
+  if this.m_outputBitDepthC==0   {
+  	this.m_outputBitDepthC   = this.m_internalBitDepthC;
   }
 
   sps := TLibCommon.NewTComSPS();
-  
+
   // TODO:ChromaFmt assumes 4:2:0 below
   switch this.m_croppingMode {
   case 0:
@@ -1067,12 +1067,12 @@ func  (this *TAppEncCfg) ParseCfg  ( argc int, argv []string ) error {          
         this.m_cropBottom = ((this.m_iSourceHeight / minCuSize) + 1) * minCuSize - this.m_iSourceHeight;
         this.m_iSourceHeight += this.m_cropBottom;
       }
-      if this.m_aiPad[0] % sps.GetCropUnitX(TLibCommon.CHROMA_420) != 0 {
+      if this.m_aiPad[0] % sps.GetWinUnitX(TLibCommon.CHROMA_420) != 0 {
         return errors.New("Error: picture width is not an integer multiple of the specified chroma subsampling\n");
         //return false;
         //exit(EXIT_FAILURE);
       }
-      if this.m_aiPad[1] % sps.GetCropUnitY(TLibCommon.CHROMA_420) != 0 {
+      if this.m_aiPad[1] % sps.GetWinUnitY(TLibCommon.CHROMA_420) != 0 {
         return errors.New("Error: picture height is not an integer multiple of the specified chroma subsampling\n");
         //return false;
         //exit(EXIT_FAILURE);
@@ -1094,23 +1094,23 @@ func  (this *TAppEncCfg) ParseCfg  ( argc int, argv []string ) error {          
       this.m_aiPad[1] = 0;
       this.m_aiPad[0] = 0;
   }
-  
+
   // allocate slice-based dQP values
   this.m_aidQP = make([]int, this.m_iFrameToBeEncoded + this.m_iGOPSize + 1 );
   //::memset( this.m_aidQP, 0, sizeof(Int)*( this.m_iFrameToBeEncoded + this.m_iGOPSize + 1 ) );
-  
+
   // handling of floating-point QP values
   // if QP is not integer, sequence is split into two sections having QP and QP+1
   this.m_iQP = int( this.m_fQP );
   if  float64(this.m_iQP) < this.m_fQP  {
     iSwitchPOC := int( float64(this.m_iFrameToBeEncoded) - (this.m_fQP - float64(this.m_iQP))*float64(this.m_iFrameToBeEncoded) + 0.5 );
-    
+
     iSwitchPOC =int( float64(iSwitchPOC) / float64(this.m_iGOPSize) + 0.5 )*this.m_iGOPSize;
     for i:=iSwitchPOC; i<this.m_iFrameToBeEncoded + this.m_iGOPSize + 1; i++ {
       this.m_aidQP[i] = 1;
     }
   }
-  
+
   // reading external dQP description from file
   /*if this.m_pchdQPFile!="" {
   	fpt, err := os.Open(this.m_pchdQPFile);
@@ -1118,10 +1118,10 @@ func  (this *TAppEncCfg) ParseCfg  ( argc int, argv []string ) error {          
 		log.Fatal(err)
 	}
 	defer fpt.Close()
-    
+
     var iValue int;
     iPOC := 0;
-    
+
     reader := bufio.NewReader(traceFile)
 	eof := false;
     for iPOC < this.m_iFrameToBeEncoded {
@@ -1131,30 +1131,30 @@ func  (this *TAppEncCfg) ParseCfg  ( argc int, argv []string ) error {          
 	    } else if err != nil {
 	        return err
 	    }
-	    
+
         if ( fscanf(fpt, "%d", &iValue ) == EOF ) break;
         this.m_aidQP[ iPOC ] = iValue;
         iPOC++;
     }
   }*/
-  
+
   if this.m_iWaveFrontSynchro!=0 {
-  	this.m_iWaveFrontSubstreams =  int((uint(this.m_iSourceHeight) + this.m_uiMaxCUHeight - 1) / this.m_uiMaxCUHeight); 
+  	this.m_iWaveFrontSubstreams =  int((uint(this.m_iSourceHeight) + this.m_uiMaxCUHeight - 1) / this.m_uiMaxCUHeight);
   }else{
-  	this.m_iWaveFrontSubstreams =  1; 
+  	this.m_iWaveFrontSubstreams =  1;
   }
-  
-  
-  
+
+
+
   // check validity of input parameters
   this.xCheckParameter();
-  
+
   // set global varibles
   this.xSetGlobal();
-  
+
   // print-out parameters
   this.xPrintParameter();
-  
+
   return nil;
 }
   // internal member functions
@@ -1162,21 +1162,21 @@ func  (this *TAppEncCfg) xSetGlobal      (){                                  //
   // set max CU width & height
   TLibCommon.G_uiMaxCUWidth  = this.m_uiMaxCUWidth;
   TLibCommon.G_uiMaxCUHeight = this.m_uiMaxCUHeight;
-  
+
   // compute actual CU depth with respect to config depth and max transform size
   TLibCommon.G_uiAddCUDepth  = 0;
   for( (this.m_uiMaxCUWidth>>this.m_uiMaxCUDepth) > ( 1 << ( this.m_uiQuadtreeTULog2MinSize + TLibCommon.G_uiAddCUDepth )  ) ) {
   	TLibCommon.G_uiAddCUDepth++;
   }
-  
+
   this.m_uiMaxCUDepth += TLibCommon.G_uiAddCUDepth;
   TLibCommon.G_uiAddCUDepth++;
   TLibCommon.G_uiMaxCUDepth = this.m_uiMaxCUDepth;
-  
+
   // set internal bit-depth and constants
   TLibCommon.G_bitDepthY = this.m_internalBitDepthY;
   TLibCommon.G_bitDepthC = this.m_internalBitDepthC;
-  
+
   if this.m_bPCMInputBitDepthFlag{
   	TLibCommon.G_uiPCMBitDepthLuma =  this.m_inputBitDepthY;
   	TLibCommon.G_uiPCMBitDepthChroma = this.m_inputBitDepthC ;
@@ -1191,7 +1191,7 @@ func  (this *TAppEncCfg) xConfirmPara( bflag bool, message	string) int{
   if !bflag {
     return 0;
   }
-  
+
   fmt.Printf("Error: %s\n",message);
   return 1;
 }
@@ -1240,7 +1240,7 @@ func  (this *TAppEncCfg) xCheckParameter () bool{                               
   check_failed += this.xConfirmPara( this.m_uiMaxCUHeight < 16,                                                       "Maximum partition height size should be larger than or equal to 16");
   check_failed += this.xConfirmPara( (uint(this.m_iSourceWidth ) % (this.m_uiMaxCUWidth  >> (this.m_uiMaxCUDepth-1)))!=0,             "Resulting coded frame width must be a multiple of the minimum CU size");
   check_failed += this.xConfirmPara( (uint(this.m_iSourceHeight) % (this.m_uiMaxCUHeight >> (this.m_uiMaxCUDepth-1)))!=0,             "Resulting coded frame height must be a multiple of the minimum CU size");
-  
+
   check_failed += this.xConfirmPara( this.m_uiQuadtreeTULog2MinSize < 2,                                        "QuadtreeTULog2MinSize must be 2 or greater.");
   check_failed += this.xConfirmPara( this.m_uiQuadtreeTULog2MinSize > 5,                                        "QuadtreeTULog2MinSize must be 5 or smaller.");
   check_failed += this.xConfirmPara( this.m_uiQuadtreeTULog2MaxSize < 2,                                        "QuadtreeTULog2MaxSize must be 2 or greater.");
@@ -1254,7 +1254,7 @@ func  (this *TAppEncCfg) xCheckParameter () bool{                               
   check_failed += this.xConfirmPara( this.m_uiQuadtreeTUMaxDepthInter > this.m_uiQuadtreeTULog2MaxSize - this.m_uiQuadtreeTULog2MinSize + 1, "QuadtreeTUMaxDepthInter must be less than or equal to the difference between QuadtreeTULog2MaxSize and QuadtreeTULog2MinSize plus 1" );
   check_failed += this.xConfirmPara( this.m_uiQuadtreeTUMaxDepthIntra < 1,                                                         "QuadtreeTUMaxDepthIntra must be greater than or equal to 1" );
   check_failed += this.xConfirmPara( this.m_uiQuadtreeTUMaxDepthIntra > this.m_uiQuadtreeTULog2MaxSize - this.m_uiQuadtreeTULog2MinSize + 1, "QuadtreeTUMaxDepthIntra must be less than or equal to the difference between QuadtreeTULog2MaxSize and QuadtreeTULog2MinSize plus 1" );
-  
+
   check_failed += this.xConfirmPara(  this.m_maxNumMergeCand < 1,  "MaxNumMergeCand must be 1 or greater.");
   check_failed += this.xConfirmPara(  this.m_maxNumMergeCand > 5,  "MaxNumMergeCand must be 5 or smaller.");
 
@@ -1278,7 +1278,7 @@ func  (this *TAppEncCfg) xCheckParameter () bool{                               
   if this.m_iDependentSliceMode!=0 {
     check_failed += this.xConfirmPara( this.m_iDependentSliceArgument < 1 ,         "DependentSliceArgument should be larger than or equal to 1" );
   }
-  
+
   tileFlag := (this.m_iNumColumnsMinus1 > 0 || this.m_iNumRowsMinus1 > 0 );
   check_failed += this.xConfirmPara( tileFlag && this.m_iWaveFrontSynchro!=0,            "Tile and Wavefront can not be applied together");
 /*#if !DEPENDENT_SLICES
@@ -1290,16 +1290,16 @@ func  (this *TAppEncCfg) xCheckParameter () bool{                               
 
   //TODO:ChromaFmt assumes 4:2:0 below
   sps := TLibCommon.NewTComSPS();
-  check_failed += this.xConfirmPara( this.m_iSourceWidth  % sps.GetCropUnitX(TLibCommon.CHROMA_420) != 0, "Picture width must be an integer multiple of the specified chroma subsampling");
-  check_failed += this.xConfirmPara( this.m_iSourceHeight % sps.GetCropUnitY(TLibCommon.CHROMA_420) != 0, "Picture height must be an integer multiple of the specified chroma subsampling");
+  check_failed += this.xConfirmPara( this.m_iSourceWidth  % sps.GetWinUnitX(TLibCommon.CHROMA_420) != 0, "Picture width must be an integer multiple of the specified chroma subsampling");
+  check_failed += this.xConfirmPara( this.m_iSourceHeight % sps.GetWinUnitY(TLibCommon.CHROMA_420) != 0, "Picture height must be an integer multiple of the specified chroma subsampling");
 
-  check_failed += this.xConfirmPara( this.m_aiPad[0] % sps.GetCropUnitX(TLibCommon.CHROMA_420) != 0, "Horizontal padding must be an integer multiple of the specified chroma subsampling");
-  check_failed += this.xConfirmPara( this.m_aiPad[1] % sps.GetCropUnitY(TLibCommon.CHROMA_420) != 0, "Vertical padding must be an integer multiple of the specified chroma subsampling");
+  check_failed += this.xConfirmPara( this.m_aiPad[0] % sps.GetWinUnitX(TLibCommon.CHROMA_420) != 0, "Horizontal padding must be an integer multiple of the specified chroma subsampling");
+  check_failed += this.xConfirmPara( this.m_aiPad[1] % sps.GetWinUnitY(TLibCommon.CHROMA_420) != 0, "Vertical padding must be an integer multiple of the specified chroma subsampling");
 
-  check_failed += this.xConfirmPara( this.m_cropLeft   % sps.GetCropUnitX(TLibCommon.CHROMA_420) != 0, "Left cropping must be an integer multiple of the specified chroma subsampling");
-  check_failed += this.xConfirmPara( this.m_cropRight  % sps.GetCropUnitX(TLibCommon.CHROMA_420) != 0, "Right cropping must be an integer multiple of the specified chroma subsampling");
-  check_failed += this.xConfirmPara( this.m_cropTop    % sps.GetCropUnitY(TLibCommon.CHROMA_420) != 0, "Top cropping must be an integer multiple of the specified chroma subsampling");
-  check_failed += this.xConfirmPara( this.m_cropBottom % sps.GetCropUnitY(TLibCommon.CHROMA_420) != 0, "Bottom cropping must be an integer multiple of the specified chroma subsampling");
+  check_failed += this.xConfirmPara( this.m_cropLeft   % sps.GetWinUnitX(TLibCommon.CHROMA_420) != 0, "Left cropping must be an integer multiple of the specified chroma subsampling");
+  check_failed += this.xConfirmPara( this.m_cropRight  % sps.GetWinUnitX(TLibCommon.CHROMA_420) != 0, "Right cropping must be an integer multiple of the specified chroma subsampling");
+  check_failed += this.xConfirmPara( this.m_cropTop    % sps.GetWinUnitY(TLibCommon.CHROMA_420) != 0, "Top cropping must be an integer multiple of the specified chroma subsampling");
+  check_failed += this.xConfirmPara( this.m_cropBottom % sps.GetWinUnitY(TLibCommon.CHROMA_420) != 0, "Bottom cropping must be an integer multiple of the specified chroma subsampling");
 
   // max CU width and height should be power of 2
   ui := this.m_uiMaxCUWidth;
@@ -1330,7 +1330,7 @@ func  (this *TAppEncCfg) xCheckParameter () bool{                               
     this.m_GOPList[0].SetPOC (1);
     this.m_GOPList[0].SetNumRefPicsActive (4);
   }
-  
+
   verifiedGOP:=false;
   errorGOP:=false;
   checkGOP:=1;
@@ -1349,7 +1349,7 @@ func  (this *TAppEncCfg) xCheckParameter () bool{                               
       check_failed += this.xConfirmPara( this.m_GOPList[i].GetTemporalId()!=0 , "The last frame in each GOP must have temporal ID = 0 " );
     }
   }
-  
+
 //#if VARYING_DBL_PARAMS
   if (this.m_iIntraPeriod != 1) && !this.m_loopFilterOffsetInPPS && this.m_DeblockingFilterControlPresent && (!this.m_bLoopFilterDisable) {
     for i:=0; i<this.m_iGOPSize; i++ {
@@ -1362,7 +1362,7 @@ func  (this *TAppEncCfg) xCheckParameter () bool{                               
   //start looping through frames in coding order until we can verify that the GOP structure is correct.
   for !verifiedGOP&&!errorGOP {
     curGOP := (checkGOP-1)%this.m_iGOPSize;
-    curPOC := ((checkGOP-1)/this.m_iGOPSize)*this.m_iGOPSize + this.m_GOPList[curGOP].GetPOC();    
+    curPOC := ((checkGOP-1)/this.m_iGOPSize)*this.m_iGOPSize + this.m_GOPList[curGOP].GetPOC();
     if this.m_GOPList[curGOP].GetPOC()<0 {
       fmt.Printf("\nError: found fewer Reference Picture Sets than GOPSize\n");
       errorGOP=true;
@@ -1416,7 +1416,7 @@ func  (this *TAppEncCfg) xCheckParameter () bool{                               
           }
         }
         numPrefRefs := this.m_GOPList[curGOP].GetNumRefPicsActive();
-        
+
         for offset := -1; offset>-checkGOP; offset-- {
           //step backwards in coding order and include any extra available pictures we might find useful to replace the ones with POC < 0.
           offGOP := (checkGOP-1+offset)%this.m_iGOPSize;
@@ -1493,9 +1493,9 @@ func  (this *TAppEncCfg) xCheckParameter () bool{                               
             this.m_GOPList[this.m_iGOPSize+this.m_extraRPSs].SetRefIdc(newIdc, refIdc);
             newIdc++;
           }
-          this.m_GOPList[this.m_iGOPSize+this.m_extraRPSs].SetInterRPSPrediction (1);  
+          this.m_GOPList[this.m_iGOPSize+this.m_extraRPSs].SetInterRPSPrediction (1);
           this.m_GOPList[this.m_iGOPSize+this.m_extraRPSs].SetNumRefIdc (newIdc);
-          this.m_GOPList[this.m_iGOPSize+this.m_extraRPSs].SetDeltaRPS ( refPOC - this.m_GOPList[this.m_iGOPSize+this.m_extraRPSs].GetPOC()); 
+          this.m_GOPList[this.m_iGOPSize+this.m_extraRPSs].SetDeltaRPS ( refPOC - this.m_GOPList[this.m_iGOPSize+this.m_extraRPSs].GetPOC());
         }
         curGOP=this.m_iGOPSize+this.m_extraRPSs;
         this.m_extraRPSs++;
@@ -1529,7 +1529,7 @@ func  (this *TAppEncCfg) xCheckParameter () bool{                               
     if this.m_GOPList[i].GetNumRefPics() > this.m_maxDecPicBuffering[this.m_GOPList[i].GetTemporalId()] {
       this.m_maxDecPicBuffering[this.m_GOPList[i].GetTemporalId()] = this.m_GOPList[i].GetNumRefPics();
     }
-    highestDecodingNumberWithLowerPOC := 0; 
+    highestDecodingNumberWithLowerPOC := 0;
     for j:=0; j<this.m_iGOPSize; j++ {
       if this.m_GOPList[j].GetPOC() <= this.m_GOPList[i].GetPOC() {
         highestDecodingNumberWithLowerPOC = j;
@@ -1540,7 +1540,7 @@ func  (this *TAppEncCfg) xCheckParameter () bool{                               
       if this.m_GOPList[j].GetTemporalId() <= this.m_GOPList[i].GetTemporalId() && this.m_GOPList[j].GetPOC() > this.m_GOPList[i].GetPOC() {
         numReorder++;
       }
-    }    
+    }
     if numReorder > this.m_numReorderPics[this.m_GOPList[i].GetTemporalId()] {
       this.m_numReorderPics[this.m_GOPList[i].GetTemporalId()] = numReorder;
     }
@@ -1565,7 +1565,7 @@ func  (this *TAppEncCfg) xCheckParameter () bool{                               
   }
 
 //#if MIN_SPATIAL_SEGMENTATION
-  if this.m_vuiParametersPresentFlag && this.m_bitstreamRestrictionFlag { 
+  if this.m_vuiParametersPresentFlag && this.m_bitstreamRestrictionFlag {
     PicSizeInSamplesY :=  this.m_iSourceWidth * this.m_iSourceHeight;
     if tileFlag {
       maxTileWidth := 0;
@@ -1581,17 +1581,17 @@ func  (this *TAppEncCfg) xCheckParameter () bool{                               
       }else{
       	heightInCU = this.m_iSourceHeight/int(this.m_uiMaxCUHeight);
       }
-      
+
       if this.m_iUniformSpacingIdr!=0 {
         maxTileWidth  = int(this.m_uiMaxCUWidth)*((widthInCU+this.m_iNumColumnsMinus1)/(this.m_iNumColumnsMinus1+1));
         maxTileHeight = int(this.m_uiMaxCUHeight)*((heightInCU+this.m_iNumRowsMinus1)/(this.m_iNumRowsMinus1+1));
-        // if only the last tile-row is one treeblock higher than the others 
+        // if only the last tile-row is one treeblock higher than the others
         // the maxTileHeight becomes smaller if the last row of treeblocks has lower height than the others
         if ((heightInCU-1)%(this.m_iNumRowsMinus1+1))==0 {
           maxTileHeight = maxTileHeight - int(this.m_uiMaxCUHeight) + (this.m_iSourceHeight % int(this.m_uiMaxCUHeight));
-        }     
-        // if only the last tile-column is one treeblock wider than the others 
-        // the maxTileWidth becomes smaller if the last column of treeblocks has lower width than the others   
+        }
+        // if only the last tile-column is one treeblock wider than the others
+        // the maxTileWidth becomes smaller if the last column of treeblocks has lower width than the others
         if ((widthInCU-1)%(this.m_iNumColumnsMinus1+1))==0 {
           maxTileWidth = maxTileWidth - int(this.m_uiMaxCUWidth) + (this.m_iSourceWidth % int(this.m_uiMaxCUWidth));
         }
@@ -1679,13 +1679,13 @@ func  (this *TAppEncCfg) xCheckParameter () bool{                               
 
   check_failed += this.xConfirmPara(this.m_log2ParallelMergeLevel < 2, "Log2ParallelMergeLevel should be larger than or equal to 2");
 
-  check_failed += this.xConfirmPara(this.m_activeParameterSetsSEIEnabled < 0 || this.m_activeParameterSetsSEIEnabled > 2, "ActiveParametersSEIEnabled exceeds supported range (0 to 2)"); 
+  check_failed += this.xConfirmPara(this.m_activeParameterSetsSEIEnabled < 0 || this.m_activeParameterSetsSEIEnabled > 2, "ActiveParametersSEIEnabled exceeds supported range (0 to 2)");
 
 //#undef xConfirmPara
   if check_failed > 0 {
     return false//exit(EXIT_FAILURE);
   }
-  
+
   return true;
 }
 
@@ -1739,7 +1739,7 @@ func  (this *TAppEncCfg) xPrintParameter (){                                   /
 #endif*/
   fmt.Printf("Max Num Merge Candidates     : %d\n", this.m_maxNumMergeCand);
   fmt.Printf("\n");
-  
+
   fmt.Printf("TOOL CFG: ");
   fmt.Printf("IBD:%v ", TLibCommon.G_bitDepthY > this.m_inputBitDepthY || TLibCommon.G_bitDepthC > this.m_inputBitDepthC);
   fmt.Printf("HAD:%v ", this.m_bUseHADME           );
@@ -1786,6 +1786,6 @@ func  (this *TAppEncCfg) xPrintParameter (){                                   /
   fmt.Printf(" SignBitHidingFlag:%d ", this.m_signHideFlag);
   fmt.Printf("RecalQP:%d", TLibCommon.B2U(this.m_recalculateQPAccordingToLambda) );
   fmt.Printf("\n\n");
-  
+
   //fflush(stdout);
 }

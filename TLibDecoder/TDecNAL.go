@@ -56,17 +56,14 @@ func NewInputNALUnit() *InputNALUnit {
 func (this *InputNALUnit) Read(nalUnitBuf *list.List) *list.List {
     /* perform anti-emulation prevention */
     pcBitstream := TLibCommon.NewTComInputBitstream(nil)
-    //#if HM9_NALU_TYPES
+
     firstByte := nalUnitBuf.Front().Value.(byte)
     oldNalUnitBuf:=this.convertPayloadToRBSP(nalUnitBuf, pcBitstream, (firstByte&64) == 0)
-    //#else
-    //  convertPayloadToRBSP(nalUnitBuf, pcBitstream);
-    //#endif
 
     this.m_Bitstream = TLibCommon.NewTComInputBitstream(nalUnitBuf)
 
     this.readNalUnitHeader()
-    
+
     return oldNalUnitBuf
 }
 
@@ -78,13 +75,9 @@ func (this *InputNALUnit) SetBitstream(bitstream *TLibCommon.TComInputBitstream)
     this.m_Bitstream = bitstream
 }
 
-//#if HM9_NALU_TYPES
 func (this *InputNALUnit) convertPayloadToRBSP(nalUnitBuf *list.List, pcBitstream *TLibCommon.TComInputBitstream, isVclNalUnit bool) *list.List{
-    //#else
-    //static void convertPayloadToRBSP(vector<uint8_t>& nalUnitBuf, TComInputBitstream *pcBitstream)
-    //#endif
     zeroCount := 0
-    it_write := list.New(); 
+    it_write := list.New();
     oldBuf := list.New();
     for e := nalUnitBuf.Front(); e != nil; e = e.Next() {
         //assert(zeroCount < 2 || *it_read >= 0x03);
@@ -111,8 +104,6 @@ func (this *InputNALUnit) convertPayloadToRBSP(nalUnitBuf *list.List, pcBitstrea
     }
 
     //assert(zeroCount == 0);
-
-    //#if HM9_NALU_TYPES
     if isVclNalUnit {
         // Remove cabac_zero_word from payload if present
         n := 0
@@ -130,14 +121,13 @@ func (this *InputNALUnit) convertPayloadToRBSP(nalUnitBuf *list.List, pcBitstrea
             fmt.Printf("\nDetected %d instances of cabac_zero_word", n/2)
         }
     }
-    //#endif
 
     nalUnitBuf.Init() // = .resize(it_write - nalUnitBuf.begin());
     for e := it_write.Front(); e != nil; e = e.Next() {
         it_read := e.Value.(byte)
         nalUnitBuf.PushBack(it_read)
     }
-    
+
     return oldBuf;
 }
 

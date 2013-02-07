@@ -37,7 +37,7 @@ import (
     "fmt"
 )
 
-const NV_VERSION = "9.1.0"
+const NV_VERSION = "10.0"
 
 // ====================================================================================================================
 // Common constants
@@ -104,7 +104,6 @@ const MAX_CHROMA_FORMAT_IDC = 3
 type NalUnitType uint8
 
 const ( //enum NalUnitType
-    //#if HM9_NALU_TYPES
     NAL_UNIT_CODED_SLICE_TRAIL_N = iota // 0
     NAL_UNIT_CODED_SLICE_TRAIL_R        // 1
 
@@ -268,7 +267,7 @@ func ABS(a interface{}) interface{} {
     case int:
         if a.(int) < 0 {
             return -a.(int)
-        } 
+        }
     case float64:
     	if a.(float64) < 0 {
     		return -a.(float64)

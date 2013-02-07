@@ -102,8 +102,6 @@ type TComSampleAdaptiveOffset struct {
     m_iNumCuInHeight  int
     m_iNumTotalParts  int
     //m_iNumClass           [MAX_NUM_SAO_TYPE]int
-    m_eSliceType          SliceType
-    m_iPicNalReferenceIdc int
 
     m_uiSaoBitIncreaseY uint
     m_uiSaoBitIncreaseC uint //for chroma
@@ -120,15 +118,12 @@ type TComSampleAdaptiveOffset struct {
     m_iUpBufft         []int
     m_ipSwap           []int
     m_bUseNIF          bool        //!< true for performing non-cross slice boundary ALF
-    m_uiNumSlicesInPic uint        //!< number of slices in picture
-    m_iSGDepth         int         //!< slice granularity depth
     m_pcYuvTmp         *TComPicYuv //!< temporary picture buffer pointer when non-across slice/tile boundary SAO is enabled
 
     m_pTmpU1                  []Pel
     m_pTmpU2                  []Pel
     m_pTmpL1                  []Pel
     m_pTmpL2                  []Pel
-    m_iLcuPartIdx             []int
     m_maxNumOffsetsPerPic     int
     m_saoLcuBoundary          bool
     m_saoLcuBasedOptimization bool
@@ -241,7 +236,6 @@ func (this *TComSampleAdaptiveOffset) Create(uiSourceWidth, uiSourceHeight, uiMa
 
     this.m_pChromaClipTableOffset = iCRangeExtC;//this.m_pChromaClipTableBase[iCRangeExtC:]
 
-    this.m_iLcuPartIdx = make([]int, this.m_iNumCuInHeight*this.m_iNumCuInWidth)
     this.m_pTmpL1 = make([]Pel, this.m_uiMaxCUHeight+1)
     this.m_pTmpL2 = make([]Pel, this.m_uiMaxCUHeight+1)
     this.m_pTmpU1 = make([]Pel, this.m_iPicWidth)
@@ -485,28 +479,25 @@ func (this *TComSampleAdaptiveOffset) FreeSaoParam(pcSaoParam *SAOParam) {
 }
 
 func (this *TComSampleAdaptiveOffset) SAOProcess(pcSaoParam *SAOParam) {
-    if pcSaoParam.SaoFlag[0] || pcSaoParam.SaoFlag[1] {
-        this.m_uiSaoBitIncreaseY = uint(MAX(int(G_bitDepthY-10), int(0)).(int))
-        this.m_uiSaoBitIncreaseC = uint(MAX(int(G_bitDepthC-10), int(0)).(int))
+    this.m_uiSaoBitIncreaseY = uint(MAX(int(G_bitDepthY-10), int(0)).(int))
+    this.m_uiSaoBitIncreaseC = uint(MAX(int(G_bitDepthC-10), int(0)).(int))
 
-        if this.m_bUseNIF {
-            this.m_pcPic.GetPicYuvRec().CopyToPic(this.m_pcYuvTmp)
-        }
-        if this.m_saoLcuBasedOptimization {
-            pcSaoParam.OneUnitFlag[0] = false
-            pcSaoParam.OneUnitFlag[1] = false
-            pcSaoParam.OneUnitFlag[2] = false
-        }
-        iY := 0
-        if pcSaoParam.SaoFlag[0] {
-            this.ProcessSaoUnitAll(pcSaoParam.SaoLcuParam[iY], pcSaoParam.OneUnitFlag[iY], iY)
-        }
-        if pcSaoParam.SaoFlag[1] {
-            this.ProcessSaoUnitAll(pcSaoParam.SaoLcuParam[1], pcSaoParam.OneUnitFlag[1], 1) //Cb
-            this.ProcessSaoUnitAll(pcSaoParam.SaoLcuParam[2], pcSaoParam.OneUnitFlag[2], 2) //Cr
-        }
-        this.m_pcPic = nil
+    if this.m_bUseNIF {
+        this.m_pcPic.GetPicYuvRec().CopyToPic(this.m_pcYuvTmp)
     }
+    if this.m_saoLcuBasedOptimization {
+        pcSaoParam.OneUnitFlag[0] = false
+        pcSaoParam.OneUnitFlag[1] = false
+        pcSaoParam.OneUnitFlag[2] = false
+    }
+    iY := 0
+
+    this.ProcessSaoUnitAll(pcSaoParam.SaoLcuParam[iY], pcSaoParam.OneUnitFlag[iY], iY)
+
+    this.ProcessSaoUnitAll(pcSaoParam.SaoLcuParam[1], pcSaoParam.OneUnitFlag[1], 1) //Cb
+    this.ProcessSaoUnitAll(pcSaoParam.SaoLcuParam[2], pcSaoParam.OneUnitFlag[2], 2) //Cr
+
+    this.m_pcPic = nil
 }
 func (this *TComSampleAdaptiveOffset) ProcessSaoCu(iAddr, iSaoType, iYCbCr int) {
     if !this.m_bUseNIF {
@@ -808,10 +799,8 @@ func (this *TComSampleAdaptiveOffset) ProcessSaoCuOrg(iAddr, iSaoType, iYCbCr in
         this.m_pTmpL2 = pTmpLSwap
     }
 }
-func (this *TComSampleAdaptiveOffset) CreatePicSaoInfo(pcPic *TComPic, numSlicesInPic int) {
+func (this *TComSampleAdaptiveOffset) CreatePicSaoInfo(pcPic *TComPic) {
     this.m_pcPic = pcPic
-    this.m_uiNumSlicesInPic = uint(numSlicesInPic)
-    this.m_iSGDepth = 0
     this.m_bUseNIF = (pcPic.GetIndependentSliceBoundaryForNDBFilter() || pcPic.GetIndependentTileBoundaryForNDBFilter())
     if this.m_bUseNIF {
         this.m_pcYuvTmp = pcPic.GetYuvPicBufferForIndependentBoundaryProcessing()

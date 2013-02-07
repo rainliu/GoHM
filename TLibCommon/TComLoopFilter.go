@@ -62,13 +62,9 @@ var betatable_8x8 = [52]byte{0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 6, 
 /// deblocking filter class
 type TComLoopFilter struct {
     //private:
-    m_disableDeblockingFilterFlag bool
-    m_betaOffsetDiv2              int
-    m_tcOffsetDiv2                int
-
     m_uiNumPartitions uint
     m_aapucBS         [2][]byte ///< Bs for [Ver/Hor][Y/U/V][Blk_Idx]
-    m_aapbEdgeFilter  [2][3][]bool
+    m_aapbEdgeFilter  [2][]bool
     m_stLFCUParam     LFCUParam ///< status structure
 
     m_bLFCrossTileBoundary bool
@@ -79,9 +75,7 @@ func NewTComLoopFilter() *TComLoopFilter {
 
     for uiDir := 0; uiDir < 2; uiDir++ {
         this.m_aapucBS[uiDir] = nil
-        for uiPlane := 0; uiPlane < 3; uiPlane++ {
-            this.m_aapbEdgeFilter[uiDir][uiPlane] = nil
-        }
+        this.m_aapbEdgeFilter[uiDir] = nil
     }
 
     return this
@@ -92,9 +86,7 @@ func (this *TComLoopFilter) Create(uiMaxCUDepth uint) {
     this.m_uiNumPartitions = 1 << (uiMaxCUDepth << 1)
     for uiDir := 0; uiDir < 2; uiDir++ {
         this.m_aapucBS[uiDir] = make([]byte, this.m_uiNumPartitions)
-        for uiPlane := 0; uiPlane < 3; uiPlane++ {
-            this.m_aapbEdgeFilter[uiDir][uiPlane] = make([]bool, this.m_uiNumPartitions)
-        }
+        this.m_aapbEdgeFilter[uiDir] = make([]bool, this.m_uiNumPartitions)
     }
 }
 func (this *TComLoopFilter) Destroy() {
@@ -112,7 +104,7 @@ func (this *TComLoopFilter) Destroy() {
     }*/
 }
 
-//#if USE_PIC_CHROMA_QP_OFFSETS_IN_DEBLOCKING
+
 func (this *TComLoopFilter) QpUV(iQpY int) int {
     if iQpY < 0 {
         return iQpY
@@ -122,10 +114,6 @@ func (this *TComLoopFilter) QpUV(iQpY int) int {
 
     return int(G_aucChromaScale[iQpY])
 }
-
-//#else
-//#define   QpUV(iQpY)  ( g_aucChromaScale[ max( min( (iQpY), MAX_QP ), MIN_QP ) ] )
-//#endif
 
 /// set configuration
 func (this *TComLoopFilter) SetCfg(bLFCrossTileBoundary bool) {
@@ -140,11 +128,7 @@ func (this *TComLoopFilter) LoopFilterPic(pcPic *TComPic) {
 
         for i := uint(0); i < this.m_uiNumPartitions; i++ {
             this.m_aapucBS[EDGE_VER][i] = 0 //, sizeof( UChar ) *  );
-        }
-        for iPlane := 0; iPlane < 3; iPlane++ {
-            for i := uint(0); i < this.m_uiNumPartitions; i++ {
-                this.m_aapbEdgeFilter[EDGE_VER][iPlane][i] = false //, sizeof( Bool  ) * this.m_uiNumPartitions );
-            }
+            this.m_aapbEdgeFilter[EDGE_VER][i] = false //, sizeof( Bool  ) * this.m_uiNumPartitions );
         }
 
         // CU-based deblocking
@@ -157,12 +141,7 @@ func (this *TComLoopFilter) LoopFilterPic(pcPic *TComPic) {
 
         for i := uint(0); i < this.m_uiNumPartitions; i++ {
             this.m_aapucBS[EDGE_HOR][i] = 0 //, sizeof( UChar ) * this.m_uiNumPartitions );
-        }
-
-        for iPlane := 0; iPlane < 3; iPlane++ {
-            for i := uint(0); i < this.m_uiNumPartitions; i++ {
-                this.m_aapbEdgeFilter[EDGE_HOR][iPlane][i] = false //, sizeof( Bool  ) * this.m_uiNumPartitions );
-            }
+            this.m_aapbEdgeFilter[EDGE_HOR][i] = false //, sizeof( Bool  ) * this.m_uiNumPartitions );
         }
 
         // CU-based deblocking
@@ -205,8 +184,8 @@ func (this *TComLoopFilter) xDeblockCU(pcCU *TComDataCU, uiAbsZorderIdx, uiDepth
             uiBSCheck = true
         }
 
-        if this.m_aapbEdgeFilter[iDir][0][uiPartIdx] && uiBSCheck {
-            this.xGetBoundaryStrengthSingle(pcCU, uiAbsZorderIdx, iDir, uiPartIdx)
+        if this.m_aapbEdgeFilter[iDir][uiPartIdx] && uiBSCheck {
+            this.xGetBoundaryStrengthSingle(pcCU, iDir, uiPartIdx)
         }
     }
 
@@ -247,7 +226,7 @@ func (this *TComLoopFilter) xSetLoopfilterParam(pcCU *TComDataCU, uiAbsZorderIdx
         this.m_stLFCUParam.bLeftEdge = true
     }
     if this.m_stLFCUParam.bLeftEdge {
-        pcTempCU = pcCU.GetPULeft(&uiTempPartIdx, uiAbsZorderIdx, !pcCU.GetSlice().GetLFCrossSliceBoundaryFlag(), false, !this.m_bLFCrossTileBoundary)
+        pcTempCU = pcCU.GetPULeft(&uiTempPartIdx, uiAbsZorderIdx, !pcCU.GetSlice().GetLFCrossSliceBoundaryFlag(), !this.m_bLFCrossTileBoundary)
         if pcTempCU != nil {
             this.m_stLFCUParam.bLeftEdge = true
         } else {
@@ -261,11 +240,7 @@ func (this *TComLoopFilter) xSetLoopfilterParam(pcCU *TComDataCU, uiAbsZorderIdx
         this.m_stLFCUParam.bTopEdge = true
     }
     if this.m_stLFCUParam.bTopEdge {
-        //#if LINEBUF_CLEANUP
-        pcTempCU = pcCU.GetPUAbove(&uiTempPartIdx, uiAbsZorderIdx, !pcCU.GetSlice().GetLFCrossSliceBoundaryFlag(), false, false, !this.m_bLFCrossTileBoundary)
-        //#else
-        //    pcTempCU = pcCU.GetPUAbove( uiTempPartIdx, uiAbsZorderIdx, !pcCU.GetSlice().GetLFCrossSliceBoundaryFlag(), false , false, false, !this.m_bLFCrossTileBoundary);
-        //#endif
+        pcTempCU = pcCU.GetPUAbove(&uiTempPartIdx, uiAbsZorderIdx, !pcCU.GetSlice().GetLFCrossSliceBoundaryFlag(), false, !this.m_bLFCrossTileBoundary)
 
         if pcTempCU != nil {
             this.m_stLFCUParam.bTopEdge = true
@@ -331,7 +306,7 @@ func (this *TComLoopFilter) xSetEdgefilterPU(pcCU *TComDataCU, uiAbsZorderIdx ui
         //break;
     }
 }
-func (this *TComLoopFilter) xGetBoundaryStrengthSingle(pcCU *TComDataCU, uiAbsZorderIdx uint, iDir int, uiAbsPartIdx uint) {
+func (this *TComLoopFilter) xGetBoundaryStrengthSingle(pcCU *TComDataCU, iDir int, uiAbsPartIdx uint) {
     pcSlice := pcCU.GetSlice()
 
     uiPartQ := uiAbsPartIdx
@@ -343,15 +318,10 @@ func (this *TComLoopFilter) xGetBoundaryStrengthSingle(pcCU *TComDataCU, uiAbsZo
 
     //-- Calculate Block Index
     if iDir == EDGE_VER {
-        pcCUP = pcCUQ.GetPULeft(&uiPartP, uiPartQ, !pcCU.GetSlice().GetLFCrossSliceBoundaryFlag(), false, !this.m_bLFCrossTileBoundary)
+        pcCUP = pcCUQ.GetPULeft(&uiPartP, uiPartQ, !pcCU.GetSlice().GetLFCrossSliceBoundaryFlag(), !this.m_bLFCrossTileBoundary)
         //fmt.Printf("V:%d\n",uiPartP);
     } else { // (iDir == EDGE_HOR)
-        //#if LINEBUF_CLEANUP
-        pcCUP = pcCUQ.GetPUAbove(&uiPartP, uiPartQ, !pcCU.GetSlice().GetLFCrossSliceBoundaryFlag(), false, false, !this.m_bLFCrossTileBoundary)
-        //fmt.Printf("H:%d\n",uiPartP);
-        //#else
-        //    pcCUP = pcCUQ.GetPUAbove(uiPartP, uiPartQ, !pcCU.GetSlice().GetLFCrossSliceBoundaryFlag(), false, false, false, !this.m_bLFCrossTileBoundary);
-        //#endif
+        pcCUP = pcCUQ.GetPUAbove(&uiPartP, uiPartQ, !pcCU.GetSlice().GetLFCrossSliceBoundaryFlag(), false, !this.m_bLFCrossTileBoundary)
     }
 
     //-- Set BS for Intra MB : BS = 4 or 3
@@ -369,14 +339,9 @@ func (this *TComLoopFilter) xGetBoundaryStrengthSingle(pcCU *TComDataCU, uiAbsZo
             //fmt.Printf("1.1:m_aapucBS[%d][%d]=%d\n",iDir,uiAbsPartIdx,this.m_aapucBS[iDir][uiAbsPartIdx]);
         } else {
             if iDir == EDGE_HOR {
-                //#if LINEBUF_CLEANUP
-                pcCUP = pcCUQ.GetPUAbove(&uiPartP, uiPartQ, !pcCU.GetSlice().GetLFCrossSliceBoundaryFlag(), false, false, !this.m_bLFCrossTileBoundary)
-                //fmt.Printf("H:%d,%d\n",uiPartP,uiPartQ);
-                //#else
-                //        pcCUP = pcCUQ.GetPUAbove(uiPartP, uiPartQ, !pcCU.GetSlice().GetLFCrossSliceBoundaryFlag(), false, true, false, !this.m_bLFCrossTileBoundary);
-                //#endif
+                pcCUP = pcCUQ.GetPUAbove(&uiPartP, uiPartQ, !pcCU.GetSlice().GetLFCrossSliceBoundaryFlag(), false, !this.m_bLFCrossTileBoundary)
             }
-            if pcSlice.IsInterB() {
+            if pcSlice.IsInterB() || pcCUP.GetSlice().IsInterB() {
                 //fmt.Printf("1.2:m_aapucBS[%d][%d]=%d\n",iDir,uiAbsPartIdx,this.m_aapucBS[iDir][uiAbsPartIdx]);
                 var iRefIdx int
                 var piRefP0, piRefP1, piRefQ0, piRefQ1 *TComPic
@@ -410,30 +375,55 @@ func (this *TComLoopFilter) xGetBoundaryStrengthSingle(pcCU *TComDataCU, uiAbsZo
                 pcMvQ0 := pcCUQ.GetCUMvField(REF_PIC_LIST_0).GetMv(int(uiPartQ))
                 pcMvQ1 := pcCUQ.GetCUMvField(REF_PIC_LIST_1).GetMv(int(uiPartQ))
 
+                if piRefP0 == nil {
+                    pcMvP0.SetZero();
+                }
+                if piRefP1 == nil {
+                    pcMvP1.SetZero();
+                }
+                if piRefQ0 == nil {
+                    pcMvQ0.SetZero();
+                }
+                if piRefQ1 == nil {
+                    pcMvQ1.SetZero();
+                }
+
                 if ((piRefP0 == piRefQ0) && (piRefP1 == piRefQ1)) || ((piRefP0 == piRefQ1) && (piRefP1 == piRefQ0)) {
                     //fmt.Printf("1.3:m_aapucBS[%d][%d]=%d\n",iDir,uiAbsPartIdx,this.m_aapucBS[iDir][uiAbsPartIdx]);
                     uiBs = 0
                     if piRefP0 != piRefP1 { // Different L0 & L1
                         if piRefP0 == piRefQ0 {
-                            pcMvP0.SubMv(pcMvQ0)
-                            pcMvP1.SubMv(pcMvQ1)
-                            uiBs = uint(B2U(pcMvP0.GetAbsHor() >= 4) | B2U(pcMvP0.GetAbsVer() >= 4) |
-                                B2U(pcMvP1.GetAbsHor() >= 4) | B2U(pcMvP1.GetAbsVer() >= 4))
+                            if (ABS(pcMvQ0.GetHor() - pcMvP0.GetHor()).(int16) >= 4) ||
+                               (ABS(pcMvQ0.GetVer() - pcMvP0.GetVer()).(int16) >= 4) ||
+                               (ABS(pcMvQ1.GetHor() - pcMvP1.GetHor()).(int16) >= 4) ||
+                               (ABS(pcMvQ1.GetVer() - pcMvP1.GetVer()).(int16) >= 4) {
+                                uiBs = 1;
+                            }else{
+                                uiBs = 0;
+                            }
                         } else {
-                            pcMvP0.SubMv(pcMvQ1)
-                            pcMvP1.SubMv(pcMvQ0)
-                            uiBs = uint(B2U(pcMvP0.GetAbsHor() >= 4) | B2U(pcMvP0.GetAbsVer() >= 4) |
-                                B2U(pcMvP1.GetAbsHor() >= 4) | B2U(pcMvP1.GetAbsVer() >= 4))
+                            if (ABS(pcMvQ1.GetHor() - pcMvP0.GetHor()).(int16) >= 4) ||
+                               (ABS(pcMvQ1.GetVer() - pcMvP0.GetVer()).(int16) >= 4) ||
+                               (ABS(pcMvQ0.GetHor() - pcMvP1.GetHor()).(int16) >= 4) ||
+                               (ABS(pcMvQ0.GetVer() - pcMvP1.GetVer()).(int16) >= 4) {
+                                uiBs = 1;
+                            }else{
+                                uiBs = 0;
+                            }
                         }
                     } else { // Same L0 & L1
-                        pcMvSub0 := SubMvs(pcMvP0, pcMvQ0)
-                        pcMvSub1 := SubMvs(pcMvP1, pcMvQ1)
-                        pcMvP0.SubMv(pcMvQ1)
-                        pcMvP1.SubMv(pcMvQ0)
-                        uiBs = uint(B2U(((pcMvP0.GetAbsHor() >= 4) || (pcMvP0.GetAbsVer() >= 4) ||
-                            (pcMvP1.GetAbsHor() >= 4) || (pcMvP1.GetAbsVer() >= 4)) &&
-                            ((pcMvSub0.GetAbsHor() >= 4) || (pcMvSub0.GetAbsVer() >= 4) ||
-                                (pcMvSub1.GetAbsHor() >= 4) || (pcMvSub1.GetAbsVer() >= 4))))
+                        if ((ABS(pcMvQ0.GetHor() - pcMvP0.GetHor()).(int16) >= 4) ||
+                            (ABS(pcMvQ0.GetVer() - pcMvP0.GetVer()).(int16) >= 4) ||
+                            (ABS(pcMvQ1.GetHor() - pcMvP1.GetHor()).(int16) >= 4) ||
+                            (ABS(pcMvQ1.GetVer() - pcMvP1.GetVer()).(int16) >= 4)) &&
+                           ((ABS(pcMvQ1.GetHor() - pcMvP0.GetHor()).(int16) >= 4) ||
+                            (ABS(pcMvQ1.GetVer() - pcMvP0.GetVer()).(int16) >= 4) ||
+                            (ABS(pcMvQ0.GetHor() - pcMvP1.GetHor()).(int16) >= 4) ||
+                            (ABS(pcMvQ0.GetVer() - pcMvP1.GetVer()).(int16) >= 4)) {
+                            uiBs = 1;
+                        }else{
+                            uiBs = 0;
+                        }
                     }
                 } else { // for all different Ref_Idx
                     uiBs = 1
@@ -457,8 +447,20 @@ func (this *TComLoopFilter) xGetBoundaryStrengthSingle(pcCU *TComDataCU, uiAbsZo
                 pcMvQ0 := pcCUQ.GetCUMvField(REF_PIC_LIST_0).GetMv(int(uiPartQ))
                 //fmt.Printf("p(%d,%d),q(%d,%d)\n", pcMvP0.GetAbsHor(), pcMvP0.GetAbsVer(), pcMvQ0.GetAbsHor(), pcMvQ0.GetAbsVer());
 
-                pcMvP0.SubMv(pcMvQ0)
-                uiBs = uint(B2U(piRefP0 != piRefQ0) | B2U(pcMvP0.GetAbsHor() >= 4) | B2U(pcMvP0.GetAbsVer() >= 4))
+                if piRefP0 == nil {
+                    pcMvP0.SetZero();
+                }
+                if piRefQ0 == nil {
+                    pcMvQ0.SetZero();
+                }
+
+                if (piRefP0 != piRefQ0) ||
+                   (ABS(pcMvQ0.GetHor() - pcMvP0.GetHor()).(int16) >= 4) ||
+                   (ABS(pcMvQ0.GetVer() - pcMvP0.GetVer()).(int16) >= 4) {
+                    uiBs = 1;
+                }else{
+                    uiBs = 0;
+                }
                 //fmt.Printf("(%d,%d):%d | %d>=4 | %d>=4\n",uiPartP,uiPartQ,B2U(piRefP0!=piRefQ0),pcMvP0.GetAbsHor(),pcMvP0.GetAbsVer());
             }
         }   // enf of "if( one of BCBP == 0 )"
@@ -496,9 +498,7 @@ func (this *TComLoopFilter) xSetEdgefilterMultiple(pcCU *TComDataCU, uiScanIdx, 
     //assert( uiHeightInBaseUnits > 0 );
     for ui := uint(0); ui < uiNumElem; ui++ {
         uiBsIdx := this.xCalcBsIdx(pcCU, uiScanIdx, iDir, iEdgeIdx, int(ui))
-        this.m_aapbEdgeFilter[iDir][0][uiBsIdx] = bValue
-        this.m_aapbEdgeFilter[iDir][1][uiBsIdx] = bValue
-        this.m_aapbEdgeFilter[iDir][2][uiBsIdx] = bValue
+        this.m_aapbEdgeFilter[iDir][uiBsIdx] = bValue
         if iEdgeIdx == 0 {
             this.m_aapucBS[iDir][uiBsIdx] = B2U(bValue)
         }
@@ -558,13 +558,9 @@ func (this *TComLoopFilter) xEdgeFilterLuma(pcCU *TComDataCU, uiAbsZorderIdx, ui
             uiPartQIdx = uiBsAbsIdx
             // Derive neighboring PU index
             if iDir == EDGE_VER {
-                pcCUP = pcCUQ.GetPULeft(&uiPartPIdx, uiPartQIdx, !pcCU.GetSlice().GetLFCrossSliceBoundaryFlag(), false, !this.m_bLFCrossTileBoundary)
+                pcCUP = pcCUQ.GetPULeft(&uiPartPIdx, uiPartQIdx, !pcCU.GetSlice().GetLFCrossSliceBoundaryFlag(), !this.m_bLFCrossTileBoundary)
             } else { // (iDir == EDGE_HOR)
-                //#if LINEBUF_CLEANUP
-                pcCUP = pcCUQ.GetPUAbove(&uiPartPIdx, uiPartQIdx, !pcCU.GetSlice().GetLFCrossSliceBoundaryFlag(), false, false, !this.m_bLFCrossTileBoundary)
-                //#else
-                //        pcCUP = pcCUQ.GetPUAbove(uiPartPIdx, uiPartQIdx,!pcCU.GetSlice().GetLFCrossSliceBoundaryFlag(), false, false, false, !this.m_bLFCrossTileBoundary);
-                //#endif
+                pcCUP = pcCUQ.GetPUAbove(&uiPartPIdx, uiPartQIdx, !pcCU.GetSlice().GetLFCrossSliceBoundaryFlag(), false, !this.m_bLFCrossTileBoundary)
             }
 
             iQP_P = int(pcCUP.GetQP1(uiPartPIdx))
@@ -616,7 +612,7 @@ func (this *TComLoopFilter) xEdgeFilterLuma(pcCU *TComDataCU, uiAbsZorderIdx, ui
                         this.xUseStrongFiltering(iOffset, 2*int(d3), iBeta, iTc, piSrc[iTmpSrcOffset+iSrcStep*int(iIdx*uiPelsInPart+iBlkIdx*4+3)-iOffset*4:])
 
                     for i := uint(0); i < DEBLOCK_SMALLEST_BLOCK/2; i++ {
-                        this.xPelFilterLuma(piSrc[iTmpSrcOffset+iSrcStep*int(iIdx*uiPelsInPart+iBlkIdx*4+i)-iOffset*4:], iOffset, int(d), iBeta, iTc, sw, bPartPNoFilter, bPartQNoFilter, iThrCut, bFilterP, bFilterQ)
+                        this.xPelFilterLuma(piSrc[iTmpSrcOffset+iSrcStep*int(iIdx*uiPelsInPart+iBlkIdx*4+i)-iOffset*4:], iOffset, iTc, sw, bPartPNoFilter, bPartQNoFilter, iThrCut, bFilterP, bFilterQ)
                     }
                 }
             }
@@ -692,23 +688,12 @@ func (this *TComLoopFilter) xEdgeFilterChroma(pcCU *TComDataCU, uiAbsZorderIdx, 
             uiPartQIdx = uiBsAbsIdx
             // Derive neighboring PU index
             if iDir == EDGE_VER {
-                pcCUP = pcCUQ.GetPULeft(&uiPartPIdx, uiPartQIdx, !pcCU.GetSlice().GetLFCrossSliceBoundaryFlag(), false, !this.m_bLFCrossTileBoundary)
+                pcCUP = pcCUQ.GetPULeft(&uiPartPIdx, uiPartQIdx, !pcCU.GetSlice().GetLFCrossSliceBoundaryFlag(), !this.m_bLFCrossTileBoundary)
             } else { // (iDir == EDGE_HOR)
-                //#if LINEBUF_CLEANUP
-                pcCUP = pcCUQ.GetPUAbove(&uiPartPIdx, uiPartQIdx, !pcCU.GetSlice().GetLFCrossSliceBoundaryFlag(), false, false, !this.m_bLFCrossTileBoundary)
-                //#else
-                //        pcCUP = pcCUQ.GetPUAbove(uiPartPIdx, uiPartQIdx,!pcCU.GetSlice().GetLFCrossSliceBoundaryFlag(), false, false, false, !this.m_bLFCrossTileBoundary);
-                //#endif
+                pcCUP = pcCUQ.GetPUAbove(&uiPartPIdx, uiPartQIdx, !pcCU.GetSlice().GetLFCrossSliceBoundaryFlag(), false, !this.m_bLFCrossTileBoundary)
             }
 
             iQP_P = int(pcCUP.GetQP1(uiPartPIdx))
-            /*#if !USE_PIC_CHROMA_QP_OFFSETS_IN_DEBLOCKING
-                  iQP = QpUV((iQP_P + iQP_Q + 1) >> 1);
-                  Int iBitdepthScale = 1 << (g_bitDepth-8);
-
-                  Int iIndexTC = Clip3(0, MAX_QP+DEFAULT_INTRA_TC_OFFSET, iQP + DEFAULT_INTRA_TC_OFFSET*(ucBs - 1) + (tcOffsetDiv2 << 1));
-                  Int iTc =  tctable_8x8[iIndexTC]*iBitdepthScale;
-            #endif*/
 
             if bPCMFilter || pcCU.GetSlice().GetPPS().GetTransquantBypassEnableFlag() {
                 // Check if each of PUs is I_PCM with LF disabling
@@ -720,7 +705,6 @@ func (this *TComLoopFilter) xEdgeFilterChroma(pcCU *TComDataCU, uiAbsZorderIdx, 
                 bPartQNoFilter = bPartQNoFilter || (pcCUQ.IsLosslessCoded(uiPartQIdx))
             }
 
-            //#if USE_PIC_CHROMA_QP_OFFSETS_IN_DEBLOCKING
             for chromaIdx := 0; chromaIdx < 2; chromaIdx++ {
                 var chromaQPOffset int
                 var piTmpSrcChroma []Pel
@@ -743,18 +727,11 @@ func (this *TComLoopFilter) xEdgeFilterChroma(pcCU *TComDataCU, uiAbsZorderIdx, 
                     this.xPelFilterChroma(piTmpSrcChroma[piTmpSrcOffsetChroma+iSrcStep*int(uiStep+iIdx*uiPelsInPartChroma)-iOffset*2:], iOffset, iTc, bPartPNoFilter, bPartQNoFilter)
                 }
             }
-            /*#else
-                  for ( UInt uiStep = 0; uiStep < uiPelsInPartChroma; uiStep++ )
-                  {
-                    xPelFilterChroma( piTmpSrcCb + iSrcStep*(uiStep+iIdx*uiPelsInPartChroma), iOffset, iTc , bPartPNoFilter, bPartQNoFilter);
-                    xPelFilterChroma( piTmpSrcCr + iSrcStep*(uiStep+iIdx*uiPelsInPartChroma), iOffset, iTc , bPartPNoFilter, bPartQNoFilter);
-                  }
-            #endif*/
         }
     }
 }
 
-func (this *TComLoopFilter) xPelFilterLuma(piSrc2 []Pel, iOffset, d, beta, tc int, sw, bPartPNoFilter, bPartQNoFilter bool, iThrCut int, bFilterSecondP, bFilterSecondQ bool) {
+func (this *TComLoopFilter) xPelFilterLuma(piSrc2 []Pel, iOffset, tc int, sw, bPartPNoFilter, bPartQNoFilter bool, iThrCut int, bFilterSecondP, bFilterSecondQ bool) {
     var delta int
 
     m4 := piSrc2[iOffset*4+0]

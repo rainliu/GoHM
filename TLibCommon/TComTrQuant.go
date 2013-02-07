@@ -58,8 +58,6 @@ type EstBitsSbacStruct struct {
 
     BlockCbpBits     [3 * NUM_QT_CBF_CTX][2]int
     BlockRootCbpBits [4][2]int
-    scanZigzag       [2]int ///< flag for zigzag scan
-    scanNonZigzag    [2]int ///< flag for non zigzag scan
 }
 
 // ====================================================================================================================
@@ -136,9 +134,7 @@ type TComTrQuant struct {
     m_uiMaxTrSize  uint
     m_bEnc         bool
     m_useRDOQ      bool
-    //#if RDOQ_TRANSFORMSKIP
     m_useRDOQTS bool
-    //#endif
     //#if ADAPTIVE_QP_SELECTION
     m_bUseAdaptQpSelect bool
     //#endif
@@ -169,11 +165,8 @@ func (this *TComTrQuant) GetEstBitsSbac() *EstBitsSbacStruct{
 }
 
 // initialize class
-func (this *TComTrQuant) Init(uiMaxWidth, uiMaxHeight, uiMaxTrSize uint, iSymbolMode int,
-    aTable4 []uint, aTable8 []uint, aTableLastPosVlcIndex []uint, bUseRDOQ bool,
-    //#if RDOQ_TRANSFORMSKIP
+func (this *TComTrQuant) Init(uiMaxTrSize uint, bUseRDOQ bool,
     bUseRDOQTS bool,
-    //#endif
     bEnc bool, useTransformSkipFast bool,
     //#if ADAPTIVE_QP_SELECTION
     bUseAdaptQpSelect bool) {
@@ -181,9 +174,7 @@ func (this *TComTrQuant) Init(uiMaxWidth, uiMaxHeight, uiMaxTrSize uint, iSymbol
     this.m_uiMaxTrSize = uiMaxTrSize
     this.m_bEnc = bEnc
     this.m_useRDOQ = bUseRDOQ
-    //#if RDOQ_TRANSFORMSKIP
     this.m_useRDOQTS = bUseRDOQTS
-    //#endif
     //#if ADAPTIVE_QP_SELECTION
     this.m_bUseAdaptQpSelect = bUseAdaptQpSelect
     //#endif
@@ -326,8 +317,6 @@ func GetSigCtxInc(patternSigCtx int,
     posX int,
     posY int,
     log2BlockSize int,
-    width int,
-    height int,
     textureType TextType) int {
     var ctxIndMap = [16]int{0, 1, 4, 5,
         2, 3, 4, 5,
@@ -403,7 +392,6 @@ func GetSigCtxInc(patternSigCtx int,
 func GetSigCoeffGroupCtxInc(uiSigCoeffGroupFlag []uint,
     uiCGPosX uint,
     uiCGPosY uint,
-    scanIdx uint,
     width, height int) uint {
     uiRight := uint8(0)
     uiLower := uint8(0)
@@ -560,7 +548,7 @@ func (this *TComTrQuant) SetScalingListDec(scalingList *TComScalingList) {
 
 func (this *TComTrQuant) ProcessScalingListEnc(coeff []int, quantcoeff []int, quantScales int, height, width, ratio uint, sizuNum int, dc uint) {
   var nsqth,nsqtw int;
-  
+
   if height < width {
   	nsqth = 4;
   }else{
@@ -698,7 +686,7 @@ func (this *TComTrQuant) xTrMxN( bitDepth int, block []int16, coeff []int16,  iW
 //private:
 // forward Transform
 func (this *TComTrQuant) xT(bitDepth int, uiMode uint, piBlkResi []Pel, uiStride uint, psCoeff []int, iWidth, iHeight int) {
-/*#if MATRIX_MULT  
+/*#if MATRIX_MULT
   Int iSize = iWidth;
   xTr(bitDepth, piBlkResi,psCoeff,uiStride,(UInt)iSize,uiMode);
 #else*/
@@ -710,17 +698,17 @@ func (this *TComTrQuant) xT(bitDepth int, uiMode uint, piBlkResi []Pel, uiStride
       for j = 0; j < iHeight; j++ {
       	for i = 0; i< iWidth; i++ {
       		block[j*iWidth+i] = int16(piBlkResi [ j * int(uiStride)+i]);
-      	} 
+      	}
         //memcpy( block + j * iWidth, piBlkResi + j * uiStride, iWidth * sizeof( Short ) );
       }
     }
     this.xTrMxN(bitDepth, block[:], coeff[:], iWidth, iHeight, uiMode );
-    for j = 0; j < iHeight * iWidth; j++ {    
+    for j = 0; j < iHeight * iWidth; j++ {
       psCoeff[ j ] = int(coeff[ j ]);
     }
     return ;
   }
-//#endif  
+//#endif
 }
 
 // skipping Transform
@@ -732,9 +720,9 @@ func (this *TComTrQuant) xTransformSkip(bitDepth int, piBlkResi []Pel, uiStride 
   var  j,k	int;
   if shift >= 0 {
     transformSkipShift = uint(shift);
-    for j = 0; j < height; j++{    
+    for j = 0; j < height; j++{
       for k = 0; k < width; k++{
-        psCoeff[j*height + k] = int(piBlkResi[j * int(uiStride) + k]) << transformSkipShift;      
+        psCoeff[j*height + k] = int(piBlkResi[j * int(uiStride) + k]) << transformSkipShift;
       }
     }
   }else{
@@ -742,15 +730,15 @@ func (this *TComTrQuant) xTransformSkip(bitDepth int, piBlkResi []Pel, uiStride 
     var offset int;
     transformSkipShift = uint(-shift);
     offset = (1 << (transformSkipShift - 1));
-    for j = 0; j < height; j++{    
+    for j = 0; j < height; j++{
       for k = 0; k < width; k++{
-        psCoeff[j*height + k] = int(int(piBlkResi[j * int(uiStride) + k]) + offset) >> transformSkipShift;      
+        psCoeff[j*height + k] = int(int(piBlkResi[j * int(uiStride) + k]) + offset) >> transformSkipShift;
       }
     }
   }
 }
 
-func (this *TComTrQuant) signBitHidingHDQ (pcCU *TComDataCU, pQCoef []TCoeff, pCoef []int, scan []uint, deltaU []int, width, height int) {
+func (this *TComTrQuant) signBitHidingHDQ (pQCoef []TCoeff, pCoef []int, scan []uint, deltaU []int, width, height int) {
   lastCG := -1;
   absSum := 0 ;
   var n int;
@@ -780,7 +768,7 @@ func (this *TComTrQuant) signBitHidingHDQ (pcCU *TComDataCU, pQCoef []TCoeff, pC
     }
 
     if lastNZPosInCG>=0 && lastCG==-1{
-      lastCG = 1 ; 
+      lastCG = 1 ;
     }
 
     if lastNZPosInCG-firstNZPosInCG>=SBH_THRESHOLD {
@@ -796,7 +784,7 @@ func (this *TComTrQuant) signBitHidingHDQ (pcCU *TComDataCU, pQCoef []TCoeff, pC
          finalChange:=0;
          curCost:=MAX_INT;
          curChange:=0;
-        
+
         if lastCG==1 {
         	n = lastNZPosInCG
         }else{
@@ -806,14 +794,14 @@ func (this *TComTrQuant) signBitHidingHDQ (pcCU *TComDataCU, pQCoef []TCoeff, pC
           blkPos := scan[ n+subPos ];
           if pQCoef[ blkPos ] != 0 {
             if deltaU[blkPos]>0{
-              curCost = - deltaU[blkPos]; 
+              curCost = - deltaU[blkPos];
               curChange=1 ;
             }else{
               //curChange =-1;
               if n==firstNZPosInCG && ABS(pQCoef[blkPos])==1{
-                curCost=MAX_INT ; 
+                curCost=MAX_INT ;
               }else{
-                curCost = deltaU[blkPos]; 
+                curCost = deltaU[blkPos];
                 curChange =-1;
               }
             }
@@ -827,7 +815,7 @@ func (this *TComTrQuant) signBitHidingHDQ (pcCU *TComDataCU, pQCoef []TCoeff, pC
               }
               if thisSignBit != signbit {
                 curCost = MAX_INT;
-              }else{ 
+              }else{
                 curCost = - (deltaU[blkPos])  ;
                 curChange = 1 ;
               }
@@ -849,10 +837,10 @@ func (this *TComTrQuant) signBitHidingHDQ (pcCU *TComDataCU, pQCoef []TCoeff, pC
         }
 
         if pCoef[minPos]>=0 {
-          pQCoef[minPos] += TCoeff(finalChange) ; 
-        }else{ 
+          pQCoef[minPos] += TCoeff(finalChange) ;
+        }else{
           pQCoef[minPos] -= TCoeff(finalChange) ;
-        }  
+        }
       } // Hide
     }
     if lastCG==1 {
@@ -881,19 +869,15 @@ func (this *TComTrQuant) xQuant(pcCU *TComDataCU,
   piArlCCoef := pArlDes;
 //#endif
   iAdd := 0;
- 
+
 //#if RDOQ_TRANSFORMSKIP
   var useRDOQ bool;
   if pcCU.GetTransformSkip2(uiAbsPartIdx,eTType) {
   	useRDOQ = this.m_useRDOQTS;
   }else{
-  	useRDOQ = this.m_useRDOQ; 
+  	useRDOQ = this.m_useRDOQ;
   }
   if useRDOQ && (eTType == TEXT_LUMA || RDOQ_CHROMA) {
-//#else
-//  Bool useRDOQForTransformSkip = !(m_useTransformSkipFast && pcCU.GetTransformSkip(uiAbsPartIdx,eTType));
-//  if ( m_useRDOQ && (eTType == TEXT_LUMA || RDOQ_CHROMA) && useRDOQForTransformSkip)
-//#endif
 //#if ADAPTIVE_QP_SELECTION
     this.xRateDistOptQuant( pcCU, piCoef, pDes, pArlDes, uint(iWidth), uint(iHeight), uiAcSum, eTType, uiAbsPartIdx );
 //#else
@@ -904,7 +888,7 @@ func (this *TComTrQuant) xQuant(pcCU *TComDataCU,
 
     scanIdx := pcCU.GetCoefScanIdx(uiAbsPartIdx, uint(iWidth), eTType==TEXT_LUMA, pcCU.IsIntra(uiAbsPartIdx));
     scan := G_auiSigLastScan[ scanIdx ][ log2BlockSize - 1 ];
-    
+
     var deltaU	[32*32]int ;
 
 //#if ADAPTIVE_QP_SELECTION
@@ -917,10 +901,18 @@ func (this *TComTrQuant) xQuant(pcCU *TComDataCU,
     }else{
     	qpBDOffset = pcCU.GetSlice().GetSPS().GetQpBDOffsetC();
     }
-    
+
     if eTType == TEXT_LUMA {
       qpScaled = iQpBase + qpBDOffset;
     }else{
+      var chromaQPOffset int;
+      if eTType == TEXT_CHROMA_U{
+        chromaQPOffset = pcCU.GetSlice().GetPPS().GetChromaCbQpOffset() + pcCU.GetSlice().GetSliceQpDeltaCb();
+      }else{
+        chromaQPOffset = pcCU.GetSlice().GetPPS().GetChromaCrQpOffset() + pcCU.GetSlice().GetSliceQpDeltaCr();
+      }
+      iQpBase = iQpBase + chromaQPOffset;
+
       qpScaled = CLIP3( -qpBDOffset, 57, iQpBase).(int);
 
       if qpScaled < 0 {
@@ -966,7 +958,7 @@ func (this *TComTrQuant) xQuant(pcCU *TComDataCU,
     }else{
     	iAdd = 85<< uint(iQBits-9);
     }
-     iQBitsC := QUANT_SHIFT + cQpBase.m_iPer + iTransformShift - ARL_C_PRECISION;  
+     iQBitsC := QUANT_SHIFT + cQpBase.m_iPer + iTransformShift - ARL_C_PRECISION;
      iAddC   := 1 << uint(iQBitsC-1);
 //#endif
 
@@ -978,7 +970,7 @@ func (this *TComTrQuant) xQuant(pcCU *TComDataCU,
       if iLevel < 0 {
       	iSign   = -1;
       }else{
-      	iSign = 1;      
+      	iSign = 1;
 	  }
 
 //#if ADAPTIVE_QP_SELECTION
@@ -993,12 +985,12 @@ func (this *TComTrQuant) xQuant(pcCU *TComDataCU,
 //      deltaU[uiBlockPos] = (Int)( ((Int64)abs(piCoef[uiBlockPos]) * piQuantCoeff[uiBlockPos] - (iLevel<<iQBits) )>> qBits8 );
 //#endif
       *uiAcSum += uint(iLevel);
-      iLevel *= iSign;        
+      iLevel *= iSign;
       piQCoef[uiBlockPos] = TCoeff(CLIP3( -32768, 32767, iLevel ).(int));
     } // for n
     if pcCU.GetSlice().GetPPS().GetSignHideFlag() {
       if *uiAcSum>=2 {
-        this.signBitHidingHDQ( pcCU, piQCoef, piCoef, scan, deltaU[:], iWidth, iHeight ) ;
+        this.signBitHidingHDQ(piQCoef, piCoef, scan, deltaU[:], iWidth, iHeight ) ;
       }
     }
   } //if RDOQ
@@ -1023,7 +1015,7 @@ func (this *TComTrQuant) xRateDistOptQuant(pcCU *TComDataCU,
    dTemp       := float64(0);
    uiLog2TrSize := uint(G_aucConvertToBit[ uiWidth ]) + 2;
   uiQ := uint(G_quantScales[this.m_cQP.m_iRem]);
-  
+
   var uiBitDepth uint;
   if eTType == TEXT_LUMA {
    uiBitDepth = uint(G_bitDepthY);
@@ -1042,7 +1034,7 @@ func (this *TComTrQuant) xRateDistOptQuant(pcCU *TComDataCU,
   	scalingListType = 3 + G_eTTable[eTType];
   }
   //assert(scalingListType < 6);
-  
+
   iQBits = QUANT_SHIFT + this.m_cQP.m_iPer + iTransformShift;                   // Right shift of non-RDOQ quantizer;  level = (coeff*uiQ + offset)>>q_bits
    dErrScale   := float64(0);
    pdErrScaleOrg := this.GetErrScaleCoeff(uint(scalingListType),uiLog2TrSize-2,uint(this.m_cQP.m_iRem));
@@ -1054,13 +1046,13 @@ func (this *TComTrQuant) xRateDistOptQuant(pcCU *TComDataCU,
    iAddC :=  1 << uint(iQBitsC-1);
 //#endif
    uiScanIdx := pcCU.GetCoefScanIdx(uiAbsPartIdx, uiWidth, eTType==TEXT_LUMA, pcCU.IsIntra(uiAbsPartIdx));
-  
+
 //#if ADAPTIVE_QP_SELECTION
   for i:=uint(0); i<uiMaxNumCoeff; i++ {
   	piArlDstCoeff[i]= 0;//, sizeof(Int) *  uiMaxNumCoeff);
   }
 //#endif
-  
+
   var pdCostCoeff [ 32 * 32 ]float64;
   var pdCostSig   [ 32 * 32 ]float64;
   var pdCostCoeff0[ 32 * 32 ]float64;
@@ -1074,7 +1066,7 @@ func (this *TComTrQuant) xRateDistOptQuant(pcCU *TComDataCU,
   //::memset( rateIncDown,  0, sizeof(Int) *  uiMaxNumCoeff );
   //::memset( sigRateDelta, 0, sizeof(Int) *  uiMaxNumCoeff );
   //::memset( deltaU,       0, sizeof(Int) *  uiMaxNumCoeff );
-  
+
     var scanCG []uint;
     if uiLog2BlkSize > 3 {
     	scanCG = G_auiSigLastScan[ uiScanIdx ][ uiLog2BlkSize-2-1   ];
@@ -1086,39 +1078,39 @@ func (this *TComTrQuant) xRateDistOptQuant(pcCU *TComDataCU,
     }else if uiLog2BlkSize == 5 {
       scanCG = G_sigLastScanCG32x32[:];
     }
-  
+
    uiCGSize := (1 << MLS_CG_SIZE);         // 16
   var pdCostCoeffGroupSig	[ MLS_GRP_NUM ]float64;
   var uiSigCoeffGroupFlag	[ MLS_GRP_NUM ]uint;
    uiNumBlkSide := uiWidth / MLS_CG_SIZE;
    iCGLastScanPos := -1;
-  
+
       uiCtxSet            := uint(0);
        c1                  := 1;
        c2                  := 0;
     d64BaseCost         := float64(0);
        iLastScanPos        := -1;
                          dTemp= dErrScale;
-  
+
       c1Idx     := uint(0);
       c2Idx     := uint(0);
   var     baseLevel int;
-  
+
   scan := G_auiSigLastScan[ uiScanIdx ][ uiLog2BlkSize - 1 ];
-  
+
   //::memset( pdCostCoeffGroupSig,   0, sizeof(Double) * MLS_GRP_NUM );
   //::memset( uiSigCoeffGroupFlag,   0, sizeof(UInt) * MLS_GRP_NUM );
-  
+
    uiCGNum := uiWidth * uiHeight >> MLS_CG_SIZE;
   var iScanPos int;
-  var rdStats coeffGroupRDStats;     
-  
+  var rdStats coeffGroupRDStats;
+
   for  iCGScanPos := int(uiCGNum)-1; iCGScanPos >= 0; iCGScanPos-- {
      uiCGBlkPos := scanCG[ iCGScanPos ];
      uiCGPosY   := uiCGBlkPos / uiNumBlkSide;
      uiCGPosX   := uiCGBlkPos - (uiCGPosY * uiNumBlkSide);
     //::memset( &rdStats, 0, sizeof (coeffGroupRDStats));
-    
+
      patternSigCtx := CalcPatternSigCtx(uiSigCoeffGroupFlag[:], uiCGPosX, uiCGPosY, int(uiWidth), int(uiHeight));
     for  iScanPosinCG := int(uiCGSize)-1; iScanPosinCG >= 0; iScanPosinCG-- {
       iScanPos = iCGScanPos*uiCGSize + iScanPosinCG;
@@ -1135,12 +1127,12 @@ func (this *TComTrQuant) xRateDistOptQuant(pcCU *TComDataCU,
       }
 //#endif
       uiMaxAbsLevel        := (lLevelDouble + (1 << uint(iQBits - 1))) >> uint(iQBits);
-      
+
        dErr               := float64( lLevelDouble );
       pdCostCoeff0[ iScanPos ]  = dErr * dErr * dTemp;
       d64BlockUncodedCost      += pdCostCoeff0[ iScanPos ];
       piDstCoeff[ uiBlkPos ]    = TCoeff(uiMaxAbsLevel);
-      
+
       if  uiMaxAbsLevel > 0 && iLastScanPos < 0 {
         iLastScanPos            = iScanPos;
         if iScanPos < SCAN_SET_SIZE || eTType!=TEXT_LUMA {
@@ -1150,23 +1142,23 @@ func (this *TComTrQuant) xRateDistOptQuant(pcCU *TComDataCU,
         }
         iCGLastScanPos          = iCGScanPos;
       }
-      
+
       if  iLastScanPos >= 0 {
         //===== coefficient level estimation =====
         var  uiLevel uint;
           uiOneCtx         := 4 * uiCtxSet + uint(c1);
           uiAbsCtx         := uiCtxSet + uint(c2);
-        
+
         if iScanPos == iLastScanPos {
-          uiLevel              =this.xGetCodedLevel( &pdCostCoeff[ iScanPos], &pdCostCoeff0[ iScanPos ], &pdCostSig[ iScanPos ], 
-                                                lLevelDouble, uint(uiMaxAbsLevel), 0, uint16(uiOneCtx), uint16(uiAbsCtx), uint16(uiGoRiceParam), 
+          uiLevel              =this.xGetCodedLevel( &pdCostCoeff[ iScanPos], &pdCostCoeff0[ iScanPos ], &pdCostSig[ iScanPos ],
+                                                lLevelDouble, uint(uiMaxAbsLevel), 0, uint16(uiOneCtx), uint16(uiAbsCtx), uint16(uiGoRiceParam),
                                                 c1Idx, c2Idx, iQBits, dTemp, true );
         }else{
              uiPosY        := uint(uiBlkPos) >> uint(uiLog2BlkSize);
              uiPosX        := uiBlkPos - ( uiPosY << uint(uiLog2BlkSize) );
-           uiCtxSig      := GetSigCtxInc( patternSigCtx, uiScanIdx, int(uiPosX), int(uiPosY), int(uiLog2BlkSize), int(uiWidth), int(uiHeight), eTType );
-          uiLevel              = this.xGetCodedLevel( &pdCostCoeff[ iScanPos ], &pdCostCoeff0[ iScanPos ], &pdCostSig[ iScanPos ],
-                                                lLevelDouble, uint(uiMaxAbsLevel), uint16(uiCtxSig), uint16(uiOneCtx), uint16(uiAbsCtx), uint16(uiGoRiceParam), 
+             uiCtxSig      := GetSigCtxInc( patternSigCtx, uiScanIdx, int(uiPosX), int(uiPosY), int(uiLog2BlkSize), eTType );
+             uiLevel              = this.xGetCodedLevel( &pdCostCoeff[ iScanPos ], &pdCostCoeff0[ iScanPos ], &pdCostSig[ iScanPos ],
+                                                lLevelDouble, uint(uiMaxAbsLevel), uint16(uiCtxSig), uint16(uiOneCtx), uint16(uiAbsCtx), uint16(uiGoRiceParam),
                                                 c1Idx, c2Idx, iQBits, dTemp, false );
           sigRateDelta[ uiBlkPos ] = this.m_pcEstBitsSbac.SignificantBits[ uiCtxSig ][ 1 ] - this.m_pcEstBitsSbac.SignificantBits[ uiCtxSig ][ 0 ];
         }
@@ -1180,13 +1172,13 @@ func (this *TComTrQuant) xRateDistOptQuant(pcCU *TComDataCU,
         }
         piDstCoeff[ uiBlkPos ] = TCoeff(uiLevel);
         d64BaseCost           += pdCostCoeff [ iScanPos ];
-        
+
         if c1Idx < C1FLAG_NUMBER {
         	baseLevel = 2 + int(B2U(c2Idx < C2FLAG_NUMBER)) ;
         }else{
         	baseLevel = 1;
         }
-        
+
         if uiLevel >= uint(baseLevel) {
           if uiLevel  > 3*(1<<uiGoRiceParam) {
             uiGoRiceParam = MIN(uiGoRiceParam+ 1, 4).(uint);
@@ -1195,29 +1187,29 @@ func (this *TComTrQuant) xRateDistOptQuant(pcCU *TComDataCU,
         if  uiLevel >= 1 {
           c1Idx ++;
         }
-        
+
         //===== update bin model =====
         if uiLevel > 1 {
-          c1 = 0; 
+          c1 = 0;
           c2 += int(B2U(c2 < 2));
           c2Idx ++;
         }else if (c1 < 3) && (c1 > 0) && uiLevel!=0 {
           c1++;
         }
-        
+
         //===== context set update =====
         if ( iScanPos % SCAN_SET_SIZE == 0 ) && ( iScanPos > 0 )  {
           c2                = 0;
           uiGoRiceParam     = 0;
-          
+
           c1Idx   = 0;
-          c2Idx   = 0; 
+          c2Idx   = 0;
           if iScanPos == SCAN_SET_SIZE || eTType!=TEXT_LUMA {
           	uiCtxSet          = 0 ;
           }else{
           	uiCtxSet          = 2;
           }
-          
+
           if c1 == 0 {
             uiCtxSet++;
           }
@@ -1239,54 +1231,54 @@ func (this *TComTrQuant) xRateDistOptQuant(pcCU *TComDataCU,
         }
       }
     } //end for (iScanPosinCG)
-    
+
     if iCGLastScanPos >= 0 {
       if iCGScanPos!=0 {
         if uiSigCoeffGroupFlag[ uiCGBlkPos ] == 0{
-           uiCtxSig := GetSigCoeffGroupCtxInc( uiSigCoeffGroupFlag[:], uiCGPosX, uiCGPosY, uiScanIdx, int(uiWidth), int(uiHeight));
-          d64BaseCost += this.xGetRateSigCoeffGroup(0, uint16(uiCtxSig)) - rdStats.d64SigCost;;  
-          pdCostCoeffGroupSig[ iCGScanPos ] = this.xGetRateSigCoeffGroup(0, uint16(uiCtxSig));  
+           uiCtxSig := GetSigCoeffGroupCtxInc( uiSigCoeffGroupFlag[:], uiCGPosX, uiCGPosY, int(uiWidth), int(uiHeight));
+          d64BaseCost += this.xGetRateSigCoeffGroup(0, uint16(uiCtxSig)) - rdStats.d64SigCost;;
+          pdCostCoeffGroupSig[ iCGScanPos ] = this.xGetRateSigCoeffGroup(0, uint16(uiCtxSig));
         }else{
-          if iCGScanPos < iCGLastScanPos { //skip the last coefficient group, which will be handled together with last position below.        
+          if iCGScanPos < iCGLastScanPos { //skip the last coefficient group, which will be handled together with last position below.
             if rdStats.iNNZbeforePos0 == 0 {
               d64BaseCost -= rdStats.d64SigCost_0;
               rdStats.d64SigCost -= rdStats.d64SigCost_0;
             }
             // rd-cost if SigCoeffGroupFlag = 0, initialization
             d64CostZeroCG := d64BaseCost;
-            
+
             // add SigCoeffGroupFlag cost to total cost
-             uiCtxSig := GetSigCoeffGroupCtxInc( uiSigCoeffGroupFlag[:], uiCGPosX, uiCGPosY, uiScanIdx, int(uiWidth), int(uiHeight));
+             uiCtxSig := GetSigCoeffGroupCtxInc( uiSigCoeffGroupFlag[:], uiCGPosX, uiCGPosY, int(uiWidth), int(uiHeight));
             if iCGScanPos < iCGLastScanPos {
-              d64BaseCost   += this.xGetRateSigCoeffGroup(1, uint16(uiCtxSig)); 
-              d64CostZeroCG += this.xGetRateSigCoeffGroup(0, uint16(uiCtxSig));  
-              pdCostCoeffGroupSig[ iCGScanPos ] = this.xGetRateSigCoeffGroup(1, uint16(uiCtxSig)); 
+              d64BaseCost   += this.xGetRateSigCoeffGroup(1, uint16(uiCtxSig));
+              d64CostZeroCG += this.xGetRateSigCoeffGroup(0, uint16(uiCtxSig));
+              pdCostCoeffGroupSig[ iCGScanPos ] = this.xGetRateSigCoeffGroup(1, uint16(uiCtxSig));
             }
-            
+
             // try to convert the current coeff group from non-zero to all-zero
             d64CostZeroCG += rdStats.d64UncodedDist;  // distortion for resetting non-zero levels to zero levels
             d64CostZeroCG -= rdStats.d64CodedLevelandDist;   // distortion and level cost for keeping all non-zero levels
             d64CostZeroCG -= rdStats.d64SigCost;     // sig cost for all coeffs, including zero levels and non-zerl levels
-            
+
             // if we can save cost, change this block to all-zero block
             if d64CostZeroCG < d64BaseCost {
               uiSigCoeffGroupFlag[ uiCGBlkPos ] = 0;
               d64BaseCost = d64CostZeroCG;
               if iCGScanPos < iCGLastScanPos {
-                pdCostCoeffGroupSig[ iCGScanPos ] = this.xGetRateSigCoeffGroup(0, uint16(uiCtxSig)); 
+                pdCostCoeffGroupSig[ iCGScanPos ] = this.xGetRateSigCoeffGroup(0, uint16(uiCtxSig));
               }
-              // reset coeffs to 0 in this block                
+              // reset coeffs to 0 in this block
               for iScanPosinCG := int(uiCGSize)-1; iScanPosinCG >= 0; iScanPosinCG-- {
                 iScanPos      = iCGScanPos*uiCGSize + iScanPosinCG;
                  uiBlkPos := scan[ iScanPos ];
-                
+
                 if piDstCoeff[ uiBlkPos ]!=0 {
                   piDstCoeff [ uiBlkPos ] = 0;
                   pdCostCoeff[ iScanPos ] = pdCostCoeff0[ iScanPos ];
                   pdCostSig  [ iScanPos ] = 0;
                 }
               }
-            } // end if ( d64CostAllZeros < d64BaseCost )      
+            } // end if ( d64CostAllZeros < d64BaseCost )
           }
         } // end if if (uiSigCoeffGroupFlag[ uiCGBlkPos ] == 0)
       }else{
@@ -1294,12 +1286,12 @@ func (this *TComTrQuant) xRateDistOptQuant(pcCU *TComDataCU,
       }
     }
   } //end for (iCGScanPos)
-  
+
   //===== estimate last position =====
   if iLastScanPos < 0 {
     return;
   }
-  
+
     d64BestCost         := float64(0);
        ui16CtxCbf          := uint(0);
        iBestLastIdxP1      := 0;
@@ -1317,32 +1309,32 @@ func (this *TComTrQuant) xRateDistOptQuant(pcCU *TComDataCU,
     d64BestCost  = d64BlockUncodedCost + this.xGetICost( float64(this.m_pcEstBitsSbac.BlockCbpBits[ ui16CtxCbf ][ 0 ]) );
     d64BaseCost += this.xGetICost( float64(this.m_pcEstBitsSbac.BlockCbpBits[ ui16CtxCbf ][ 1 ]) );
   }
-  
+
    bFoundLast := false;
   for  iCGScanPos := iCGLastScanPos; iCGScanPos >= 0; iCGScanPos--{
      uiCGBlkPos := scanCG[ iCGScanPos ];
-    
-    d64BaseCost -= pdCostCoeffGroupSig [ iCGScanPos ]; 
-    if uiSigCoeffGroupFlag[ uiCGBlkPos ]!=0 { 
+
+    d64BaseCost -= pdCostCoeffGroupSig [ iCGScanPos ];
+    if uiSigCoeffGroupFlag[ uiCGBlkPos ]!=0 {
       for iScanPosinCG := int(uiCGSize)-1; iScanPosinCG >= 0; iScanPosinCG--{
         iScanPos = iCGScanPos*uiCGSize + iScanPosinCG;
         if iScanPos > iLastScanPos {
          continue;
         }
           uiBlkPos     := scan[iScanPos];
-        
+
         if piDstCoeff[ uiBlkPos ]!=0 {
              uiPosY       := uiBlkPos >> uint(uiLog2BlkSize);
              uiPosX       := uiBlkPos - ( uiPosY << uint(uiLog2BlkSize) );
-          
+
           var d64CostLast float64;
           if uiScanIdx == SCAN_VER {
-          	 d64CostLast = this.xGetRateLast( uiPosY, uiPosX, uiWidth );
+          	 d64CostLast = this.xGetRateLast( uiPosY, uiPosX );
           }else{
-             d64CostLast = this.xGetRateLast( uiPosX, uiPosY, uiWidth );
+             d64CostLast = this.xGetRateLast( uiPosX, uiPosY );
           }
           totalCost := d64BaseCost + d64CostLast - pdCostSig[ iScanPos ];
-          
+
           if totalCost < d64BestCost {
             iBestLastIdxP1  = iScanPos + 1;
             d64BestCost     = totalCost;
@@ -1356,13 +1348,13 @@ func (this *TComTrQuant) xRateDistOptQuant(pcCU *TComDataCU,
         }else{
           d64BaseCost      -= pdCostSig[ iScanPos ];
         }
-      } //end for 
+      } //end for
       if bFoundLast {
         break;
       }
     } // end if (uiSigCoeffGroupFlag[ uiCGBlkPos ])
-  } // end for 
-  
+  } // end for
+
   for  scanPos := 0; scanPos < iBestLastIdxP1; scanPos++ {
     blkPos := scan[ scanPos ];
     level  := piDstCoeff[ blkPos ];
@@ -1373,12 +1365,12 @@ func (this *TComTrQuant) xRateDistOptQuant(pcCU *TComDataCU,
     	piDstCoeff[ blkPos ] = level;
     }
   }
-  
+
   //===== clean uncoded coefficients =====
   for scanPos := iBestLastIdxP1; scanPos <= iLastScanPos; scanPos++ {
     piDstCoeff[ scan[ scanPos ] ] = 0;
   }
-  
+
   if pcCU.GetSlice().GetPPS().GetSignHideFlag() && *uiAbsSum>=2 {
     a := G_invQuantScales[this.m_cQP.m_iRem] * G_invQuantScales[this.m_cQP.m_iRem] * (1<<uint(2*this.m_cQP.m_iPer));
     b := 1<<DISTORTION_PRECISION_ADJUSTMENT(2*(uiBitDepth-8)).(uint);
@@ -1386,35 +1378,35 @@ func (this *TComTrQuant) xRateDistOptQuant(pcCU *TComDataCU,
      lastCG := -1;
      absSum := 0 ;
     var n int;
-    
+
     for subSet := int(uiWidth*uiHeight-1) >> LOG2_SCAN_SET_SIZE; subSet >= 0; subSet-- {
        subPos     := subSet << LOG2_SCAN_SET_SIZE;
         firstNZPosInCG:=SCAN_SET_SIZE;
          lastNZPosInCG:=-1 ;
       absSum = 0 ;
-      
+
       for n = SCAN_SET_SIZE-1; n >= 0; n-- {
         if piDstCoeff[ scan[ n + subPos ]]!=0 {
           lastNZPosInCG = n;
           break;
         }
       }
-      
+
       for n = 0; n <SCAN_SET_SIZE; n++ {
         if piDstCoeff[ scan[ n + subPos ]]!=0 {
           firstNZPosInCG = n;
           break;
         }
       }
-      
+
       for n = firstNZPosInCG; n <=lastNZPosInCG; n++ {
         absSum += int(piDstCoeff[ scan[ n + subPos ]]);
       }
-      
+
       if lastNZPosInCG>=0 && lastCG==-1 {
-        lastCG = 1; 
-      } 
-      
+        lastCG = 1;
+      }
+
       if lastNZPosInCG-firstNZPosInCG>=SBH_THRESHOLD {
         var signbit uint;
         if piDstCoeff[scan[subPos+firstNZPosInCG]]>0 {
@@ -1423,13 +1415,13 @@ func (this *TComTrQuant) xRateDistOptQuant(pcCU *TComDataCU,
         	signbit =1;
         }
         if signbit!=uint(absSum&0x1) {  // hide but need tune
-          // calculate the cost 
+          // calculate the cost
            minCostInc := int64(MAX_INT64);
            curCost:= int64(MAX_INT64);
            minPos :=-1;
            finalChange:=0;
             curChange:=0;
-          
+
           if lastCG==1 {
           	n =lastNZPosInCG;
           }else{
@@ -1445,12 +1437,12 @@ func (this *TComTrQuant) xRateDistOptQuant(pcCU *TComDataCU,
                }else{
                 costDown = rdFactor * int64(   deltaU[uiBlkPos] ) + int64(rateIncDown[uiBlkPos] -  0 );
                }
-              
+
               if lastCG==1 && lastNZPosInCG==n && ABS(piDstCoeff[uiBlkPos])==1{
                 costDown -= (4<<15) ;
               }
-              
-              if costUp<costDown { 
+
+              if costUp<costDown {
                 curCost = costUp;
                 curChange =  1 ;
               }else{
@@ -1458,13 +1450,13 @@ func (this *TComTrQuant) xRateDistOptQuant(pcCU *TComDataCU,
                 if n==firstNZPosInCG && ABS(piDstCoeff[uiBlkPos])==1 {
                   curCost = int64(MAX_INT64) ;
                 }else{
-                  curCost = costDown ; 
+                  curCost = costDown ;
                 }
               }
             }else{
-              curCost = rdFactor * int64( - (ABS(deltaU[uiBlkPos]).(int)) ) + int64(1<<15) + int64(rateIncUp[uiBlkPos] + sigRateDelta[uiBlkPos]) ; 
+              curCost = rdFactor * int64( - (ABS(deltaU[uiBlkPos]).(int)) ) + int64(1<<15) + int64(rateIncUp[uiBlkPos] + sigRateDelta[uiBlkPos]) ;
               curChange = 1 ;
-              
+
               if n<firstNZPosInCG {
                 var thissignbit uint;
                 if plSrcCoeff[uiBlkPos]>=0 {
@@ -1477,28 +1469,28 @@ func (this *TComTrQuant) xRateDistOptQuant(pcCU *TComDataCU,
                 }
               }
             }
-            
+
             if curCost<minCostInc {
               minCostInc = curCost ;
               finalChange = curChange ;
               minPos = int(uiBlkPos) ;
             }
           }
-          
+
           if piQCoef[minPos] == 32767 || piQCoef[minPos] == -32768 {
             finalChange = -1;
           }
-          
+
           if plSrcCoeff[minPos]>=0 {
             piDstCoeff[minPos] += TCoeff(finalChange) ;
           }else{
-            piDstCoeff[minPos] -= TCoeff(finalChange) ; 
-          }          
+            piDstCoeff[minPos] -= TCoeff(finalChange) ;
+          }
         }
       }
-      
+
       if lastCG==1 {
-        lastCG=0 ;  
+        lastCG=0 ;
       }
     }
   }
@@ -1659,7 +1651,7 @@ func (this *TComTrQuant) xGetICRate(uiAbsLevel uint,
     }
     return iRate
 }
-func (this *TComTrQuant) xGetRateLast(uiPosX, uiPosY, uiBlkWdth uint) float64 {
+func (this *TComTrQuant) xGetRateLast(uiPosX, uiPosY uint) float64 {
     uiCtxX := G_uiGroupIdx[uiPosX]
     uiCtxY := G_uiGroupIdx[uiPosY]
     uiCost := float64(this.m_pcEstBitsSbac.LastXBits[uiCtxX] + this.m_pcEstBitsSbac.LastYBits[uiCtxY])
@@ -1703,19 +1695,14 @@ func (this *TComTrQuant) xDeQuant(bitDepth int, pSrc []TCoeff, pDes []int, iWidt
     iShift = QUANT_IQUANT_SHIFT - QUANT_SHIFT - iTransformShift
 
     var clipQCoef TCoeff
-    bitRange := MIN(15, int(12+uiLog2TrSize+bitDepth-this.m_cQP.m_iPer)).(int)
-    levelLimit := 1 << uint(bitRange)
 
     if this.GetUseScalingList() {
         iShift += 4
-        if iShift > this.m_cQP.m_iPer {
-            iAdd = 1 << uint(iShift-this.m_cQP.m_iPer-1)
-        } else {
-            iAdd = 0
-        }
+
         piDequantCoef := this.GetDequantCoeff(uint(scalingListType), uint(this.m_cQP.m_iRem), uint(uiLog2TrSize-2))
 
         if iShift > this.m_cQP.m_iPer {
+            iAdd = 1 << uint(iShift - this.m_cQP.m_iPer - 1);
             for n := 0; n < iWidth*iHeight; n++ {
                 clipQCoef = CLIP3(TCoeff(-32768), TCoeff(32767), piQCoef[n]).(TCoeff)
                 iCoeffQ = ((int(clipQCoef) * piDequantCoef[n]) + iAdd) >> uint(iShift-this.m_cQP.m_iPer)
@@ -1723,9 +1710,9 @@ func (this *TComTrQuant) xDeQuant(bitDepth int, pSrc []TCoeff, pDes []int, iWidt
             }
         } else {
             for n := 0; n < iWidth*iHeight; n++ {
-                clipQCoef = CLIP3(TCoeff(-levelLimit), TCoeff(levelLimit-1), piQCoef[n]).(TCoeff)
-                iCoeffQ = (int(clipQCoef) * piDequantCoef[n]) << uint(this.m_cQP.m_iPer-iShift)
-                piCoef[n] = CLIP3(-32768, 32767, iCoeffQ).(int)
+                clipQCoef = CLIP3(TCoeff(-32768), TCoeff(32767), piQCoef[n]).(TCoeff)
+                iCoeffQ   = CLIP3(int(-32768), int(32767), (int(clipQCoef) * piDequantCoef[n]) << uint(this.m_cQP.m_iPer-iShift)).(int)
+                piCoef[n] = CLIP3(-32768, 32767, iCoeffQ << uint( this.m_cQP.m_iPer - iShift )).(int)
             }
         }
     } else {
@@ -1746,7 +1733,7 @@ func (this *TComTrQuant) partialButterfly4( src []int16, dst []int16, shift uint
   var E,O	[2]int;
   add := 1<<(shift-1);
 
-  for j=0; j<line; j++ { 
+  for j=0; j<line; j++ {
     /* E and O */
     E[0] = int(src[0]) + int(src[3]);
     O[0] = int(src[0]) - int(src[3]);

@@ -242,15 +242,15 @@ var INIT_SAO_MERGE_FLAG = [3 * NUM_SAO_MERGE_FLAG_CTX]byte{
 }
 
 var INIT_SAO_TYPE_IDX = [3 * NUM_SAO_TYPE_IDX_CTX]byte{
-    200,
-    185,
     160,
+    185,
+    200,
 }
 
 var INIT_TRANS_SUBDIV_FLAG = [3 * NUM_TRANS_SUBDIV_FLAG_CTX]byte{
-    153, 138, 138,
-    124, 138, 94,
-    224, 167, 122,
+    224,  167,  122,
+    124,  138,   94,
+    153,  138,  138,
 }
 
 var INIT_TRANSFORMSKIP_FLAG = [3 * 2 * NUM_TRANSFORMSKIP_FLAG_CTX]byte{

@@ -65,9 +65,21 @@ func (this *NALUnit) IsSlice() bool {
         this.m_nalUnitType == NAL_UNIT_CODED_SLICE_IDR ||
         this.m_nalUnitType == NAL_UNIT_CODED_SLICE_IDR_N_LP ||
         this.m_nalUnitType == NAL_UNIT_CODED_SLICE_CRA ||
+        this.m_nalUnitType == NAL_UNIT_CODED_SLICE_RADL_N ||
         this.m_nalUnitType == NAL_UNIT_CODED_SLICE_DLP ||
+        this.m_nalUnitType == NAL_UNIT_CODED_SLICE_RASL_N ||
         this.m_nalUnitType == NAL_UNIT_CODED_SLICE_TFD
 }
+
+func (this *NALUnit) IsSei() bool{
+  return this.m_nalUnitType == NAL_UNIT_SEI ||
+         this.m_nalUnitType == NAL_UNIT_SEI_SUFFIX;
+}
+
+func (this *NALUnit) IsVcl() bool{
+  return ( this.m_nalUnitType < 32 );
+}
+
 
 func (this *NALUnit) GetReservedZero6Bits() uint {
     return this.m_reservedZero6Bits

@@ -724,8 +724,8 @@ func (this *TEncSearch) preestChromaPredMode(pcCU *TLibCommon.TComDataCU,
     uiMinSAD := uint(TLibCommon.MAX_UINT)
     for uiMode := uiMinMode; uiMode < uiMaxMode; uiMode++ {
         //--- get prediction ---
-        this.PredIntraChromaAng(pcCU.GetPattern(), pPatChromaU, uiMode, piPredU, uiStride, int(uiWidth), int(uiHeight), pcCU, bAboveAvail, bLeftAvail)
-        this.PredIntraChromaAng(pcCU.GetPattern(), pPatChromaV, uiMode, piPredV, uiStride, int(uiWidth), int(uiHeight), pcCU, bAboveAvail, bLeftAvail)
+        this.PredIntraChromaAng(pPatChromaU, uiMode, piPredU, uiStride, int(uiWidth), int(uiHeight), bAboveAvail, bLeftAvail)
+        this.PredIntraChromaAng(pPatChromaV, uiMode, piPredV, uiStride, int(uiWidth), int(uiHeight), bAboveAvail, bLeftAvail)
 
         //--- get SAD ---
         uiSAD := this.m_pcRdCost.calcHAD(TLibCommon.G_bitDepthC, piOrgU, int(uiStride), piPredU, int(uiStride), int(uiWidth), int(uiHeight))
@@ -801,7 +801,7 @@ func (this *TEncSearch) estIntraPredQT(pcCU *TLibCommon.TComDataCU,
             for modeIdx := 0; modeIdx < numModesAvailable; modeIdx++ {
                 uiMode := uint(modeIdx)
 
-                this.PredIntraLumaAng(pcCU.GetPattern(), uiMode, piPred, uiStride, int(uiWidth), int(uiHeight), pcCU, bAboveAvail, bLeftAvail)
+                this.PredIntraLumaAng(pcCU.GetPattern(), uiMode, piPred, uiStride, int(uiWidth), int(uiHeight), bAboveAvail, bLeftAvail)
 
                 // use hadamard transform here
                 uiSad := this.m_pcRdCost.calcHAD(TLibCommon.G_bitDepthY, piOrg, int(uiStride), piPred, int(uiStride), int(uiWidth), int(uiHeight))
@@ -2366,7 +2366,7 @@ func (this *TEncSearch) xIntraCodingLumaBlk(pcCU *TLibCommon.TComDataCU,
         pcCU.GetPattern().InitPattern3(pcCU, uiTrDepth, uiAbsPartIdx)
         pcCU.GetPattern().InitAdiPattern(pcCU, uiAbsPartIdx, uiTrDepth, this.GetYuvExt(), this.GetYuvExtStride(), this.GetYuvExtHeight(), &bAboveAvail, &bLeftAvail, false)
         //===== get prediction signal =====
-        this.PredIntraLumaAng(pcCU.GetPattern(), uiLumaPredMode, piPred, uiStride, int(uiWidth), int(uiHeight), pcCU, bAboveAvail, bLeftAvail)
+        this.PredIntraLumaAng(pcCU.GetPattern(), uiLumaPredMode, piPred, uiStride, int(uiWidth), int(uiHeight), bAboveAvail, bLeftAvail)
         // save prediction
         if default0Save1Load2 == 1 {
             pPred := piPred
@@ -2573,7 +2573,7 @@ func (this *TEncSearch) xIntraCodingChromaBlk(pcCU *TLibCommon.TComDataCU,
         }
         //===== get prediction signal =====
         {
-            this.PredIntraChromaAng(pcCU.GetPattern(), pPatChroma, uiChromaPredMode, piPred, uiStride, int(uiWidth), int(uiHeight), pcCU, bAboveAvail, bLeftAvail)
+            this.PredIntraChromaAng(pPatChroma, uiChromaPredMode, piPred, uiStride, int(uiWidth), int(uiHeight), bAboveAvail, bLeftAvail)
         }
         // save prediction
         if default0Save1Load2 == 1 {
@@ -3806,7 +3806,7 @@ func (this *TEncSearch) xGetTemplateCost(pcCU *TLibCommon.TComDataCU,
     }
 
     if pcCU.GetSlice().GetPPS().GetUseWP() && pcCU.GetSlice().GetSliceType() == TLibCommon.P_SLICE {
-        this.XWeightedPredictionUni(pcCU, pcTemplateCand, uiPartAddr, iSizeX, iSizeY, eRefPicList, pcTemplateCand, int(uiPartIdx), iRefIdx)
+        this.XWeightedPredictionUni(pcCU, pcTemplateCand, uiPartAddr, iSizeX, iSizeY, eRefPicList, pcTemplateCand, iRefIdx)
     }
 
     // calc distortion
@@ -4032,7 +4032,7 @@ func (this *TEncSearch) xMotionEstimation(pcCU *TLibCommon.TComDataCU,
         iRoiWidth,
         iRoiHeight,
         int(pcYuv.GetStride()),
-        0, 0, 0, 0)
+        0, 0)
 
     piRefY := pcCU.GetSlice().GetRefPic(eRefPicList, iRefIdxPred).GetPicYuvRec().GetLumaAddr2(int(pcCU.GetAddr()), int(pcCU.GetZorderIdxInCU()+uiPartAddr))
     iRefStride := pcCU.GetSlice().GetRefPic(eRefPicList, iRefIdxPred).GetPicYuvRec().GetStride()
@@ -4344,7 +4344,7 @@ func (this *TEncSearch) xPatternSearchFracDIF(pcCU *TLibCommon.TComDataCU,
         pcPatternKey.GetROIYWidth(),
         pcPatternKey.GetROIYHeight(),
         iRefStride,
-        0, 0, 0, 0)
+        0, 0)
 
     //  Half-pel refinement
     this.xExtDIFUpSamplingH(&cPatternRoi, biPred)
@@ -4709,7 +4709,7 @@ func (this *TEncSearch) xEstimateResidualQT(pcCU *TLibCommon.TComDataCU, uiQuadr
             //#if ADAPTIVE_QP_SELECTION
             pcArlCoeffCurrY,
             //#endif
-            uint(trWidth), uint(trHeight), &uiAbsSumY, TLibCommon.TEXT_LUMA, uiAbsPartIdx, false) 
+            uint(trWidth), uint(trHeight), &uiAbsSumY, TLibCommon.TEXT_LUMA, uiAbsPartIdx, false)
 
         if uiAbsSumY != 0 {
             pcCU.SetCbfSubParts4(byte(uiSetCbf), TLibCommon.TEXT_LUMA, uiAbsPartIdx, uiDepth)
@@ -4792,7 +4792,7 @@ func (this *TEncSearch) xEstimateResidualQT(pcCU *TLibCommon.TComDataCU, uiQuadr
             this.m_pcTrQuant.SetQPforQuant(int(pcCU.GetQP1(0)), TLibCommon.TEXT_LUMA, pcCU.GetSlice().GetSPS().GetQpBDOffsetY(), 0)
 
             scalingListType := 3 + TLibCommon.G_eTTable[int(TLibCommon.TEXT_LUMA)]
-            //assert(scalingListType < 6); 
+            //assert(scalingListType < 6);
             this.m_pcTrQuant.InvtransformNxN(pcCU.GetCUTransquantBypass1(uiAbsPartIdx), TLibCommon.TEXT_LUMA, TLibCommon.REG_DCT, pcResiCurrY, this.m_pcQTTempTComYuv[uiQTTempAccessLayer].GetStride(), pcCoeffCurrY, uint(trWidth), uint(trHeight), scalingListType, false) //this is for inter mode only
 
             uiNonzeroDistY := this.m_pcRdCost.getDistPart(TLibCommon.G_bitDepthY, this.m_pcQTTempTComYuv[uiQTTempAccessLayer].GetLumaAddr1(absTUPartIdx), int(this.m_pcQTTempTComYuv[uiQTTempAccessLayer].GetStride()),

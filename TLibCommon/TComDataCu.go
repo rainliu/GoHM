@@ -170,9 +170,6 @@ type TComDataCU struct {
     m_apiMVPNum         [2][]int8 ///< array of number of possible motion vectors predictors
     m_pbIPCMFlag        []bool    ///< array of intra_pcm flags
 
-    m_numSucIPCM        int  ///< the number of succesive IPCM blocks associated with the current log2CUSize
-    m_lastCUSucIPCMFlag bool ///< True indicates that the last CU is IPCM and shares the same root as the current CU.
-
     // -------------------------------------------------------------------------------------------------------------------
     // misc. variables
     // -------------------------------------------------------------------------------------------------------------------
@@ -182,8 +179,8 @@ type TComDataCU struct {
     m_uiTotalDistortion       uint    ///< sum of partition distortion
     m_uiTotalBits             uint    ///< sum of partition bits
     m_uiTotalBins             uint    ///< sum of partition bins
-    m_uiSliceStartCU          []uint  ///< Start CU address of current slice
-    m_uiDependentSliceStartCU []uint  ///< Start CU address of current slice
+    m_sliceStartCU          []uint  ///< Start CU address of current slice
+    m_sliceSegmentStartCU   []uint  ///< Start CU address of current slice
     m_codedQP                 int8
 }
 
@@ -281,8 +278,8 @@ func (this *TComDataCU) Create(uiNumPartition, uiWidth, uiHeight uint, bDecSubCu
         this.m_acCUMvField[1].SetNumPartition(uiNumPartition)
     }
 
-    this.m_uiSliceStartCU = make([]uint, uiNumPartition)
-    this.m_uiDependentSliceStartCU = make([]uint, uiNumPartition)
+    this.m_sliceStartCU = make([]uint, uiNumPartition)
+    this.m_sliceSegmentStartCU = make([]uint, uiNumPartition)
 
     // create pattern memory
     this.m_pcPattern = NewTComPattern()
@@ -365,8 +362,8 @@ func (this *TComDataCU) Destroy() {
     this.m_apcCUColocated[0] = nil
     this.m_apcCUColocated[1] = nil
 
-    this.m_uiSliceStartCU = nil
-    this.m_uiDependentSliceStartCU = nil
+    this.m_sliceStartCU = nil
+    this.m_sliceSegmentStartCU = nil
 }
 
 func (this *TComDataCU) InitCU(pcPic *TComPic, iCUAddr uint) {
@@ -383,26 +380,24 @@ func (this *TComDataCU) InitCU(pcPic *TComPic, iCUAddr uint) {
     this.m_uiTotalBits = 0
     this.m_uiTotalBins = 0
     this.m_uiNumPartition = pcPic.GetNumPartInCU()
-    this.m_numSucIPCM = 0
-    this.m_lastCUSucIPCMFlag = false
 
     for i = 0; i < int(pcPic.GetNumPartInCU()); i++ {
         if pcPic.GetPicSym().GetInverseCUOrderMap(int(iCUAddr))*pcPic.GetNumPartInCU()+uint(i) >= this.GetSlice().GetSliceCurStartCUAddr() {
-            this.m_uiSliceStartCU[i] = this.GetSlice().GetSliceCurStartCUAddr()
+            this.m_sliceStartCU[i] = this.GetSlice().GetSliceCurStartCUAddr()
         } else {
-            this.m_uiSliceStartCU[i] = pcPic.GetCU(this.GetAddr()).m_uiSliceStartCU[i]
+            this.m_sliceStartCU[i] = pcPic.GetCU(this.GetAddr()).m_sliceStartCU[i]
         }
     }
     for i = 0; i < int(pcPic.GetNumPartInCU()); i++ {
-        if pcPic.GetPicSym().GetInverseCUOrderMap(int(iCUAddr))*pcPic.GetNumPartInCU()+uint(i) >= this.GetSlice().GetDependentSliceCurStartCUAddr() {
-            this.m_uiDependentSliceStartCU[i] = this.GetSlice().GetDependentSliceCurStartCUAddr()
+        if pcPic.GetPicSym().GetInverseCUOrderMap(int(iCUAddr))*pcPic.GetNumPartInCU()+uint(i) >= this.GetSlice().GetSliceSegmentCurStartCUAddr() {
+            this.m_sliceSegmentStartCU[i] = this.GetSlice().GetSliceSegmentCurStartCUAddr()
         } else {
-            this.m_uiDependentSliceStartCU[i] = pcPic.GetCU(this.GetAddr()).m_uiDependentSliceStartCU[i]
+            this.m_sliceSegmentStartCU[i] = pcPic.GetCU(this.GetAddr()).m_sliceSegmentStartCU[i]
         }
     }
 
-    partStartIdx := int(this.GetSlice().GetDependentSliceCurStartCUAddr()) - int(pcPic.GetPicSym().GetInverseCUOrderMap(int(iCUAddr))*pcPic.GetNumPartInCU())
-    //fmt.Printf("partStartIdx:%d-%d*%d\n", this.GetSlice().GetDependentSliceCurStartCUAddr(),pcPic.GetPicSym().GetInverseCUOrderMap(int(iCUAddr)), pcPic.GetNumPartInCU());
+    partStartIdx := int(this.GetSlice().GetSliceSegmentCurStartCUAddr()) - int(pcPic.GetPicSym().GetInverseCUOrderMap(int(iCUAddr))*pcPic.GetNumPartInCU())
+    //fmt.Printf("partStartIdx:%d-%d*%d\n", this.GetSlice().GetSliceSegmentCurStartCUAddr(),pcPic.GetPicSym().GetInverseCUOrderMap(int(iCUAddr)), pcPic.GetNumPartInCU());
 
     var ui uint
     var numElements int
@@ -564,40 +559,28 @@ func (this *TComDataCU) xAddMVPCand(pInfo *AMVPInfo, eRefPicList RefPicList, iRe
     var uiIdx uint
     switch eDir {
     case MD_LEFT:
-        pcTmpCU = this.GetPULeft(&uiIdx, uiPartUnitIdx, true, false, true)
+        pcTmpCU = this.GetPULeft(&uiIdx, uiPartUnitIdx, true, true)
     case MD_ABOVE:
-        //#if LINEBUF_CLEANUP
-        pcTmpCU = this.GetPUAbove(&uiIdx, uiPartUnitIdx, true, false, false, true)
-        //#else
-        //      pcTmpCU = this.GetPUAbove(uiIdx, uiPartUnitIdx, true, false, true);
-        //#endif
+        pcTmpCU = this.GetPUAbove(&uiIdx, uiPartUnitIdx, true, false, true)
     case MD_ABOVE_RIGHT:
-        //#if LINEBUF_CLEANUP
-        pcTmpCU = this.GetPUAboveRight(&uiIdx, uiPartUnitIdx, true, false)
-        //#else
-        //      pcTmpCU = this.GetPUAboveRight(uiIdx, uiPartUnitIdx, true, false, true);
-        //#endif
+        pcTmpCU = this.GetPUAboveRight(&uiIdx, uiPartUnitIdx, true)
     case MD_BELOW_LEFT:
-        pcTmpCU = this.GetPUBelowLeft(&uiIdx, uiPartUnitIdx, true, false)
+        pcTmpCU = this.GetPUBelowLeft(&uiIdx, uiPartUnitIdx, true)
     case MD_ABOVE_LEFT:
-        //#if LINEBUF_CLEANUP
-        pcTmpCU = this.GetPUAboveLeft(&uiIdx, uiPartUnitIdx, true, false)
-        //#else
-        //      pcTmpCU = this.GetPUAboveLeft(uiIdx, uiPartUnitIdx, true, false, true);
-        //#endif
+        pcTmpCU = this.GetPUAboveLeft(&uiIdx, uiPartUnitIdx, true)
     default:
     }
 
-    if pcTmpCU != nil && this.m_pcSlice.IsEqualRef(eRefPicList, int(pcTmpCU.GetCUMvField(eRefPicList).GetRefIdx(int(uiIdx))), iRefIdx) {
+    if pcTmpCU == nil {
+        return false;
+    }
+
+    if pcTmpCU.GetCUMvField(eRefPicList).GetRefIdx(int(uiIdx)) >= 0 && int(this.m_pcSlice.GetRefPic( eRefPicList, iRefIdx).GetPOC()) == pcTmpCU.GetSlice().GetRefPOC( eRefPicList, int(pcTmpCU.GetCUMvField(eRefPicList).GetRefIdx(int(uiIdx))) ) {
         cMvPred := pcTmpCU.GetCUMvField(eRefPicList).GetMv(int(uiIdx))
         //fmt.Printf("xAddMVPCand1:(%d,%d) ", cMvPred.GetHor(), cMvPred.GetVer());
         pInfo.MvCand[pInfo.IN] = cMvPred
         pInfo.IN++
         return true
-    }
-
-    if pcTmpCU == nil {
-        return false
     }
 
     eRefPicList2nd := REF_PIC_LIST_0
@@ -627,27 +610,15 @@ func (this *TComDataCU) xAddMVPCandOrder(pInfo *AMVPInfo, eRefPicList RefPicList
     var uiIdx uint
     switch eDir {
     case MD_LEFT:
-        pcTmpCU = this.GetPULeft(&uiIdx, uiPartUnitIdx, true, false, true)
+        pcTmpCU = this.GetPULeft(&uiIdx, uiPartUnitIdx, true, true)
     case MD_ABOVE:
-        //#if LINEBUF_CLEANUP
-        pcTmpCU = this.GetPUAbove(&uiIdx, uiPartUnitIdx, true, false, false, true)
-        //#else
-        //      pcTmpCU = this.GetPUAbove(uiIdx, uiPartUnitIdx, true, false, true);
-        //#endif
+        pcTmpCU = this.GetPUAbove(&uiIdx, uiPartUnitIdx, true, false, true)
     case MD_ABOVE_RIGHT:
-        //#if LINEBUF_CLEANUP
-        pcTmpCU = this.GetPUAboveRight(&uiIdx, uiPartUnitIdx, true, false)
-        //#else
-        //      pcTmpCU = this.GetPUAboveRight(uiIdx, uiPartUnitIdx, true, false, true);
-        //#endif
+        pcTmpCU = this.GetPUAboveRight(&uiIdx, uiPartUnitIdx, true)
     case MD_BELOW_LEFT:
-        pcTmpCU = this.GetPUBelowLeft(&uiIdx, uiPartUnitIdx, true, false)
+        pcTmpCU = this.GetPUBelowLeft(&uiIdx, uiPartUnitIdx, true)
     case MD_ABOVE_LEFT:
-        //#if LINEBUF_CLEANUP
-        pcTmpCU = this.GetPUAboveLeft(&uiIdx, uiPartUnitIdx, true, false)
-        //#else
-        //      pcTmpCU = this.GetPUAboveLeft(uiIdx, uiPartUnitIdx, true, false, true);
-        //#endif
+        pcTmpCU = this.GetPUAboveLeft(&uiIdx, uiPartUnitIdx, true)
     default:
     }
 
@@ -830,7 +801,7 @@ func (this *TComDataCU) xGetColMVP(eRefPicList RefPicList, uiCUAddr, uiPartUnitI
 
     iCurrRefPOC = int(this.m_pcSlice.GetRefPic(eRefPicList, *riRefIdx).GetPOC())
     bIsCurrRefLongTerm := this.m_pcSlice.GetRefPic(eRefPicList, *riRefIdx).GetIsLongTerm()
-    bIsColRefLongTerm := pColCU.GetSlice().GetRefPic(eColRefPicList, int(iColRefIdx)).GetIsUsedAsLongTerm()
+    bIsColRefLongTerm := pColCU.GetSlice().GetIsUsedAsLongTerm(int(eColRefPicList), int(iColRefIdx));
 
     if bIsCurrRefLongTerm != bIsColRefLongTerm {
         return false
@@ -922,91 +893,6 @@ func (this *TComDataCU) xDeriveCenterIdx(uiPartIdx uint, ruiPartIdxCenter *uint)
     *ruiPartIdxCenter = G_auiRasterToZscan[int(G_auiZscanToRaster[*ruiPartIdxCenter])+(iPartHeight/int(this.m_pcPic.GetMinCUHeight()))/2*int(this.m_pcPic.GetNumPartInWidth())+(iPartWidth/int(this.m_pcPic.GetMinCUWidth()))/2]
 }
 
-func (this *TComDataCU) xGetCenterCol(uiPartIdx uint, eRefPicList RefPicList, iRefIdx int, pcMv []TComMv) bool {
-    iCurrPOC := this.m_pcSlice.GetPOC()
-
-    // use coldir.
-    var pColPic *TComPic
-    if this.GetSlice().IsInterB() {
-        pColPic = this.GetSlice().GetRefPic(RefPicList(1-this.GetSlice().GetColFromL0Flag()), int(this.GetSlice().GetColRefIdx()))
-    } else {
-        pColPic = this.GetSlice().GetRefPic(RefPicList(0), int(this.GetSlice().GetColRefIdx()))
-    }
-
-    pColCU := pColPic.GetCU(this.m_uiCUAddr)
-
-    iColPOC := pColCU.GetSlice().GetPOC()
-    var uiPartIdxCenter uint
-    this.xDeriveCenterIdx(uiPartIdx, &uiPartIdxCenter)
-
-    if pColCU.IsIntra(uiPartIdxCenter) {
-        return false
-    }
-
-    // Prefer a vector crossing us.  Prefer shortest.
-    eColRefPicList := RefPicList(REF_PIC_LIST_0)
-    bFirstCrosses := false
-    iFirstColDist := -1
-    for l := 0; l < 2; l++ {
-        bSaveIt := false
-        iColRefIdx := pColCU.GetCUMvField(RefPicList(l)).GetRefIdx(int(uiPartIdxCenter))
-        if iColRefIdx < 0 {
-            continue
-        }
-        iColRefPOC := pColCU.GetSlice().GetRefPOC(RefPicList(l), int(iColRefIdx))
-        var iColDist int
-        if iColRefPOC-iColPOC < 0 {
-            iColDist = -(iColRefPOC - iColPOC)
-        } else {
-            iColDist = (iColRefPOC - iColPOC)
-        }
-        var bCrosses bool
-        if iColPOC < iCurrPOC {
-            bCrosses = iColRefPOC > iCurrPOC
-        } else {
-            bCrosses = iColRefPOC < iCurrPOC
-        }
-        if iFirstColDist < 0 {
-            bSaveIt = true
-        } else if bCrosses && !bFirstCrosses {
-            bSaveIt = true
-        } else if bCrosses == bFirstCrosses && RefPicList(l) == eRefPicList {
-            bSaveIt = true
-        }
-
-        if bSaveIt {
-            bFirstCrosses = bCrosses
-            iFirstColDist = iColDist
-            eColRefPicList = RefPicList(l)
-        }
-    }
-
-    // Scale the vector.
-    iColRefPOC := pColCU.GetSlice().GetRefPOC(eColRefPicList, int(pColCU.GetCUMvField(eColRefPicList).GetRefIdx(int(uiPartIdxCenter))))
-    cColMv := pColCU.GetCUMvField(eColRefPicList).GetMv(int(uiPartIdxCenter))
-
-    iCurrRefPOC := this.m_pcSlice.GetRefPic(eRefPicList, iRefIdx).GetPOC()
-    bIsCurrRefLongTerm := this.m_pcSlice.GetRefPic(eRefPicList, iRefIdx).GetIsLongTerm()
-    bIsColRefLongTerm := pColCU.GetSlice().GetRefPic(eColRefPicList, int(pColCU.GetCUMvField(eColRefPicList).GetRefIdx(int(uiPartIdxCenter)))).GetIsUsedAsLongTerm()
-
-    if bIsCurrRefLongTerm != bIsColRefLongTerm {
-        return false
-    }
-
-    if bIsCurrRefLongTerm || bIsColRefLongTerm {
-        pcMv[0] = cColMv
-    } else {
-        iScale := this.xGetDistScaleFactor(iCurrPOC, int(iCurrRefPOC), iColPOC, iColRefPOC)
-        if iScale == 4096 {
-            pcMv[0] = cColMv
-        } else {
-            //fmt.Printf("xGetCenterCol:%d",iScale);
-            pcMv[0] = cColMv.ScaleMv(iScale)
-        }
-    }
-    return true
-}
-
 func (this *TComDataCU) InitEstData(uiDepth uint, qp int) {
     this.m_dTotalCost = MAX_DOUBLE
     this.m_uiTotalDistortion = 0
@@ -1017,7 +903,7 @@ func (this *TComDataCU) InitEstData(uiDepth uint, qp int) {
     uhHeight := G_uiMaxCUHeight >> uiDepth
 
     for ui := uint(0); ui < this.m_uiNumPartition; ui++ {
-        if this.GetPic().GetPicSym().GetInverseCUOrderMap(int(this.GetAddr()))*this.m_pcPic.GetNumPartInCU()+this.m_uiAbsIdxInLCU+ui >= this.GetSlice().GetDependentSliceCurStartCUAddr() {
+        if this.GetPic().GetPicSym().GetInverseCUOrderMap(int(this.GetAddr()))*this.m_pcPic.GetNumPartInCU()+this.m_uiAbsIdxInLCU+ui >= this.GetSlice().GetSliceSegmentCurStartCUAddr() {
             this.m_apiMVPIdx[0][ui] = -1
             this.m_apiMVPIdx[1][ui] = -1
             this.m_apiMVPNum[0][ui] = -1
@@ -1048,7 +934,7 @@ func (this *TComDataCU) InitEstData(uiDepth uint, qp int) {
 
     uiTmp := uhWidth * uhHeight
 
-    if this.GetPic().GetPicSym().GetInverseCUOrderMap(int(this.GetAddr()))*this.m_pcPic.GetNumPartInCU()+this.m_uiAbsIdxInLCU >= this.GetSlice().GetDependentSliceCurStartCUAddr() {
+    if this.GetPic().GetPicSym().GetInverseCUOrderMap(int(this.GetAddr()))*this.m_pcPic.GetNumPartInCU()+this.m_uiAbsIdxInLCU >= this.GetSlice().GetSliceSegmentCurStartCUAddr() {
         this.m_acCUMvField[0].ClearMvField()
         this.m_acCUMvField[1].ClearMvField()
         uiTmp = uhWidth * uhHeight
@@ -1091,9 +977,6 @@ func (this *TComDataCU) InitSubCU(pcCU *TComDataCU, uiPartUnitIdx, uiDepth uint,
     this.m_uiTotalBins = 0
     this.m_uiNumPartition = pcCU.GetTotalNumPart() >> 2
 
-    this.m_numSucIPCM = 0
-    this.m_lastCUSucIPCMFlag = false
-
     //iSizeInUchar :=  this.m_uiNumPartition;
     //iSizeInBool  := sizeof( Bool   ) * this.m_uiNumPartition;
     //sizeInChar   := sizeof( Char   ) * this.m_uiNumPartition;
@@ -1131,7 +1014,7 @@ func (this *TComDataCU) InitSubCU(pcCU *TComDataCU, uiPartUnitIdx, uiDepth uint,
         this.m_apiMVPIdx[1][ui] = -1
         this.m_apiMVPNum[0][ui] = -1
         this.m_apiMVPNum[1][ui] = -1
-        if this.m_pcPic.GetPicSym().GetInverseCUOrderMap(int(this.GetAddr()))*this.m_pcPic.GetNumPartInCU()+this.m_uiAbsIdxInLCU+ui < this.GetSlice().GetDependentSliceCurStartCUAddr() {
+        if this.m_pcPic.GetPicSym().GetInverseCUOrderMap(int(this.GetAddr()))*this.m_pcPic.GetNumPartInCU()+this.m_uiAbsIdxInLCU+ui < this.GetSlice().GetSliceSegmentCurStartCUAddr() {
             this.m_apiMVPIdx[0][ui] = pcCU.m_apiMVPIdx[0][uiPartOffset+ui]
             this.m_apiMVPIdx[1][ui] = pcCU.m_apiMVPIdx[1][uiPartOffset+ui]
 
@@ -1186,7 +1069,7 @@ func (this *TComDataCU) InitSubCU(pcCU *TComDataCU, uiPartUnitIdx, uiDepth uint,
     this.m_acCUMvField[0].ClearMvField()
     this.m_acCUMvField[1].ClearMvField()
 
-    if this.m_pcPic.GetPicSym().GetInverseCUOrderMap(int(this.GetAddr()))*this.m_pcPic.GetNumPartInCU()+this.m_uiAbsIdxInLCU < this.GetSlice().GetDependentSliceCurStartCUAddr() {
+    if this.m_pcPic.GetPicSym().GetInverseCUOrderMap(int(this.GetAddr()))*this.m_pcPic.GetNumPartInCU()+this.m_uiAbsIdxInLCU < this.GetSlice().GetSliceSegmentCurStartCUAddr() {
         // Part of this CU contains data from an older slice. Now copy in that data.
         uiMaxCuWidth := pcCU.GetSlice().GetSPS().GetMaxCUWidth()
         uiMaxCuHeight := pcCU.GetSlice().GetSPS().GetMaxCUHeight()
@@ -1226,8 +1109,8 @@ func (this *TComDataCU) InitSubCU(pcCU *TComDataCU, uiPartUnitIdx, uiDepth uint,
     this.m_apcCUColocated[0] = pcCU.GetCUColocated(REF_PIC_LIST_0)
     this.m_apcCUColocated[1] = pcCU.GetCUColocated(REF_PIC_LIST_1)
     for i := uint(0); i < this.m_uiNumPartition; i++ {
-        this.m_uiSliceStartCU[i] = pcCU.m_uiSliceStartCU[i+uiPartOffset]                   //,sizeof(UInt)*this.m_uiNumPartition);
-        this.m_uiDependentSliceStartCU[i] = pcCU.m_uiDependentSliceStartCU[i+uiPartOffset] //,sizeof(UInt)*this.m_uiNumPartition);
+        this.m_sliceStartCU[i] = pcCU.m_sliceStartCU[i+uiPartOffset]                   //,sizeof(UInt)*this.m_uiNumPartition);
+        this.m_sliceSegmentStartCU[i] = pcCU.m_sliceSegmentStartCU[i+uiPartOffset] //,sizeof(UInt)*this.m_uiNumPartition);
     }
 }
 func (this *TComDataCU) SetOutsideCUPart(uiAbsPartIdx, uiDepth uint) {
@@ -1325,8 +1208,8 @@ func (this *TComDataCU) CopySubCU(pcCU *TComDataCU, uiAbsPartIdx, uiDepth uint) 
     this.m_acCUMvField[1].LinkToWithOffset(pcCU.GetCUMvField(REF_PIC_LIST_1), int(uiPart))
 
     for i := uint(0); i < this.m_uiNumPartition; i++ {
-        this.m_uiSliceStartCU[i] = pcCU.m_uiSliceStartCU[i+uiPart]                   //,sizeof(UInt)*this.m_uiNumPartition);
-        this.m_uiDependentSliceStartCU[i] = pcCU.m_uiDependentSliceStartCU[i+uiPart] //,sizeof(UInt)*this.m_uiNumPartition);
+        this.m_sliceStartCU[i] = pcCU.m_sliceStartCU[i+uiPart]                   //,sizeof(UInt)*this.m_uiNumPartition);
+        this.m_sliceSegmentStartCU[i] = pcCU.m_sliceSegmentStartCU[i+uiPart] //,sizeof(UInt)*this.m_uiNumPartition);
     }
 }
 
@@ -1368,8 +1251,8 @@ func (this *TComDataCU) CopyInterPredInfoFrom(pcCU *TComDataCU, uiAbsPartIdx uin
     this.m_acCUMvField[eRefPicList].LinkToWithOffset(pcCU.GetCUMvField(eRefPicList), int(uiAbsPartIdx))
 
     for i := uint(0); i < this.m_uiNumPartition; i++ {
-        this.m_uiSliceStartCU[i] = pcCU.m_uiSliceStartCU[i+uiAbsPartIdx]                   //,sizeof(UInt)*this.m_uiNumPartition);
-        this.m_uiDependentSliceStartCU[i] = pcCU.m_uiDependentSliceStartCU[i+uiAbsPartIdx] //,sizeof(UInt)*this.m_uiNumPartition);
+        this.m_sliceStartCU[i] = pcCU.m_sliceStartCU[i+uiAbsPartIdx]                   //,sizeof(UInt)*this.m_uiNumPartition);
+        this.m_sliceSegmentStartCU[i] = pcCU.m_sliceSegmentStartCU[i+uiAbsPartIdx] //,sizeof(UInt)*this.m_uiNumPartition);
     }
 }
 func (this *TComDataCU) CopyPartFrom(pcCU *TComDataCU, uiPartUnitIdx, uiDepth uint) {
@@ -1453,8 +1336,8 @@ func (this *TComDataCU) CopyPartFrom(pcCU *TComDataCU, uiPartUnitIdx, uiDepth ui
     this.m_uiTotalBins += pcCU.GetTotalBins()
 
     for i := uint(0); i < uiNumPartition; i++ {
-        this.m_uiSliceStartCU[i+uiOffset] = pcCU.m_uiSliceStartCU[i]                   //,sizeof(UInt)*this.m_uiNumPartition);
-        this.m_uiDependentSliceStartCU[i+uiOffset] = pcCU.m_uiDependentSliceStartCU[i] //,sizeof(UInt)*this.m_uiNumPartition);
+        this.m_sliceStartCU[i+uiOffset] = pcCU.m_sliceStartCU[i]                   //,sizeof(UInt)*this.m_uiNumPartition);
+        this.m_sliceSegmentStartCU[i+uiOffset] = pcCU.m_sliceSegmentStartCU[i] //,sizeof(UInt)*this.m_uiNumPartition);
     }
 }
 
@@ -1530,8 +1413,8 @@ func (this *TComDataCU) CopyToPic1(uhDepth uint) {
     rpcCU.SetTotalBins(this.m_uiTotalBins)
 
     for i := uint(0); i < this.m_uiNumPartition; i++ {
-        rpcCU.m_uiSliceStartCU[i+this.m_uiAbsIdxInLCU] = this.m_uiSliceStartCU[i]                   //,sizeof(UInt)*this.m_uiNumPartition);
-        rpcCU.m_uiDependentSliceStartCU[i+this.m_uiAbsIdxInLCU] = this.m_uiDependentSliceStartCU[i] //,sizeof(UInt)*this.m_uiNumPartition);
+        rpcCU.m_sliceStartCU[i+this.m_uiAbsIdxInLCU] = this.m_sliceStartCU[i]                   //,sizeof(UInt)*this.m_uiNumPartition);
+        rpcCU.m_sliceSegmentStartCU[i+this.m_uiAbsIdxInLCU] = this.m_sliceSegmentStartCU[i] //,sizeof(UInt)*this.m_uiNumPartition);
     }
 }
 func (this *TComDataCU) CopyToPic3(uhDepth, uiPartIdx, uiPartDepth uint) {
@@ -1606,8 +1489,8 @@ func (this *TComDataCU) CopyToPic3(uhDepth, uiPartIdx, uiPartDepth uint) {
     rpcCU.SetTotalBins(this.m_uiTotalBins)
 
     for i := uint(0); i < uiQNumPart; i++ {
-        rpcCU.m_uiSliceStartCU[i+uiPartOffset] = this.m_uiSliceStartCU[i]                   //,sizeof(UInt)*this.m_uiNumPartition);
-        rpcCU.m_uiDependentSliceStartCU[i+uiPartOffset] = this.m_uiDependentSliceStartCU[i] //,sizeof(UInt)*this.m_uiNumPartition);
+        rpcCU.m_sliceStartCU[i+uiPartOffset] = this.m_sliceStartCU[i]                   //,sizeof(UInt)*this.m_uiNumPartition);
+        rpcCU.m_sliceSegmentStartCU[i+uiPartOffset] = this.m_sliceSegmentStartCU[i] //,sizeof(UInt)*this.m_uiNumPartition);
     }
 }
 
@@ -1769,7 +1652,7 @@ func (this *TComDataCU) SetQPSubParts(qp int, uiAbsPartIdx, uiDepth uint) {
     pcSlice := this.GetPic().GetSlice(this.GetPic().GetCurrSliceIdx())
 
     for uiSCUIdx := uiAbsPartIdx; uiSCUIdx < uiAbsPartIdx+uiCurrPartNumb; uiSCUIdx++ {
-        if this.m_pcPic.GetCU(this.GetAddr()).GetDependentSliceStartCU(uiSCUIdx+this.GetZorderIdxInCU()) == pcSlice.GetDependentSliceCurStartCUAddr() {
+        if this.m_pcPic.GetCU(this.GetAddr()).GetSliceSegmentStartCU(uiSCUIdx+this.GetZorderIdxInCU()) == pcSlice.GetSliceSegmentCurStartCUAddr() {
             this.m_phQP[uiSCUIdx] = int8(qp)
         }
     }
@@ -2392,13 +2275,6 @@ func (this *TComDataCU) SetIPCMFlagSubParts(bIpcmFlag bool, uiAbsPartIdx, uiDept
     //memset(m_pbIPCMFlag + uiAbsPartIdx, bIpcmFlag, sizeof(Bool)*uiCurrPartNumb );
 }
 
-/*#if !REMOVE_BURST_IPCM
-  Int           GetNumSucIPCM         ()                        { return this.m_numSucIPCM;             }
-  Void          SetNumSucIPCM         ( Int num )               { this.m_numSucIPCM = num;              }
-  Bool          GetLastCUSucIPCMFlag  ()                        { return this.m_lastCUSucIPCMFlag;        }
-  Void          SetLastCUSucIPCMFlag  ( Bool flg )              { this.m_lastCUSucIPCMFlag = flg;         }
-#endif*/
-
 /// Get slice ID for SU
 func (this *TComDataCU) GetSUSliceID(uiIdx uint) int {
     return this.m_piSliceSUMap[uiIdx]
@@ -2980,11 +2856,11 @@ func (this *TComDataCU) FillMvpCand(uiPartIdx, uiPartAddr uint, eRefPicList RefP
 
     var tmpCU *TComDataCU
     var idx uint
-    tmpCU = this.GetPUBelowLeft(&idx, uiPartIdxLB, true, false)
+    tmpCU = this.GetPUBelowLeft(&idx, uiPartIdxLB, true)
     bAddedSmvp = (tmpCU != nil) && (tmpCU.GetPredictionMode1(idx) != MODE_INTRA)
 
     if !bAddedSmvp {
-        tmpCU = this.GetPULeft(&idx, uiPartIdxLB, true, false, true)
+        tmpCU = this.GetPULeft(&idx, uiPartIdxLB, true, true)
         bAddedSmvp = (tmpCU != nil) && (tmpCU.GetPredictionMode1(idx) != MODE_INTRA)
     }
 
@@ -3262,6 +3138,7 @@ func (this *TComDataCU) GetCUAboveLeft() *TComDataCU {
 func (this *TComDataCU) GetCUAboveRight() *TComDataCU {
     return this.m_pcCUAboveRight
 }
+
 func (this *TComDataCU) GetCUColocated(eRefPicList RefPicList) *TComDataCU {
     return this.m_apcCUColocated[eRefPicList]
 }
@@ -3269,7 +3146,6 @@ func (this *TComDataCU) GetCUColocated(eRefPicList RefPicList) *TComDataCU {
 func (this *TComDataCU) GetPULeft(uiLPartUnitIdx *uint,
     uiCurrPartUnitIdx uint,
     bEnforceSliceRestriction bool,
-    bEnforceDependentSliceRestriction bool,
     bEnforceTileRestriction bool) *TComDataCU {
     uiAbsPartIdx := G_auiZscanToRaster[uiCurrPartUnitIdx]
     uiAbsZorderCUIdx := G_auiZscanToRaster[this.m_uiAbsIdxInLCU]
@@ -3289,28 +3165,15 @@ func (this *TComDataCU) GetPULeft(uiLPartUnitIdx *uint,
     *uiLPartUnitIdx = G_auiRasterToZscan[uiAbsPartIdx+uiNumPartInCUWidth-1]
 
     if (bEnforceSliceRestriction && (this.m_pcCULeft == nil || this.m_pcCULeft.GetSlice() == nil || this.m_pcCULeft.GetSCUAddr()+(*uiLPartUnitIdx) < this.m_pcPic.GetCU(this.GetAddr()).GetSliceStartCU(uiCurrPartUnitIdx))) ||
-        (bEnforceDependentSliceRestriction && (this.m_pcCULeft == nil || this.m_pcCULeft.GetSlice() == nil || this.m_pcCULeft.GetSCUAddr()+(*uiLPartUnitIdx) < this.m_pcPic.GetCU(this.GetAddr()).GetDependentSliceStartCU(uiCurrPartUnitIdx))) ||
         (bEnforceTileRestriction && (this.m_pcCULeft == nil || this.m_pcCULeft.GetSlice() == nil || (this.m_pcPic.GetPicSym().GetTileIdxMap(int(this.m_pcCULeft.GetAddr())) != this.m_pcPic.GetPicSym().GetTileIdxMap(int(this.GetAddr()))))) {
         return nil
     }
     return this.m_pcCULeft
 }
 
-/*#if !LINEBUF_CLEANUP
-  TComDataCU*   GetPUAbove                  ( UInt&  uiAPartUnitIdx,
-                                              UInt uiCurrPartUnitIdx,
-                                              Bool bEnforceSliceRestriction=true,
-                                              Bool bEnforceDependentSliceRestriction=true,
-                                              Bool MotionDataCompresssion = false,
-                                              Bool planarAtLCUBoundary = false,
-                                              Bool bEnforceTileRestriction=true );
-  TComDataCU*   GetPUAboveLeft              ( UInt&  uiALPartUnitIdx, UInt uiCurrPartUnitIdx, Bool bEnforceSliceRestriction=true, Bool bEnforceDependentSliceRestriction=true, Bool MotionDataCompresssion = false );
-  TComDataCU*   GetPUAboveRight             ( UInt&  uiARPartUnitIdx, UInt uiCurrPartUnitIdx, Bool bEnforceSliceRestriction=true, Bool bEnforceDependentSliceRestriction=true, Bool MotionDataCompresssion = false );
-#else*/
 func (this *TComDataCU) GetPUAbove(uiAPartUnitIdx *uint,
     uiCurrPartUnitIdx uint,
     bEnforceSliceRestriction bool,
-    bEnforceDependentSliceRestriction bool,
     planarAtLCUBoundary bool,
     bEnforceTileRestriction bool) *TComDataCU {
     uiAbsPartIdx := int(G_auiZscanToRaster[uiCurrPartUnitIdx])
@@ -3340,13 +3203,12 @@ func (this *TComDataCU) GetPUAbove(uiAPartUnitIdx *uint,
     #endif*/
 
     if (bEnforceSliceRestriction && (this.m_pcCUAbove == nil || this.m_pcCUAbove.GetSlice() == nil || this.m_pcCUAbove.GetSCUAddr()+(*uiAPartUnitIdx) < this.m_pcPic.GetCU(this.GetAddr()).GetSliceStartCU(uiCurrPartUnitIdx))) ||
-        (bEnforceDependentSliceRestriction && (this.m_pcCUAbove == nil || this.m_pcCUAbove.GetSlice() == nil || this.m_pcCUAbove.GetSCUAddr()+(*uiAPartUnitIdx) < this.m_pcPic.GetCU(this.GetAddr()).GetDependentSliceStartCU(uiCurrPartUnitIdx))) ||
         (bEnforceTileRestriction && (this.m_pcCUAbove == nil || this.m_pcCUAbove.GetSlice() == nil || (this.m_pcPic.GetPicSym().GetTileIdxMap(int(this.m_pcCUAbove.GetAddr())) != this.m_pcPic.GetPicSym().GetTileIdxMap(int(this.GetAddr()))))) {
         return nil
     }
     return this.m_pcCUAbove
 }
-func (this *TComDataCU) GetPUAboveLeft(uiALPartUnitIdx *uint, uiCurrPartUnitIdx uint, bEnforceSliceRestriction, bEnforceDependentSliceRestriction bool) *TComDataCU {
+func (this *TComDataCU) GetPUAboveLeft(uiALPartUnitIdx *uint, uiCurrPartUnitIdx uint, bEnforceSliceRestriction bool) *TComDataCU {
     uiAbsPartIdx := int(G_auiZscanToRaster[uiCurrPartUnitIdx])
     uiAbsZorderCUIdx := int(G_auiZscanToRaster[this.m_uiAbsIdxInLCU])
     uiNumPartInCUWidth := int(this.m_pcPic.GetNumPartInWidth())
@@ -3362,14 +3224,11 @@ func (this *TComDataCU) GetPUAboveLeft(uiALPartUnitIdx *uint, uiCurrPartUnitIdx 
             }
         }
         *uiALPartUnitIdx = G_auiRasterToZscan[uiAbsPartIdx+int(this.GetPic().GetNumPartInCU())-uiNumPartInCUWidth-1]
-        /*#if !LINEBUF_CLEANUP
-            if(MotionDataCompresssion)
-            {
-              uiALPartUnitIdx = G_motionRefer[uiALPartUnitIdx];
-            }
-        #endif*/
-        if (bEnforceSliceRestriction && (this.m_pcCUAbove == nil || this.m_pcCUAbove.GetSlice() == nil || this.m_pcCUAbove.GetSCUAddr()+(*uiALPartUnitIdx) < this.m_pcPic.GetCU(this.GetAddr()).GetSliceStartCU(uiCurrPartUnitIdx) || (this.m_pcPic.GetPicSym().GetTileIdxMap(int(this.m_pcCUAbove.GetAddr())) != this.m_pcPic.GetPicSym().GetTileIdxMap(int(this.GetAddr()))))) ||
-            (bEnforceDependentSliceRestriction && (this.m_pcCUAbove == nil || this.m_pcCUAbove.GetSlice() == nil || this.m_pcCUAbove.GetSCUAddr()+(*uiALPartUnitIdx) < this.m_pcPic.GetCU(this.GetAddr()).GetDependentSliceStartCU(uiCurrPartUnitIdx) || (this.m_pcPic.GetPicSym().GetTileIdxMap(int(this.m_pcCUAbove.GetAddr())) != this.m_pcPic.GetPicSym().GetTileIdxMap(int(this.GetAddr()))))) {
+        if bEnforceSliceRestriction &&
+          (this.m_pcCUAbove == nil ||
+           this.m_pcCUAbove.GetSlice() == nil ||
+           this.m_pcCUAbove.GetSCUAddr()+(*uiALPartUnitIdx) < this.m_pcPic.GetCU(this.GetAddr()).GetSliceStartCU(uiCurrPartUnitIdx) ||
+           this.m_pcPic.GetPicSym().GetTileIdxMap(int(this.m_pcCUAbove.GetAddr())) != this.m_pcPic.GetPicSym().GetTileIdxMap(int(this.GetAddr())) )   {
             return nil
         }
         return this.m_pcCUAbove
@@ -3377,35 +3236,27 @@ func (this *TComDataCU) GetPUAboveLeft(uiALPartUnitIdx *uint, uiCurrPartUnitIdx 
 
     if !IsZeroRow(uiAbsPartIdx, uiNumPartInCUWidth) {
         *uiALPartUnitIdx = G_auiRasterToZscan[uiAbsPartIdx-1]
-        if (bEnforceSliceRestriction && (this.m_pcCULeft == nil || this.m_pcCULeft.GetSlice() == nil ||
+        if  bEnforceSliceRestriction &&
+           (this.m_pcCULeft == nil ||
+            this.m_pcCULeft.GetSlice() == nil ||
             this.m_pcCULeft.GetSCUAddr()+(*uiALPartUnitIdx) < this.m_pcPic.GetCU(this.GetAddr()).GetSliceStartCU(uiCurrPartUnitIdx) ||
-            (this.m_pcPic.GetPicSym().GetTileIdxMap(int(this.m_pcCULeft.GetAddr())) != this.m_pcPic.GetPicSym().GetTileIdxMap(int(this.GetAddr()))))) ||
-            (bEnforceDependentSliceRestriction && (this.m_pcCULeft == nil || this.m_pcCULeft.GetSlice() == nil ||
-                this.m_pcCULeft.GetSCUAddr()+(*uiALPartUnitIdx) < this.m_pcPic.GetCU(this.GetAddr()).GetDependentSliceStartCU(uiCurrPartUnitIdx) ||
-                (this.m_pcPic.GetPicSym().GetTileIdxMap(int(this.m_pcCULeft.GetAddr())) != this.m_pcPic.GetPicSym().GetTileIdxMap(int(this.GetAddr()))))) {
+            this.m_pcPic.GetPicSym().GetTileIdxMap(int(this.m_pcCULeft.GetAddr())) != this.m_pcPic.GetPicSym().GetTileIdxMap(int(this.GetAddr())) )  {
             return nil
         }
         return this.m_pcCULeft
     }
 
     *uiALPartUnitIdx = G_auiRasterToZscan[this.m_pcPic.GetNumPartInCU()-1]
-    /*#if !LINEBUF_CLEANUP
-      if(MotionDataCompresssion)
-      {
-        uiALPartUnitIdx = G_motionRefer[uiALPartUnitIdx];
-      }
-    #endif*/
-    if (bEnforceSliceRestriction && (this.m_pcCUAboveLeft == nil || this.m_pcCUAboveLeft.GetSlice() == nil ||
+    if  bEnforceSliceRestriction &&
+       (this.m_pcCUAboveLeft == nil ||
+        this.m_pcCUAboveLeft.GetSlice() == nil ||
         this.m_pcCUAboveLeft.GetSCUAddr()+(*uiALPartUnitIdx) < this.m_pcPic.GetCU(this.GetAddr()).GetSliceStartCU(uiCurrPartUnitIdx) ||
-        (this.m_pcPic.GetPicSym().GetTileIdxMap(int(this.m_pcCUAboveLeft.GetAddr())) != this.m_pcPic.GetPicSym().GetTileIdxMap(int(this.GetAddr()))))) ||
-        (bEnforceDependentSliceRestriction && (this.m_pcCUAboveLeft == nil || this.m_pcCUAboveLeft.GetSlice() == nil ||
-            this.m_pcCUAboveLeft.GetSCUAddr()+(*uiALPartUnitIdx) < this.m_pcPic.GetCU(this.GetAddr()).GetDependentSliceStartCU(uiCurrPartUnitIdx) ||
-            (this.m_pcPic.GetPicSym().GetTileIdxMap(int(this.m_pcCUAboveLeft.GetAddr())) != this.m_pcPic.GetPicSym().GetTileIdxMap(int(this.GetAddr()))))) {
+        this.m_pcPic.GetPicSym().GetTileIdxMap(int(this.m_pcCUAboveLeft.GetAddr())) != this.m_pcPic.GetPicSym().GetTileIdxMap(int(this.GetAddr())) ) {
         return nil
     }
     return this.m_pcCUAboveLeft
 }
-func (this *TComDataCU) GetPUAboveRight(uiARPartUnitIdx *uint, uiCurrPartUnitIdx uint, bEnforceSliceRestriction, bEnforceDependentSliceRestriction bool) *TComDataCU {
+func (this *TComDataCU) GetPUAboveRight(uiARPartUnitIdx *uint, uiCurrPartUnitIdx uint, bEnforceSliceRestriction bool) *TComDataCU {
     uiAbsPartIdxRT := int(G_auiZscanToRaster[uiCurrPartUnitIdx])
     uiAbsZorderCUIdx := int(G_auiZscanToRaster[this.m_uiAbsIdxInLCU]) + int(this.m_puhWidth[0])/int(this.m_pcPic.GetMinCUWidth()) - 1
     uiNumPartInCUWidth := int(this.m_pcPic.GetNumPartInWidth())
@@ -3430,18 +3281,11 @@ func (this *TComDataCU) GetPUAboveRight(uiARPartUnitIdx *uint, uiCurrPartUnitIdx
             return nil
         }
         *uiARPartUnitIdx = G_auiRasterToZscan[uiAbsPartIdxRT+int(this.m_pcPic.GetNumPartInCU())-uiNumPartInCUWidth+1]
-        /*#if !LINEBUF_CLEANUP
-            if(MotionDataCompresssion)
-            {
-              uiARPartUnitIdx = G_motionRefer[uiARPartUnitIdx];
-            }
-        #endif*/
-        if (bEnforceSliceRestriction && (this.m_pcCUAbove == nil || this.m_pcCUAbove.GetSlice() == nil ||
+        if  bEnforceSliceRestriction &&
+           (this.m_pcCUAbove == nil ||
+            this.m_pcCUAbove.GetSlice() == nil ||
             this.m_pcCUAbove.GetSCUAddr()+(*uiARPartUnitIdx) < this.m_pcPic.GetCU(this.GetAddr()).GetSliceStartCU(uiCurrPartUnitIdx) ||
-            (this.m_pcPic.GetPicSym().GetTileIdxMap(int(this.m_pcCUAbove.GetAddr())) != this.m_pcPic.GetPicSym().GetTileIdxMap(int(this.GetAddr()))))) ||
-            (bEnforceDependentSliceRestriction && (this.m_pcCUAbove == nil || this.m_pcCUAbove.GetSlice() == nil ||
-                this.m_pcCUAbove.GetSCUAddr()+(*uiARPartUnitIdx) < this.m_pcPic.GetCU(this.GetAddr()).GetDependentSliceStartCU(uiCurrPartUnitIdx) ||
-                (this.m_pcPic.GetPicSym().GetTileIdxMap(int(this.m_pcCUAbove.GetAddr())) != this.m_pcPic.GetPicSym().GetTileIdxMap(int(this.GetAddr()))))) {
+            this.m_pcPic.GetPicSym().GetTileIdxMap(int(this.m_pcCUAbove.GetAddr())) != this.m_pcPic.GetPicSym().GetTileIdxMap(int(this.GetAddr())) ) {
             return nil
         }
         return this.m_pcCUAbove
@@ -3453,27 +3297,19 @@ func (this *TComDataCU) GetPUAboveRight(uiARPartUnitIdx *uint, uiCurrPartUnitIdx
     }
 
     *uiARPartUnitIdx = G_auiRasterToZscan[int(this.m_pcPic.GetNumPartInCU())-uiNumPartInCUWidth]
-    /*#if !LINEBUF_CLEANUP
-      if(MotionDataCompresssion)
-      {
-        uiARPartUnitIdx = G_motionRefer[uiARPartUnitIdx];
-      }
-    #endif*/
-    if (bEnforceSliceRestriction && (this.m_pcCUAboveRight == nil || this.m_pcCUAboveRight.GetSlice() == nil ||
+    if  bEnforceSliceRestriction &&
+       (this.m_pcCUAboveRight == nil ||
+        this.m_pcCUAboveRight.GetSlice() == nil ||
         this.m_pcPic.GetPicSym().GetInverseCUOrderMap(int(this.m_pcCUAboveRight.GetAddr())) > this.m_pcPic.GetPicSym().GetInverseCUOrderMap(int(this.GetAddr())) ||
         this.m_pcCUAboveRight.GetSCUAddr()+(*uiARPartUnitIdx) < this.m_pcPic.GetCU(this.GetAddr()).GetSliceStartCU(uiCurrPartUnitIdx) ||
-        (this.m_pcPic.GetPicSym().GetTileIdxMap(int(this.m_pcCUAboveRight.GetAddr())) != this.m_pcPic.GetPicSym().GetTileIdxMap(int(this.GetAddr()))))) ||
-        (bEnforceDependentSliceRestriction && (this.m_pcCUAboveRight == nil || this.m_pcCUAboveRight.GetSlice() == nil ||
-            this.m_pcPic.GetPicSym().GetInverseCUOrderMap(int(this.m_pcCUAboveRight.GetAddr())) > this.m_pcPic.GetPicSym().GetInverseCUOrderMap(int(this.GetAddr())) ||
-            this.m_pcCUAboveRight.GetSCUAddr()+(*uiARPartUnitIdx) < this.m_pcPic.GetCU(this.GetAddr()).GetDependentSliceStartCU(uiCurrPartUnitIdx) ||
-            (this.m_pcPic.GetPicSym().GetTileIdxMap(int(this.m_pcCUAboveRight.GetAddr())) != this.m_pcPic.GetPicSym().GetTileIdxMap(int(this.GetAddr()))))) {
+        this.m_pcPic.GetPicSym().GetTileIdxMap(int(this.m_pcCUAboveRight.GetAddr())) != this.m_pcPic.GetPicSym().GetTileIdxMap(int(this.GetAddr())) ) {
         return nil
     }
     return this.m_pcCUAboveRight
 }
 
 //#endif
-func (this *TComDataCU) GetPUBelowLeft(uiBLPartUnitIdx *uint, uiCurrPartUnitIdx uint, bEnforceSliceRestriction, bEnforceDependentSliceRestriction bool) *TComDataCU {
+func (this *TComDataCU) GetPUBelowLeft(uiBLPartUnitIdx *uint, uiCurrPartUnitIdx uint, bEnforceSliceRestriction bool) *TComDataCU {
     uiAbsPartIdxLB := int(G_auiZscanToRaster[uiCurrPartUnitIdx])
     uiAbsZorderCUIdxLB := int(G_auiZscanToRaster[this.m_uiAbsIdxInLCU]) + (int(this.m_puhHeight[0])/int(this.m_pcPic.GetMinCUHeight())-1)*int(this.m_pcPic.GetNumPartInWidth())
     uiNumPartInCUWidth := int(this.m_pcPic.GetNumPartInWidth())
@@ -3498,12 +3334,11 @@ func (this *TComDataCU) GetPUBelowLeft(uiBLPartUnitIdx *uint, uiCurrPartUnitIdx 
             return nil
         }
         *uiBLPartUnitIdx = G_auiRasterToZscan[uiAbsPartIdxLB+uiNumPartInCUWidth*2-1]
-        if (bEnforceSliceRestriction && (this.m_pcCULeft == nil || this.m_pcCULeft.GetSlice() == nil ||
+        if  bEnforceSliceRestriction &&
+           (this.m_pcCULeft == nil ||
+            this.m_pcCULeft.GetSlice() == nil ||
             this.m_pcCULeft.GetSCUAddr()+(*uiBLPartUnitIdx) < this.m_pcPic.GetCU(this.GetAddr()).GetSliceStartCU(uiCurrPartUnitIdx) ||
-            (this.m_pcPic.GetPicSym().GetTileIdxMap(int(this.m_pcCULeft.GetAddr())) != this.m_pcPic.GetPicSym().GetTileIdxMap(int(this.GetAddr()))))) ||
-            (bEnforceDependentSliceRestriction && (this.m_pcCULeft == nil || this.m_pcCULeft.GetSlice() == nil ||
-                this.m_pcCULeft.GetSCUAddr()+(*uiBLPartUnitIdx) < this.m_pcPic.GetCU(this.GetAddr()).GetDependentSliceStartCU(uiCurrPartUnitIdx) ||
-                (this.m_pcPic.GetPicSym().GetTileIdxMap(int(this.m_pcCULeft.GetAddr())) != this.m_pcPic.GetPicSym().GetTileIdxMap(int(this.GetAddr()))))) {
+            this.m_pcPic.GetPicSym().GetTileIdxMap(int(this.m_pcCULeft.GetAddr())) != this.m_pcPic.GetPicSym().GetTileIdxMap(int(this.GetAddr())) ) {
             return nil
         }
         return this.m_pcCULeft
@@ -3562,7 +3397,7 @@ func (this *TComDataCU) GetRefQP(uiCurrAbsIdxInLCU uint) int8 {
     return (this.GetLastCodedQP(uiCurrAbsIdxInLCU) + this.GetLastCodedQP(uiCurrAbsIdxInLCU) + 1) >> 1
 }
 
-func (this *TComDataCU) GetPUAboveRightAdi(uiARPartUnitIdx *uint, uiCurrPartUnitIdx, uiPartUnitOffset uint, bEnforceSliceRestriction, bEnforceDependentSliceRestriction bool) *TComDataCU {
+func (this *TComDataCU) GetPUAboveRightAdi(uiARPartUnitIdx *uint, uiCurrPartUnitIdx, uiPartUnitOffset uint, bEnforceSliceRestriction bool) *TComDataCU {
     uiAbsPartIdxRT := int(G_auiZscanToRaster[uiCurrPartUnitIdx])
     uiAbsZorderCUIdx := int(G_auiZscanToRaster[this.m_uiAbsIdxInLCU]) + (int(this.m_puhWidth[0]) / int(this.m_pcPic.GetMinCUWidth())) - 1
     uiNumPartInCUWidth := int(this.m_pcPic.GetNumPartInWidth())
@@ -3587,12 +3422,11 @@ func (this *TComDataCU) GetPUAboveRightAdi(uiARPartUnitIdx *uint, uiCurrPartUnit
             return nil
         }
         *uiARPartUnitIdx = G_auiRasterToZscan[uiAbsPartIdxRT+int(this.m_pcPic.GetNumPartInCU())-uiNumPartInCUWidth+int(uiPartUnitOffset)]
-        if (bEnforceSliceRestriction && (this.m_pcCUAbove == nil || this.m_pcCUAbove.GetSlice() == nil ||
+        if  bEnforceSliceRestriction &&
+           (this.m_pcCUAbove == nil ||
+            this.m_pcCUAbove.GetSlice() == nil ||
             this.m_pcCUAbove.GetSCUAddr()+(*uiARPartUnitIdx) < this.m_pcPic.GetCU(this.GetAddr()).GetSliceStartCU(uiCurrPartUnitIdx) ||
-            (this.m_pcPic.GetPicSym().GetTileIdxMap(int(this.m_pcCUAbove.GetAddr())) != this.m_pcPic.GetPicSym().GetTileIdxMap(int(this.GetAddr()))))) ||
-            (bEnforceDependentSliceRestriction && (this.m_pcCUAbove == nil || this.m_pcCUAbove.GetSlice() == nil ||
-                this.m_pcCUAbove.GetSCUAddr()+(*uiARPartUnitIdx) < this.m_pcPic.GetCU(this.GetAddr()).GetDependentSliceStartCU(uiCurrPartUnitIdx) ||
-                (this.m_pcPic.GetPicSym().GetTileIdxMap(int(this.m_pcCUAbove.GetAddr())) != this.m_pcPic.GetPicSym().GetTileIdxMap(int(this.GetAddr()))))) {
+            this.m_pcPic.GetPicSym().GetTileIdxMap(int(this.m_pcCUAbove.GetAddr())) != this.m_pcPic.GetPicSym().GetTileIdxMap(int(this.GetAddr())) ) {
             return nil
         }
         return this.m_pcCUAbove
@@ -3604,19 +3438,17 @@ func (this *TComDataCU) GetPUAboveRightAdi(uiARPartUnitIdx *uint, uiCurrPartUnit
     }
 
     *uiARPartUnitIdx = G_auiRasterToZscan[int(this.m_pcPic.GetNumPartInCU())-uiNumPartInCUWidth+int(uiPartUnitOffset)-1]
-    if (bEnforceSliceRestriction && (this.m_pcCUAboveRight == nil || this.m_pcCUAboveRight.GetSlice() == nil ||
+    if  bEnforceSliceRestriction &&
+       (this.m_pcCUAboveRight == nil ||
+        this.m_pcCUAboveRight.GetSlice() == nil ||
         this.m_pcPic.GetPicSym().GetInverseCUOrderMap(int(this.m_pcCUAboveRight.GetAddr())) > this.m_pcPic.GetPicSym().GetInverseCUOrderMap(int(this.GetAddr())) ||
         this.m_pcCUAboveRight.GetSCUAddr()+(*uiARPartUnitIdx) < this.m_pcPic.GetCU(this.GetAddr()).GetSliceStartCU(uiCurrPartUnitIdx) ||
-        (this.m_pcPic.GetPicSym().GetTileIdxMap(int(this.m_pcCUAboveRight.GetAddr())) != this.m_pcPic.GetPicSym().GetTileIdxMap(int(this.GetAddr()))))) ||
-        (bEnforceDependentSliceRestriction && (this.m_pcCUAboveRight == nil || this.m_pcCUAboveRight.GetSlice() == nil ||
-            this.m_pcPic.GetPicSym().GetInverseCUOrderMap(int(this.m_pcCUAboveRight.GetAddr())) > this.m_pcPic.GetPicSym().GetInverseCUOrderMap(int(this.GetAddr())) ||
-            this.m_pcCUAboveRight.GetSCUAddr()+(*uiARPartUnitIdx) < this.m_pcPic.GetCU(this.GetAddr()).GetDependentSliceStartCU(uiCurrPartUnitIdx) ||
-            (this.m_pcPic.GetPicSym().GetTileIdxMap(int(this.m_pcCUAboveRight.GetAddr())) != this.m_pcPic.GetPicSym().GetTileIdxMap(int(this.GetAddr()))))) {
+        this.m_pcPic.GetPicSym().GetTileIdxMap(int(this.m_pcCUAboveRight.GetAddr())) != this.m_pcPic.GetPicSym().GetTileIdxMap(int(this.GetAddr())) ) {
         return nil
     }
     return this.m_pcCUAboveRight
 }
-func (this *TComDataCU) GetPUBelowLeftAdi(uiBLPartUnitIdx *uint, uiCurrPartUnitIdx, uiPartUnitOffset uint, bEnforceSliceRestriction, bEnforceDependentSliceRestriction bool) *TComDataCU {
+func (this *TComDataCU) GetPUBelowLeftAdi(uiBLPartUnitIdx *uint, uiCurrPartUnitIdx, uiPartUnitOffset uint, bEnforceSliceRestriction bool) *TComDataCU {
     uiAbsPartIdxLB := int(G_auiZscanToRaster[uiCurrPartUnitIdx])
     uiAbsZorderCUIdxLB := int(G_auiZscanToRaster[this.m_uiAbsIdxInLCU]) + ((int(this.m_puhHeight[0])/int(this.m_pcPic.GetMinCUHeight()))-1)*int(this.m_pcPic.GetNumPartInWidth())
     uiNumPartInCUWidth := int(this.m_pcPic.GetNumPartInWidth())
@@ -3641,12 +3473,11 @@ func (this *TComDataCU) GetPUBelowLeftAdi(uiBLPartUnitIdx *uint, uiCurrPartUnitI
             return nil
         }
         *uiBLPartUnitIdx = G_auiRasterToZscan[uiAbsPartIdxLB+(1+int(uiPartUnitOffset))*uiNumPartInCUWidth-1]
-        if (bEnforceSliceRestriction && (this.m_pcCULeft == nil || this.m_pcCULeft.GetSlice() == nil ||
+        if  bEnforceSliceRestriction &&
+           (this.m_pcCULeft == nil ||
+            this.m_pcCULeft.GetSlice() == nil ||
             this.m_pcCULeft.GetSCUAddr()+(*uiBLPartUnitIdx) < this.m_pcPic.GetCU(this.GetAddr()).GetSliceStartCU(uiCurrPartUnitIdx) ||
-            (this.m_pcPic.GetPicSym().GetTileIdxMap(int(this.m_pcCULeft.GetAddr())) != this.m_pcPic.GetPicSym().GetTileIdxMap(int(this.GetAddr()))))) ||
-            (bEnforceDependentSliceRestriction && (this.m_pcCULeft == nil || this.m_pcCULeft.GetSlice() == nil ||
-                this.m_pcCULeft.GetSCUAddr()+(*uiBLPartUnitIdx) < this.m_pcPic.GetCU(this.GetAddr()).GetDependentSliceStartCU(uiCurrPartUnitIdx) ||
-                (this.m_pcPic.GetPicSym().GetTileIdxMap(int(this.m_pcCULeft.GetAddr())) != this.m_pcPic.GetPicSym().GetTileIdxMap(int(this.GetAddr()))))) {
+            this.m_pcPic.GetPicSym().GetTileIdxMap(int(this.m_pcCULeft.GetAddr())) != this.m_pcPic.GetPicSym().GetTileIdxMap(int(this.GetAddr())) ) {
             return nil
         }
         return this.m_pcCULeft
@@ -3903,10 +3734,11 @@ func (this *TComDataCU) HasEqualMotion(uiAbsPartIdx uint, pcCandCU *TComDataCU, 
 }
 func (this *TComDataCU) GetInterMergeCandidates(uiAbsPartIdx, uiPUIdx uint, pcMvFieldNeighbours []TComMvField, puhInterDirNeighbours []byte, numValidMergeCand *int, mrgCandIdx int) {
     uiAbsPartAddr := this.m_uiAbsIdxInLCU + uiAbsPartIdx
-    uiIdx := uint(1)
     var abCandIsInter [MRG_MAX_NUM_CANDS]bool
     for ui := uint(0); ui < this.GetSlice().GetMaxNumMergeCand(); ui++ {
         abCandIsInter[ui] = false
+        pcMvFieldNeighbours[ ( ui << 1 )     ].SetRefIdx(NOT_VALID);
+        pcMvFieldNeighbours[ ( ui << 1 ) + 1 ].SetRefIdx(NOT_VALID);
     }
     *numValidMergeCand = int(this.GetSlice().GetMaxNumMergeCand())
     // compute the location of the current PU
@@ -3923,26 +3755,12 @@ func (this *TComDataCU) GetInterMergeCandidates(uiAbsPartIdx, uiPUIdx uint, pcMv
     //left
     uiLeftPartIdx := uint(0)
     var pcCULeft *TComDataCU
-    pcCULeft = this.GetPULeft(&uiLeftPartIdx, uiPartIdxLB, true, false, true)
-    //#if MERGE_CLEANUP_AND_K0197
+    pcCULeft = this.GetPULeft(&uiLeftPartIdx, uiPartIdxLB, true, true)
     isAvailableA1 := pcCULeft != nil &&
         pcCULeft.IsDiffMER(xP-1, yP+nPSH-1, xP, yP) &&
         !(uiPUIdx == 1 && (cCurPS == SIZE_Nx2N || cCurPS == SIZE_nLx2N || cCurPS == SIZE_nRx2N)) &&
         !pcCULeft.IsIntra(uiLeftPartIdx)
     if isAvailableA1 {
-        /*#else
-          if (pcCULeft)
-          {
-            if (!pcCULeft.IsDiffMER(xP -1, yP+nPSH-1, xP, yP))
-            {
-              pcCULeft = nil;
-            }
-          }
-          PartSize partSize = this.GetPartitionSize( uiAbsPartIdx );
-          if (!(uiPUIdx == 1 && (partSize == SIZE_Nx2N || partSize == SIZE_nLx2N || partSize == SIZE_nRx2N)))
-          {
-          if ( pcCULeft && !pcCULeft.IsIntra( uiLeftPartIdx ) )
-        #endif*/
         abCandIsInter[iCount] = true
         // this.Get Inter Dir
         puhInterDirNeighbours[iCount] = pcCULeft.GetInterDir1(uiLeftPartIdx)
@@ -3956,9 +3774,6 @@ func (this *TComDataCU) GetInterMergeCandidates(uiAbsPartIdx, uiPUIdx uint, pcMv
         }
         iCount++
     }
-    /*#if !MERGE_CLEANUP_AND_K0197
-      }
-    #endif*/
 
     // early termination
     if iCount == int(this.GetSlice().GetMaxNumMergeCand()) {
@@ -3967,29 +3782,12 @@ func (this *TComDataCU) GetInterMergeCandidates(uiAbsPartIdx, uiPUIdx uint, pcMv
     // above
     uiAbovePartIdx := uint(0)
     var pcCUAbove *TComDataCU
-    //#if LINEBUF_CLEANUP
-    pcCUAbove = this.GetPUAbove(&uiAbovePartIdx, uiPartIdxRT, true, false, false, true)
-    //#else
-    //  pcCUAbove = this.GetPUAbove( &uiAbovePartIdx, uiPartIdxRT, true, false, true );
-    //#endif
-    //#if MERGE_CLEANUP_AND_K0197
+    pcCUAbove = this.GetPUAbove(&uiAbovePartIdx, uiPartIdxRT, true, false, true)
     isAvailableB1 := pcCUAbove != nil &&
         pcCUAbove.IsDiffMER(xP+nPSW-1, yP-1, xP, yP) &&
         !(uiPUIdx == 1 && (cCurPS == SIZE_2NxN || cCurPS == SIZE_2NxnU || cCurPS == SIZE_2NxnD)) &&
         !pcCUAbove.IsIntra(uiAbovePartIdx)
     if isAvailableB1 && (!isAvailableA1 || !pcCULeft.HasEqualMotion(uiLeftPartIdx, pcCUAbove, uiAbovePartIdx)) {
-        /*#else
-          if (pcCUAbove)
-          {
-            if (!pcCUAbove.IsDiffMER(xP+nPSW-1, yP-1, xP, yP))
-            {
-              pcCUAbove = nil;
-            }
-          }
-          if ( pcCUAbove && !pcCUAbove.IsIntra( uiAbovePartIdx )
-            && !(uiPUIdx == 1 && (cCurPS == SIZE_2NxN || cCurPS == SIZE_2NxnU || cCurPS == SIZE_2NxnD))
-            && ( !pcCULeft || pcCULeft.IsIntra( uiLeftPartIdx ) || !pcCULeft->hasEqualMotion( uiLeftPartIdx, pcCUAbove, uiAbovePartIdx ) ) )
-        #endif*/
         abCandIsInter[iCount] = true
         // this.Get Inter Dir
         puhInterDirNeighbours[iCount] = pcCUAbove.GetInterDir1(uiAbovePartIdx)
@@ -4011,27 +3809,12 @@ func (this *TComDataCU) GetInterMergeCandidates(uiAbsPartIdx, uiPUIdx uint, pcMv
     // above right
     uiAboveRightPartIdx := uint(0)
     var pcCUAboveRight *TComDataCU
-    //#if LINEBUF_CLEANUP
-    pcCUAboveRight = this.GetPUAboveRight(&uiAboveRightPartIdx, uiPartIdxRT, true, false)
-    //#else
-    //  pcCUAboveRight = this.GetPUAboveRight( uiAboveRightPartIdx, uiPartIdxRT, true, false, true );
-    //#endif
-    //#if MERGE_CLEANUP_AND_K0197
+
+    pcCUAboveRight = this.GetPUAboveRight(&uiAboveRightPartIdx, uiPartIdxRT, true)
     isAvailableB0 := pcCUAboveRight != nil &&
         pcCUAboveRight.IsDiffMER(xP+nPSW, yP-1, xP, yP) &&
         !pcCUAboveRight.IsIntra(uiAboveRightPartIdx)
     if isAvailableB0 && (!isAvailableB1 || !pcCUAbove.HasEqualMotion(uiAbovePartIdx, pcCUAboveRight, uiAboveRightPartIdx)) {
-        /*#else
-          if (pcCUAboveRight)
-          {
-            if (!pcCUAboveRight.IsDiffMER(xP+nPSW, yP-1, xP, yP))
-            {
-              pcCUAboveRight = nil;
-            }
-          }
-          if ( pcCUAboveRight && !pcCUAboveRight.IsIntra( uiAboveRightPartIdx ) && ( !pcCUAbove || pcCUAbove.IsIntra( uiAbovePartIdx ) || !pcCUAbove->hasEqualMotion( uiAbovePartIdx, pcCUAboveRight, uiAboveRightPartIdx ) ) )
-        #endif
-          {*/
         abCandIsInter[iCount] = true
         // this.Get Inter Dir
         puhInterDirNeighbours[iCount] = pcCUAboveRight.GetInterDir1(uiAboveRightPartIdx)
@@ -4053,23 +3836,11 @@ func (this *TComDataCU) GetInterMergeCandidates(uiAbsPartIdx, uiPUIdx uint, pcMv
     //left bottom
     uiLeftBottomPartIdx := uint(0)
     var pcCULeftBottom *TComDataCU
-    pcCULeftBottom = this.GetPUBelowLeft(&uiLeftBottomPartIdx, uiPartIdxLB, true, false)
-    //#if MERGE_CLEANUP_AND_K0197
+    pcCULeftBottom = this.GetPUBelowLeft(&uiLeftBottomPartIdx, uiPartIdxLB, true)
     isAvailableA0 := pcCULeftBottom != nil &&
         pcCULeftBottom.IsDiffMER(xP-1, yP+nPSH, xP, yP) &&
         !pcCULeftBottom.IsIntra(uiLeftBottomPartIdx)
     if isAvailableA0 && (!isAvailableA1 || !pcCULeft.HasEqualMotion(uiLeftPartIdx, pcCULeftBottom, uiLeftBottomPartIdx)) {
-        /*#else
-          if (pcCULeftBottom)
-          {
-            if (!pcCULeftBottom.IsDiffMER(xP-1, yP+nPSH, xP, yP))
-            {
-              pcCULeftBottom = nil;
-            }
-          }
-          if ( pcCULeftBottom && !pcCULeftBottom.IsIntra( uiLeftBottomPartIdx ) && ( !pcCULeft || pcCULeft.IsIntra( uiLeftPartIdx ) || !pcCULeft->hasEqualMotion( uiLeftPartIdx, pcCULeftBottom, uiLeftBottomPartIdx ) ) )
-        #endif
-          {*/
         abCandIsInter[iCount] = true
         // this.Get Inter Dir
         puhInterDirNeighbours[iCount] = pcCULeftBottom.GetInterDir1(uiLeftBottomPartIdx)
@@ -4091,31 +3862,12 @@ func (this *TComDataCU) GetInterMergeCandidates(uiAbsPartIdx, uiPUIdx uint, pcMv
     if iCount < 4 {
         uiAboveLeftPartIdx := uint(0)
         var pcCUAboveLeft *TComDataCU
-        //#if LINEBUF_CLEANUP
-        pcCUAboveLeft = this.GetPUAboveLeft(&uiAboveLeftPartIdx, uiAbsPartAddr, true, false)
-        //#else
-        //    pcCUAboveLeft = this.GetPUAboveLeft( uiAboveLeftPartIdx, , true, false, true );
-        //#endif
-        //#if MERGE_CLEANUP_AND_K0197
+        pcCUAboveLeft = this.GetPUAboveLeft(&uiAboveLeftPartIdx, uiAbsPartAddr, true)
         isAvailableB2 := pcCUAboveLeft != nil &&
             pcCUAboveLeft.IsDiffMER(xP-1, yP-1, xP, yP) &&
             !pcCUAboveLeft.IsIntra(uiAboveLeftPartIdx)
         if isAvailableB2 && (!isAvailableA1 || !pcCULeft.HasEqualMotion(uiLeftPartIdx, pcCUAboveLeft, uiAboveLeftPartIdx)) &&
             (!isAvailableB1 || !pcCUAbove.HasEqualMotion(uiAbovePartIdx, pcCUAboveLeft, uiAboveLeftPartIdx)) {
-            /*#else
-                if (pcCUAboveLeft)
-                {
-                  if (!pcCUAboveLeft.IsDiffMER(xP-1, yP-1, xP, yP))
-                  {
-                    pcCUAboveLeft = nil;
-                  }
-                }
-                if( pcCUAboveLeft && !pcCUAboveLeft.IsIntra( uiAboveLeftPartIdx )
-                 && ( !pcCULeft || pcCULeft.IsIntra( uiLeftPartIdx ) || !pcCULeft->hasEqualMotion( uiLeftPartIdx, pcCUAboveLeft, uiAboveLeftPartIdx ) )
-                 && ( !pcCUAbove || pcCUAbove.IsIntra( uiAbovePartIdx ) || !pcCUAbove->hasEqualMotion( uiAbovePartIdx, pcCUAboveLeft, uiAboveLeftPartIdx ) )
-                 )
-            #endif
-                {*/
             abCandIsInter[iCount] = true
             // this.Get Inter Dir
             puhInterDirNeighbours[iCount] = pcCUAboveLeft.GetInterDir1(uiAboveLeftPartIdx)
@@ -4172,38 +3924,37 @@ func (this *TComDataCU) GetInterMergeCandidates(uiAbsPartIdx, uiPUIdx uint, pcMv
         bExistMV := false
         var uiPartIdxCenter uint
         uiCurLCUIdx := this.GetAddr()
+        dir := 0;
+        uiArrayAddr := uint(iCount);
         this.xDeriveCenterIdx(uiPUIdx, &uiPartIdxCenter)
         bExistMV = uiLCUIdx >= 0 && this.xGetColMVP(REF_PIC_LIST_0, uiLCUIdx, int(uiAbsPartAddr), &cColMv, &iRefIdx)
         if bExistMV == false {
             bExistMV = this.xGetColMVP(REF_PIC_LIST_0, int(uiCurLCUIdx), int(uiPartIdxCenter), &cColMv, &iRefIdx)
         }
         if bExistMV {
-            uiArrayAddr := iCount
-            abCandIsInter[uiArrayAddr] = true
-            pcMvFieldNeighbours[uiArrayAddr<<1].SetMvField(cColMv, int8(iRefIdx))
+            dir |= 1;
+            pcMvFieldNeighbours[ 2 * uiArrayAddr ].SetMvField( cColMv, int8(iRefIdx) );
+        }
+        if this.GetSlice().IsInterB()  {
+          bExistMV = uiLCUIdx >= 0 && this.xGetColMVP( REF_PIC_LIST_1, uiLCUIdx, int(uiAbsPartAddr), &cColMv, &iRefIdx);
+          if bExistMV == false {
+            bExistMV = this.xGetColMVP( REF_PIC_LIST_1, int(uiCurLCUIdx), int(uiPartIdxCenter), &cColMv, &iRefIdx );
+          }
+          if bExistMV {
+            dir |= 2;
+            pcMvFieldNeighbours[ 2 * uiArrayAddr + 1 ].SetMvField( cColMv, int8(iRefIdx) );
+          }
+        }
 
-            if this.GetSlice().IsInterB() {
-                iRefIdx = 0
-                bExistMV = uiLCUIdx >= 0 && this.xGetColMVP(REF_PIC_LIST_1, uiLCUIdx, int(uiAbsPartAddr), &cColMv, &iRefIdx)
-                if bExistMV == false {
-                    bExistMV = this.xGetColMVP(REF_PIC_LIST_1, int(uiCurLCUIdx), int(uiPartIdxCenter), &cColMv, &iRefIdx)
-                }
-                if bExistMV {
-                    pcMvFieldNeighbours[(uiArrayAddr<<1)+1].SetMvField(cColMv, int8(iRefIdx))
-                    puhInterDirNeighbours[uiArrayAddr] = 3
-                } else {
-                    puhInterDirNeighbours[uiArrayAddr] = 1
-                }
-            } else {
-                puhInterDirNeighbours[uiArrayAddr] = 1
-            }
+        if dir != 0 {
+            puhInterDirNeighbours[uiArrayAddr] = byte(dir);
+            abCandIsInter[uiArrayAddr] = true;
+
             if mrgCandIdx == iCount {
                 return
             }
             iCount++
         }
-        uiIdx++
-
     }
     // early termination
     if iCount == int(this.GetSlice().GetMaxNumMergeCand()) {
@@ -4351,12 +4102,7 @@ func (this *TComDataCU) GetIntraDirLumaPredictor(uiAbsPartIdx uint, uiIntraDirPr
     uiPredNum := 0
 
     // Get intra direction of left PU
-    //#if DEPENDENT_SLICES
-    bDepSliceRestriction := (!this.m_pcSlice.GetPPS().GetDependentSliceEnabledFlag())
-    pcTempCU = this.GetPULeft(&uiTempPartIdx, this.m_uiAbsIdxInLCU+uiAbsPartIdx, true, bDepSliceRestriction, true)
-    //#else
-    //  pcTempCU = this..GetPULeft( uiTempPartIdx, this.m_uiAbsIdxInLCU + uiAbsPartIdx );
-    //#endif
+    pcTempCU = this.GetPULeft(&uiTempPartIdx, this.m_uiAbsIdxInLCU+uiAbsPartIdx, true, true);
 
     if pcTempCU != nil {
         if pcTempCU.IsIntra(uiTempPartIdx) {
@@ -4369,19 +4115,7 @@ func (this *TComDataCU) GetIntraDirLumaPredictor(uiAbsPartIdx uint, uiIntraDirPr
     }
 
     // Get intra direction of above PU
-    //#if LINEBUF_CLEANUP
-    //#if DEPENDENT_SLICES
-    pcTempCU = this.GetPUAbove(&uiTempPartIdx, this.m_uiAbsIdxInLCU+uiAbsPartIdx, true, bDepSliceRestriction, true, true)
-    //#else
-    //  pcTempCU = this..GetPUAbove( uiTempPartIdx, this.m_uiAbsIdxInLCU + uiAbsPartIdx, true, true, true );
-    //#endif
-    /*#else
-    #if DEPENDENT_SLICES
-      pcTempCU = this.GetPUAbove( uiTempPartIdx, this.m_uiAbsIdxInLCU + uiAbsPartIdx, true, bDepSliceRestriction, false, true );
-    #else
-      pcTempCU = this.GetPUAbove( uiTempPartIdx, this.m_uiAbsIdxInLCU + uiAbsPartIdx, true, true, false, true );
-    #endif
-    #endif*/
+    pcTempCU = this.GetPUAbove(&uiTempPartIdx, this.m_uiAbsIdxInLCU+uiAbsPartIdx, true, true, true)
 
     if pcTempCU != nil {
         if pcTempCU.IsIntra(uiTempPartIdx) {
@@ -4439,11 +4173,8 @@ func (this *TComDataCU) GetCtxSplitFlag(uiAbsPartIdx, uiDepth uint) uint {
 
     // Get left split flag
     //#if DEPENDENT_SLICES
-    bDepSliceRestriction := (!this.m_pcSlice.GetPPS().GetDependentSliceEnabledFlag())
-    pcTempCU = this.GetPULeft(&uiTempPartIdx, this.m_uiAbsIdxInLCU+uiAbsPartIdx, true, bDepSliceRestriction, true)
-    //#else
-    //  pcTempCU = this.GetPULeft( uiTempPartIdx, this.m_uiAbsIdxInLCU + uiAbsPartIdx );
-    //#endif
+    pcTempCU = this.GetPULeft(&uiTempPartIdx, this.m_uiAbsIdxInLCU+uiAbsPartIdx, true, true)
+
     if pcTempCU != nil {
         if uint(pcTempCU.GetDepth1(uiTempPartIdx)) > uiDepth {
             uiCtx = 1
@@ -4455,11 +4186,7 @@ func (this *TComDataCU) GetCtxSplitFlag(uiAbsPartIdx, uiDepth uint) uint {
     }
 
     // Get above split flag
-    //#if DEPENDENT_SLICES
-    pcTempCU = this.GetPUAbove(&uiTempPartIdx, this.m_uiAbsIdxInLCU+uiAbsPartIdx, true, bDepSliceRestriction, false, true)
-    //#else
-    //  pcTempCU = this.GetPUAbove( uiTempPartIdx, this.m_uiAbsIdxInLCU + uiAbsPartIdx );
-    //#endif
+    pcTempCU = this.GetPUAbove(&uiTempPartIdx, this.m_uiAbsIdxInLCU+uiAbsPartIdx, true, false, true)
 
     if pcTempCU != nil {
         if uint(pcTempCU.GetDepth1(uiTempPartIdx)) > uiDepth {
@@ -4492,12 +4219,8 @@ func (this *TComDataCU) GetCtxSkipFlag(uiAbsPartIdx uint) uint {
     uiCtx := uint(0)
 
     // Get BCBP of left PU
-    //#if DEPENDENT_SLICES
-    bDepSliceRestriction := (!this.m_pcSlice.GetPPS().GetDependentSliceEnabledFlag())
-    pcTempCU = this.GetPULeft(&uiTempPartIdx, this.m_uiAbsIdxInLCU+uiAbsPartIdx, true, bDepSliceRestriction, true)
-    //#else
-    //  pcTempCU = this.GetPULeft( uiTempPartIdx, this.m_uiAbsIdxInLCU + uiAbsPartIdx );
-    //#endif
+    pcTempCU = this.GetPULeft(&uiTempPartIdx, this.m_uiAbsIdxInLCU+uiAbsPartIdx, true, true)
+
     if pcTempCU != nil {
         uiCtx = uint(B2U(pcTempCU.IsSkipped(uiTempPartIdx)))
     } else {
@@ -4505,11 +4228,8 @@ func (this *TComDataCU) GetCtxSkipFlag(uiAbsPartIdx uint) uint {
     }
 
     // Get BCBP of above PU
-    //#if DEPENDENT_SLICES
-    pcTempCU = this.GetPUAbove(&uiTempPartIdx, this.m_uiAbsIdxInLCU+uiAbsPartIdx, true, bDepSliceRestriction, false, true)
-    //#else
-    //  pcTempCU = this.GetPUAbove( uiTempPartIdx, this.m_uiAbsIdxInLCU + uiAbsPartIdx );
-    //#endif
+    pcTempCU = this.GetPUAbove(&uiTempPartIdx, this.m_uiAbsIdxInLCU+uiAbsPartIdx, true, false, true)
+
     if pcTempCU != nil {
         uiCtx += uint(B2U(pcTempCU.IsSkipped(uiTempPartIdx)))
     } else {
@@ -4523,10 +4243,10 @@ func (this *TComDataCU) GetCtxInterDir(uiAbsPartIdx uint) uint {
 }
 
 func (this *TComDataCU) GetSliceStartCU(pos uint) uint {
-    return this.m_uiSliceStartCU[pos-this.m_uiAbsIdxInLCU]
+    return this.m_sliceStartCU[pos-this.m_uiAbsIdxInLCU]
 }
-func (this *TComDataCU) GetDependentSliceStartCU(pos uint) uint {
-    return this.m_uiDependentSliceStartCU[pos-this.m_uiAbsIdxInLCU]
+func (this *TComDataCU) GetSliceSegmentStartCU(pos uint) uint {
+    return this.m_sliceSegmentStartCU[pos-this.m_uiAbsIdxInLCU]
 }
 func (this *TComDataCU) GetTotalBins() uint {
     return this.m_uiTotalBins

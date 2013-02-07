@@ -30,7 +30,7 @@
  * ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF
  * THE POSSIBILITY OF SUCH DAMAGE.
  */
- 
+
 package TLibEncoder
 
 import (
@@ -79,7 +79,7 @@ func NewGOPEntry() *GOPEntry{
 					  m_interRPSPrediction:0,
 					  m_deltaRPS:0,
 					  m_numRefIdc:0};
-	
+
 	return gop;
 }
 
@@ -222,7 +222,9 @@ type TEncCfg struct{
   m_iSourceWidth	int;
   m_iSourceHeight	int;
   m_croppingMode	int;
-  m_picCroppingWindow	*TLibCommon.CroppingWindow;
+  m_conformanceWindow    *TLibCommon.Window;
+  m_defaultDisplayWindow *TLibCommon.Window;
+  m_picCroppingWindow	*TLibCommon.Window;
   m_iFrameToBeEncoded	int;
   m_adLambdaModifier	[ TLibCommon.MAX_TLAYER ]float64;
 
@@ -239,11 +241,11 @@ type TEncCfg struct{
   m_extraRPSs	int;
   m_maxDecPicBuffering	[TLibCommon.MAX_TLAYER]int;
   m_numReorderPics		[TLibCommon.MAX_TLAYER]int;
-  
+
   m_iQP	int;                              //  if (AdaptiveQP == OFF)
-  
+
   m_aiPad	[2]int;
-  
+
 
   m_iMaxRefPicNum	int;                     ///< this is used to mimic the sliding mechanism used by the decoder
                                        // TODO: We need to have a common sliding mechanism used by both the encoder and decoder
@@ -255,7 +257,7 @@ type TEncCfg struct{
   m_uiQuadtreeTULog2MinSize	uint;
   m_uiQuadtreeTUMaxDepthInter	uint;
   m_uiQuadtreeTUMaxDepthIntra	uint;
-  
+
   //====== Loop/Deblock Filter ========
   m_bLoopFilterDisable	bool;
   m_loopFilterOffsetInPPS	bool;
@@ -287,7 +289,7 @@ type TEncCfg struct{
 
   m_bUseAdaptiveQP	bool;
   m_iQPAdaptationRange	int;
-  
+
   //====== Tool list ========
   m_bUseSBACRD	bool;
   m_bUseASR	bool;
@@ -306,14 +308,14 @@ type TEncCfg struct{
   m_useTransformSkipFast	bool;
   m_aidQP	[]int;
   m_uiDeltaQpRD	uint;
-  
+
   m_bUseConstrainedIntraPred	bool;
   m_usePCM	bool;
   m_pcmLog2MaxSize	uint;
   m_uiPCMLog2MinSize	uint;
   //====== Slice ========
   m_iSliceMode	int;
-  m_iSliceArgument	int;	 
+  m_iSliceArgument	int;
   //====== Dependent Slice ========
   m_iDependentSliceMode	int;
   m_iDependentSliceArgument	int;
@@ -372,7 +374,7 @@ type TEncCfg struct{
   m_CUTransquantBypassFlagValue	bool;                    ///< if transquant_bypass_enable_flag, the fixed value to use for the per-CU cu_transquant_bypass_flag.
   m_cVPS			*TLibCommon.TComVPS;
   m_recalculateQPAccordingToLambda	bool;                 ///< recalculate QP value according to the lambda value
-  m_activeParameterSetsSEIEnabled	int;                  ///< enable active parameter set SEI message 
+  m_activeParameterSetsSEIEnabled	int;                  ///< enable active parameter set SEI message
   m_vuiParametersPresentFlag	bool;                       ///< enable generation of VUI parameters
   m_aspectRatioInfoPresentFlag	bool;                     ///< Signals whether aspect_ratio_idc is present
   m_aspectRatioIdc	int;                                 ///< aspect_ratio_idc
@@ -409,10 +411,10 @@ type TEncCfg struct{
 
 //public:
 func NewTEncCfg() *TEncCfg {
-	return &TEncCfg{};  
+	return &TEncCfg{};
 }
 
-  
+
 func (this *TEncCfg)  SetProfile(profile TLibCommon.PROFILE) { this.m_profile = profile; }
 func (this *TEncCfg)  SetLevel(tier TLibCommon.TIER, level TLibCommon.LEVEL) { this.m_levelTier = tier; this.m_level = level; }
 
@@ -421,45 +423,45 @@ func (this *TEncCfg)  SetFrameSkip                    ( i uint )     { this.m_Fr
 func (this *TEncCfg)  SetSourceWidth                  ( i int )      { this.m_iSourceWidth = i; }
 func (this *TEncCfg)  SetSourceHeight                 ( i int )      { this.m_iSourceHeight = i; }
 
-func (this *TEncCfg)  GetPicCroppingWindow() *TLibCommon.CroppingWindow         { return this.m_picCroppingWindow; }
-func (this *TEncCfg)  SetPicCroppingWindow ( cropLeft,  cropRight,  cropTop,  cropBottom int) { this.m_picCroppingWindow.SetPicCropping (cropLeft, cropRight, cropTop, cropBottom); }
+func (this *TEncCfg)  GetPicCroppingWindow() *TLibCommon.Window         { return this.m_picCroppingWindow; }
+func (this *TEncCfg)  SetPicCroppingWindow ( cropLeft,  cropRight,  cropTop,  cropBottom int) { this.m_picCroppingWindow.SetWindow (cropLeft, cropRight, cropTop, cropBottom); }
 
 func (this *TEncCfg)  SetFrameToBeEncoded             ( i int )      { this.m_iFrameToBeEncoded = i; }
-  
+
   //====== Coding Structure ========
 func (this *TEncCfg)  SetIntraPeriod                  ( i int )      { this.m_uiIntraPeriod = uint(i); }
 func (this *TEncCfg)  SetDecodingRefreshType          ( i int )      { this.m_uiDecodingRefreshType = uint(i); }
 func (this *TEncCfg)  SetGOPSize                      ( i int )      { this.m_iGOPSize = i; }
-func (this *TEncCfg)  SetGopList                      ( GOPList []*GOPEntry) {  
+func (this *TEncCfg)  SetGopList                      ( GOPList []*GOPEntry) {
 	for i := 0; i < TLibCommon.MAX_GOP; i++ {
-	 	this.m_GOPList[i] = GOPList[i]; 
+	 	this.m_GOPList[i] = GOPList[i];
 	}
 }
 func (this *TEncCfg)  SetExtraRPSs                    ( i int )      { this.m_extraRPSs = i; }
 func (this *TEncCfg)  GetGOPEntry                     ( i int ) *GOPEntry     { return this.m_GOPList[i]; }
 func (this *TEncCfg)  SetMaxDecPicBuffering           ( u, tlayer uint ) { this.m_maxDecPicBuffering[tlayer] = int(u);    }
 func (this *TEncCfg)  SetNumReorderPics               ( i int, tlayer uint ) { this.m_numReorderPics[tlayer] = i;    }
-  
+
 func (this *TEncCfg)  SetQP                           ( i int)      { this.m_iQP = i; }
-  
-func (this *TEncCfg)  SetPad                          ( iPad  []int                 )      { 
+
+func (this *TEncCfg)  SetPad                          ( iPad  []int                 )      {
 	for i := 0; i < 2; i++ {
-		this.m_aiPad[i] = iPad[i]; 
+		this.m_aiPad[i] = iPad[i];
 	}
 }
 func (this *TEncCfg)  GetMaxRefPicNum                 ()   int                           { return this.m_iMaxRefPicNum;           }
 func (this *TEncCfg)  SetMaxRefPicNum                 ( iMaxRefPicNum int )           { this.m_iMaxRefPicNum = iMaxRefPicNum;  }
 
-func (this *TEncCfg)  GetMaxTempLayer                 ()    int                          { return this.m_maxTempLayer;              } 
+func (this *TEncCfg)  GetMaxTempLayer                 ()    int                          { return this.m_maxTempLayer;              }
 func (this *TEncCfg)  SetMaxTempLayer                 ( maxTempLayer int)            { this.m_maxTempLayer = maxTempLayer;      }
   //======== Transform =============
 func (this *TEncCfg)  SetQuadtreeTULog2MaxSize        ( u uint )      { this.m_uiQuadtreeTULog2MaxSize = u; }
 func (this *TEncCfg)  SetQuadtreeTULog2MinSize        ( u uint )      { this.m_uiQuadtreeTULog2MinSize = u; }
 func (this *TEncCfg)  SetQuadtreeTUMaxDepthInter      ( u uint )      { this.m_uiQuadtreeTUMaxDepthInter = u; }
 func (this *TEncCfg)  SetQuadtreeTUMaxDepthIntra      ( u uint )      { this.m_uiQuadtreeTUMaxDepthIntra = u; }
-  
+
 func (this *TEncCfg)  SetUseAMP( b bool ) { this.m_useAMP = b; }
-  
+
   //====== Loop/Deblock Filter ========
 func (this *TEncCfg)  SetLoopFilterDisable            ( b bool )      { this.m_bLoopFilterDisable       = b; }
 func (this *TEncCfg)  SetLoopFilterOffsetInPPS        ( b bool )      { this.m_loopFilterOffsetInPPS      = b; }
@@ -486,7 +488,7 @@ func (this *TEncCfg)  GetUseAdaptQpSelect             ()  bool         { return 
 
 func (this *TEncCfg)  SetUseAdaptiveQP                ( b bool )      { this.m_bUseAdaptiveQP = b; }
 func (this *TEncCfg)  SetQPAdaptationRange            ( i int )      { this.m_iQPAdaptationRange = i; }
-  
+
   //====== Lossless ========
 func (this *TEncCfg)  SetUseLossless                  ( b bool )        { this.m_useLossless = b;  }
   //====== Sequence ========
@@ -505,15 +507,15 @@ func (this *TEncCfg)  GetGOPSize                      ()   int    { return  this
 func (this *TEncCfg)  GetMaxDecPicBuffering           ( tlayer uint) int { return this.m_maxDecPicBuffering[tlayer]; }
 func (this *TEncCfg)  GetNumReorderPics               ( tlayer uint) int { return this.m_numReorderPics[tlayer]; }
 func (this *TEncCfg)  GetQP                           ()   int    { return  this.m_iQP; }
-  
+
 func (this *TEncCfg)  GetPad                          ( i int ) int     {  return  this.m_aiPad[i]; }
-  
+
   //======== Transform =============
 func (this *TEncCfg)  GetQuadtreeTULog2MaxSize        ()      uint { return this.m_uiQuadtreeTULog2MaxSize; }
 func (this *TEncCfg)  GetQuadtreeTULog2MinSize        ()      uint { return this.m_uiQuadtreeTULog2MinSize; }
 func (this *TEncCfg)  GetQuadtreeTUMaxDepthInter      ()      uint { return this.m_uiQuadtreeTUMaxDepthInter; }
 func (this *TEncCfg)  GetQuadtreeTUMaxDepthIntra      ()      uint { return this.m_uiQuadtreeTUMaxDepthIntra; }
- 
+
   //==== Loop/Deblock Filter ========
 func (this *TEncCfg)  GetLoopFilterDisable            ()      bool{ return  this.m_bLoopFilterDisable;       }
 func (this *TEncCfg)  GetLoopFilterOffsetInPPS        ()      bool{ return this.m_loopFilterOffsetInPPS; }
@@ -532,7 +534,7 @@ func (this *TEncCfg)  GetUseAdaptiveQP                ()      bool{ return  this
 func (this *TEncCfg)  GetQPAdaptationRange            ()      int{ return  this.m_iQPAdaptationRange; }
   //====== Lossless ========
 func (this *TEncCfg)  GetUseLossless                  ()      bool{ return  this.m_useLossless;  }
-  
+
   //==== Tool list ========
 func (this *TEncCfg)  SetUseSBACRD                    ( b bool )     { this.m_bUseSBACRD  = b; }
 func (this *TEncCfg)  SetUseASR                       ( b bool )     { this.m_bUseASR     = b; }
@@ -570,7 +572,7 @@ func (this *TEncCfg)  GetUseCbfFastMode               ()  bool   { return this.m
 func (this *TEncCfg)  GetUseEarlySkipDetection        ()  bool   { return this.m_useEarlySkipDetection; }
 func (this *TEncCfg)  GetUseConstrainedIntraPred      ()  bool   { return this.m_bUseConstrainedIntraPred; }
 func (this *TEncCfg)  GetPCMInputBitDepthFlag         ()  bool   { return this.m_bPCMInputBitDepthFlag;   }
-func (this *TEncCfg)  GetPCMFilterDisableFlag         ()  bool   { return this.m_bPCMFilterDisableFlag;   } 
+func (this *TEncCfg)  GetPCMFilterDisableFlag         ()  bool   { return this.m_bPCMFilterDisableFlag;   }
 func (this *TEncCfg)  GetUsePCM                       ()  bool   { return this.m_usePCM;                 }
 func (this *TEncCfg)  GetPCMLog2MaxSize               ()  uint   { return this.m_pcmLog2MaxSize;  }
 func (this *TEncCfg)  GetPCMLog2MinSize               ()  uint   { return  this.m_uiPCMLog2MinSize;  }
@@ -590,8 +592,8 @@ func (this *TEncCfg)  GetSliceArgument               ()      int        { return
   //====== Dependent Slice ========
 func (this *TEncCfg)  SetDependentSliceMode            ( i int )      { this.m_iDependentSliceMode = i;       }
 func (this *TEncCfg)  SetDependentSliceArgument        ( i int )      { this.m_iDependentSliceArgument = i;   }
-func (this *TEncCfg)  GetDependentSliceMode            ()    int          { return this.m_iDependentSliceMode;    }
-func (this *TEncCfg)  GetDependentSliceArgument        ()    int          { return this.m_iDependentSliceArgument;}
+func (this *TEncCfg)  GetSliceSegmentMode            ()    int          { return this.m_iDependentSliceMode;    }
+func (this *TEncCfg)  GetSliceSegmentArgument        ()    int          { return this.m_iDependentSliceArgument;}
 //#if DEPENDENT_SLICES && !REMOVE_ENTROPY_SLICES
 func (this *TEncCfg)  SetEntropySliceEnabledFlag       ( b bool )     { this.m_entropySliceEnabledFlag = b;    }
 func (this *TEncCfg)  GetEntropySliceEnabledFlag       ()    bool          { return this.m_entropySliceEnabledFlag; }
@@ -790,7 +792,7 @@ func (this *TEncCfg)  SetUseStrongIntraSmoothing ( b bool ) { this.m_useStrongIn
 func (this *TEncCfg)  GetUseStrongIntraSmoothing ()  bool       { return this.m_useStrongIntraSmoothing; }
 //#endif
 
-func (this *TEncCfg)  SetActiveParameterSetsSEIEnabled ( b int )  { this.m_activeParameterSetsSEIEnabled = b; }  
+func (this *TEncCfg)  SetActiveParameterSetsSEIEnabled ( b int )  { this.m_activeParameterSetsSEIEnabled = b; }
 func (this *TEncCfg)  GetActiveParameterSetsSEIEnabled ()  int       { return this.m_activeParameterSetsSEIEnabled; }
 func (this *TEncCfg)  GetVuiParametersPresentFlag()        bool         { return this.m_vuiParametersPresentFlag; }
 func (this *TEncCfg)  SetVuiParametersPresentFlag(i bool)           { this.m_vuiParametersPresentFlag = i; }

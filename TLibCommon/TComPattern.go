@@ -47,9 +47,7 @@ import (
 type TComPatternParam struct {
     //private:
     m_iOffsetLeft     int
-    m_iOffsetRight    int
     m_iOffsetAbove    int
-    m_iOffsetBottom   int
     m_piPatternOrigin []Pel
 
     //public:
@@ -69,23 +67,19 @@ func (this *TComPatternParam) GetROIOrigin() []Pel {
 }
 
 /// set parameters from Pel buffer for accessing neighbouring pixels
-func (this *TComPatternParam) SetPatternParamPel(piTexture []Pel, iRoiWidth, iRoiHeight, iStride, iOffsetLeft, iOffsetRight, iOffsetAbove, iOffsetBottom int) {
+func (this *TComPatternParam) SetPatternParamPel(piTexture []Pel, iRoiWidth, iRoiHeight, iStride, iOffsetLeft, iOffsetAbove int) {
     this.m_piPatternOrigin = piTexture
     this.m_iROIWidth = iRoiWidth
     this.m_iROIHeight = iRoiHeight
     this.m_iPatternStride = iStride
     this.m_iOffsetLeft = iOffsetLeft
     this.m_iOffsetAbove = iOffsetAbove
-    this.m_iOffsetRight = iOffsetRight
-    this.m_iOffsetBottom = iOffsetBottom
 }
 
 /// set parameters of one color component from CU data for accessing neighbouring pixels
-func (this *TComPatternParam) SetPatternParamCU(pcCU *TComDataCU, iComp byte, iRoiWidth, iRoiHeight int, iOffsetLeft, iOffsetRight, iOffsetAbove, iOffsetBottom int, uiPartDepth, uiAbsPartIdx uint) {
+func (this *TComPatternParam) SetPatternParamCU(pcCU *TComDataCU, iComp byte, iRoiWidth, iRoiHeight int, iOffsetLeft, iOffsetAbove int, uiAbsPartIdx uint) {
     this.m_iOffsetLeft = iOffsetLeft
-    this.m_iOffsetRight = iOffsetRight
     this.m_iOffsetAbove = iOffsetAbove
-    this.m_iOffsetBottom = iOffsetBottom
 
     this.m_iROIWidth = iRoiWidth
     this.m_iROIHeight = iRoiHeight
@@ -189,10 +183,10 @@ func (this *TComPattern) GetPredictorPtr(uiDirMode, log2BlkSize uint, piAdiBuf [
 // -------------------------------------------------------------------------------------------------------------------
 /// set parameters from Pel buffers for accessing neighbouring pixels
 func (this *TComPattern) InitPattern(piY []Pel, piCb []Pel, piCr []Pel,
-    iRoiWidth, iRoiHeight, iStride, iOffsetLeft, iOffsetRight, iOffsetAbove, iOffsetBottom int) {
-    this.m_cPatternY.SetPatternParamPel(piY, iRoiWidth, iRoiHeight, iStride, iOffsetLeft, iOffsetRight, iOffsetAbove, iOffsetBottom)
-    this.m_cPatternCb.SetPatternParamPel(piCb, iRoiWidth>>1, iRoiHeight>>1, iStride>>1, iOffsetLeft>>1, iOffsetRight>>1, iOffsetAbove>>1, iOffsetBottom>>1)
-    this.m_cPatternCr.SetPatternParamPel(piCr, iRoiWidth>>1, iRoiHeight>>1, iStride>>1, iOffsetLeft>>1, iOffsetRight>>1, iOffsetAbove>>1, iOffsetBottom>>1)
+    iRoiWidth, iRoiHeight, iStride, iOffsetLeft, iOffsetAbove int) {
+    this.m_cPatternY. SetPatternParamPel(piY,  iRoiWidth,    iRoiHeight,    iStride,    iOffsetLeft,    iOffsetAbove   )
+    this.m_cPatternCb.SetPatternParamPel(piCb, iRoiWidth>>1, iRoiHeight>>1, iStride>>1, iOffsetLeft>>1, iOffsetAbove>>1)
+    this.m_cPatternCr.SetPatternParamPel(piCr, iRoiWidth>>1, iRoiHeight>>1, iStride>>1, iOffsetLeft>>1, iOffsetAbove>>1)
 
     return
 }
@@ -200,10 +194,8 @@ func (this *TComPattern) InitPattern(piY []Pel, piCb []Pel, piCr []Pel,
 /// set parameters from CU data for accessing neighbouring pixels
 func (this *TComPattern) InitPattern3(pcCU *TComDataCU, uiPartDepth, uiAbsPartIdx uint) {
     uiOffsetLeft := 0
-    uiOffsetRight := 0
     uiOffsetAbove := 0
 
-    pcPic := pcCU.GetPic()
     uiWidth := uint(pcCU.GetWidth1(0)) >> uiPartDepth
     uiHeight := uint(pcCU.GetHeight1(0)) >> uiPartDepth
 
@@ -216,29 +208,12 @@ func (this *TComPattern) InitPattern3(pcCU *TComDataCU, uiPartDepth, uiAbsPartId
     }
 
     if uiCurrPicPelY != 0 {
-        uiNumPartInWidth := (uiWidth / pcPic.GetMinCUWidth())
         uiOffsetAbove = 1
-
-        if uiCurrPicPelX+uiWidth < pcCU.GetSlice().GetSPS().GetPicWidthInLumaSamples() {
-            //fmt.Printf("uiAbsPartIdx=%d,uiAbsZorderIdx=%d (%d-%d-%d)\n", uiAbsPartIdx,uiAbsZorderIdx, G_auiZscanToRaster[uiAbsZorderIdx],pcPic.GetNumPartInWidth(), uiNumPartInWidth);
-
-            if (G_auiZscanToRaster[uiAbsZorderIdx]+uiNumPartInWidth)%pcPic.GetNumPartInWidth() != 0 { // Not CU boundary
-                if int(G_auiZscanToRaster[uiAbsZorderIdx])-int(pcPic.GetNumPartInWidth())+int(uiNumPartInWidth) >= 0 {
-                    if G_auiRasterToZscan[int(G_auiZscanToRaster[uiAbsZorderIdx])-int(pcPic.GetNumPartInWidth())+int(uiNumPartInWidth)] < uiAbsZorderIdx {
-                        uiOffsetRight = 1
-                    }
-                }
-            } else { // if it is CU boundary
-                if G_auiZscanToRaster[uiAbsZorderIdx] < pcPic.GetNumPartInWidth() && (uiCurrPicPelX+uiWidth) < uint(pcPic.GetPicYuvRec().GetWidth()) { // first line
-                    uiOffsetRight = 1
-                }
-            }
-        }
     }
 
-    this.m_cPatternY.SetPatternParamCU(pcCU, 0, int(uiWidth), int(uiHeight), uiOffsetLeft, uiOffsetRight, uiOffsetAbove, 0, uiPartDepth, uiAbsPartIdx)
-    this.m_cPatternCb.SetPatternParamCU(pcCU, 1, int(uiWidth)>>1, int(uiHeight)>>1, uiOffsetLeft, uiOffsetRight, uiOffsetAbove, 0, uiPartDepth, uiAbsPartIdx)
-    this.m_cPatternCr.SetPatternParamCU(pcCU, 2, int(uiWidth)>>1, int(uiHeight)>>1, uiOffsetLeft, uiOffsetRight, uiOffsetAbove, 0, uiPartDepth, uiAbsPartIdx)
+    this.m_cPatternY. SetPatternParamCU(pcCU, 0, int(uiWidth),    int(uiHeight),    uiOffsetLeft, uiOffsetAbove, uiAbsPartIdx)
+    this.m_cPatternCb.SetPatternParamCU(pcCU, 1, int(uiWidth)>>1, int(uiHeight)>>1, uiOffsetLeft, uiOffsetAbove, uiAbsPartIdx)
+    this.m_cPatternCr.SetPatternParamCU(pcCU, 2, int(uiWidth)>>1, int(uiHeight)>>1, uiOffsetLeft, uiOffsetAbove, uiAbsPartIdx)
 }
 
 /// set luma parameters from CU data for accessing ADI data
@@ -290,7 +265,7 @@ func (this *TComPattern) InitAdiPattern(pcCU *TComDataCU, uiZorderIdxInPart, uiP
     piRoiOrigin = pPicYuvRec.GetBufY()[pPicYuvRec.m_iLumaMarginY*pPicYuvRec.GetStride()+pPicYuvRec.m_iLumaMarginX+offsetY-iPicStride-1:]
     piAdiTemp = piAdiBuf
 
-    this.FillReferenceSamples(G_bitDepthY, pcCU, piRoiOrigin, piAdiTemp, bNeighborFlags[:], iNumIntraNeighbor, iUnitSize, iNumUnitsInCu, iTotalUnits, uint(uiCuWidth), uint(uiCuHeight), uiWidth, uiHeight, iPicStride, bLMmode)
+    this.FillReferenceSamples(G_bitDepthY, piRoiOrigin, piAdiTemp, bNeighborFlags[:], iNumIntraNeighbor, iUnitSize, iNumUnitsInCu, iTotalUnits, uint(uiCuWidth), uint(uiCuHeight), uiWidth, uiHeight, iPicStride, bLMmode)
 
     var i int
     // generate filtered intra prediction samples
@@ -322,7 +297,6 @@ func (this *TComPattern) InitAdiPattern(pcCU *TComDataCU, uiZorderIdxInPart, uiP
     }
     //fmt.Printf("\n");
 
-    //#if STRONG_INTRA_SMOOTHING
     if pcCU.GetSlice().GetSPS().GetUseStrongIntraSmoothing() {
         blkSize := uint(32)
         bottomLeft := piFilterBuf[0]
@@ -360,15 +334,6 @@ func (this *TComPattern) InitAdiPattern(pcCU *TComDataCU, uiZorderIdxInPart, uiP
             piFilterBufN[i] = (piFilterBuf[i-1] + 2*piFilterBuf[i] + piFilterBuf[i+1] + 2) >> 2
         }
     }
-    /*#else
-      // 1. filtering with [1 2 1]
-      piFilterBufN[0] = piFilterBuf[0];
-      piFilterBufN[iBufSize - 1] = piFilterBuf[iBufSize - 1];
-      for (i = 1; i < iBufSize - 1; i++)
-      {
-        piFilterBufN[i] = (piFilterBuf[i - 1] + 2 * piFilterBuf[i]+piFilterBuf[i + 1] + 2) >> 2;
-      }
-    #endif*/
 
     //fmt.Printf("1: ");
     // fill 1. filter buffer with filtered values
@@ -442,38 +407,19 @@ func (this *TComPattern) InitAdiPatternChroma(pcCU *TComDataCU, uiZorderIdxInPar
         piRoiOrigin = pPicYuvRec.GetBufU()[pPicYuvRec.m_iChromaMarginY*pPicYuvRec.GetCStride()+pPicYuvRec.m_iChromaMarginX+offsetU-iPicStride-1:]
         piAdiTemp = piAdiBuf
 
-        this.FillReferenceSamples(G_bitDepthC, pcCU, piRoiOrigin, piAdiTemp, bNeighborFlags[:], iNumIntraNeighbor, iUnitSize, iNumUnitsInCu, iTotalUnits, uiCuWidth, uiCuHeight, uiWidth, uiHeight, iPicStride, false)
-
-        /*  fmt.Printf("1: ");
-            for i:=uint(0); i<uiWidth; i++ {
-              fmt.Printf("%x ", piAdiTemp[i]);
-            }
-            for i:=uint(1); i<uiHeight; i++ {
-              fmt.Printf("%x ", piAdiTemp[i*uiWidth]);
-            }
-            fmt.Printf("\n");*/
-
+        this.FillReferenceSamples(G_bitDepthC, piRoiOrigin, piAdiTemp, bNeighborFlags[:], iNumIntraNeighbor, iUnitSize, iNumUnitsInCu, iTotalUnits, uiCuWidth, uiCuHeight, uiWidth, uiHeight, iPicStride, false)
     } else {
         // get Cr pattern
         offsetV := pPicYuvRec.m_cuOffsetC[pcCU.GetAddr()] + pPicYuvRec.m_buOffsetC[G_auiZscanToRaster[pcCU.GetZorderIdxInCU()+uiZorderIdxInPart]]
         piRoiOrigin = pPicYuvRec.GetBufV()[pPicYuvRec.m_iChromaMarginY*pPicYuvRec.GetCStride()+pPicYuvRec.m_iChromaMarginX+offsetV-iPicStride-1:]
         piAdiTemp = piAdiBuf[uiWidth*uiHeight:]
 
-        this.FillReferenceSamples(G_bitDepthC, pcCU, piRoiOrigin, piAdiTemp, bNeighborFlags[:], iNumIntraNeighbor, iUnitSize, iNumUnitsInCu, iTotalUnits, uiCuWidth, uiCuHeight, uiWidth, uiHeight, iPicStride, false)
-
-        /*fmt.Printf("1: ");
-          for i:=uint(0); i<uiWidth; i++ {
-            fmt.Printf("%x ", piAdiTemp[i]);
-          }
-          for i:=uint(1); i<uiHeight; i++ {
-            fmt.Printf("%x ", piAdiTemp[i*uiWidth]);
-          }
-          fmt.Printf("\n");*/
+        this.FillReferenceSamples(G_bitDepthC, piRoiOrigin, piAdiTemp, bNeighborFlags[:], iNumIntraNeighbor, iUnitSize, iNumUnitsInCu, iTotalUnits, uiCuWidth, uiCuHeight, uiWidth, uiHeight, iPicStride, false)
     }
 }
 
 /// padding of unavailable reference samples for intra prediction
-func (this *TComPattern) FillReferenceSamples(bitDepth int, pcCU *TComDataCU, piRoiOrigin2 []Pel, piAdiTemp []Pel, bNeighborFlags []bool,
+func (this *TComPattern) FillReferenceSamples(bitDepth int, piRoiOrigin2 []Pel, piAdiTemp []Pel, bNeighborFlags []bool,
     iNumIntraNeighbor, iUnitSize, iNumUnitsInCu, iTotalUnits int,
     uiCuWidth, uiCuHeight, uiWidth, uiHeight uint, iPicStride int, bLMmode bool) {
     //piRoiOrigin := piRoiOrigin2[iPicStride+1:];
@@ -635,7 +581,7 @@ func (this *TComPattern) FillReferenceSamples(bitDepth int, pcCU *TComDataCU, pi
 func (this *TComPattern) IsAboveLeftAvailable(pcCU *TComDataCU, uiPartIdxLT uint) bool {
     var bAboveLeftFlag bool
     var uiPartAboveLeft uint
-    pcCUAboveLeft := pcCU.GetPUAboveLeft(&uiPartAboveLeft, uiPartIdxLT, true, false)
+    pcCUAboveLeft := pcCU.GetPUAboveLeft(&uiPartAboveLeft, uiPartIdxLT, true)
     if pcCU.GetSlice().GetPPS().GetConstrainedIntraPred() {
         bAboveLeftFlag = (pcCUAboveLeft != nil && pcCUAboveLeft.GetPredictionMode1(uiPartAboveLeft) == MODE_INTRA)
     } else {
@@ -652,7 +598,7 @@ func (this *TComPattern) IsAboveAvailable(pcCU *TComDataCU, uiPartIdxLT uint, ui
 
     for uiRasterPart := uiRasterPartBegin; uiRasterPart < uiRasterPartEnd; uiRasterPart += uiIdxStep {
         var uiPartAbove uint
-        pcCUAbove := pcCU.GetPUAbove(&uiPartAbove, G_auiRasterToZscan[uiRasterPart], true, false, false, true)
+        pcCUAbove := pcCU.GetPUAbove(&uiPartAbove, G_auiRasterToZscan[uiRasterPart], true, false, true)
         if pcCU.GetSlice().GetPPS().GetConstrainedIntraPred() {
             if pcCUAbove != nil && pcCUAbove.GetPredictionMode1(uiPartAbove) == MODE_INTRA {
                 iNumIntra++
@@ -681,7 +627,7 @@ func (this *TComPattern) IsLeftAvailable(pcCU *TComDataCU, uiPartIdxLT uint, uiP
 
     for uiRasterPart := uiRasterPartBegin; uiRasterPart < uiRasterPartEnd; uiRasterPart += uiIdxStep {
         var uiPartLeft uint
-        pcCULeft := pcCU.GetPULeft(&uiPartLeft, G_auiRasterToZscan[uiRasterPart], true, false, true)
+        pcCULeft := pcCU.GetPULeft(&uiPartLeft, G_auiRasterToZscan[uiRasterPart], true, true)
         if pcCU.GetSlice().GetPPS().GetConstrainedIntraPred() {
             if pcCULeft != nil && pcCULeft.GetPredictionMode1(uiPartLeft) == MODE_INTRA {
                 iNumIntra++
@@ -709,7 +655,7 @@ func (this *TComPattern) IsAboveRightAvailable(pcCU *TComDataCU, uiPartIdxLT uin
 
     for uiOffset := uint(1); uiOffset <= uiNumUnitsInPU; uiOffset++ {
         var uiPartAboveRight uint
-        pcCUAboveRight := pcCU.GetPUAboveRightAdi(&uiPartAboveRight, uiPartIdxRT, uiOffset, true, false)
+        pcCUAboveRight := pcCU.GetPUAboveRightAdi(&uiPartAboveRight, uiPartIdxRT, uiOffset, true)
         if pcCU.GetSlice().GetPPS().GetConstrainedIntraPred() {
             if pcCUAboveRight != nil && pcCUAboveRight.GetPredictionMode1(uiPartAboveRight) == MODE_INTRA {
                 iNumIntra++
@@ -737,7 +683,7 @@ func (this *TComPattern) IsBelowLeftAvailable(pcCU *TComDataCU, uiPartIdxLT uint
 
     for uiOffset := uint(1); uiOffset <= uiNumUnitsInPU; uiOffset++ {
         var uiPartBelowLeft uint
-        pcCUBelowLeft := pcCU.GetPUBelowLeftAdi(&uiPartBelowLeft, uiPartIdxLB, uiOffset, true, false)
+        pcCUBelowLeft := pcCU.GetPUBelowLeftAdi(&uiPartBelowLeft, uiPartIdxLB, uiOffset, true)
         if pcCU.GetSlice().GetPPS().GetConstrainedIntraPred() {
             if pcCUBelowLeft != nil && pcCUBelowLeft.GetPredictionMode1(uiPartBelowLeft) == MODE_INTRA {
                 iNumIntra++

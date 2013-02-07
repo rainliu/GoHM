@@ -59,7 +59,7 @@ const CONDITION_SUBLAYERPROFILEPRESENTFLAG = 1 ///< K0125: Condition signalling 
 const VPS_OPERATING_POINT = 1 ///< K0204 - Operation point added to VPS
 //#if VPS_OPERATING_POINT
 const MAX_VPS_NUM_HRD_PARAMETERS = 1
-const MAX_VPS_NUM_HRD_PARAMETERS_ALLOWED_PLUS1 = 1024
+const MAX_VPS_OP_SETS_PLUS1 = 1024
 const MAX_VPS_NUH_RESERVED_ZERO_LAYER_ID_PLUS1 = 1
 
 //#endif
@@ -93,10 +93,6 @@ const RPL_INIT_FIX = 1                      ///< K0255 2nd part (editorial)
 
 const MAX_CPB_CNT = 32 ///< Upper bound of (cpb_cnt_minus1 + 1)
 const MAX_NUM_LAYER_IDS = 64
-
-const FLAT_4x4_DSL = 1 ///< Use flat 4x4 default scaling list (see notes on K0203)
-
-const RDOQ_TRANSFORMSKIP = 1 // Enable RDOQ for transform skip (see noted on K0245)
 
 const COEF_REMAIN_BIN_REDUCTION = 3 ///< indicates the level at which the VLC
 ///< transitions from Golomb-Rice to TU+EG(k)
@@ -237,12 +233,6 @@ const AMP_MRG = 1 ///< encoder only force merge for AMP partition (no motion sea
 const SCALING_LIST_OUTPUT_RESULT = 0 //JCTVC-G880/JCTVC-G1016 quantization matrices
 
 const CABAC_INIT_PRESENT_FLAG = 1
-
-// ====================================================================================================================
-// VPS constants
-// ====================================================================================================================
-const MAX_LAYER_NUM = 10
-
 // ====================================================================================================================
 // Basic type redefinition
 // ====================================================================================================================
@@ -275,6 +265,16 @@ type TCoeff int32 ///< transform coefficient
 
 /// parameters for adaptive loop filter
 //class TComPicSym;
+
+// Slice / Slice segment encoding modes
+type SliceConstraint uint8
+
+const (//SliceConstraint
+  NO_SLICES              = 0          ///< don't use slices / slice segments
+  FIXED_NUMBER_OF_LCU    = 1          ///< Limit maximum number of largest coding tree blocks in a slice / slice segments
+  FIXED_NUMBER_OF_BYTES  = 2          ///< Limit maximum number of bytes in a slice / slice segment
+  FIXED_NUMBER_OF_TILES  = 3          ///< slices / slice segments span an integer number of tiles
+)
 
 const NUM_DOWN_PART = 4
 

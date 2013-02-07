@@ -165,7 +165,7 @@ func InitROM() {
         G_auiSigLastScan[1][i] = make([]uint, c*c)
         G_auiSigLastScan[2][i] = make([]uint, c*c)
 
-        InitSigLastScan(G_auiSigLastScan[0][i], G_auiSigLastScan[1][i], G_auiSigLastScan[2][i], int(c), int(c), i)
+        InitSigLastScan(G_auiSigLastScan[0][i], G_auiSigLastScan[1][i], G_auiSigLastScan[2][i], int(c), int(c))
 
         c <<= 1
     }
@@ -467,7 +467,7 @@ var G_auiGoRiceRange = [5]uint{7, 14, 26, 46, 78}
 
 var G_auiGoRicePrefixLen = [5]uint{8, 7, 6, 5, 4}
 
-func InitSigLastScan(pBuffD, pBuffH, pBuffV []uint, iWidth, iHeight, iDepth int) {
+func InitSigLastScan(pBuffD, pBuffH, pBuffV []uint, iWidth, iHeight int) {
     uiNumScanPos := iWidth * iWidth
     uiNextScanPos := 0
 
@@ -569,23 +569,6 @@ func InitSigLastScan(pBuffD, pBuffH, pBuffV []uint, iWidth, iHeight, iDepth int)
     }
 }
 
-/*#if !FLAT_4x4_DSL
-Int G_quantIntraDefault4x4[16] =
-{
-  16,16,17,21,
-  16,17,20,25,
-  17,20,30,41,
-  21,25,41,70
-};
-Int G_quantInterDefault4x4[16] =
-{
-  16,16,17,21,
-  16,17,21,24,
-  17,21,24,36,
-  21,24,36,57
-};
-#endif
-*/
 var G_quantTSDefault4x4 = [16]int{
     16, 16, 16, 16,
     16, 16, 16, 16,

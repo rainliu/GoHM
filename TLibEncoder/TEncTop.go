@@ -49,17 +49,17 @@ type TEncSampleAdaptiveOffset struct{
 
 type TEncTop struct{
   m_pcEncCfg	*TEncCfg
-	
+
   // picture
   m_iPOCLast		int;                     ///< time index (POC)
   m_iNumPicRcvd		int;                  ///< number of received pictures
   m_uiNumAllPicCoded	uint;             ///< number of coded pictures
   m_cListPic	*list.List;                     ///< dynamic list of pictures
-  
+
   // encoder search
   m_cSearch			*TEncSearch;                      ///< encoder search class
-  m_pcEntropyCoder	*TEncEntropy;                     ///< entropy encoder 
-  m_pcCavlcCoder	*TEncCavlc;                       ///< CAVLC encoder  
+  m_pcEntropyCoder	*TEncEntropy;                     ///< entropy encoder
+  m_pcCavlcCoder	*TEncCavlc;                       ///< CAVLC encoder
   // coding tool
   m_cTrQuant		*TLibCommon.TComTrQuant;                     ///< transform & quantization class
   m_cLoopFilter		*TLibCommon.TComLoopFilter;                  ///< deblocking filter class
@@ -70,7 +70,7 @@ type TEncTop struct{
   m_cBinCoderCABAC	*TEncBinCABAC;               ///< bin coder CABAC
   m_pcSbacCoders		[]*TEncSbac;                 ///< SBAC encoders (to encode substreams )
   m_pcBinCoderCABACs	[]*TEncBinCABAC;             ///< bin coders CABAC (one per substream)
-  
+
   // processing unit
   m_cGOPEncoder		*TEncGOP;                  ///< GOP encoder
   m_cSliceEncoder	*TEncSlice;                ///< slice encoder
@@ -102,17 +102,17 @@ type TEncTop struct{
   //m_cPreanalyzer	*TLibCommon.TComPic;                 ///< image characteristics analyzer for TM5-step3-like adaptive QP
 
   m_scalingList		*TLibCommon.TComScalingList;                 ///< quantization matrix information
-  m_cRateCtrl		*TEncRateCtrl;                    ///< Rate control class 
+  m_cRateCtrl		*TEncRateCtrl;                    ///< Rate control class
 }
 
 func NewTEncTop() *TEncTop{
 	return &TEncTop{m_iPOCLast:-1}
 }
- 
+
 func (this *TEncTop)  Create          (){
   // initialize global variables
   TLibCommon.InitROM();
-  
+
   // create processing unit classes
   this.m_cGOPEncoder.        create( this.GetEncCfg().GetSourceWidth(), this.GetEncCfg().GetSourceHeight(), TLibCommon.G_uiMaxCUWidth, TLibCommon.G_uiMaxCUHeight );
   this.m_cSliceEncoder.      create( this.GetEncCfg().GetSourceWidth(), this.GetEncCfg().GetSourceHeight(), TLibCommon.G_uiMaxCUWidth, TLibCommon.G_uiMaxCUHeight, byte(TLibCommon.G_uiMaxCUDepth) );
@@ -133,12 +133,12 @@ func (this *TEncTop)  Create          (){
   }
 //#endif
   this.m_cLoopFilter.Create( TLibCommon.G_uiMaxCUDepth );
-  
+
 //#if RATE_CONTROL_LAMBDA_DOMAIN
   if  this.GetEncCfg().m_RCEnableRateControl {
-    this.m_cRateCtrl.init( this.GetEncCfg().m_iFrameToBeEncoded, this.GetEncCfg().m_RCTargetBitrate, this.GetEncCfg().m_iFrameRate, 
+    this.m_cRateCtrl.init( this.GetEncCfg().m_iFrameToBeEncoded, this.GetEncCfg().m_RCTargetBitrate, this.GetEncCfg().m_iFrameRate,
     					   this.GetEncCfg().m_iGOPSize, this.GetEncCfg().m_iSourceWidth, this.GetEncCfg().m_iSourceHeight,
-                      int(TLibCommon.G_uiMaxCUWidth), int(TLibCommon.G_uiMaxCUHeight), this.GetEncCfg().m_RCKeepHierarchicalBit, 
+                      int(TLibCommon.G_uiMaxCUWidth), int(TLibCommon.G_uiMaxCUHeight), this.GetEncCfg().m_RCKeepHierarchicalBit,
                       this.GetEncCfg().m_RCUseLCUSeparateModel, this.GetEncCfg().m_GOPList );
   }
 //#else
@@ -152,7 +152,7 @@ func (this *TEncTop)  Create          (){
 //#else
 //    this.m_pppcBinCoderCABAC = new TEncBinCABAC** [TLibCommon.G_uiMaxCUDepth+1];
 //#endif
-    
+
     for iDepth := 0; iDepth < int(TLibCommon.G_uiMaxCUDepth+1); iDepth++  {
       this.m_pppcRDSbacCoder[iDepth] = make([]*TEncSbac, TLibCommon.CI_NUM);
 //#if FAST_BIT_EST
@@ -160,7 +160,7 @@ func (this *TEncTop)  Create          (){
 //#else
 //      this.m_pppcBinCoderCABAC[iDepth] = new TEncBinCABAC* [CI_NUM];
 //#endif
-      
+
       for iCIIdx := 0; iCIIdx < TLibCommon.CI_NUM; iCIIdx ++ {
         this.m_pppcRDSbacCoder[iDepth][iCIIdx] = NewTEncSbac();
 //#if FAST_BIT_EST
@@ -197,12 +197,12 @@ func (this *TEncTop)  Destroy         (){
         //delete this.m_pppcBinCoderCABAC[iDepth][iCIIdx];
       }
     }
-    
+
     for iDepth = 0; iDepth < int(TLibCommon.G_uiMaxCUDepth+1); iDepth++ {
       //delete [] this.m_pppcRDSbacCoder[iDepth];
       //delete [] this.m_pppcBinCoderCABAC[iDepth];
     }
-    
+
     //delete [] this.m_pppcRDSbacCoder;
     //delete [] this.m_pppcBinCoderCABAC;
 
@@ -226,23 +226,23 @@ func (this *TEncTop)  Destroy         (){
   }
   //delete[] this.m_pcSbacCoders;
   //delete[] this.m_pcBinCoderCABACs;
-  //delete[] this.m_pcRDGoOnSbacCoders;  
+  //delete[] this.m_pcRDGoOnSbacCoders;
   //delete[] this.m_pcRDGoOnBinCodersCABAC;
   //delete[] this.m_pcBitCounters;
   //delete[] this.m_pcRdCosts;
-  
+
   // destroy ROM
   TLibCommon.DestroyROM();
-  
+
   return;
 }
 
 func (this *TEncTop)  Init            (){
-  var aTable4, aTable8,aTableLastPosVlcIndex []uint;
-  
+  //var aTable4, aTable8,aTableLastPosVlcIndex []uint;
+
   // initialize SPS
   this.xInitSPS();
-  
+
   /* set the VPS profile information */
   *this.GetEncCfg().m_cVPS.GetPTL() = *this.m_cSPS.GetPTL();
 
@@ -257,23 +257,21 @@ func (this *TEncTop)  Init            (){
   this.m_cGOPEncoder.  init( this );
   this.m_cSliceEncoder.init( this );
   this.m_cCuEncoder.   init( this );
-  
+
   // initialize transform & quantization class
   this.m_pcCavlcCoder = this.getCavlcCoder();
-  
-  this.m_cTrQuant.Init( TLibCommon.G_uiMaxCUWidth, TLibCommon.G_uiMaxCUHeight, 1 << this.GetEncCfg().m_uiQuadtreeTULog2MaxSize,
-                  0,
-                  aTable4, aTable8, 
-                  aTableLastPosVlcIndex, this.GetEncCfg().m_useRDOQ, 
+
+  this.m_cTrQuant.Init( 1 << this.GetEncCfg().m_uiQuadtreeTULog2MaxSize,
+                  this.GetEncCfg().m_useRDOQ,
 //#if RDOQ_TRANSFORMSKIP
                   this.GetEncCfg().m_useRDOQTS,
 //#endif
                   true,
                   this.GetEncCfg().m_useTransformSkipFast,
-//#if ADAPTIVE_QP_SELECTION                  
+//#if ADAPTIVE_QP_SELECTION
                   this.GetEncCfg().m_bUseAdaptQpSelect);
 //#endif
-  
+
   // initialize encoder search class
   this.m_cSearch.init( this.GetEncCfg(), this.m_cTrQuant, this.GetEncCfg().m_iSearchRange, this.GetEncCfg().m_bipredSearchRange,
   					 this.GetEncCfg().m_iFastSearch, 0, this.m_cEntropyCoder, this.m_cRdCost, this.getRDSbacCoder(), this.getRDGoOnSbacCoder() );
@@ -284,9 +282,9 @@ func (this *TEncTop)  Init            (){
 func (this *TEncTop)  DeletePicBuffer (){
   for iterPic := this.m_cListPic.Front(); iterPic!=nil; iterPic=iterPic.Next() {
     pcPic := iterPic.Value.(*TLibCommon.TComPic)
-    pcPic.Destroy();	
+    pcPic.Destroy();
   }
-  
+
   this.m_cListPic.Init();
 }
 
@@ -310,7 +308,7 @@ func (this *TEncTop)  CreateWPPCoders( iNumSubstreams int){
   	this.m_pcRDGoOnBinCodersCABAC[ui] = NewTEncBinCABAC();
   	this.m_pcBitCounters[ui]          = TLibCommon.NewTComBitCounter();
   	this.m_pcRdCosts[ui]              = NewTEncRdCost();
-  
+
     this.m_pcRDGoOnSbacCoders[ui].init( this.m_pcRDGoOnBinCodersCABAC[ui] );
     this.m_pcSbacCoders[ui].init( this.m_pcBinCoderCABACs[ui] );
   }
@@ -320,7 +318,7 @@ func (this *TEncTop)  CreateWPPCoders( iNumSubstreams int){
     for ui := 0 ; ui < iNumSubstreams ; ui++ {
       this.m_ppppcRDSbacCoders[ui]  = make([][]*TEncSbac,     TLibCommon.G_uiMaxCUDepth+1);
       this.m_ppppcBinCodersCABAC[ui]= make([][]*TEncBinCABAC, TLibCommon.G_uiMaxCUDepth+1);
-      
+
       for iDepth := 0; iDepth < int(TLibCommon.G_uiMaxCUDepth+1); iDepth++ {
         this.m_ppppcRDSbacCoders[ui][iDepth]  = make([]*TEncSbac,     TLibCommon.CI_NUM);
         this.m_ppppcBinCodersCABAC[ui][iDepth]= make([]*TEncBinCABAC, TLibCommon.CI_NUM);
@@ -334,21 +332,21 @@ func (this *TEncTop)  CreateWPPCoders( iNumSubstreams int){
     }
   }
 }
-  
+
   // -------------------------------------------------------------------------------------------------------------------
   // member access functions
   // -------------------------------------------------------------------------------------------------------------------
 func (this *TEncTop)  xGetNewPicBuffer  ( ) *TLibCommon.TComPic{           ///< get picture buffer which will be processed
   var rpcPic *TLibCommon.TComPic;
-  
+
   TLibCommon.SortPicList(this.m_cListPic);
-  
+
   if this.m_cListPic.Len() >= (this.GetEncCfg().m_iGOPSize + this.GetEncCfg().GetMaxDecPicBuffering(TLibCommon.MAX_TLAYER-1) + 2)  {
-    
+
     //Int iSize = Int( this.m_cListPic.size() );
     for iterPic  := this.m_cListPic.Front(); iterPic!=nil; iterPic=iterPic.Next() {
       rpcPic = iterPic.Value.(*TLibCommon.TComPic)
-     
+
       if rpcPic.GetSlice(0).IsReferenced() == false {
         break;
       }
@@ -356,15 +354,15 @@ func (this *TEncTop)  xGetNewPicBuffer  ( ) *TLibCommon.TComPic{           ///< 
   }else{
     if this.GetEncCfg().GetUseAdaptiveQP() {
       pcEPic := TLibCommon.NewTComPic();
-      pcEPic.Create( this.GetEncCfg().m_iSourceWidth, this.GetEncCfg().m_iSourceHeight, 
+      pcEPic.Create( this.GetEncCfg().m_iSourceWidth, this.GetEncCfg().m_iSourceHeight,
       				 TLibCommon.G_uiMaxCUWidth, TLibCommon.G_uiMaxCUHeight, TLibCommon.G_uiMaxCUDepth, this.m_cPPS.GetMaxCuDQPDepth()+1 ,
-                     this.GetEncCfg().m_picCroppingWindow, this.GetEncCfg().m_numReorderPics[:], false);
+                     this.GetEncCfg().m_conformanceWindow, this.GetEncCfg().m_defaultDisplayWindow, this.GetEncCfg().m_numReorderPics[:], false);
       rpcPic = pcEPic;
     }else{
       rpcPic = TLibCommon.NewTComPic();
-      rpcPic.Create( this.GetEncCfg().m_iSourceWidth, this.GetEncCfg().m_iSourceHeight, 
+      rpcPic.Create( this.GetEncCfg().m_iSourceWidth, this.GetEncCfg().m_iSourceHeight,
       				 TLibCommon.G_uiMaxCUWidth, TLibCommon.G_uiMaxCUHeight, TLibCommon.G_uiMaxCUDepth, 0,
-                     this.GetEncCfg().m_picCroppingWindow, this.GetEncCfg().m_numReorderPics[:], false);
+                     this.GetEncCfg().m_conformanceWindow, this.GetEncCfg().m_defaultDisplayWindow, this.GetEncCfg().m_numReorderPics[:], false);
     }
     if this.GetEncCfg().GetUseSAO() {
       fmt.Printf("not support SAO\n");
@@ -373,14 +371,14 @@ func (this *TEncTop)  xGetNewPicBuffer  ( ) *TLibCommon.TComPic{           ///< 
     this.m_cListPic.PushBack( rpcPic );
   }
   rpcPic.SetReconMark (false);
-  
+
   this.m_iPOCLast++;
   this.m_iNumPicRcvd++;
-  
+
   rpcPic.GetSlice(0).SetPOC( this.m_iPOCLast );
   // mark it should be extended
   rpcPic.GetPicYuvRec().SetBorderExtension(false);
-  
+
   return rpcPic;
 }
 
@@ -404,13 +402,13 @@ func (this *TEncTop)  xInitSPS          (){                             ///< ini
 
   this.m_cSPS.SetPicWidthInLumaSamples         ( uint(this.GetEncCfg().m_iSourceWidth )     );
   this.m_cSPS.SetPicHeightInLumaSamples        ( uint(this.GetEncCfg().m_iSourceHeight)     );
-  this.m_cSPS.SetPicCroppingWindow             ( this.GetEncCfg().m_picCroppingWindow );
+  this.m_cSPS.SetConformanceWindow             ( this.GetEncCfg().m_conformanceWindow );
   this.m_cSPS.SetMaxCUWidth    ( TLibCommon.G_uiMaxCUWidth      );
   this.m_cSPS.SetMaxCUHeight   ( TLibCommon.G_uiMaxCUHeight     );
   this.m_cSPS.SetMaxCUDepth    ( TLibCommon.G_uiMaxCUDepth      );
   this.m_cSPS.SetMinTrDepth    ( 0                   );
   this.m_cSPS.SetMaxTrDepth    ( 1                   );
-  
+
   this.m_cSPS.SetPCMLog2MinSize (this.GetEncCfg().m_uiPCMLog2MinSize);
   this.m_cSPS.SetUsePCM        ( this.GetEncCfg().m_usePCM           );
   this.m_cSPS.SetPCMLog2MaxSize( this.GetEncCfg().m_pcmLog2MaxSize  );
@@ -419,16 +417,16 @@ func (this *TEncTop)  xInitSPS          (){                             ///< ini
   this.m_cSPS.SetQuadtreeTULog2MinSize( this.GetEncCfg().m_uiQuadtreeTULog2MinSize );
   this.m_cSPS.SetQuadtreeTUMaxDepthInter( this.GetEncCfg().m_uiQuadtreeTUMaxDepthInter    );
   this.m_cSPS.SetQuadtreeTUMaxDepthIntra( this.GetEncCfg().m_uiQuadtreeTUMaxDepthIntra    );
- 
+
   this.m_cSPS.SetTMVPFlagsPresent(false);
   this.m_cSPS.SetUseLossless   ( this.GetEncCfg().m_useLossless  );
 
   this.m_cSPS.SetMaxTrSize   ( 1 << this.GetEncCfg().m_uiQuadtreeTULog2MaxSize );
-  
+
   this.m_cSPS.SetUseLComb    ( this.GetEncCfg().m_bUseLComb           );
-  
+
   var i uint;
-  
+
   for i = 0; i < TLibCommon.G_uiMaxCUDepth-TLibCommon.G_uiAddCUDepth; i++  {
     this.m_cSPS.SetAMPAcc( i, int(TLibCommon.B2U(this.GetEncCfg().m_useAMP)) );
     //this.m_cSPS.setAMPAcc( i, 1 );
@@ -531,7 +529,7 @@ func (this *TEncTop)  xInitPPS          (){                             ///< ini
     this.m_cPPS.SetUseDQP(true);
     this.m_cPPS.SetMaxCuDQPDepth( 0 );
     this.m_cPPS.SetMinCuDQPSize( this.m_cPPS.GetSPS().GetMaxCUWidth() >> ( this.m_cPPS.GetMaxCuDQPDepth()) );
-  } 
+  }
 //#endif
 
   this.m_cPPS.SetChromaCbQpOffset( this.GetEncCfg().m_chromaCbQpOffset );
@@ -568,15 +566,15 @@ func (this *TEncTop)  xInitPPS          (){                             ///< ini
   this.m_cPPS.SetNumRefIdxL1DefaultActive(uint(bestPos));
   this.m_cPPS.SetTransquantBypassEnableFlag(this.GetEncCfg().GetTransquantBypassEnableFlag());
   this.m_cPPS.SetUseTransformSkip( this.GetEncCfg().m_useTransformSkip );
-  if this.GetEncCfg().m_iDependentSliceMode!=0 { 
-    this.m_cPPS.SetDependentSliceEnabledFlag( true );
+  if this.GetEncCfg().m_iDependentSliceMode!=0 {
+    this.m_cPPS.SetDependentSliceSegmentsEnabledFlag( true );
 //#if !REMOVE_ENTROPY_SLICES
 //    this.m_cPPS.SetEntropySliceEnabledFlag( this.m_entropySliceEnabledFlag );
 //#endif
   }
 //#if DEPENDENT_SLICES
 //#if REMOVE_ENTROPY_SLICES
-  if this.m_cPPS.GetDependentSliceEnabledFlag() {
+  if this.m_cPPS.GetDependentSliceSegmentsEnabledFlag() {
 //#else
 //  if( this.m_cPPS.GetDependentSliceEnabledFlag()&&(!this.m_cPPS.GetEntropySliceEnabledFlag()) )
 //#endif
@@ -615,7 +613,7 @@ func (this *TEncTop)  xInitPPSforTiles  (){
 
 func (this *TEncTop)  xInitRPS          (){                             ///< initialize PPS from encoder options
   var rps *TLibCommon.TComReferencePictureSet;
-  
+
   this.m_cSPS.CreateRPSList(this.GetEncCfg().GetGOPSize()+this.GetEncCfg().m_extraRPSs);
   rpsList := this.m_cSPS.GetRPSList();
 
@@ -656,12 +654,12 @@ func (this *TEncTop)  xInitRPS          (){                             ///< ini
         if j<numRefDeltaPOC {
          RefDeltaPOC = RPSRef.GetDeltaPOC(j);  // if it is the last decoded picture, set RefDeltaPOC = 0
         }else{
-         RefDeltaPOC = 0;	
+         RefDeltaPOC = 0;
         }
-        
+
         rps.SetRefIdc(j, 0);
         for k := 0; k < rps.GetNumberOfPictures(); k++ {  // cycle through pics in current RPS.
-          if rps.GetDeltaPOC(k) == ( RefDeltaPOC + deltaRPS) {  // if the current RPS has a same picture as the reference RPS. 
+          if rps.GetDeltaPOC(k) == ( RefDeltaPOC + deltaRPS) {  // if the current RPS has a same picture as the reference RPS.
               if rps.GetUsed(k) {
               	rps.SetRefIdc(j, 1);
               }else{
@@ -697,7 +695,7 @@ func (this *TEncTop)  xInitRPS          (){                             ///< ini
           }else{
           	deltaPOC = ge.m_deltaRPS + 0;
           }
-          
+
           RPSTemp.SetDeltaPOC((numNeg+numPos),deltaPOC);
           RPSTemp.SetUsed((numNeg+numPos),ge.m_refIdc[j]==1);
           if deltaPOC<0 {
@@ -720,7 +718,7 @@ func (this *TEncTop)  xInitRPS          (){                             ///< ini
       RPSTemp.SetNumberOfPictures(numNeg+numPos);
       RPSTemp.SetNumberOfNegativePictures(numNeg);
       RPSTemp.SortDeltaPOC();     // sort the created delta POC before comparing
-      // check if Delta POC and Used are the same 
+      // check if Delta POC and Used are the same
       // print warning if they are not.
       for j := 0; j < ge.m_numRefIdc; j++ {
         if RPSTemp.GetDeltaPOC(j) != rps.GetDeltaPOC(j) {
@@ -777,13 +775,13 @@ func (this *TEncTop)  xInitRPS          (){                             ///< ini
 #endif //INTER_RPS_AUTO
 */
   }
-  
+
 }
 
 func (this *TEncTop)  selectReferencePictureSet(slice *TLibCommon.TComSlice, POCCurr, GOPid int, listPic *list.List){
   slice.SetRPSidx(GOPid);
 
-  for extraNum:=this.GetEncCfg().m_iGOPSize; extraNum<this.GetEncCfg().m_extraRPSs+this.GetEncCfg().m_iGOPSize; extraNum++ { 
+  for extraNum:=this.GetEncCfg().m_iGOPSize; extraNum<this.GetEncCfg().m_extraRPSs+this.GetEncCfg().m_iGOPSize; extraNum++ {
     if this.GetEncCfg().m_uiIntraPeriod > 0 && this.GetEncCfg().GetDecodingRefreshType() > 0 {
       POCIndex := POCCurr% int(this.GetEncCfg().m_uiIntraPeriod);
       if POCIndex == 0 {
@@ -819,12 +817,12 @@ func (this *TEncTop)  Encode(  flush bool, pcPicYuvOrg *TLibCommon.TComPicYuv, r
       pcPicCurr.XPreanalyze(  );
     }
   }
-  
+
   if this.m_iNumPicRcvd==0 || (!flush && this.m_iPOCLast != 0 && this.m_iNumPicRcvd != this.GetEncCfg().m_iGOPSize && this.GetEncCfg().m_iGOPSize!=0) {
     *iNumEncoded = 0;
     return;
   }
-  
+
 //#if RATE_CONTROL_LAMBDA_DOMAIN
   if this.GetEncCfg().m_RCEnableRateControl {
     this.m_cRateCtrl.initRCGOP( this.m_iNumPicRcvd );
@@ -839,14 +837,14 @@ func (this *TEncTop)  Encode(  flush bool, pcPicYuvOrg *TLibCommon.TComPicYuv, r
     this.m_cRateCtrl.destroyRCGOP();
   }
 //#endif
-  
+
   *iNumEncoded         = this.m_iNumPicRcvd;
   this.m_iNumPicRcvd       = 0;
   this.m_uiNumAllPicCoded += uint(*iNumEncoded);
-}  
+}
 
-func (this *TEncTop)  PrintSummary() { 
-	this.m_cGOPEncoder.printOutSummary (this.m_uiNumAllPicCoded); 
+func (this *TEncTop)  PrintSummary() {
+	this.m_cGOPEncoder.printOutSummary (this.m_uiNumAllPicCoded);
 }
 
 

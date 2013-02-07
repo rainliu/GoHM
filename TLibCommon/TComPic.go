@@ -116,16 +116,18 @@ type TComPic struct {
     m_bIndependentTileBoundaryForNDBFilter  bool
     m_pNDBFilterYuvTmp                      *TComPicYuv //!< temporary picture buffer when non-cross slice/tile boundary in-loop filtering is enabled
     m_bCheckLTMSB                           bool
+
     m_numReorderPics                        [MAX_TLAYER]int
-    m_croppingWindow                        *CroppingWindow
+    m_conformanceWindow                     *Window;
+    m_defaultDisplayWindow                  *Window;
 
     m_vSliceCUDataLink map[int]*list.List //std::vector<std::vector<TComDataCU*> > ;
 
     m_SEIs *SEImessages ///< Any SEI messages that have been received.  If !NULL we own the object.
-   
+
 /// Picture class including local image characteristics information for QP adaptation
   	m_acAQLayer		[]TEncPicQPAdaptationLayer;
-  	m_uiMaxAQDepth	uint;   
+  	m_uiMaxAQDepth	uint;
 }
 
 //public:
@@ -134,7 +136,7 @@ func NewTComPic() *TComPic {
 }
 
 func (this *TComPic) Create(iWidth, iHeight int, uiMaxWidth, uiMaxHeight, uiMaxDepth, uiMaxAQDepth uint,
-    croppingWindow *CroppingWindow, numReorderPics []int, bIsVirtual bool) {
+    conformanceWindow, defaultDisplayWindow *Window, numReorderPics []int, bIsVirtual bool) {
     this.m_apcPicSym = NewTComPicSym()
     this.m_apcPicSym.Create(iWidth, iHeight, uiMaxWidth, uiMaxHeight, uiMaxDepth)
     if !bIsVirtual {
@@ -149,7 +151,8 @@ func (this *TComPic) Create(iWidth, iHeight int, uiMaxWidth, uiMaxHeight, uiMaxD
     this.m_bUsedByCurr = false
 
     /* store cropping parameters with picture */
-    this.m_croppingWindow = croppingWindow
+    this.m_conformanceWindow = conformanceWindow
+    this.m_defaultDisplayWindow = defaultDisplayWindow
 
     /* store number of reorder pics with picture */
     for i:=0; i<MAX_TLAYER; i++ {
@@ -159,11 +162,11 @@ func (this *TComPic) Create(iWidth, iHeight int, uiMaxWidth, uiMaxHeight, uiMaxD
 
     this.m_uiMaxAQDepth = uiMaxAQDepth;
   	if uiMaxAQDepth > 0 {
-    	this.m_acAQLayer = make([]TEncPicQPAdaptationLayer, this.m_uiMaxAQDepth ); 
+    	this.m_acAQLayer = make([]TEncPicQPAdaptationLayer, this.m_uiMaxAQDepth );
     	for d := uint(0); d < this.m_uiMaxAQDepth; d++ {
       		this.m_acAQLayer[d].create( iWidth, iHeight, uiMaxWidth>>d, uiMaxHeight>>d );
     	}
-  	}	
+  	}
 }
 
 func (this *TComPic)  GetAQLayer( uiDepth uint) *TEncPicQPAdaptationLayer  { return &this.m_acAQLayer[uiDepth]; }
@@ -233,7 +236,7 @@ func (this *TComPic)  XPreanalyze(){
         dActivity := 1.0 + dMinVar;
         pcAQU[0].SetActivity( dActivity );
         dSumAct += dActivity;
-        
+
         pcAQU = pcAQU[1:]//++
       }
       pLineY =pLineY[uint(iStride) * uiCurrAQPartHeight:]//+= iStride * uiCurrAQPartHeight;
@@ -265,12 +268,6 @@ func (this *TComPic) GetIsLongTerm() bool {
 }
 func (this *TComPic) SetIsLongTerm(lt bool) {
     this.m_bIsLongTerm = lt
-}
-func (this *TComPic) GetIsUsedAsLongTerm() bool {
-    return this.m_bIsUsedAsLongTerm
-}
-func (this *TComPic) SetIsUsedAsLongTerm(lt bool) {
-    this.m_bIsUsedAsLongTerm = lt
 }
 func (this *TComPic) SetCheckLTMSBPresent(b bool) {
     this.m_bCheckLTMSB = b
@@ -395,9 +392,8 @@ func (this *TComPic) ClearSliceBuffer() {
     this.m_apcPicSym.ClearSliceBuffer()
 }
 
-func (this *TComPic) GetCroppingWindow() *CroppingWindow {
-    return this.m_croppingWindow
-}
+func (this *TComPic) GetConformanceWindow() *Window  { return this.m_conformanceWindow; }
+func (this *TComPic) GetDefDisplayWindow()  *Window  { return this.m_defaultDisplayWindow; }
 
 func (this *TComPic) CreateNonDBFilterInfo(sliceStartAddress map[int]int, sliceGranularityDepth int, LFCrossSliceBoundary map[int]bool, numTiles int, bNDBFilterCrossTileBoundary bool) {
     maxNumSUInLCU := this.GetNumPartInCU()

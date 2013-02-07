@@ -318,7 +318,7 @@ func (this *TComWeightPrediction) AddWeightUni(pcYuvSrc0 *TComYuv, iPartUnitIdx 
     }
 }
 
-func (this *TComWeightPrediction) XWeightedPredictionUni(pcCU *TComDataCU, pcYuvSrc *TComYuv, uiPartAddr uint, iWidth, iHeight int, eRefPicList RefPicList, rpcYuvPred *TComYuv, iPartIdx, iRefIdx int) {
+func (this *TComWeightPrediction) XWeightedPredictionUni(pcCU *TComDataCU, pcYuvSrc *TComYuv, uiPartAddr uint, iWidth, iHeight int, eRefPicList RefPicList, rpcYuvPred *TComYuv, iRefIdx int) {
     var pwp []WpScalingParam
     if iRefIdx < 0 {
         iRefIdx = int(pcCU.GetCUMvField(eRefPicList).GetRefIdx(int(uiPartAddr)))
@@ -645,14 +645,14 @@ func (this *TComPrediction) xPredIntraPlanar(pSrc2 []Pel, srcStride int, rpDst [
 }
 
 // motion compensation functions
-func (this *TComPrediction) xPredInterUni(pcCU *TComDataCU, uiPartAddr uint, iWidth, iHeight int, eRefPicList RefPicList, rpcYuvPred *TComYuv, iPartIdx int, bi bool) {
+func (this *TComPrediction) xPredInterUni(pcCU *TComDataCU, uiPartAddr uint, iWidth, iHeight int, eRefPicList RefPicList, rpcYuvPred *TComYuv, bi bool) {
     iRefIdx := pcCU.GetCUMvField(eRefPicList).GetRefIdx(int(uiPartAddr)) //assert (iRefIdx >= 0);
     cMv := pcCU.GetCUMvField(eRefPicList).GetMv(int(uiPartAddr))
     pcCU.ClipMv(&cMv)
     this.XPredInterLumaBlk(pcCU, pcCU.GetSlice().GetRefPic(eRefPicList, int(iRefIdx)).GetPicYuvRec(), uiPartAddr, &cMv, iWidth, iHeight, rpcYuvPred, bi)
     this.XPredInterChromaBlk(pcCU, pcCU.GetSlice().GetRefPic(eRefPicList, int(iRefIdx)).GetPicYuvRec(), uiPartAddr, &cMv, iWidth, iHeight, rpcYuvPred, bi)
 }
-func (this *TComPrediction) xPredInterBi(pcCU *TComDataCU, uiPartAddr uint, iWidth, iHeight int, rpcYuvPred *TComYuv, iPartIdx int) {
+func (this *TComPrediction) xPredInterBi(pcCU *TComDataCU, uiPartAddr uint, iWidth, iHeight int, rpcYuvPred *TComYuv) {
     var pcMbYuv *TComYuv
     var iRefIdx = [2]int{-1, -1}
 
@@ -674,13 +674,13 @@ func (this *TComPrediction) xPredInterBi(pcCU *TComDataCU, uiPartAddr uint, iWid
 
         pcMbYuv = &this.m_acYuvPred[iRefList]
         if pcCU.GetCUMvField(REF_PIC_LIST_0).GetRefIdx(int(uiPartAddr)) >= 0 && pcCU.GetCUMvField(REF_PIC_LIST_1).GetRefIdx(int(uiPartAddr)) >= 0 {
-            this.xPredInterUni(pcCU, uiPartAddr, iWidth, iHeight, eRefPicList, pcMbYuv, iPartIdx, true)
+            this.xPredInterUni(pcCU, uiPartAddr, iWidth, iHeight, eRefPicList, pcMbYuv, true)
         } else {
             if (pcCU.GetSlice().GetPPS().GetUseWP() && pcCU.GetSlice().GetSliceType() == P_SLICE) ||
                 (pcCU.GetSlice().GetPPS().GetWPBiPred() && pcCU.GetSlice().GetSliceType() == B_SLICE) {
-                this.xPredInterUni(pcCU, uiPartAddr, iWidth, iHeight, eRefPicList, pcMbYuv, iPartIdx, true)
+                this.xPredInterUni(pcCU, uiPartAddr, iWidth, iHeight, eRefPicList, pcMbYuv, true)
             } else {
-                this.xPredInterUni(pcCU, uiPartAddr, iWidth, iHeight, eRefPicList, pcMbYuv, iPartIdx, false)
+                this.xPredInterUni(pcCU, uiPartAddr, iWidth, iHeight, eRefPicList, pcMbYuv, false)
             }
         }
     }
@@ -688,9 +688,9 @@ func (this *TComPrediction) xPredInterBi(pcCU *TComDataCU, uiPartAddr uint, iWid
     if pcCU.GetSlice().GetPPS().GetWPBiPred() && pcCU.GetSlice().GetSliceType() == B_SLICE {
         this.XWeightedPredictionBi(pcCU, &this.m_acYuvPred[0], &this.m_acYuvPred[1], iRefIdx[0], iRefIdx[1], uiPartAddr, iWidth, iHeight, rpcYuvPred)
     } else if pcCU.GetSlice().GetPPS().GetUseWP() && pcCU.GetSlice().GetSliceType() == P_SLICE {
-        this.XWeightedPredictionUni(pcCU, &this.m_acYuvPred[0], uiPartAddr, iWidth, iHeight, REF_PIC_LIST_0, rpcYuvPred, iPartIdx, -1)
+        this.XWeightedPredictionUni(pcCU, &this.m_acYuvPred[0], uiPartAddr, iWidth, iHeight, REF_PIC_LIST_0, rpcYuvPred, -1)
     } else {
-        this.XWeightedAverage(pcCU, &this.m_acYuvPred[0], &this.m_acYuvPred[1], iRefIdx[0], iRefIdx[1], uiPartAddr, uint(iWidth), uint(iHeight), rpcYuvPred)
+        this.XWeightedAverage(&this.m_acYuvPred[0], &this.m_acYuvPred[1], iRefIdx[0], iRefIdx[1], uiPartAddr, uint(iWidth), uint(iHeight), rpcYuvPred)
     }
 }
 func (this *TComPrediction) XPredInterLumaBlk(cu *TComDataCU, refPic *TComPicYuv, partAddr uint, mv *TComMv, width, height int, dstPic *TComYuv, bi bool) {
@@ -769,7 +769,7 @@ func (this *TComPrediction) XPredInterChromaBlk(cu *TComDataCU, refPic *TComPicY
         this.m_if.FilterVerChroma(extY[-(NTAPS_CHROMA/2-1)*extStride+(halfFilterSize-1)*extStride:], extStride, dstCr, dstStride, cxWidth, cxHeight, yFrac, false, !bi)
     }
 }
-func (this *TComPrediction) XWeightedAverage(pcCU *TComDataCU, pcYuvSrc0 *TComYuv, pcYuvSrc1 *TComYuv, iRefIdx0, iRefIdx1 int, uiPartIdx uint, iWidth, iHeight uint, rpcYuvDst *TComYuv) {
+func (this *TComPrediction) XWeightedAverage(pcYuvSrc0 *TComYuv, pcYuvSrc1 *TComYuv, iRefIdx0, iRefIdx1 int, uiPartIdx uint, iWidth, iHeight uint, rpcYuvDst *TComYuv) {
     if iRefIdx0 >= 0 && iRefIdx1 >= 0 {
         rpcYuvDst.AddAvg(pcYuvSrc0, pcYuvSrc1, uiPartIdx, iWidth, iHeight)
     } else if iRefIdx0 >= 0 && iRefIdx1 < 0 {
@@ -825,18 +825,18 @@ func (this *TComPrediction) MotionCompensation(pcCU *TComDataCU, pcYuvPred *TCom
         pcCU.GetPartIndexAndSize(uint(iPartIdx), &uiPartAddr, &iWidth, &iHeight)
         if eRefPicList != REF_PIC_LIST_X {
             if pcCU.GetSlice().GetPPS().GetUseWP() {
-                this.xPredInterUni(pcCU, uiPartAddr, iWidth, iHeight, eRefPicList, pcYuvPred, iPartIdx, true)
+                this.xPredInterUni(pcCU, uiPartAddr, iWidth, iHeight, eRefPicList, pcYuvPred, true)
             } else {
-                this.xPredInterUni(pcCU, uiPartAddr, iWidth, iHeight, eRefPicList, pcYuvPred, iPartIdx, false)
+                this.xPredInterUni(pcCU, uiPartAddr, iWidth, iHeight, eRefPicList, pcYuvPred, false)
             }
             if pcCU.GetSlice().GetPPS().GetUseWP() {
-                this.XWeightedPredictionUni(pcCU, pcYuvPred, uiPartAddr, iWidth, iHeight, eRefPicList, pcYuvPred, iPartIdx, -1)
+                this.XWeightedPredictionUni(pcCU, pcYuvPred, uiPartAddr, iWidth, iHeight, eRefPicList, pcYuvPred, -1)
             }
         } else {
             if this.xCheckIdenticalMotion(pcCU, uiPartAddr) {
-                this.xPredInterUni(pcCU, uiPartAddr, iWidth, iHeight, REF_PIC_LIST_0, pcYuvPred, iPartIdx, false)
+                this.xPredInterUni(pcCU, uiPartAddr, iWidth, iHeight, REF_PIC_LIST_0, pcYuvPred, false)
             } else {
-                this.xPredInterBi(pcCU, uiPartAddr, iWidth, iHeight, pcYuvPred, iPartIdx)
+                this.xPredInterBi(pcCU, uiPartAddr, iWidth, iHeight, pcYuvPred)
             }
         }
         return
@@ -847,18 +847,18 @@ func (this *TComPrediction) MotionCompensation(pcCU *TComDataCU, pcYuvPred *TCom
 
         if eRefPicList != REF_PIC_LIST_X {
             if pcCU.GetSlice().GetPPS().GetUseWP() {
-                this.xPredInterUni(pcCU, uiPartAddr, iWidth, iHeight, eRefPicList, pcYuvPred, iPartIdx, true)
+                this.xPredInterUni(pcCU, uiPartAddr, iWidth, iHeight, eRefPicList, pcYuvPred, true)
             } else {
-                this.xPredInterUni(pcCU, uiPartAddr, iWidth, iHeight, eRefPicList, pcYuvPred, iPartIdx, false)
+                this.xPredInterUni(pcCU, uiPartAddr, iWidth, iHeight, eRefPicList, pcYuvPred, false)
             }
             if pcCU.GetSlice().GetPPS().GetUseWP() {
-                this.XWeightedPredictionUni(pcCU, pcYuvPred, uiPartAddr, iWidth, iHeight, eRefPicList, pcYuvPred, iPartIdx, -1)
+                this.XWeightedPredictionUni(pcCU, pcYuvPred, uiPartAddr, iWidth, iHeight, eRefPicList, pcYuvPred, -1)
             }
         } else {
             if this.xCheckIdenticalMotion(pcCU, uiPartAddr) {
-                this.xPredInterUni(pcCU, uiPartAddr, iWidth, iHeight, REF_PIC_LIST_0, pcYuvPred, iPartIdx, false)
+                this.xPredInterUni(pcCU, uiPartAddr, iWidth, iHeight, REF_PIC_LIST_0, pcYuvPred, false)
             } else {
-                this.xPredInterBi(pcCU, uiPartAddr, iWidth, iHeight, pcYuvPred, iPartIdx)
+                this.xPredInterBi(pcCU, uiPartAddr, iWidth, iHeight, pcYuvPred)
             }
         }
     }
@@ -866,7 +866,7 @@ func (this *TComPrediction) MotionCompensation(pcCU *TComDataCU, pcYuvPred *TCom
 }
 
 // motion vector prediction
-func (this *TComPrediction) GetMvPredAMVP(pcCU *TComDataCU, uiPartIdx, uiPartAddr uint, eRefPicList RefPicList, iRefIdx int) (rcMvPred *TComMv) {
+func (this *TComPrediction) GetMvPredAMVP(pcCU *TComDataCU, uiPartIdx, uiPartAddr uint, eRefPicList RefPicList) (rcMvPred *TComMv) {
     pcAMVPInfo := pcCU.GetCUMvField(eRefPicList).GetAMVPInfo()
     if pcAMVPInfo.IN <= 1 {
         rcMvPred = NewTComMv(pcAMVPInfo.MvCand[0].GetHor(), pcAMVPInfo.MvCand[0].GetVer())
@@ -883,7 +883,7 @@ func (this *TComPrediction) GetMvPredAMVP(pcCU *TComDataCU, uiPartIdx, uiPartAdd
 }
 
 // Angular Intra
-func (this *TComPrediction) PredIntraLumaAng(pcTComPattern *TComPattern, uiDirMode uint, piPred []Pel, uiStride uint, iWidth, iHeight int, pcCU *TComDataCU, bAbove, bLeft bool) {
+func (this *TComPrediction) PredIntraLumaAng(pcTComPattern *TComPattern, uiDirMode uint, piPred []Pel, uiStride uint, iWidth, iHeight int, bAbove, bLeft bool) {
     pDst := piPred
     var ptrSrc []Pel
 
@@ -901,12 +901,10 @@ func (this *TComPrediction) PredIntraLumaAng(pcTComPattern *TComPattern, uiDirMo
         //this.xPredIntraPlanar( ptrSrc[sw+1:], sw, pDst, int(uiStride), uint(iWidth), uint(iHeight) );
         this.xPredIntraPlanar(ptrSrc, sw, pDst, int(uiStride), uint(iWidth), uint(iHeight))
     } else {
-        //#if RESTRICT_INTRA_BOUNDARY_SMOOTHING
         if (iWidth > 16) || (iHeight > 16) {
             //this.xPredIntraAng(G_bitDepthY, ptrSrc[sw+1:], sw, pDst, int(uiStride), uint(iWidth), uint(iHeight), uiDirMode, bAbove, bLeft, false );
             this.xPredIntraAng(G_bitDepthY, ptrSrc, sw, pDst, int(uiStride), uint(iWidth), uint(iHeight), uiDirMode, bAbove, bLeft, false)
         } else {
-            //#endif
             //this.xPredIntraAng(G_bitDepthY, ptrSrc[sw+1:], sw, pDst, int(uiStride), uint(iWidth), uint(iHeight), uiDirMode, bAbove, bLeft, true );
             this.xPredIntraAng(G_bitDepthY, ptrSrc, sw, pDst, int(uiStride), uint(iWidth), uint(iHeight), uiDirMode, bAbove, bLeft, true)
 
@@ -914,12 +912,10 @@ func (this *TComPrediction) PredIntraLumaAng(pcTComPattern *TComPattern, uiDirMo
                 //this.xDCPredFiltering( ptrSrc[sw+1:], sw, pDst, int(uiStride), iWidth, iHeight);
                 this.xDCPredFiltering(ptrSrc, sw, pDst, int(uiStride), iWidth, iHeight)
             }
-            //#if RESTRICT_INTRA_BOUNDARY_SMOOTHING
         }
-        //#endif
     }
 }
-func (this *TComPrediction) PredIntraChromaAng(pcTComPattern *TComPattern, piSrc []Pel, uiDirMode uint, piPred []Pel, uiStride uint, iWidth, iHeight int, pcCU *TComDataCU, bAbove, bLeft bool) {
+func (this *TComPrediction) PredIntraChromaAng(piSrc []Pel, uiDirMode uint, piPred []Pel, uiStride uint, iWidth, iHeight int, bAbove, bLeft bool) {
     pDst := piPred
     ptrSrc := piSrc
 

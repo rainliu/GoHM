@@ -141,7 +141,7 @@ func (this *TAppDecTop) Decode() (err error) {
             }
         }
         if bNewPicture || eof {
-            pcListPic = this.m_cTDecTop.ExecuteLoopFilters(&poc, &this.m_iSkipFrame, &this.m_iPOCLastDisplay)
+            pcListPic = this.m_cTDecTop.ExecuteLoopFilters(&poc)
         }
 
         if pcListPic != nil {
@@ -224,8 +224,19 @@ func (this *TAppDecTop) xWriteOutput(pcListPic *list.List, tId uint) {
             // write to file
             not_displayed--
             if this.m_pchReconFile != "" {
-                crop := pcPic.GetCroppingWindow()
-                this.m_cTVideoIOYuvReconFile.Write(pcPic.GetPicYuvRec(), crop.GetPicCropLeftOffset(), crop.GetPicCropRightOffset(), crop.GetPicCropTopOffset(), crop.GetPicCropBottomOffset())
+                conf := pcPic.GetConformanceWindow();
+                var defDisp *TLibCommon.Window;
+                if this.m_respectDefDispWindow!=0 {
+                    defDisp = pcPic.GetDefDisplayWindow();
+                }else{
+                    defDisp = TLibCommon.NewWindow();
+                }
+
+                this.m_cTVideoIOYuvReconFile.Write( pcPic.GetPicYuvRec(),
+                                       conf.GetWindowLeftOffset()  + defDisp.GetWindowLeftOffset(),
+                                       conf.GetWindowRightOffset() + defDisp.GetWindowRightOffset(),
+                                       conf.GetWindowTopOffset()   + defDisp.GetWindowTopOffset(),
+                                       conf.GetWindowBottomOffset()+ defDisp.GetWindowBottomOffset() );
             }
 
             // update POC of display order
@@ -265,8 +276,19 @@ func (this *TAppDecTop) xFlushOutput(pcListPic *list.List) {
         if pcPic.GetOutputMark() {
             // write to file
             if this.m_pchReconFile != "" {
-                crop := pcPic.GetCroppingWindow()
-                this.m_cTVideoIOYuvReconFile.Write(pcPic.GetPicYuvRec(), crop.GetPicCropLeftOffset(), crop.GetPicCropRightOffset(), crop.GetPicCropTopOffset(), crop.GetPicCropBottomOffset())
+                conf := pcPic.GetConformanceWindow();
+                var defDisp *TLibCommon.Window;
+                if this.m_respectDefDispWindow!=0 {
+                    defDisp = pcPic.GetDefDisplayWindow();
+                }else{
+                    defDisp = TLibCommon.NewWindow();
+                }
+
+                this.m_cTVideoIOYuvReconFile.Write( pcPic.GetPicYuvRec(),
+                                       conf.GetWindowLeftOffset()  + defDisp.GetWindowLeftOffset(),
+                                       conf.GetWindowRightOffset() + defDisp.GetWindowRightOffset(),
+                                       conf.GetWindowTopOffset()   + defDisp.GetWindowTopOffset(),
+                                       conf.GetWindowBottomOffset()+ defDisp.GetWindowBottomOffset() );
             }
 
             // update POC of display order

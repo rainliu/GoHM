@@ -111,9 +111,9 @@ func (this *SyntaxElementWriter) WRITE_CODE ( value, length uint, pSymbolName st
   if this.GetTraceFile() != nil {
     //io.WriteString(this.m_pTraceFile, fmt.Sprintf("%8lld  ", g_nSymbolCounter++ );
     if length<10 {
-      io.WriteString(this.m_pTraceFile, fmt.Sprintf("%-50s u(%d)  : %d\n", pSymbolName, length, value )); 
+      io.WriteString(this.m_pTraceFile, fmt.Sprintf("%-50s u(%d)  : %d\n", pSymbolName, length, value ));
     }else{
-      io.WriteString(this.m_pTraceFile, fmt.Sprintf("%-50s u(%d) : %d\n", pSymbolName, length, value )); 
+      io.WriteString(this.m_pTraceFile, fmt.Sprintf("%-50s u(%d) : %d\n", pSymbolName, length, value ));
     }
   }
 }
@@ -122,7 +122,7 @@ func (this *SyntaxElementWriter) WRITE_UVLC ( value uint, pSymbolName string) {
   this.xWriteUvlc (value);
   if this.GetTraceFile() != nil {
     //io.WriteString(this.m_pTraceFile, fmt.Sprintf("%8lld  ", g_nSymbolCounter++ );
-    io.WriteString(this.m_pTraceFile, fmt.Sprintf("%-50s ue(v) : %d\n", pSymbolName, value )); 
+    io.WriteString(this.m_pTraceFile, fmt.Sprintf("%-50s ue(v) : %d\n", pSymbolName, value ));
   }
 }
 
@@ -130,7 +130,7 @@ func (this *SyntaxElementWriter) WRITE_SVLC ( value int, pSymbolName string) {
   this.xWriteSvlc(value);
   if this.GetTraceFile() != nil {
     //fprintf( g_hTrace, "%8lld  ", g_nSymbolCounter++ );
-    io.WriteString(this.m_pTraceFile, fmt.Sprintf("%-50s se(v) : %d\n", pSymbolName, value )); 
+    io.WriteString(this.m_pTraceFile, fmt.Sprintf("%-50s se(v) : %d\n", pSymbolName, value ));
   }
 }
 
@@ -138,7 +138,7 @@ func (this *SyntaxElementWriter) WRITE_FLAG( value uint, pSymbolName string) {
   this.xWriteFlag(value);
   if this.GetTraceFile() != nil {
     //fprintf( g_hTrace, "%8lld  ", g_nSymbolCounter++ );
-    io.WriteString(this.m_pTraceFile, fmt.Sprintf("%-50s u(1)  : %d\n", pSymbolName, value )); 
+    io.WriteString(this.m_pTraceFile, fmt.Sprintf("%-50s u(1)  : %d\n", pSymbolName, value ));
   }
 }
 
@@ -147,10 +147,10 @@ func (this *SyntaxElementWriter)  xWriteUvlc            ( uiCode uint){
   uiLength := uint(1);
   var uiTemp uint;
   uiCode++;
-  
+
   uiTemp = uiCode;
   //assert ( uiTemp );
-  
+
   for 1 != uiTemp {
     uiTemp >>= 1;
     uiLength += 2;
@@ -161,7 +161,7 @@ func (this *SyntaxElementWriter)  xWriteUvlc            ( uiCode uint){
 }
 func (this *SyntaxElementWriter)  xWriteSvlc            (  iCode int ){
   var uiCode uint;
-  
+
   uiCode = this.xConvertToUInt( iCode );
   this.xWriteUvlc( uiCode );
 }
@@ -173,11 +173,11 @@ func (this *SyntaxElementWriter)  xWriteFlag            ( uiCode uint){  this.m_
   Void  xWriteFlagTr          ( UInt value,               const Char *pSymbolName);
 #endif*/
 
-func (this *SyntaxElementWriter)  xConvertToUInt        ( iValue int ) uint {  
+func (this *SyntaxElementWriter)  xConvertToUInt        ( iValue int ) uint {
 	if iValue <= 0 {
 		return  uint(-iValue)<<1;
 	}
-	
+
 	return uint(iValue<<1)-1;
 }
 
@@ -189,11 +189,11 @@ func (this *SyntaxElementWriter)  xConvertToUInt        ( iValue int ) uint {
 /// CAVLC encoder class
 type TEncCavlc struct{
   SyntaxElementWriter
-  
+
   m_pcSlice 	*TLibCommon.TComSlice;
   m_uiCoeffCost	uint;
-}  
-  
+}
+
 func NewTEncCavlc() *TEncCavlc{
 	return &TEncCavlc{};
 }
@@ -218,12 +218,12 @@ func (this *TEncCavlc)  xWriteExGolombLevel   ( uiSymbol uint){
     this.xWriteFlag( 1 );
     uiCount := uint(0);
     bNoExGo := (uiSymbol < 13);
-    
+
     uiSymbol--;
     uiCount++;
     for uiSymbol!=0 && uiCount < 13 {
       this.xWriteFlag( 1 );
-      
+
       uiSymbol--;
       uiCount++;
     }
@@ -245,9 +245,9 @@ func (this *TEncCavlc)  xWriteUnaryMaxSymbol  ( uiSymbol, uiMaxSymbol uint){
   if uiSymbol == 0 {
     return;
   }
-  
+
   bCodeLast := ( uiMaxSymbol > uiSymbol );
-  
+
   uiSymbol--;
   for uiSymbol!=0 {
     this.xWriteFlag( 1 );
@@ -288,7 +288,7 @@ func (this *TEncCavlc)  codeShortTermRefPicSet              ( pcSPS *TLibCommon.
 
     for j:=0; j < rps.GetNumRefIdc(); j++ {
       refIdc := rps.GetRefIdc(j);
-      this.WRITE_CODE( uint(TLibCommon.B2U(refIdc==1)), 1, "used_by_curr_pic_flag" ); //first bit is "1" if Idc is 1 
+      this.WRITE_CODE( uint(TLibCommon.B2U(refIdc==1)), 1, "used_by_curr_pic_flag" ); //first bit is "1" if Idc is 1
       if refIdc != 1 {
         this.WRITE_CODE(uint(refIdc>>1), 1, "use_delta_flag" ); //second bit is "1" if Idc is 2, "0" otherwise.
       }
@@ -300,13 +300,13 @@ func (this *TEncCavlc)  codeShortTermRefPicSet              ( pcSPS *TLibCommon.
     for j:=0 ; j < rps.GetNumberOfNegativePictures(); j++ {
       this.WRITE_UVLC( uint(prev-rps.GetDeltaPOC(j)-1), "delta_poc_s0_minus1" );
       prev = rps.GetDeltaPOC(j);
-      this.WRITE_FLAG( uint(TLibCommon.B2U(rps.GetUsed(j))), "used_by_curr_pic_s0_flag"); 
+      this.WRITE_FLAG( uint(TLibCommon.B2U(rps.GetUsed(j))), "used_by_curr_pic_s0_flag");
     }
     prev = 0;
     for j:=rps.GetNumberOfNegativePictures(); j < rps.GetNumberOfNegativePictures()+rps.GetNumberOfPositivePictures(); j++ {
       this.WRITE_UVLC( uint(rps.GetDeltaPOC(j)-prev-1), "delta_poc_s1_minus1" );
       prev = rps.GetDeltaPOC(j);
-      this.WRITE_FLAG( uint(TLibCommon.B2U(rps.GetUsed(j))), "used_by_curr_pic_s1_flag" ); 
+      this.WRITE_FLAG( uint(TLibCommon.B2U(rps.GetUsed(j))), "used_by_curr_pic_s1_flag" );
     }
   }
 
@@ -325,7 +325,7 @@ func (this *TEncCavlc)  findMatchingLTRP ( pcSlice *TLibCommon.TComSlice, ltrpsI
     }
   }
   return false;
-} 
+}
 func (this *TEncCavlc)  resetEntropy          () {}
 func (this *TEncCavlc)  determineCabacInitIdx () {}
 func (this *TEncCavlc)  setBitstream          ( p TLibCommon.TComBitIf)  { this.m_pcBitIf = p;  }
@@ -353,7 +353,7 @@ func (this *TEncCavlc)  codeVPS                 ( pcVPS *TLibCommon.TComVPS){
 //#endif
 //#if SIGNAL_BITRATE_PICRATE_IN_VPS
   this.codeBitratePicRateInfo(pcVPS.GetBitratePicrateInfo(), 0, int(pcVPS.GetMaxTLayers()) - 1);
-//#endif  
+//#endif
 //#if HLS_ADD_SUBLAYER_ORDERING_INFO_PRESENT_FLAG
   subLayerOrderingInfoPresentFlag := uint(1);
   this.WRITE_FLAG(subLayerOrderingInfoPresentFlag,              "vps_sub_layer_ordering_info_present_flag");
@@ -378,7 +378,7 @@ func (this *TEncCavlc)  codeVPS                 ( pcVPS *TLibCommon.TComVPS){
     if opIdx > 0 {
       // operation_point_layer_id_flag( opIdx )
       for i := uint(0); i <= pcVPS.GetMaxNuhReservedZeroLayerId(); i++ {
-        this.WRITE_FLAG( uint(TLibCommon.B2U(pcVPS.GetOpLayerIdIncludedFlag( opIdx, i ))), "op_layer_id_included_flag[opIdx][i]" );
+        //this.WRITE_FLAG( uint(TLibCommon.B2U(pcVPS.GetOpLayerIdIncludedFlag( opIdx, i ))), "op_layer_id_included_flag[opIdx][i]" );
       }
     }
     // TODO: add hrd_parameters()
@@ -388,9 +388,9 @@ func (this *TEncCavlc)  codeVPS                 ( pcVPS *TLibCommon.TComVPS){
   // hrd_parameters
 //#endif
   this.WRITE_FLAG( 0,                     "vps_extension_flag" );
-  
+
   //future extensions here..
-  
+
   return;
 }
 
@@ -436,9 +436,9 @@ func (this *TEncCavlc)  codeVUI                 ( pcVUI *TLibCommon.TComVUI, pcS
   this.WRITE_FLAG(0,                                                 "default_display_window_flag");
 //#endif
 //#if HLS_ADD_VUI_PICSTRUCT_PRESENT_FLAG
-  this.WRITE_FLAG(uint(TLibCommon.B2U(pcVUI.GetPicStructPresentFlag())),                  "pic_struct_present_flag");
+  //this.WRITE_FLAG(uint(TLibCommon.B2U(pcVUI.GetPicStructPresentFlag())),                  "pic_struct_present_flag");
 //#endif /* HLS_ADD_VUI_PICSTRUCT_PRESENT_FLAG */
-  this.WRITE_FLAG(uint(TLibCommon.B2U(pcVUI.GetHrdParametersPresentFlag())),              "hrd_parameters_present_flag");
+/*  this.WRITE_FLAG(uint(TLibCommon.B2U(pcVUI.GetHrdParametersPresentFlag())),              "hrd_parameters_present_flag");
   if pcVUI.GetHrdParametersPresentFlag() {
     this.WRITE_FLAG(uint(TLibCommon.B2U(pcVUI.GetTimingInfoPresentFlag())),               "timing_info_present_flag");
     if pcVUI.GetTimingInfoPresentFlag() {
@@ -457,7 +457,7 @@ func (this *TEncCavlc)  codeVUI                 ( pcVUI *TLibCommon.TComVUI, pcS
       this.WRITE_CODE(pcVUI.GetCpbSizeScale(), 4,                   "cpb_size_scale");
 //#if HRD_BUFFER
       if pcVUI.GetSubPicCpbParamsPresentFlag() {
-        this.WRITE_CODE(pcVUI.GetDuCpbSizeScale(), 4,           "du_cpb_size_scale"); 
+        this.WRITE_CODE(pcVUI.GetDuCpbSizeScale(), 4,           "du_cpb_size_scale");
       }
 //#endif
       this.WRITE_CODE(pcVUI.GetInitialCpbRemovalDelayLengthMinus1(), 5, "initial_cpb_removal_delay_length_minus1");
@@ -472,7 +472,7 @@ func (this *TEncCavlc)  codeVUI                 ( pcVUI *TLibCommon.TComVUI, pcS
       }
       this.WRITE_FLAG(uint(TLibCommon.B2U(pcVUI.GetLowDelayHrdFlag(i))),                  "low_delay_hrd_flag");
       this.WRITE_UVLC(pcVUI.GetCpbCntMinus1(i),                     "cpb_cnt_minus1");
-     
+
       for nalOrVcl = 0; nalOrVcl < 2; nalOrVcl ++ {
         if  ( ( nalOrVcl == 0 ) && ( pcVUI.GetNalHrdParametersPresentFlag() ) ) ||
             ( ( nalOrVcl == 1 ) && ( pcVUI.GetVclHrdParametersPresentFlag() ) ) {
@@ -481,7 +481,7 @@ func (this *TEncCavlc)  codeVUI                 ( pcVUI *TLibCommon.TComVUI, pcS
             this.WRITE_UVLC(pcVUI.GetCpbSizeValueMinus1(i, j, nalOrVcl), "cpb_size_value_minus1");
 //#if HRD_BUFFER
             if pcVUI.GetSubPicCpbParamsPresentFlag() {
-              this.WRITE_UVLC(pcVUI.GetDuCpbSizeValueMinus1(i, j, nalOrVcl), "du_cpb_size_value_minus1");  
+              this.WRITE_UVLC(pcVUI.GetDuCpbSizeValueMinus1(i, j, nalOrVcl), "du_cpb_size_value_minus1");
             }
 //#endif
 
@@ -497,7 +497,7 @@ func (this *TEncCavlc)  codeVUI                 ( pcVUI *TLibCommon.TComVUI, pcS
     this.WRITE_UVLC( uint(pcVUI.GetNumTicksPocDiffOneMinus1()), "num_ticks_poc_diff_one_minus1" );
   }
 //#endif
-
+*/
   this.WRITE_FLAG(uint(TLibCommon.B2U(pcVUI.GetBitstreamRestrictionFlag())),              "bitstream_restriction_flag");
   if pcVUI.GetBitstreamRestrictionFlag() {
     this.WRITE_FLAG(uint(TLibCommon.B2U(pcVUI.GetTilesFixedStructureFlag())),             "tiles_fixed_structure_flag");
@@ -515,7 +515,7 @@ func (this *TEncCavlc)  codeVUI                 ( pcVUI *TLibCommon.TComVUI, pcS
   }
 }
 func (this *TEncCavlc)  codeSPS                 ( pcSPS *TLibCommon.TComSPS){
-//#if ENC_DEC_TRACE  
+//#if ENC_DEC_TRACE
   this.xTraceSPSHeader (pcSPS);
 //#endif
   this.WRITE_CODE( uint(pcSPS.GetVPSId ()),          4,       "video_parameter_set_id" );
@@ -536,7 +536,7 @@ func (this *TEncCavlc)  codeSPS                 ( pcSPS *TLibCommon.TComSPS){
 
   this.WRITE_UVLC( pcSPS.GetPicWidthInLumaSamples (),   "pic_width_in_luma_samples" );
   this.WRITE_UVLC( pcSPS.GetPicHeightInLumaSamples(),   "pic_height_in_luma_samples" );
-  crop := pcSPS.GetPicCroppingWindow();
+/*  crop := pcSPS.GetPicCroppingWindow();
   this.WRITE_FLAG( uint(TLibCommon.B2U(crop.GetPicCroppingFlag())),            "pic_cropping_flag" );
   if crop.GetPicCroppingFlag() {
     this.WRITE_UVLC( uint(crop.GetPicCropLeftOffset()   / pcSPS.GetCropUnitX(pcSPS.GetChromaFormatIdc() )), "pic_crop_left_offset" );
@@ -544,7 +544,7 @@ func (this *TEncCavlc)  codeSPS                 ( pcSPS *TLibCommon.TComSPS){
     this.WRITE_UVLC( uint(crop.GetPicCropTopOffset()    / pcSPS.GetCropUnitY(pcSPS.GetChromaFormatIdc() )), "pic_crop_top_offset" );
     this.WRITE_UVLC( uint(crop.GetPicCropBottomOffset() / pcSPS.GetCropUnitY(pcSPS.GetChromaFormatIdc() )), "pic_crop_bottom_offset" );
   }
-
+*/
   this.WRITE_UVLC( uint(pcSPS.GetBitDepthY() - 8),             "bit_depth_luma_minus8" );
   this.WRITE_UVLC( uint(pcSPS.GetBitDepthC() - 8),             "bit_depth_chroma_minus8" );
 
@@ -575,7 +575,7 @@ func (this *TEncCavlc)  codeSPS                 ( pcSPS *TLibCommon.TComSPS){
 //#endif /* HLS_ADD_SUBLAYER_ORDERING_INFO_PRESENT_FLAG */
   }
   //assert( pcSPS.GetMaxCUWidth() == pcSPS.GetMaxCUHeight() );
-  
+
   MinCUSize := pcSPS.GetMaxCUWidth() >> ( pcSPS.GetMaxCUDepth()-TLibCommon.G_uiAddCUDepth );
   log2MinCUSize := uint(0);
   for MinCUSize > 1 {
@@ -603,9 +603,9 @@ func (this *TEncCavlc)  codeSPS                 ( pcSPS *TLibCommon.TComSPS){
 #endif*/ /* !HLS_GROUP_SPS_PCM_FLAGS */
   this.WRITE_UVLC( pcSPS.GetQuadtreeTUMaxDepthInter() - 1,                               "max_transform_hierarchy_depth_inter" );
   this.WRITE_UVLC( pcSPS.GetQuadtreeTUMaxDepthIntra() - 1,                               "max_transform_hierarchy_depth_intra" );
-  this.WRITE_FLAG( uint(TLibCommon.B2U(pcSPS.GetScalingListFlag())),                                   "scaling_list_enabled_flag" ); 
+  this.WRITE_FLAG( uint(TLibCommon.B2U(pcSPS.GetScalingListFlag())),                                   "scaling_list_enabled_flag" );
   if pcSPS.GetScalingListFlag() {
-    this.WRITE_FLAG( uint(TLibCommon.B2U(pcSPS.GetScalingListPresentFlag())),                          "sps_scaling_list_data_present_flag" ); 
+    this.WRITE_FLAG( uint(TLibCommon.B2U(pcSPS.GetScalingListPresentFlag())),                          "sps_scaling_list_data_present_flag" );
     if pcSPS.GetScalingListPresentFlag() {
 /*#if SCALING_LIST_OUTPUT_RESULT
     printf("SPS\n");
@@ -631,7 +631,7 @@ func (this *TEncCavlc)  codeSPS                 ( pcSPS *TLibCommon.TComSPS){
 //#endif /* HLS_GROUP_SPS_PCM_FLAGS */
   }
 
-  //assert( pcSPS.GetMaxTLayers() > 0 );         
+  //assert( pcSPS.GetMaxTLayers() > 0 );
 /*#if !MOVE_SPS_TEMPORAL_ID_NESTING_FLAG
   this.WRITE_FLAG( pcSPS.GetTemporalIdNestingFlag() ? 1 : 0,                             "temporal_id_nesting_flag" );
 #endif*/
@@ -647,7 +647,7 @@ func (this *TEncCavlc)  codeSPS                 ( pcSPS *TLibCommon.TComSPS){
 /*#else
     codeShortTermRefPicSet(pcSPS,rps,false);
 #endif*/
-  }    
+  }
   this.WRITE_FLAG( uint(TLibCommon.B2U(pcSPS.GetLongTermRefsPresent())),         "long_term_ref_pics_present_flag" );
   if pcSPS.GetLongTermRefsPresent() {
     this.WRITE_UVLC(pcSPS.GetNumLongTermRefPicSPS(), "num_long_term_ref_pic_sps" );
@@ -670,15 +670,15 @@ func (this *TEncCavlc)  codeSPS                 ( pcSPS *TLibCommon.TComSPS){
   this.WRITE_FLAG( 0, "sps_extension_flag" );
 }
 func (this *TEncCavlc)  codePPS                 ( pcPPS *TLibCommon.TComPPS){
-//#if ENC_DEC_TRACE  
+//#if ENC_DEC_TRACE
   this.xTracePPSHeader (pcPPS);
 //#endif
-  
+
   this.WRITE_UVLC( uint(pcPPS.GetPPSId()),                             "pic_parameter_set_id" );
   this.WRITE_UVLC( uint(pcPPS.GetSPSId()),                             "seq_parameter_set_id" );
 //#if DEPENDENT_SLICE_SEGMENT_FLAGS
 ///#if DEPENDENT_SLICES
-  this.WRITE_FLAG( uint(TLibCommon.B2U(pcPPS.GetDependentSliceEnabledFlag())), "dependent_slice_enabled_flag" );
+//  this.WRITE_FLAG( uint(TLibCommon.B2U(pcPPS.GetDependentSliceSegmentsEnabledFlag())), "dependent_slice_enabled_flag" );
 //#endif
 //#endif
   this.WRITE_FLAG( uint(TLibCommon.B2U(pcPPS.GetSignHideFlag())), "sign_data_hiding_flag" );
@@ -688,7 +688,7 @@ func (this *TEncCavlc)  codePPS                 ( pcPPS *TLibCommon.TComPPS){
 
   this.WRITE_SVLC( pcPPS.GetPicInitQPMinus26(),                  "pic_init_qp_minus26");
   this.WRITE_FLAG( uint(TLibCommon.B2U(pcPPS.GetConstrainedIntraPred())),      "constrained_intra_pred_flag" );
-  this.WRITE_FLAG( uint(TLibCommon.B2U(pcPPS.GetUseTransformSkip())),  "transform_skip_enabled_flag" ); 
+  this.WRITE_FLAG( uint(TLibCommon.B2U(pcPPS.GetUseTransformSkip())),  "transform_skip_enabled_flag" );
   this.WRITE_FLAG( uint(TLibCommon.B2U(pcPPS.GetUseDQP())), "cu_qp_delta_enabled_flag" );
   if pcPPS.GetUseDQP() {
     this.WRITE_UVLC( pcPPS.GetMaxCuDQPDepth(), "diff_cu_qp_delta_depth" );
@@ -703,7 +703,7 @@ func (this *TEncCavlc)  codePPS                 ( pcPPS *TLibCommon.TComPPS){
   this.WRITE_FLAG( uint(TLibCommon.B2U(pcPPS.GetTransquantBypassEnableFlag())), "transquant_bypass_enable_flag" );
 /*#if !DEPENDENT_SLICE_SEGMENT_FLAGS
 #if DEPENDENT_SLICES
-  this.WRITE_FLAG( pcPPS.GetDependentSliceEnabledFlag()    ? 1 : 0, "dependent_slice_enabled_flag" );
+  this.WRITE_FLAG( pcPPS.GetDependentSliceSegmentsEnabledFlag()    ? 1 : 0, "dependent_slice_enabled_flag" );
 #endif
 #endif*/
   this.WRITE_FLAG( uint(TLibCommon.B2U(pcPPS.GetTilesEnabledFlag())), "tiles_enabled_flag" );
@@ -730,14 +730,14 @@ func (this *TEncCavlc)  codePPS                 ( pcPPS *TLibCommon.TComPPS){
   this.WRITE_FLAG( uint(TLibCommon.B2U(pcPPS.GetLoopFilterAcrossSlicesEnabledFlag())),        "loop_filter_across_slices_enabled_flag");
   this.WRITE_FLAG( uint(TLibCommon.B2U(pcPPS.GetDeblockingFilterControlPresentFlag())),       "deblocking_filter_control_present_flag");
   if pcPPS.GetDeblockingFilterControlPresentFlag() {
-    this.WRITE_FLAG( uint(TLibCommon.B2U(pcPPS.GetDeblockingFilterOverrideEnabledFlag())),  "deblocking_filter_override_enabled_flag" ); 
+    this.WRITE_FLAG( uint(TLibCommon.B2U(pcPPS.GetDeblockingFilterOverrideEnabledFlag())),  "deblocking_filter_override_enabled_flag" );
     this.WRITE_FLAG( uint(TLibCommon.B2U(pcPPS.GetPicDisableDeblockingFilterFlag())),               "pic_disable_deblocking_filter_flag" );
     if !pcPPS.GetPicDisableDeblockingFilterFlag() {
       this.WRITE_SVLC( pcPPS.GetDeblockingFilterBetaOffsetDiv2(),             "pps_beta_offset_div2" );
       this.WRITE_SVLC( pcPPS.GetDeblockingFilterTcOffsetDiv2(),               "pps_tc_offset_div2" );
     }
   }
-  this.WRITE_FLAG( uint(TLibCommon.B2U(pcPPS.GetScalingListPresentFlag())),                          "pps_scaling_list_data_present_flag" ); 
+  this.WRITE_FLAG( uint(TLibCommon.B2U(pcPPS.GetScalingListPresentFlag())),                          "pps_scaling_list_data_present_flag" );
   if pcPPS.GetScalingListPresentFlag() {
 /*#if SCALING_LIST_OUTPUT_RESULT
     printf("PPS\n");
@@ -755,7 +755,7 @@ func (this *TEncCavlc)  codePPS                 ( pcPPS *TLibCommon.TComPPS){
   this.WRITE_FLAG( 0, "pps_extension_flag" );
 }
 func (this *TEncCavlc)  codeSliceHeader         ( pcSlice *TLibCommon.TComSlice){
-//#if ENC_DEC_TRACE  
+//#if ENC_DEC_TRACE
   this.xTraceSliceHeader (pcSlice);
 //#endif
 
@@ -768,7 +768,7 @@ func (this *TEncCavlc)  codeSliceHeader         ( pcSlice *TLibCommon.TComSlice)
   maxAddrInner := pcSlice.GetPic().GetNumPartInCU()>>(2);
   maxAddrInner = 1;
   reqBitsInner := 0;
-  
+
   for maxAddrInner>(1<<uint(reqBitsInner)) {
     reqBitsInner++;
   }
@@ -779,7 +779,7 @@ func (this *TEncCavlc)  codeSliceHeader         ( pcSlice *TLibCommon.TComSlice)
     innerAddress = 0;
   }else{
     // Calculate slice address
-    lCUAddress = int(pcSlice.GetDependentSliceCurStartCUAddr()/pcSlice.GetPic().GetNumPartInCU());
+    lCUAddress = int(pcSlice.GetSliceSegmentCurStartCUAddr()/pcSlice.GetPic().GetNumPartInCU());
     innerAddress = 0;
   }
   //write slice address
@@ -790,9 +790,9 @@ func (this *TEncCavlc)  codeSliceHeader         ( pcSlice *TLibCommon.TComSlice)
   }
   this.WRITE_UVLC( uint(pcSlice.GetPPS().GetPPSId()), "pic_parameter_set_id" );
 //#if DEPENDENT_SLICE_SEGMENT_FLAGS
-  pcSlice.SetDependentSliceFlag(!pcSlice.IsNextSlice());
-  if pcSlice.GetPPS().GetDependentSliceEnabledFlag() && (address!=0) {
-    this.WRITE_FLAG( uint(TLibCommon.B2U(pcSlice.GetDependentSliceFlag())), "dependent_slice_flag" );
+  pcSlice.SetDependentSliceSegmentFlag(!pcSlice.IsNextSlice());
+  if pcSlice.GetPPS().GetDependentSliceSegmentsEnabledFlag() && (address!=0) {
+    this.WRITE_FLAG( uint(TLibCommon.B2U(pcSlice.GetDependentSliceSegmentFlag())), "dependent_slice_flag" );
   }
 //#endif
   if address>0 {
@@ -800,12 +800,12 @@ func (this *TEncCavlc)  codeSliceHeader         ( pcSlice *TLibCommon.TComSlice)
   }
 /*#if !DEPENDENT_SLICE_SEGMENT_FLAGS
   pcSlice->setDependentSliceFlag(!pcSlice->isNextSlice());
-  if ( pcSlice.GetPPS().GetDependentSliceEnabledFlag() && (address!=0) )
+  if ( pcSlice.GetPPS().GetDependentSliceSegmentsEnabledFlag() && (address!=0) )
   {
-    this.WRITE_FLAG( pcSlice.GetDependentSliceFlag() ? 1 : 0, "dependent_slice_flag" );
+    this.WRITE_FLAG( pcSlice.GetDependentSliceSegmentFlag() ? 1 : 0, "dependent_slice_flag" );
   }
 #endif*/
-  if !pcSlice.GetDependentSliceFlag() {
+  if !pcSlice.GetDependentSliceSegmentFlag() {
 //#if HLS_EXTRA_SLICE_HEADER_BITS
     for i := 0; i < pcSlice.GetPPS().GetNumExtraSliceHeaderBits(); i++ {
       //assert(!!"slice_reserved_undetermined_flag[]");
@@ -842,7 +842,7 @@ func (this *TEncCavlc)  codeSliceHeader         ( pcSlice *TLibCommon.TComSlice)
           numBits++;
         }
         if numBits > 0 {
-          this.WRITE_CODE( uint(pcSlice.GetRPSidx()), numBits, "short_term_ref_pic_set_idx" );          
+          this.WRITE_CODE( uint(pcSlice.GetRPSidx()), numBits, "short_term_ref_pic_set_idx" );
         }
       }
       if pcSlice.GetSPS().GetLongTermRefsPresent() {
@@ -879,7 +879,7 @@ func (this *TEncCavlc)  codeSliceHeader         ( pcSlice *TLibCommon.TComSlice)
             this.WRITE_CODE( uint(ltrpInSPS[counter]), bitsForLtrpInSPS, "lt_idx_sps[i]");
           }else{
             this.WRITE_CODE( uint(rps.GetPocLSBLT(i)), pcSlice.GetSPS().GetBitsForPOC(), "poc_lsb_lt");
-            this.WRITE_FLAG( uint(TLibCommon.B2U(rps.GetUsed(i))), "used_by_curr_pic_lt_flag"); 
+            this.WRITE_FLAG( uint(TLibCommon.B2U(rps.GetUsed(i))), "used_by_curr_pic_lt_flag");
           }
           this.WRITE_FLAG( uint(TLibCommon.B2U(rps.GetDeltaPocMSBPresentFlag(i))), "delta_poc_msb_present_flag");
 
@@ -891,7 +891,7 @@ func (this *TEncCavlc)  codeSliceHeader         ( pcSlice *TLibCommon.TComSlice)
             }
             if deltaFlag {
               this.WRITE_UVLC( uint(rps.GetDeltaPocMSBCycleLT(i)), "delta_poc_msb_cycle_lt[i]" );
-            }else{              
+            }else{
               differenceInDeltaMSB := rps.GetDeltaPocMSBCycleLT(i) - prevDeltaMSB;
               //assert(differenceInDeltaMSB >= 0);
               this.WRITE_UVLC( uint(differenceInDeltaMSB), "delta_poc_msb_cycle_lt[i]" );
@@ -974,7 +974,7 @@ func (this *TEncCavlc)  codeSliceHeader         ( pcSlice *TLibCommon.TComSlice)
           }
         }
       }
-      if pcSlice.IsInterB() {    
+      if pcSlice.IsInterB() {
         this.WRITE_FLAG( uint(TLibCommon.B2U(pcSlice.GetRefPicListModification().GetRefPicListModificationFlagL1())),       "ref_pic_list_modification_flag_l1" );
         if pcSlice.GetRefPicListModification().GetRefPicListModificationFlagL1() {
           numRpsCurrTempList1 := pcSlice.GetNumRpsCurrTempList();
@@ -993,7 +993,7 @@ func (this *TEncCavlc)  codeSliceHeader         ( pcSlice *TLibCommon.TComSlice)
         }
       }
     }
-    
+
     if pcSlice.IsInterB() {
       this.WRITE_FLAG( uint(TLibCommon.B2U(pcSlice.GetMvdL1ZeroFlag())),   "mvd_l1_zero_flag");
     }
@@ -1027,7 +1027,7 @@ func (this *TEncCavlc)  codeSliceHeader         ( pcSlice *TLibCommon.TComSlice)
       this.WRITE_UVLC(TLibCommon.MRG_MAX_NUM_CANDS - pcSlice.GetMaxNumMergeCand(), "five_minus_max_num_merge_cand");
     }
     iCode := pcSlice.GetSliceQp() - ( pcSlice.GetPPS().GetPicInitQPMinus26() + 26 );
-    this.WRITE_SVLC( iCode, "slice_qp_delta" ); 
+    this.WRITE_SVLC( iCode, "slice_qp_delta" );
     if pcSlice.GetPPS().GetSliceChromaQpFlag() {
       iCode = pcSlice.GetSliceQpDeltaCb();
       this.WRITE_SVLC( iCode, "slice_qp_delta_cb" );
@@ -1092,11 +1092,11 @@ func (this *TEncCavlc)  codePTL                 ( pcPTL *TLibCommon.TComPTL, pro
 func (this *TEncCavlc)  codeProfileTier         ( ptl *TLibCommon.ProfileTierLevel){
   this.WRITE_CODE( uint(ptl.GetProfileSpace()), 2 ,     "XXX_profile_space[]");
   this.WRITE_FLAG( uint(TLibCommon.B2U(ptl.GetTierFlag    ())),         "XXX_tier_flag[]"    );
-  this.WRITE_CODE( uint(ptl.GetProfileIdc  ()), 5 ,     "XXX_profile_idc[]"  );   
+  this.WRITE_CODE( uint(ptl.GetProfileIdc  ()), 5 ,     "XXX_profile_idc[]"  );
   for j := 0; j < 32; j++ {
-    this.WRITE_FLAG( uint(TLibCommon.B2U(ptl.GetProfileCompatibilityFlag(j))), "XXX_profile_compatibility_flag[][j]");   
+    this.WRITE_FLAG( uint(TLibCommon.B2U(ptl.GetProfileCompatibilityFlag(j))), "XXX_profile_compatibility_flag[][j]");
   }
-  this.WRITE_CODE(0 , 16, "XXX_reserved_zero_16bits[]");  
+  this.WRITE_CODE(0 , 16, "XXX_reserved_zero_16bits[]");
 }
 
 //#if SIGNAL_BITRATE_PICRATE_IN_VPS
@@ -1143,8 +1143,8 @@ func (this *TEncCavlc)  codeTilesWPPEntryPoint( pSlice *TLibCommon.TComSlice){
     pSubstreamSizes                  := pSlice.GetSubstreamSizes();
     maxNumParts                      := pSlice.GetPic().GetNumPartInCU();
 //#if DEPENDENT_SLICES
-    numZeroSubstreamsAtStartOfSlice   = int(pSlice.GetDependentSliceCurStartCUAddr()/maxNumParts/pSlice.GetPic().GetFrameWidthInCU());
-    numZeroSubstreamsAtEndOfSlice    := int(pSlice.GetPic().GetFrameHeightInCU()-1 - ((pSlice.GetDependentSliceCurEndCUAddr()-1)/maxNumParts/pSlice.GetPic().GetFrameWidthInCU()));
+    numZeroSubstreamsAtStartOfSlice   = int(pSlice.GetSliceSegmentCurStartCUAddr()/maxNumParts/pSlice.GetPic().GetFrameWidthInCU());
+    numZeroSubstreamsAtEndOfSlice    := int(pSlice.GetPic().GetFrameHeightInCU()-1 - ((pSlice.GetSliceSegmentCurEndCUAddr()-1)/maxNumParts/pSlice.GetPic().GetFrameWidthInCU()));
 /*#else
     numZeroSubstreamsAtStartOfSlice       = pSlice.GetSliceCurStartCUAddr()/maxNumParts/pSlice.GetPic().GetFrameWidthInCU();
     Int  numZeroSubstreamsAtEndOfSlice    = pSlice.GetPic().GetFrameHeightInCU()-1 - ((pSlice.GetSliceCurEndCUAddr()-1)/maxNumParts/pSlice.GetPic().GetFrameWidthInCU());
@@ -1163,7 +1163,7 @@ func (this *TEncCavlc)  codeTilesWPPEntryPoint( pSlice *TLibCommon.TComSlice){
   offsetLenMinus1 = 0;
   for maxOffset >= (1 << (offsetLenMinus1 + 1)) {
     offsetLenMinus1++;
-    //assert(offsetLenMinus1 + 1 < 32);    
+    //assert(offsetLenMinus1 + 1 < 32);
   }
 
   this.WRITE_UVLC(numEntryPointOffsets, "num_entry_point_offsets");
@@ -1181,7 +1181,7 @@ func (this *TEncCavlc)  codeTilesWPPEntryPoint( pSlice *TLibCommon.TComSlice){
 func (this *TEncCavlc)  codeTerminatingBit      ( uilsLast uint){}
 func (this *TEncCavlc)  codeSliceFinish         () {}
 func (this *TEncCavlc)  encodeStart             () {}
-  
+
 func (this *TEncCavlc) codeMVPIdx ( pcCU *TLibCommon.TComDataCU,  uiAbsPartIdx uint,  eRefList TLibCommon.RefPicList) {}
 func (this *TEncCavlc) codeSAOSign       ( code uint  ) {  }
 func (this *TEncCavlc) codeSaoMaxUvlc    ( code, maxSymbol uint){}
@@ -1193,13 +1193,13 @@ func (this *TEncCavlc) codeCUTransquantBypassFlag( pcCU *TLibCommon.TComDataCU, 
 func (this *TEncCavlc) codeSkipFlag      ( pcCU *TLibCommon.TComDataCU,  uiAbsPartIdx uint ) {}
 func (this *TEncCavlc) codeMergeFlag     ( pcCU *TLibCommon.TComDataCU,  uiAbsPartIdx uint ) {}
 func (this *TEncCavlc) codeMergeIndex    ( pcCU *TLibCommon.TComDataCU,  uiAbsPartIdx uint ) {}
- 
+
 func (this *TEncCavlc) codeInterModeFlag( pcCU *TLibCommon.TComDataCU,  uiAbsPartIdx uint,  uiDepth,  uiEncMode uint) {}
 func (this *TEncCavlc) codeSplitFlag     ( pcCU *TLibCommon.TComDataCU,  uiAbsPartIdx uint, uiDepth uint) {}
-  
+
 func (this *TEncCavlc) codePartSize      ( pcCU *TLibCommon.TComDataCU,  uiAbsPartIdx uint, uiDepth uint) {}
 func (this *TEncCavlc) codePredMode      ( pcCU *TLibCommon.TComDataCU,  uiAbsPartIdx uint ) {}
-  
+
 //#if !REMOVE_BURST_IPCM
 //func (this *TEncCavlc) codeIPCMInfo      ( pcCU *TLibCommon.TComDataCU,  uiAbsPartIdx uint, Int numIPCM, Bool firstIPCMFlag);
 //#else
@@ -1335,14 +1335,14 @@ func (this *TEncCavlc) codeScalingList  (scalingList *TLibCommon.TComScalingList
 
 func (this *TEncCavlc) xCodeScalingList ( scalingList *TLibCommon.TComScalingList, sizeId, listId uint) {
   coefNum := TLibCommon.MIN(int(TLibCommon.MAX_MATRIX_COEF_NUM), int(TLibCommon.G_scalingListSize[sizeId])).(int);
-  var scan []uint; 
+  var scan []uint;
   if sizeId == 0 {
   	scan = TLibCommon.G_auiSigLastScan [ TLibCommon.SCAN_DIAG ] [ 1 ][:];
   }else{
   	scan = TLibCommon.G_sigLastScanCG32x32[:];
   }
   nextCoef := TLibCommon.SCALING_LIST_START_VALUE;
-  var data int; 
+  var data int;
   src := scalingList.GetScalingListAddress(sizeId, listId);
     if sizeId > TLibCommon.SCALING_LIST_8x8 {
       this.WRITE_SVLC( scalingList.GetScalingListDC(sizeId,listId) - 8, "scaling_list_dc_coef_minus8");

@@ -48,7 +48,6 @@ import (
 /// GOP decoder class
 type TDecGop struct {
     //private:
-    m_iGopSize int
     m_cListPic *list.List //  Dynamic buffer
 
     //  Access channel
@@ -104,7 +103,7 @@ func (this *TDecGop) DecompressSlice(pcBitstream *TLibCommon.TComInputBitstream,
     //-- For time output for each slice
     iBeforeTime := time.Now()
 
-    uiStartCUAddr := pcSlice.GetDependentSliceCurStartCUAddr()
+    uiStartCUAddr := pcSlice.GetSliceSegmentCurStartCUAddr()
 
     uiSliceStartCuAddr := pcSlice.GetSliceCurStartCUAddr()
     if uiSliceStartCuAddr == uiStartCUAddr {
@@ -159,7 +158,7 @@ func (this *TDecGop) DecompressSlice(pcBitstream *TLibCommon.TComInputBitstream,
         //this.m_LFCrossSliceBoundaryFlag.PushBack( pcSlice.GetLFCrossSliceBoundaryFlag());
     }
     this.m_pcSbacDecoders[0].Load(this.m_pcSbacDecoder)
-    this.m_pcSliceDecoder.DecompressSlice(pcBitstream, ppcSubstreams, rpcPic, this.m_pcSbacDecoder, this.m_pcSbacDecoders)
+    this.m_pcSliceDecoder.DecompressSlice(ppcSubstreams, rpcPic, this.m_pcSbacDecoder, this.m_pcSbacDecoders)
     this.m_pcEntropyDecoder.SetBitstream(ppcSubstreams[uiNumSubstreams-1])
     // deallocate all created substreams, including internal buffers.
     /*for ui := uint(0); ui < uiNumSubstreams; ui++ {
@@ -188,7 +187,6 @@ func (this *TDecGop) FilterPicture(rpcPic *TLibCommon.TComPic) {
     this.m_pcLoopFilter.SetCfg(bLFCrossTileBoundary)
     this.m_pcLoopFilter.LoopFilterPic(rpcPic)
 
-    pcSlice = rpcPic.GetSlice(0)
     if pcSlice.GetSPS().GetUseSAO() {
         l := len(this.m_sliceStartCUAddress)
         this.m_sliceStartCUAddress[l] = int(rpcPic.GetNumCUsInFrame() * rpcPic.GetNumPartInCU())
@@ -197,16 +195,14 @@ func (this *TDecGop) FilterPicture(rpcPic *TLibCommon.TComPic) {
     }
 
     if pcSlice.GetSPS().GetUseSAO() {
-        if pcSlice.GetSaoEnabledFlag() || pcSlice.GetSaoEnabledFlagChroma() {
-            saoParam := rpcPic.GetPicSym().GetSaoParam()
-            saoParam.SaoFlag[0] = pcSlice.GetSaoEnabledFlag()
-            saoParam.SaoFlag[1] = pcSlice.GetSaoEnabledFlagChroma()
-            this.m_pcSAO.SetSaoLcuBasedOptimization(true)
-            this.m_pcSAO.CreatePicSaoInfo(rpcPic, len(this.m_sliceStartCUAddress)-1)
-            this.m_pcSAO.SAOProcess(saoParam)
-            this.m_pcSAO.PCMLFDisableProcess(rpcPic)
-            this.m_pcSAO.DestroyPicSaoInfo()
-        }
+        saoParam := rpcPic.GetPicSym().GetSaoParam()
+        saoParam.SaoFlag[0] = pcSlice.GetSaoEnabledFlag()
+        saoParam.SaoFlag[1] = pcSlice.GetSaoEnabledFlagChroma()
+        this.m_pcSAO.SetSaoLcuBasedOptimization(true)
+        this.m_pcSAO.CreatePicSaoInfo(rpcPic);//, len(this.m_sliceStartCUAddress)-1)
+        this.m_pcSAO.SAOProcess(saoParam)
+        this.m_pcSAO.PCMLFDisableProcess(rpcPic)
+        this.m_pcSAO.DestroyPicSaoInfo()
     }
 
     if pcSlice.GetSPS().GetUseSAO() {
@@ -275,9 +271,6 @@ func (this *TDecGop) FilterPicture(rpcPic *TLibCommon.TComPic) {
     if len(this.m_LFCrossSliceBoundaryFlag) != 0 {
         fmt.Printf("clear this.m_LFCrossSliceBoundaryFlag error\n")
     }
-}
-func (this *TDecGop) SetGopSize(i int) {
-    this.m_iGopSize = i
 }
 
 func (this *TDecGop) SetDecodedPictureHashSEIEnabled(enabled int) {

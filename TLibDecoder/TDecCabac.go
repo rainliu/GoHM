@@ -57,15 +57,13 @@ type TDecBinIf interface {
     DecodeBinTrm(ruiBin *uint)
 
     ResetBac()
-    //#if !REMOVE_BURST_IPCM
-    //  virtual Void  decodeNumSubseqIPCM( Int& numSubseqIPCM );
-    //#endif
+
     DecodePCMAlignBits()
     xReadPCMCode(uiLength uint, ruiCode *uint)
 
     CopyState(pcTDecBinIf TDecBinIf)
     GetTDecBinCABAC() *TDecBinCabac
-    
+
     SetSbac(pDecSbac *TDecSbac);
 }
 
@@ -122,7 +120,7 @@ func (this *TDecBinCabac) DecodeBin(ruiBin *uint, rcCtxModel *TLibCommon.Context
     //this.m_pTDecSbac.DTRACE_CABAC_T("\tm_bitsNeeded=")
     //this.m_pTDecSbac.DTRACE_CABAC_V(uint(this.m_bitsNeeded))
     this.m_pTDecSbac.DTRACE_CABAC_T("\n")*/
-    
+
     uiLPS := uint(TLibCommon.TComCABACTables_sm_aucLPSTable[rcCtxModel.GetState()][(this.m_uiRange>>6)-4])
     this.m_uiRange -= uiLPS
     scaledRange := this.m_uiRange << 7
@@ -169,8 +167,8 @@ func (this *TDecBinCabac) DecodeBinEP(ruiBin *uint) {
     //this.m_pTDecSbac.DTRACE_CABAC_T("\tm_bitsNeeded=")
     //this.m_pTDecSbac.DTRACE_CABAC_V(uint(this.m_bitsNeeded))
     this.m_pTDecSbac.DTRACE_CABAC_T("\n")*/
-    
-    
+
+
     this.m_uiValue += this.m_uiValue
     this.m_bitsNeeded++
     if this.m_bitsNeeded >= 0 {
@@ -195,8 +193,8 @@ func (this *TDecBinCabac) DecodeBinsEP(ruiBin *uint, numBins int) {
     this.m_pTDecSbac.DTRACE_CABAC_T("\tm_bitsNeeded=")
     this.m_pTDecSbac.DTRACE_CABAC_V(uint(this.m_bitsNeeded))*/
     //this.m_pTDecSbac.DTRACE_CABAC_T("\n")
-    
-    
+
+
     bins := uint(0)
 
     for numBins > 8 {
@@ -206,7 +204,7 @@ func (this *TDecBinCabac) DecodeBinsEP(ruiBin *uint, numBins int) {
 		this.m_pTDecSbac.DTRACE_CABAC_V(byteTmp)
 		this.m_pTDecSbac.DTRACE_CABAC_T("\tm_uiValue=")
 		this.m_pTDecSbac.DTRACE_CABAC_V(this.m_uiValue)*/
-		
+
         scaledRange := this.m_uiRange << 15
         for i := 0; i < 8; i++ {
             bins += bins
@@ -224,10 +222,10 @@ func (this *TDecBinCabac) DecodeBinsEP(ruiBin *uint, numBins int) {
 
     if this.m_bitsNeeded >= 0 {
         this.m_uiValue += this.m_pcTComBitstream.ReadByte() << uint(this.m_bitsNeeded)
-        
+
         //this.m_pTDecSbac.DTRACE_CABAC_T("\tm_uiValue=")
 		//this.m_pTDecSbac.DTRACE_CABAC_V(this.m_uiValue)
-		
+
         this.m_bitsNeeded -= 8
     }
 
@@ -240,9 +238,9 @@ func (this *TDecBinCabac) DecodeBinsEP(ruiBin *uint, numBins int) {
             this.m_uiValue -= scaledRange
         }
     }
-	
+
 	//this.m_pTDecSbac.DTRACE_CABAC_T("\n")
-	
+
     *ruiBin = bins
 }
 func (this *TDecBinCabac) DecodeBinTrm(ruiBin *uint) {
@@ -270,9 +268,6 @@ func (this *TDecBinCabac) ResetBac() {
     this.m_uiValue = this.m_pcTComBitstream.ReadBits(16)
 }
 
-//#if !REMOVE_BURST_IPCM
-//  Void  decodeNumSubseqIPCM( Int& numSubseqIPCM ) ;
-//#endif
 func (this *TDecBinCabac) DecodePCMAlignBits() {
     iNum := this.m_pcTComBitstream.GetNumBitsUntilByteAligned()
 
@@ -1000,7 +995,7 @@ func (this *TDecSbac) ParseMergeFlag(pcCU *TLibCommon.TComDataCU, uiAbsPartIdx, 
     this.DTRACE_CABAC_V(uiAbsPartIdx)
     this.DTRACE_CABAC_T("\n")
 }
-func (this *TDecSbac) ParseMergeIndex(pcCU *TLibCommon.TComDataCU, ruiMergeIndex *uint, uiAbsPartIdx, uiDepth uint) {
+func (this *TDecSbac) ParseMergeIndex(pcCU *TLibCommon.TComDataCU, ruiMergeIndex *uint) {
     uiUnaryIdx := uint(0)
     uiNumCand := pcCU.GetSlice().GetMaxNumMergeCand()
     if uiNumCand > 1 {
@@ -1187,7 +1182,7 @@ func (this *TDecSbac) ParseIntraDirChroma(pcCU *TLibCommon.TComDataCU, uiAbsPart
     return
 }
 
-func (this *TDecSbac) ParseInterDir(pcCU *TLibCommon.TComDataCU, ruiInterDir *uint, uiAbsPartIdx, uiDepth uint) {
+func (this *TDecSbac) ParseInterDir(pcCU *TLibCommon.TComDataCU, ruiInterDir *uint, uiAbsPartIdx uint) {
     var uiSymbol uint
     uiCtx := pcCU.GetCtxInterDir(uiAbsPartIdx)
     pCtx := this.m_cCUInterDirSCModel.Get1(0)
@@ -1207,7 +1202,7 @@ func (this *TDecSbac) ParseInterDir(pcCU *TLibCommon.TComDataCU, ruiInterDir *ui
     *ruiInterDir = uiSymbol
     return
 }
-func (this *TDecSbac) ParseRefFrmIdx(pcCU *TLibCommon.TComDataCU, riRefFrmIdx *int, uiAbsPartIdx, uiDepth uint, eRefList TLibCommon.RefPicList) {
+func (this *TDecSbac) ParseRefFrmIdx(pcCU *TLibCommon.TComDataCU, riRefFrmIdx *int, eRefList TLibCommon.RefPicList) {
     var uiSymbol uint
     {
         pCtx := this.m_cCURefPicSCModel.Get1(0)
@@ -1334,7 +1329,7 @@ func (this *TDecSbac) ParseQtCbf(pcCU *TLibCommon.TComDataCU, uiAbsPartIdx uint,
 
     pcCU.SetCbfSubParts4(byte(uiSymbol<<uiTrDepth), eType, uiAbsPartIdx, uiDepth)
 }
-func (this *TDecSbac) ParseQtRootCbf(pcCU *TLibCommon.TComDataCU, uiAbsPartIdx, uiDepth uint, uiQtRootCbf *uint) {
+func (this *TDecSbac) ParseQtRootCbf(uiAbsPartIdx uint, uiQtRootCbf *uint) {
     var uiSymbol uint
     uiCtx := uint(0)
     this.m_pcTDecBinIf.DecodeBin(&uiSymbol, this.m_cCUQtRootCbfSCModel.Get3(0, 0, uiCtx))
@@ -1382,32 +1377,16 @@ func (this *TDecSbac) ParseDeltaQP(pcCU *TLibCommon.TComDataCU, uiAbsPartIdx, ui
 
 func (this *TDecSbac) ParseIPCMInfo(pcCU *TLibCommon.TComDataCU, uiAbsPartIdx, uiDepth uint) {
     var uiSymbol uint
-    /*#if !REMOVE_BURST_IPCM
-      Int numSubseqIPCM = 0;
-    #endif*/
+
     readPCMSampleFlag := false
 
-    /*#if !REMOVE_BURST_IPCM
-      if(pcCU.GetNumSucIPCM() > 0)
-      {
-        readPCMSampleFlag = true;
-      }
-      else
-      {
-    #endif*/
     this.m_pcTDecBinIf.DecodeBinTrm(&uiSymbol)
 
     if uiSymbol != 0 {
         readPCMSampleFlag = true
-        /*#if !REMOVE_BURST_IPCM
-              this.m_pcTDecBinIf.DecodeNumSubseqIPCM(numSubseqIPCM);
-              pcCU.SetNumSucIPCM(numSubseqIPCM + 1);
-        #endif*/
+
         this.m_pcTDecBinIf.DecodePCMAlignBits()
     }
-    /*#if !REMOVE_BURST_IPCM
-      }
-    #endif*/
 
     if readPCMSampleFlag == true {
         bIpcmFlag := true
@@ -1465,16 +1444,7 @@ func (this *TDecSbac) ParseIPCMInfo(pcCU *TLibCommon.TComDataCU, uiAbsPartIdx, u
             }
             //piPCMSample += uiWidth;
         }
-
-        /*#if !REMOVE_BURST_IPCM
-            pcCU.SetNumSucIPCM( pcCU.GetNumSucIPCM() - 1);
-            if(pcCU.GetNumSucIPCM() == 0)
-            {
-        #endif*/
         this.m_pcTDecBinIf.ResetBac()
-        /*#if !REMOVE_BURST_IPCM
-            }
-        #endif*/
     }
 }
 
@@ -1664,16 +1634,16 @@ func (this *TDecSbac) ParseCoeffNxN(pcCU *TLibCommon.TComDataCU, pcCoef []TLibCo
             uiSigCoeffGroupFlag[iCGBlkPos] = 1
         } else {
             var uiSigCoeffGroup uint
-            uiCtxSig := TLibCommon.GetSigCoeffGroupCtxInc(uiSigCoeffGroupFlag[:], iCGPosX, iCGPosY, uiScanIdx, int(uiWidth), int(uiHeight))
+            uiCtxSig := TLibCommon.GetSigCoeffGroupCtxInc(uiSigCoeffGroupFlag[:], iCGPosX, iCGPosY, int(uiWidth), int(uiHeight))
             this.m_pcTDecBinIf.DecodeBin(&uiSigCoeffGroup, &baseCoeffGroupCtx[uiCtxSig])
-            
+
             //this.DTRACE_CABAC_VL( g_nSymbolCounter++ );
 		    this.DTRACE_CABAC_T("\tuiSigCoeffGroup")
 		    this.DTRACE_CABAC_V(uiSigCoeffGroup)
 		    this.DTRACE_CABAC_T("\tuiCtxSig: ")
 		    this.DTRACE_CABAC_V(uiCtxSig)
 		    this.DTRACE_CABAC_T("\n")
-		            
+
 		    uiSigCoeffGroupFlag[iCGBlkPos] = uiSigCoeffGroup
         }
 
@@ -1688,9 +1658,9 @@ func (this *TDecSbac) ParseCoeffNxN(pcCU *TLibCommon.TComDataCU, pcCoef []TLibCo
 
             if uiSigCoeffGroupFlag[iCGBlkPos] != 0 {
                 if iScanPosSig > int(iSubPos) || iSubSet == 0 || numNonZero != 0 {
-                    uiCtxSig = uint(TLibCommon.GetSigCtxInc(patternSigCtx, uiScanIdx, int(uiPosX), int(uiPosY), int(uiLog2BlockSize), int(uiWidth), int(uiHeight), eTType))
+                    uiCtxSig = uint(TLibCommon.GetSigCtxInc(patternSigCtx, uiScanIdx, int(uiPosX), int(uiPosY), int(uiLog2BlockSize), eTType))
                     this.m_pcTDecBinIf.DecodeBin(&uiSig, &baseCtx[uiCtxSig])
-                    
+
                     //this.DTRACE_CABAC_VL( g_nSymbolCounter++ );
 				    this.DTRACE_CABAC_T("\tuiSig")
 				    this.DTRACE_CABAC_V(uiSig)
@@ -1753,7 +1723,7 @@ func (this *TDecSbac) ParseCoeffNxN(pcCU *TLibCommon.TComDataCU, pcCoef []TLibCo
 			    this.DTRACE_CABAC_T("\tc1: ")
 			    this.DTRACE_CABAC_V(uint(c1))
 			    this.DTRACE_CABAC_T("\n")
-				    
+
                 if uiBin == 1 {
                     c1 = 0
                     if firstC2FlagIdx == -1 {
@@ -1774,14 +1744,14 @@ func (this *TDecSbac) ParseCoeffNxN(pcCU *TLibCommon.TComDataCU, pcCoef []TLibCo
 
                 if firstC2FlagIdx != -1 {
                     this.m_pcTDecBinIf.DecodeBin(&uiBin, &baseCtxMod[0]);
-                    
+
                     //this.DTRACE_CABAC_VL( g_nSymbolCounter++ );
 				    this.DTRACE_CABAC_T("\tuiBin")
 				    this.DTRACE_CABAC_V(uiBin)
 				    this.DTRACE_CABAC_T("\tc1: ")
 				    this.DTRACE_CABAC_V(0)
 				    this.DTRACE_CABAC_T("\n")
-                    
+
                     absCoeff[firstC2FlagIdx] = int(uiBin) + 2
                 }
             }
@@ -1795,7 +1765,7 @@ func (this *TDecSbac) ParseCoeffNxN(pcCU *TLibCommon.TComDataCU, pcCoef []TLibCo
 				    this.DTRACE_CABAC_T("\tnumNonZero-1: ")
 				    this.DTRACE_CABAC_V(uint(numNonZero-1))
 				    this.DTRACE_CABAC_T("\n")
-				    
+
                 coeffSigns <<= uint(32 - (numNonZero - 1))
             } else {
                 this.m_pcTDecBinIf.DecodeBinsEP(&coeffSigns, numNonZero)
@@ -1805,7 +1775,7 @@ func (this *TDecSbac) ParseCoeffNxN(pcCU *TLibCommon.TComDataCU, pcCoef []TLibCo
 				    this.DTRACE_CABAC_T("\tnumNonZero: ")
 				    this.DTRACE_CABAC_V(uint(numNonZero))
 				    this.DTRACE_CABAC_T("\n")
-				    
+
                 coeffSigns <<= uint(32 - numNonZero)
             }
 
@@ -1828,7 +1798,7 @@ func (this *TDecSbac) ParseCoeffNxN(pcCU *TLibCommon.TComDataCU, pcCoef []TLibCo
 					    this.DTRACE_CABAC_T("\tuiGoRiceParam: ")
 					    this.DTRACE_CABAC_V(uint(uiGoRiceParam))
 					    this.DTRACE_CABAC_T("\n")
-					    
+
                         absCoeff[idx] = int(uiLevel + baseLevel)
                         if absCoeff[idx] > 3*(1<<uint(uiGoRiceParam)) {
                             uiGoRiceParam = TLibCommon.MIN(uiGoRiceParam+1, 4).(int)

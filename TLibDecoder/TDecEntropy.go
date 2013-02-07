@@ -87,7 +87,7 @@ type TDecEntropyIf interface {
     ParseCUTransquantBypassFlag(pcCU *TLibCommon.TComDataCU, uiAbsPartIdx, uiDepth uint)
     ParseSplitFlag(pcCU *TLibCommon.TComDataCU, uiAbsPartIdx, uiDepth uint)
     ParseMergeFlag(pcCU *TLibCommon.TComDataCU, uiAbsPartIdx, uiDepth, uiPUIdx uint)
-    ParseMergeIndex(pcCU *TLibCommon.TComDataCU, ruiMergeIndex *uint, uiAbsPartIdx, uiDepth uint)
+    ParseMergeIndex(pcCU *TLibCommon.TComDataCU, ruiMergeIndex *uint)
     ParsePartSize(pcCU *TLibCommon.TComDataCU, uiAbsPartIdx, uiDepth uint)
     ParsePredMode(pcCU *TLibCommon.TComDataCU, uiAbsPartIdx, uiDepth uint)
 
@@ -95,13 +95,13 @@ type TDecEntropyIf interface {
 
     ParseIntraDirChroma(pcCU *TLibCommon.TComDataCU, uiAbsPartIdx, uiDepth uint)
 
-    ParseInterDir(pcCU *TLibCommon.TComDataCU, ruiInterDir *uint, uiAbsPartIdx, uiDepth uint)
-    ParseRefFrmIdx(pcCU *TLibCommon.TComDataCU, riRefFrmIdx *int, uiAbsPartIdx, uiDepth uint, eRefList TLibCommon.RefPicList)
+    ParseInterDir(pcCU *TLibCommon.TComDataCU, ruiInterDir *uint, uiAbsPartIdx uint)
+    ParseRefFrmIdx(pcCU *TLibCommon.TComDataCU, riRefFrmIdx *int, eRefList TLibCommon.RefPicList)
     ParseMvd(pcCU *TLibCommon.TComDataCU, uiAbsPartAddr, uiPartIdx, uiDepth uint, eRefList TLibCommon.RefPicList)
 
     ParseTransformSubdivFlag(ruiSubdivFlag *uint, uiLog2TransformBlockSize uint)
     ParseQtCbf(pcCU *TLibCommon.TComDataCU, uiAbsPartIdx uint, eType TLibCommon.TextType, uiTrDepth, uiDepth uint)
-    ParseQtRootCbf(pcCU *TLibCommon.TComDataCU, uiAbsPartIdx, uiDepth uint, uiQtRootCbf *uint)
+    ParseQtRootCbf(uiAbsPartIdx uint, uiQtRootCbf *uint)
 
     ParseDeltaQP(pcCU *TLibCommon.TComDataCU, uiAbsPartIdx, uiDepth uint)
 
@@ -158,7 +158,7 @@ func (this *TDecEntropy) DecodePUWise(pcCU *TLibCommon.TComDataCU, uiAbsPartIdx,
     for uiPartIdx := uint(0); uiPartIdx < uiNumPU; uiPartIdx++ {
         this.DecodeMergeFlag(pcCU, uiSubPartIdx, uiDepth, uiPartIdx)
         if pcCU.GetMergeFlag1(uiSubPartIdx) {
-            this.DecodeMergeIndex(pcCU, uiPartIdx, uiSubPartIdx, ePartSize, uhInterDirNeighbours[:], cMvFieldNeighbours[:], uiDepth)
+            this.DecodeMergeIndex(pcCU, uiPartIdx, uiSubPartIdx, uiDepth)
             uiMergeIndex := pcCU.GetMergeIndex1(uiSubPartIdx)
             if pcCU.GetSlice().GetPPS().GetLog2ParallelMergeLevelMinus2() != 0 && ePartSize != TLibCommon.SIZE_2Nx2N && pcSubCU.GetWidth1(0) <= 8 {
                 pcSubCU.SetPartSizeSubParts(TLibCommon.SIZE_2Nx2N, 0, uiDepth)
@@ -209,7 +209,7 @@ func (this *TDecEntropy) DecodeInterDirPU(pcCU *TLibCommon.TComDataCU, uiAbsPart
     if pcCU.GetSlice().IsInterP() {
         uiInterDir = 1
     } else {
-        this.m_pcEntropyDecoderIf.ParseInterDir(pcCU, &uiInterDir, uiAbsPartIdx, uiDepth)
+        this.m_pcEntropyDecoderIf.ParseInterDir(pcCU, &uiInterDir, uiAbsPartIdx)
     }
 
     pcCU.SetInterDirSubParts(uiInterDir, uiAbsPartIdx, uiPartIdx, uiDepth)
@@ -222,7 +222,7 @@ func (this *TDecEntropy) DecodeRefFrmIdxPU(pcCU *TLibCommon.TComDataCU, uiAbsPar
     //fmt.Printf("iParseRefFrmIdx=%d\n", iParseRefFrmIdx);
 
     if pcCU.GetSlice().GetNumRefIdx(eRefList) > 1 && iParseRefFrmIdx != 0 {
-        this.m_pcEntropyDecoderIf.ParseRefFrmIdx(pcCU, &iRefFrmIdx, uiAbsPartIdx, uiDepth, eRefList)
+        this.m_pcEntropyDecoderIf.ParseRefFrmIdx(pcCU, &iRefFrmIdx, eRefList)
         //fmt.Printf("0iRefFrmIdx=%d\n", iRefFrmIdx);
     } else if iParseRefFrmIdx == 0 {
         iRefFrmIdx = TLibCommon.NOT_VALID
@@ -260,7 +260,7 @@ func (this *TDecEntropy) DecodeMVPIdxPU(pcSubCU *TLibCommon.TComDataCU, uiPartAd
     pcSubCU.SetMVPNumSubParts(pAMVPInfo.IN, eRefList, uiPartAddr, uiPartIdx, uiDepth)
     pcSubCU.SetMVPIdxSubParts(iMVPIdx, eRefList, uiPartAddr, uiPartIdx, uiDepth)
     if iRefIdx >= 0 {
-        cMv = this.m_pcPrediction.GetMvPredAMVP(pcSubCU, uiPartIdx, uiPartAddr, eRefList, iRefIdx)
+        cMv = this.m_pcPrediction.GetMvPredAMVP(pcSubCU, uiPartIdx, uiPartAddr, eRefList)
         cMvd := pcSubCUMvField.GetMvd(int(uiPartAddr))
         //fmt.Printf("%d=(%d,%d)=(%d,%d)\n", iRefIdx, cMv.GetHor(), cMv.GetVer(), cMvd.GetHor(), cMvd.GetVer());
         cMv.Set(cMv.GetHor()+cMvd.GetHor(), cMv.GetVer()+cMvd.GetVer())
@@ -292,7 +292,7 @@ func (this *TDecEntropy) DecodeVPS(pcVPS *TLibCommon.TComVPS) {
 func (this *TDecEntropy) DecodeSPS(pcSPS *TLibCommon.TComSPS) {
     this.m_pcEntropyDecoderIf.ParseSPS(pcSPS)
 }
-func (this *TDecEntropy) DecodePPS(pcPPS *TLibCommon.TComPPS, parameterSet *TLibCommon.ParameterSetManager) {
+func (this *TDecEntropy) DecodePPS(pcPPS *TLibCommon.TComPPS) {
     this.m_pcEntropyDecoderIf.ParsePPS(pcPPS)
 }
 func (this *TDecEntropy) DecodeSliceHeader(rpcSlice *TLibCommon.TComSlice, parameterSetManager *TLibCommon.ParameterSetManager) {
@@ -321,9 +321,9 @@ func (this *TDecEntropy) DecodeMergeFlag(pcSubCU *TLibCommon.TComDataCU, uiAbsPa
     // at least one merge candidate exists
     this.m_pcEntropyDecoderIf.ParseMergeFlag(pcSubCU, uiAbsPartIdx, uiDepth, uiPUIdx)
 }
-func (this *TDecEntropy) DecodeMergeIndex(pcCU *TLibCommon.TComDataCU, uiPartIdx, uiAbsPartIdx uint, eCUMode TLibCommon.PartSize, puhInterDirNeighbours []byte, pcMvFieldNeighbours []TLibCommon.TComMvField, uiDepth uint) {
+func (this *TDecEntropy) DecodeMergeIndex(pcCU *TLibCommon.TComDataCU, uiPartIdx, uiAbsPartIdx uint, uiDepth uint) {
     uiMergeIndex := uint(0)
-    this.m_pcEntropyDecoderIf.ParseMergeIndex(pcCU, &uiMergeIndex, uiAbsPartIdx, uiDepth)
+    this.m_pcEntropyDecoderIf.ParseMergeIndex(pcCU, &uiMergeIndex)
     pcCU.SetMergeIndexSubParts(uiMergeIndex, uiAbsPartIdx, uiPartIdx, uiDepth)
 
 }
@@ -377,7 +377,7 @@ func (this *TDecEntropy) DecodeCoeff(pcCU *TLibCommon.TComDataCU, uiAbsPartIdx, 
     if !pcCU.IsIntra(uiAbsPartIdx) {
         uiQtRootCbf := uint(1)
         if !(pcCU.GetPartitionSize1(uiAbsPartIdx) == TLibCommon.SIZE_2Nx2N && pcCU.GetMergeFlag1(uiAbsPartIdx)) {
-            this.m_pcEntropyDecoderIf.ParseQtRootCbf(pcCU, uiAbsPartIdx, uiDepth, &uiQtRootCbf)
+            this.m_pcEntropyDecoderIf.ParseQtRootCbf(uiAbsPartIdx, &uiQtRootCbf)
         }
         if uiQtRootCbf == 0 {
             pcCU.SetCbfSubParts(0, 0, 0, uiAbsPartIdx, uiDepth)
@@ -386,11 +386,11 @@ func (this *TDecEntropy) DecodeCoeff(pcCU *TLibCommon.TComDataCU, uiAbsPartIdx, 
         }
 
     }
-    this.xDecodeTransform(pcCU, uiLumaOffset, uiChromaOffset, uiAbsPartIdx, uiAbsPartIdx, uiDepth, uiWidth, uiHeight, 0, 0, bCodeDQP)
+    this.xDecodeTransform(pcCU, uiLumaOffset, uiChromaOffset, uiAbsPartIdx, uiDepth, uiWidth, uiHeight, 0, bCodeDQP)
 }
 
 //private:
-func (this *TDecEntropy) xDecodeTransform(pcCU *TLibCommon.TComDataCU, offsetLuma, offsetChroma, uiAbsPartIdx, absTUPartIdx, uiDepth, width, height, uiTrIdx, uiInnerQuadIdx uint, bCodeDQP *bool) {
+func (this *TDecEntropy) xDecodeTransform(pcCU *TLibCommon.TComDataCU, offsetLuma, offsetChroma, uiAbsPartIdx, uiDepth, width, height, uiTrIdx uint, bCodeDQP *bool) {
     var uiSubdiv uint
     uiLog2TrafoSize := uint(TLibCommon.G_aucConvertToBit[pcCU.GetSlice().GetSPS().GetMaxCUWidth()]) + 2 - uiDepth
 
@@ -453,8 +453,7 @@ func (this *TDecEntropy) xDecodeTransform(pcCU *TLibCommon.TComDataCU, offsetLum
         uiVCbf := uint(0)
 
         for i := uint(0); i < 4; i++ {
-            nsAddr := uiAbsPartIdx
-            this.xDecodeTransform(pcCU, offsetLuma, offsetChroma, uiAbsPartIdx, nsAddr, uiDepth, width, height, uiTrIdx, i, bCodeDQP)
+            this.xDecodeTransform(pcCU, offsetLuma, offsetChroma, uiAbsPartIdx, uiDepth, width, height, uiTrIdx, bCodeDQP)
             uiYCbf |= uint(pcCU.GetCbf3(uiAbsPartIdx, TLibCommon.TEXT_LUMA, uiTrDepth+1))
             uiUCbf |= uint(pcCU.GetCbf3(uiAbsPartIdx, TLibCommon.TEXT_CHROMA_U, uiTrDepth+1))
             uiVCbf |= uint(pcCU.GetCbf3(uiAbsPartIdx, TLibCommon.TEXT_CHROMA_V, uiTrDepth+1))

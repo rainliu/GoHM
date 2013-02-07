@@ -80,14 +80,14 @@ type TEncBinCABAC struct{//: public TEncBinIf
 func NewTEncBinCABAC () *TEncBinCABAC{
 	return &TEncBinCABAC{};
 }
-  
+
 func (this *TEncBinCABAC)  init              ( pcTComBitIf TLibCommon.TComBitIf){
 	this.m_pcTComBitIf = pcTComBitIf;
 }
 func (this *TEncBinCABAC)  uninit            (){
 	this.m_pcTComBitIf = nil;
 }
-  
+
 func (this *TEncBinCABAC)  start             (){
   this.m_uiLow            = 0;
   this.m_uiRange          = 510;
@@ -113,7 +113,7 @@ func (this *TEncBinCABAC)  finish            (){
     for this.m_numBufferedBytes > 1 {
       this.m_pcTComBitIf.Write( 0xff, 8 );
       this.m_numBufferedBytes--;
-    }    
+    }
   }
   this.m_pcTComBitIf.Write( this.m_uiLow >> 8, uint(24 - this.m_bitsLeft) );
 }
@@ -157,7 +157,7 @@ func (this *TEncBinCABAC)  encodePCMAlignBits(){
 func (this *TEncBinCABAC)  xWritePCMCode     ( uiCode, uiLength uint){
 this.m_pcTComBitIf.Write(uiCode, uiLength);
 }
-  
+
 func (this *TEncBinCABAC)  resetBits         (){
   this.m_uiLow            = 0;
   this.m_bitsLeft         = 23;
@@ -174,7 +174,7 @@ func (this *TEncBinCABAC)  resetBits         (){
 func (this *TEncBinCABAC)  getNumWrittenBits () uint {
   return this.m_pcTComBitIf.GetNumberOfWrittenBits() + 8 * uint(this.m_numBufferedBytes) + 23 - uint(this.m_bitsLeft);
 }
-  
+
 func (this *TEncBinCABAC)  encodeBin         (  binValue uint,  rcCtxModel *TLibCommon.ContextModel) {
   /*{
     DTRACE_CABAC_VL( g_nSymbolCounter++ )
@@ -186,28 +186,28 @@ func (this *TEncBinCABAC)  encodeBin         (  binValue uint,  rcCtxModel *TLib
   }*/
   this.m_uiBinsCoded += uint(this.m_binCountIncrement);
   rcCtxModel.SetBinsCoded( 1 );
-  
+
   uiLPS := uint(TLibCommon.TComCABACTables_sm_aucLPSTable[ rcCtxModel.GetState() ][ ( this.m_uiRange >> 6 ) & 3 ]);
   this.m_uiRange    -= uint(uiLPS);
-  
+
   if binValue != uint(rcCtxModel.GetMps()) {
     numBits := uint(TLibCommon.TComCABACTables_sm_aucRenormTable[ uiLPS >> 3 ]);
     this.m_uiLow     = ( this.m_uiLow + this.m_uiRange ) << numBits;
     this.m_uiRange   = uiLPS << numBits;
     rcCtxModel.UpdateLPS();
-    
+
     this.m_bitsLeft -= int(numBits);
   }else{
     rcCtxModel.UpdateMPS();
     if this.m_uiRange >= 256 {
       return;
     }
-    
+
     this.m_uiLow <<= 1;
     this.m_uiRange <<= 1;
     this.m_bitsLeft--;
   }
-  
+
   this.testAndWriteOut();
 }
 
@@ -224,35 +224,35 @@ func (this *TEncBinCABAC)  encodeBinEP       (  binValue uint                   
     this.m_uiLow += this.m_uiRange;
   }
   this.m_bitsLeft--;
-  
+
   this.testAndWriteOut();
 }
 
 func (this *TEncBinCABAC)  encodeBinsEP      (  binValues uint, numBins int             ){
   this.m_uiBinsCoded += uint(numBins & (-this.m_binCountIncrement));
-  
+
   for i := 0; i < numBins; i++ {
     /*DTRACE_CABAC_VL( g_nSymbolCounter++ )
     DTRACE_CABAC_T( "\tEPsymbol=" )
     DTRACE_CABAC_V( ( binValues >> ( numBins - 1 - i ) ) & 1 )
     DTRACE_CABAC_T( "\n" )*/
   }
-  
+
   for numBins > 8 {
     numBins -= 8;
-    pattern := binValues >> uint(numBins); 
+    pattern := binValues >> uint(numBins);
     this.m_uiLow <<= 8;
     this.m_uiLow += this.m_uiRange * pattern;
     binValues -= pattern << uint(numBins);
     this.m_bitsLeft -= 8;
-    
+
     this.testAndWriteOut();
   }
-  
+
   this.m_uiLow <<= uint(numBins);
   this.m_uiLow += this.m_uiRange * binValues;
   this.m_bitsLeft -= numBins;
-  
+
   this.testAndWriteOut();
 }
 
@@ -269,19 +269,19 @@ func (this *TEncBinCABAC)  encodeBinTrm      (  binValue  uint                  
   }else{
     this.m_uiLow   <<= 1;
     this.m_uiRange <<= 1;
-    this.m_bitsLeft--;    
+    this.m_bitsLeft--;
   }
-  
+
   this.testAndWriteOut();
 }
-  
+
 func (this *TEncBinCABAC)  getTEncBinCABAC() *TEncBinCABAC { return this; }
-  
+
 func (this *TEncBinCABAC)  setBinsCoded              ( uiVal uint)  { this.m_uiBinsCoded = uiVal;               }
 func (this *TEncBinCABAC)  getBinsCoded              () uint             { return this.m_uiBinsCoded;                }
 func (this *TEncBinCABAC)  setBinCountingEnableFlag  ( bFlag bool)  { this.m_binCountIncrement = int(TLibCommon.B2U(bFlag)); }
 func (this *TEncBinCABAC)  getBinCountingEnableFlag  ()  bool            { return this.m_binCountIncrement != 0;     }
-  
+
 func (this *TEncBinCABAC) testAndWriteOut(){
   if this.m_bitsLeft < 12 {
     this.writeOut();
@@ -292,7 +292,7 @@ func (this *TEncBinCABAC) writeOut(){
   leadByte := this.m_uiLow >> uint(24 - this.m_bitsLeft);
   this.m_bitsLeft += 8;
   this.m_uiLow &= (0xffffffff >> uint(this.m_bitsLeft));
-  
+
   if leadByte == 0xff {
     this.m_numBufferedBytes++;
   }else{
@@ -301,7 +301,7 @@ func (this *TEncBinCABAC) writeOut(){
       byte1 := this.m_bufferedByte + carry;
       this.m_bufferedByte = leadByte & 0xff;
       this.m_pcTComBitIf.Write( byte1, 8 );
-      
+
       byte1 = ( 0xff + carry ) & 0xff;
       for this.m_numBufferedBytes > 1 {
         this.m_pcTComBitIf.Write( byte1, 8 );
@@ -310,8 +310,8 @@ func (this *TEncBinCABAC) writeOut(){
     }else{
       this.m_numBufferedBytes = 1;
       this.m_bufferedByte = leadByte;
-    }      
-  }    
+    }
+  }
 }
 
 
@@ -323,7 +323,7 @@ type TEncBinCABACCounter struct{
 func NewTEncBinCABACCounter () *TEncBinCABACCounter{
 	return &TEncBinCABACCounter{}
 }
-   
+
 func (this *TEncBinCABACCounter)  finish            (){
   this.m_pcTComBitIf.Write(0, uint(this.m_fracBits >> 15) );
   this.m_fracBits &= 32767;
@@ -335,7 +335,7 @@ func (this *TEncBinCABACCounter)  getNumWrittenBits ()uint{
 
 func (this *TEncBinCABACCounter)  encodeBin         ( binValue uint,  rcCtxModel *TLibCommon.ContextModel){
   this.m_uiBinsCoded += uint(this.m_binCountIncrement);
-  
+
   this.m_fracBits += uint64(rcCtxModel.GetEntropyBits( int16(binValue) ));
   rcCtxModel.Update( int(binValue) );
 }
@@ -367,7 +367,7 @@ type TEncSbac struct{//: public TEncEntropyIf
   //SBAC RD
   m_uiCoeffCost	uint;
   m_uiLastQp	uint;
-  
+
   m_contextModels		[TLibCommon.MAX_NUM_CTX_MOD]TLibCommon.ContextModel;
   m_numContextModels	int;
   m_cCUSplitFlagSCModel	        	*TLibCommon.ContextModel3DBuffer;
@@ -390,7 +390,7 @@ type TEncSbac struct{//: public TEncEntropyIf
   m_cCuCtxLastX				    	*TLibCommon.ContextModel3DBuffer;
   m_cCuCtxLastY				    	*TLibCommon.ContextModel3DBuffer;
   m_cCUOneSCModel				    *TLibCommon.ContextModel3DBuffer;
-  m_cCUAbsSCModel				    *TLibCommon.ContextModel3DBuffer;	 
+  m_cCUAbsSCModel				    *TLibCommon.ContextModel3DBuffer;
   m_cMVPIdxSCModel				    *TLibCommon.ContextModel3DBuffer;
   m_cCUAMPSCModel				    *TLibCommon.ContextModel3DBuffer;
   m_cSaoMergeSCModel			    *TLibCommon.ContextModel3DBuffer;
@@ -402,8 +402,8 @@ type TEncSbac struct{//: public TEncEntropyIf
 func NewTEncSbac() *TEncSbac{
   pTEncSbac := &TEncSbac{ m_pcBitIf : nil, m_pcSlice : nil, m_pcBinIf : nil, m_uiCoeffCost : 0, m_numContextModels : 0};
   pTEncSbac.xInit();
-  
-  return pTEncSbac;	
+
+  return pTEncSbac;
 }
 
 func (this *TEncSbac) xInit() {
@@ -434,7 +434,7 @@ func (this *TEncSbac) xInit() {
     this.m_cSaoTypeIdxSCModel 			= TLibCommon.NewContextModel3DBuffer(1, 1, TLibCommon.NUM_SAO_TYPE_IDX_CTX, 				this.m_contextModels[this.m_numContextModels:], &this.m_numContextModels)
     this.m_cTransformSkipSCModel 		= TLibCommon.NewContextModel3DBuffer(1, 2, TLibCommon.NUM_TRANSFORMSKIP_FLAG_CTX, 			this.m_contextModels[this.m_numContextModels:], &this.m_numContextModels)
     this.m_CUTransquantBypassFlagSCModel= TLibCommon.NewContextModel3DBuffer(1, 1, TLibCommon.NUM_CU_TRANSQUANT_BYPASS_FLAG_CTX, 	this.m_contextModels[this.m_numContextModels:], &this.m_numContextModels)
-}  
+}
 func (this *TEncSbac)  init                   ( p TEncBinIf)    { this.m_pcBinIf = p; }
 func (this *TEncSbac)  uninit                 ()                { this.m_pcBinIf = nil; }
 
@@ -442,7 +442,7 @@ func (this *TEncSbac)  uninit                 ()                { this.m_pcBinIf
 func (this *TEncSbac)  resetEntropy           (){
   iQp         := this.m_pcSlice.GetSliceQp();
   eSliceType  := this.m_pcSlice.GetSliceType();
-  
+
   encCABACTableIdx := this.m_pcSlice.GetPPS().GetEncCABACTableIdx();
   if !this.m_pcSlice.IsIntra() && (encCABACTableIdx==TLibCommon.B_SLICE || encCABACTableIdx==TLibCommon.P_SLICE) && this.m_pcSlice.GetPPS().GetCabacInitPresentFlag() {
     eSliceType = TLibCommon.SliceType(encCABACTableIdx);
@@ -477,9 +477,9 @@ func (this *TEncSbac)  resetEntropy           (){
   this.m_CUTransquantBypassFlagSCModel.InitBuffer( eSliceType, iQp, TLibCommon.INIT_CU_TRANSQUANT_BYPASS_FLAG[:] );
   // new structure
   this.m_uiLastQp = uint(iQp);
-  
+
   this.m_pcBinIf.start();
-  
+
   return;
 }
 func (this *TEncSbac)  determineCabacInitIdx  (){
@@ -529,30 +529,30 @@ func (this *TEncSbac)  determineCabacInitIdx  (){
     this.m_pcSlice.GetPPS().SetEncCABACTableIdx( uint(bestSliceType) );
   }else{
     this.m_pcSlice.GetPPS().SetEncCABACTableIdx( TLibCommon.I_SLICE );
-  }  
+  }
 }
 
-func (this *TEncSbac)  setBitstream           ( p TLibCommon.TComBitIf)  { 
-	this.m_pcBitIf = p; 
-	this.m_pcBinIf.init( p ); 
+func (this *TEncSbac)  setBitstream           ( p TLibCommon.TComBitIf)  {
+	this.m_pcBitIf = p;
+	this.m_pcBinIf.init( p );
 }
 func (this *TEncSbac)  setSlice               ( p *TLibCommon.TComSlice)  { this.m_pcSlice = p; }
   // SBAC RD
 func (this *TEncSbac)  resetCoeffCost         ()                { this.m_uiCoeffCost = 0;  }
 func (this *TEncSbac)  getCoeffCost           () uint               { return  this.m_uiCoeffCost;  }
-  
+
 func (this *TEncSbac)  load                   ( pSrc *TEncSbac ){ this.xCopyFrom(pSrc);}
 func (this *TEncSbac)  loadIntraDirModeLuma   ( pSrc *TEncSbac ){
   this.m_pcBinIf.copyState( pSrc.m_pcBinIf );
-  
+
   this.m_cCUIntraPredSCModel.CopyFrom( pSrc.m_cCUIntraPredSCModel );
 }
 
 func (this *TEncSbac)  store                  ( pDest *TEncSbac){ pDest.xCopyFrom( this );}
 func (this *TEncSbac)  loadContexts           ( pScr  *TEncSbac){ this.xCopyContextsFrom(pScr);}
-func (this *TEncSbac)  resetBits              ()                { 
-	this.m_pcBinIf.resetBits(); 
-	this.m_pcBitIf.ResetBits(); 
+func (this *TEncSbac)  resetBits              ()                {
+	this.m_pcBinIf.resetBits();
+	this.m_pcBitIf.ResetBits();
 }
 func (this *TEncSbac)  getNumberOfWrittenBits () uint               { return this.m_pcBinIf.getNumWrittenBits(); }
   //--SBAC RD
@@ -610,21 +610,21 @@ func (this *TEncSbac)  xWriteUnarySymbol    ( uiSymbol uint, pcSCModel []TLibCom
   }else{
   	this.m_pcBinIf.encodeBin( 0, &pcSCModel[0] );
   }
-  
+
   if 0 == uiSymbol {
     return;
   }
-  
+
   for uiSymbol!=0 {
     uiSymbol--;
-    
+
     if uiSymbol!=0 {
     	this.m_pcBinIf.encodeBin( 1, &pcSCModel[ iOffset ] );
     }else{
     	this.m_pcBinIf.encodeBin( 0, &pcSCModel[ iOffset ] );
     }
   }
-  
+
   return;
 }
 
@@ -637,13 +637,13 @@ func (this *TEncSbac)  xWriteUnaryMaxSymbol ( uiSymbol uint, pcSCModel []TLibCom
   }else{
   	this.m_pcBinIf.encodeBin( 0, &pcSCModel[ 0 ] );
   }
-  
+
   if uiSymbol == 0 {
     return;
   }
-  
+
   bCodeLast := ( uiMaxSymbol > uiSymbol );
-  
+
   uiSymbol--;
   for uiSymbol!=0 {
     this.m_pcBinIf.encodeBin( 1, &pcSCModel[ iOffset ] );
@@ -652,14 +652,14 @@ func (this *TEncSbac)  xWriteUnaryMaxSymbol ( uiSymbol uint, pcSCModel []TLibCom
   if bCodeLast {
     this.m_pcBinIf.encodeBin( 0, &pcSCModel[ iOffset ] );
   }
-  
+
   return;
 }
 
 func (this *TEncSbac)  xWriteEpExGolomb     ( uiSymbol, uiCount uint){
   bins := uint(0);
   numBins := 0;
-  
+
   for uiSymbol >= uint(1<<uiCount) {
     bins = 2 * bins + 1;
     numBins++;
@@ -668,10 +668,10 @@ func (this *TEncSbac)  xWriteEpExGolomb     ( uiSymbol, uiCount uint){
   }
   bins = 2 * bins + 0;
   numBins++;
-  
+
   bins = (bins << uiCount) | uiSymbol;
   numBins += int(uiCount);
-  
+
   //assert( numBins <= 32 );
   this.m_pcBinIf.encodeBinsEP( bins, numBins );
 }
@@ -687,8 +687,8 @@ func (this *TEncSbac)  xWriteCoefRemainExGolomb ( symbol uint, rParam uint){
     length = rParam;
     codeNumber  = codeNumber - ( TLibCommon.COEF_REMAIN_BIN_REDUCTION << rParam);
     for codeNumber >= (1<<length) {
-      codeNumber -=  (1<<(length)); 
-      length++;   
+      codeNumber -=  (1<<(length));
+      length++;
     }
     this.m_pcBinIf.encodeBinsEP((1<<(TLibCommon.COEF_REMAIN_BIN_REDUCTION+length+1-rParam))-2, int(TLibCommon.COEF_REMAIN_BIN_REDUCTION+length+1-rParam));
     this.m_pcBinIf.encodeBinsEP(uint(codeNumber),int(length));
@@ -696,13 +696,13 @@ func (this *TEncSbac)  xWriteCoefRemainExGolomb ( symbol uint, rParam uint){
 }
 
 func (this *TEncSbac)  xWriteTerminatingBit ( uiBit uint){}
-  
+
 func (this *TEncSbac)  xCopyFrom            ( pSrc *TEncSbac){
   this.m_pcBinIf.copyState( pSrc.m_pcBinIf );
-  
+
   this.m_uiCoeffCost = pSrc.m_uiCoeffCost;
   this.m_uiLastQp    = pSrc.m_uiLastQp;
-  
+
   for i:=0; i<this.m_numContextModels; i++{
   	this.m_contextModels[i] = pSrc.m_contextModels[i];
   }
@@ -715,7 +715,7 @@ func (this *TEncSbac)  xCopyContextsFrom    ( pSrc *TEncSbac){
   }
   //memcpy(this.m_contextModels, pSrc->m_contextModels, this.m_numContextModels*sizeof(this.m_contextModels[0]));
 }
-  
+
 func (this *TEncSbac) codeDFFlag( uiCode uint, pSymbolName string)       {}
 func (this *TEncSbac) codeDFSvlc( iCode int, pSymbolName string)         {}
 
@@ -763,7 +763,7 @@ func (this *TEncSbac) codeMergeIndex    ( pcCU *TLibCommon.TComDataCU, uiAbsPart
       }else{
       	uiSymbol = 1;
       }
-      
+
       if ui==0 {
         this.m_pcBinIf.encodeBin( uiSymbol, this.m_cCUMergeIdxExtSCModel.Get3( 0, 0, 0 ) );
       }else{
@@ -785,10 +785,10 @@ func (this *TEncSbac) codeSplitFlag     ( pcCU *TLibCommon.TComDataCU, uiAbsPart
   if uiDepth == TLibCommon.G_uiMaxCUDepth - TLibCommon.G_uiAddCUDepth {
     return;
   }
-  
+
   uiCtx           := uint(pcCU.GetCtxSplitFlag( uiAbsPartIdx, uiDepth ));
   uiCurrSplitFlag := uint(TLibCommon.B2U( uint(pcCU.GetDepth1( uiAbsPartIdx )) > uiDepth ));
-  
+
   //assert( uiCtx < 3 );
   this.m_pcBinIf.encodeBin( uiCurrSplitFlag, this.m_cCUSplitFlagSCModel.Get3( 0, 0, uiCtx ) );
   //DTRACE_CABAC_VL( g_nSymbolCounter++ )
@@ -802,7 +802,7 @@ func (this *TEncSbac) codeMVPIdx        ( pcCU *TLibCommon.TComDataCU, uiAbsPart
 
   this.xWriteUnaryMaxSymbol(uint(iSymbol), this.m_cMVPIdxSCModel.Get1( 0 ), 1, uint(iNum-1));
 }
-  
+
 func (this *TEncSbac) codePartSize      ( pcCU *TLibCommon.TComDataCU, uiAbsPartIdx uint,  uiDepth uint){
   eSize := pcCU.GetPartitionSize1( uiAbsPartIdx );
   if pcCU.IsIntra( uiAbsPartIdx ) {
@@ -811,7 +811,7 @@ func (this *TEncSbac) codePartSize      ( pcCU *TLibCommon.TComDataCU, uiAbsPart
     }
     return;
   }
-  
+
   switch eSize {
     case TLibCommon.SIZE_2Nx2N:
       this.m_pcBinIf.encodeBin( 1, this.m_cCUPartSizeSCModel.Get3( 0, 0, 0) );
@@ -825,7 +825,7 @@ func (this *TEncSbac) codePartSize      ( pcCU *TLibCommon.TComDataCU, uiAbsPart
           this.m_pcBinIf.encodeBin(1, this.m_cCUAMPSCModel.Get3( 0, 0, 0 ));
         }else{
           this.m_pcBinIf.encodeBin(0, this.m_cCUAMPSCModel.Get3( 0, 0, 0 ));
-          if eSize == TLibCommon.SIZE_2NxnU {          
+          if eSize == TLibCommon.SIZE_2NxnU {
           	this.m_pcBinIf.encodeBinEP(0);
           }else{
           	this.m_pcBinIf.encodeBinEP(1);
@@ -845,7 +845,7 @@ func (this *TEncSbac) codePartSize      ( pcCU *TLibCommon.TComDataCU, uiAbsPart
           this.m_pcBinIf.encodeBin(1, this.m_cCUAMPSCModel.Get3( 0, 0, 0 ));
         }else{
           this.m_pcBinIf.encodeBin(0, this.m_cCUAMPSCModel.Get3( 0, 0, 0 ));
-          
+
           if eSize == TLibCommon.SIZE_nLx2N {
           	this.m_pcBinIf.encodeBinEP(0);
           }else{
@@ -1046,12 +1046,12 @@ func (this *TEncSbac) codeIntraDirLumaAng     (pcCU *TLibCommon.TComDataCU, absP
 	  }
   }else{
   	partNum=1;
-  } 
-   
+  }
+
   partOffset := ( pcCU.GetPic().GetNumPartInCU() >> ( pcCU.GetDepth1(absPartIdx) << 1 ) ) >> 2;
   for j=0;j<partNum;j++ {
     dir[j] = uint(pcCU.GetLumaIntraDir1( absPartIdx+partOffset*j ));
-    predNum[j] = pcCU.GetIntraDirLumaPredictor(absPartIdx+partOffset*j, preds[j][:], nil);  
+    predNum[j] = pcCU.GetIntraDirLumaPredictor(absPartIdx+partOffset*j, preds[j][:], nil);
     for i := int(0); i < predNum[j]; i++ {
       if dir[j] == uint(preds[j][i]) {
         predIdx[j] = i;
@@ -1062,7 +1062,7 @@ func (this *TEncSbac) codeIntraDirLumaAng     (pcCU *TLibCommon.TComDataCU, absP
     }else{
     	this.m_pcBinIf.encodeBin(0, this.m_cCUIntraPredSCModel.Get3( 0, 0, 0 ) );
     }
-  }  
+  }
   for j=0;j<partNum;j++ {
     if predIdx[j] != -1 {
       this.m_pcBinIf.encodeBinEP( uint(TLibCommon.B2U(predIdx[j]!=0)));
@@ -1070,11 +1070,11 @@ func (this *TEncSbac) codeIntraDirLumaAng     (pcCU *TLibCommon.TComDataCU, absP
         this.m_pcBinIf.encodeBinEP( uint(predIdx[j]-1) );
       }
     }else{
-      if preds[j][0] > preds[j][1] { 
+      if preds[j][0] > preds[j][1] {
       	tmp := preds[j][0];
       	preds[j][0] = preds[j][1];
       	preds[j][1] = tmp;
-        //std::swap(preds[j][0], preds[j][1]); 
+        //std::swap(preds[j][0], preds[j][1]);
       }
       if preds[j][0] > preds[j][2] {
         tmp := preds[j][0];
@@ -1100,13 +1100,13 @@ func (this *TEncSbac) codeIntraDirLumaAng     (pcCU *TLibCommon.TComDataCU, absP
   }
   return;
 }
-  
+
 func (this *TEncSbac) codeIntraDirChroma      ( pcCU *TLibCommon.TComDataCU, uiAbsPartIdx uint ){
   uiIntraDirChroma := uint(pcCU.GetChromaIntraDir1( uiAbsPartIdx ));
 
   if uiIntraDirChroma == TLibCommon.DM_CHROMA_IDX {
     this.m_pcBinIf.encodeBin( 0, this.m_cCUChromaPredSCModel.Get3( 0, 0, 0 ) );
-  }else{ 
+  }else{
     var uiAllowedChromaDir	[ TLibCommon.NUM_CHROMA_MODE ]uint;
     pcCU.GetAllowedChromaDir( uiAbsPartIdx, uiAllowedChromaDir[:] );
 
@@ -1149,7 +1149,7 @@ func (this *TEncSbac) codeRefFrmIdx           ( pcCU *TLibCommon.TComDataCU, uiA
     }else{
     	this.m_pcBinIf.encodeBin( 1, &pCtx[0] );
     }
-    
+
     if iRefFrame > 0 {
       uiRefNum := uint(pcCU.GetSlice().GetNumRefIdx( eRefList ) - 2);
       pCtx = pCtx[1:];
@@ -1162,7 +1162,7 @@ func (this *TEncSbac) codeRefFrmIdx           ( pcCU *TLibCommon.TComDataCU, uiA
         	uiSymbol = 1;
         }
         if ui == 0 {
-          this.m_pcBinIf.encodeBin( uiSymbol, &pCtx[0] );       
+          this.m_pcBinIf.encodeBin( uiSymbol, &pCtx[0] );
         }else{
           this.m_pcBinIf.encodeBinEP( uiSymbol );
         }
@@ -1218,13 +1218,13 @@ func (this *TEncSbac) codeMvd                 ( pcCU *TLibCommon.TComDataCU, uiA
 
     this.m_pcBinIf.encodeBinEP( uint(TLibCommon.B2U(0 > iVer)) );
   }
-  
+
   return;
 }
-  
+
 func (this *TEncSbac) codeDeltaQP             ( pcCU *TLibCommon.TComDataCU, uiAbsPartIdx uint ){
   iDQp  := int(pcCU.GetQP1( uiAbsPartIdx ) - pcCU.GetRefQP( uiAbsPartIdx ));
-  
+
   qpBdOffsetY :=  pcCU.GetSlice().GetSPS().GetQpBDOffsetY();
   iDQp = (iDQp + 78 + qpBdOffsetY + (qpBdOffsetY/2)) % (52 + qpBdOffsetY) - 26 - (qpBdOffsetY/2);
 
@@ -1247,7 +1247,7 @@ func (this *TEncSbac) codeDeltaQP             ( pcCU *TLibCommon.TComDataCU, uiA
 
   return;
 }
-  
+
 func (this *TEncSbac) codeLastSignificantXY ( uiPosX, uiPosY uint,  width,  height int,  eTType TLibCommon.TextType, uiScanIdx uint){
   // swap
   if uiScanIdx == TLibCommon.SCAN_VER {
@@ -1276,7 +1276,7 @@ func (this *TEncSbac) codeLastSignificantXY ( uiPosX, uiPosY uint,  width,  heig
 	  blkSizeOffsetY =  int(TLibCommon.G_aucConvertToBit[ height ]*3 + ((TLibCommon.G_aucConvertToBit[ height ]+1)>>2));
 	  shiftX= uint((TLibCommon.G_aucConvertToBit[ width  ]+3)>>2);
 	  shiftY= uint((TLibCommon.G_aucConvertToBit[ height ]+3)>>2);
-	
+
   }
   // posX
   for uiCtxLast = 0; uiCtxLast < uiGroupIdxX; uiCtxLast++ {
@@ -1293,14 +1293,14 @@ func (this *TEncSbac) codeLastSignificantXY ( uiPosX, uiPosY uint,  width,  heig
   if uiGroupIdxY < TLibCommon.G_uiGroupIdx[ height - 1 ] {
     this.m_pcBinIf.encodeBin( 0, &pCtxY [ blkSizeOffsetY + int(uiCtxLast >>shiftY) ] );
   }
-  if uiGroupIdxX > 3 { 
+  if uiGroupIdxX > 3 {
     uiCount := ( uiGroupIdxX - 2 ) >> 1;
     uiPosX   = uiPosX - TLibCommon.G_uiMinInGroup[ uiGroupIdxX ];
     for i := int(uiCount) - 1 ; i >= 0; i-- {
       this.m_pcBinIf.encodeBinEP( ( uiPosX >> uint(i) ) & 1 );
     }
   }
-  if uiGroupIdxY > 3 {      
+  if uiGroupIdxY > 3 {
     uiCount := ( uiGroupIdxY - 2 ) >> 1;
     uiPosY   = uiPosY - TLibCommon.G_uiMinInGroup[ uiGroupIdxY ];
     for i := int(uiCount) - 1 ; i >= 0; i-- {
@@ -1339,12 +1339,12 @@ func (this *TEncSbac) codeCoeffNxN            ( pcCU *TLibCommon.TComDataCU, pcC
     uiWidth  = this.m_pcSlice.GetSPS().GetMaxTrSize();
     uiHeight = this.m_pcSlice.GetSPS().GetMaxTrSize();
   }
-  
+
   uiNumSig := uint(0);
-  
+
   // compute number of significant coefficients
   uiNumSig = uint(TEncEntropy_countNonZeroCoeffs(pcCoef, uiWidth * uiHeight));
-  
+
   if uiNumSig == 0 {
     return;
   }
@@ -1364,7 +1364,7 @@ func (this *TEncSbac) codeCoeffNxN            ( pcCU *TLibCommon.TComDataCU, pcC
   uiLog2BlockSize := uint(TLibCommon.G_aucConvertToBit[ uiWidth ]) + 2;
   uiScanIdx := pcCU.GetCoefScanIdx(uiAbsPartIdx, uiWidth, eTType==TLibCommon.TEXT_LUMA, pcCU.IsIntra(uiAbsPartIdx));
   scan := TLibCommon.G_auiSigLastScan[ uiScanIdx ][ uiLog2BlockSize - 1 ][:];
-  
+
   var beValid bool;
   if pcCU.GetCUTransquantBypass1(uiAbsPartIdx) {
     beValid = false;
@@ -1410,7 +1410,7 @@ func (this *TEncSbac) codeCoeffNxN            ( pcCU *TLibCommon.TComDataCU, pcC
 
       uiNumSig -= uint(TLibCommon.B2U( pcCoef[ posLast ] != 0 ));
     }
-    
+
 	for uiNumSig > 0 {
       scanPosLast++
       posLast = int(scan[ scanPosLast ]);
@@ -1430,16 +1430,16 @@ func (this *TEncSbac) codeCoeffNxN            ( pcCU *TLibCommon.TComDataCU, pcC
   posLastY := posLast >> uiLog2BlockSize;
   posLastX := posLast - ( posLastY << uiLog2BlockSize );
   this.codeLastSignificantXY(uint(posLastX), uint(posLastY), int(uiWidth), int(uiHeight), eTType, uiScanIdx);
-  
+
   //===== code significance flag =====
   baseCoeffGroupCtx := this.m_cCUSigCoeffGroupSCModel.Get2( 0, uint(eTType) );
-  var baseCtx []TLibCommon.ContextModel; 
+  var baseCtx []TLibCommon.ContextModel;
   if eTType==TLibCommon.TEXT_LUMA {
   	baseCtx = this.m_cCUSigSCModel.Get2( 0, 0 );
   }else{
   	baseCtx = this.m_cCUSigSCModel.Get2( 0, 0 ) [TLibCommon.NUM_SIG_FLAG_CTX_LUMA:];
   }
-  
+
 
   iLastScanSet      := int(scanPosLast >> TLibCommon.LOG2_SCAN_SET_SIZE);
   c1 := uint(1);
@@ -1473,21 +1473,21 @@ func (this *TEncSbac) codeCoeffNxN            ( pcCU *TLibCommon.TComDataCU, pcC
         uiSigCoeffGroupFlag[ iCGBlkPos ] = 1;
       }else{
           uiSigCoeffGroup := uint(TLibCommon.B2U(uiSigCoeffGroupFlag[ iCGBlkPos ] != 0));
-          uiCtxSig  := TLibCommon.GetSigCoeffGroupCtxInc( uiSigCoeffGroupFlag[:], iCGPosX, iCGPosY, uiScanIdx, int(uiWidth), int(uiHeight) );
+          uiCtxSig  := TLibCommon.GetSigCoeffGroupCtxInc( uiSigCoeffGroupFlag[:], iCGPosX, iCGPosY, int(uiWidth), int(uiHeight) );
           this.m_pcBinIf.encodeBin( uiSigCoeffGroup, &baseCoeffGroupCtx[ uiCtxSig ] );
       }
-      
+
       // encode significant_coeff_flag
       if uiSigCoeffGroupFlag[ iCGBlkPos ]!=0 {
         patternSigCtx := TLibCommon.CalcPatternSigCtx( uiSigCoeffGroupFlag[:], iCGPosX, iCGPosY, int(uiWidth), int(uiHeight) );
         var uiBlkPos, uiPosY, uiPosX, uiSig, uiCtxSig uint;
         for ; iScanPosSig >= iSubPos; iScanPosSig-- {
-          uiBlkPos  = scan[ iScanPosSig ]; 
+          uiBlkPos  = scan[ iScanPosSig ];
           uiPosY    = uiBlkPos >> uiLog2BlockSize;
           uiPosX    = uiBlkPos - ( uiPosY << uiLog2BlockSize );
           uiSig     = uint(TLibCommon.B2U(pcCoef[ uiBlkPos ] != 0));
           if iScanPosSig > iSubPos || iSubSet == 0 || numNonZero!=0 {
-            uiCtxSig  = uint(TLibCommon.GetSigCtxInc( patternSigCtx, uiScanIdx, int(uiPosX), int(uiPosY), int(uiLog2BlockSize), int(uiWidth), int(uiHeight), eTType ));
+            uiCtxSig  = uint(TLibCommon.GetSigCtxInc( patternSigCtx, uiScanIdx, int(uiPosX), int(uiPosY), int(uiLog2BlockSize), eTType ));
             this.m_pcBinIf.encodeBin( uiSig, &baseCtx[ uiCtxSig ] );
           }
           if uiSig!=0 {
@@ -1512,7 +1512,7 @@ func (this *TEncSbac) codeCoeffNxN            ( pcCU *TLibCommon.TComDataCU, pcC
       }else{
       	uiCtxSet = 0;
       }
-      
+
       if c1 == 0 {
         uiCtxSet++;
       }
@@ -1523,7 +1523,7 @@ func (this *TEncSbac) codeCoeffNxN            ( pcCU *TLibCommon.TComDataCU, pcC
       }else{
       	baseCtxMod = this.m_cCUOneSCModel.Get2( 0, 0 ) [ TLibCommon.NUM_ONE_FLAG_CTX_LUMA + 4 * uiCtxSet:];
       }
-      
+
       numC1Flag := TLibCommon.MIN(int(numNonZero), int(TLibCommon.C1FLAG_NUMBER)).(int);
       firstC2FlagIdx := -1;
       for idx := 0; idx < numC1Flag; idx++ {
@@ -1539,7 +1539,7 @@ func (this *TEncSbac) codeCoeffNxN            ( pcCU *TLibCommon.TComDataCU, pcC
           c1++;
         }
       }
-      
+
       if c1 == 0 {
       	if eTType==TLibCommon.TEXT_LUMA {
         	baseCtxMod = this.m_cCUAbsSCModel.Get2( 0, 0 ) [ uiCtxSet:];
@@ -1551,14 +1551,14 @@ func (this *TEncSbac) codeCoeffNxN            ( pcCU *TLibCommon.TComDataCU, pcC
           this.m_pcBinIf.encodeBin( symbol, &baseCtxMod[0] );
         }
       }
-      
+
       if beValid && signHidden!=0 {
         this.m_pcBinIf.encodeBinsEP( (coeffSigns >> 1), numNonZero-1 );
       }else{
         this.m_pcBinIf.encodeBinsEP( coeffSigns, numNonZero );
       }
-      
-      iFirstCoeff2 := 1;    
+
+      iFirstCoeff2 := 1;
       if c1 == 0 || numNonZero > TLibCommon.C1FLAG_NUMBER {
         for idx := 0; idx < numNonZero; idx++ {
           var baseLevel uint;
@@ -1577,7 +1577,7 @@ func (this *TEncSbac) codeCoeffNxN            ( pcCU *TLibCommon.TComDataCU, pcC
           if absCoeff[ idx ] >= 2 {
             iFirstCoeff2 = 0;
           }
-        }        
+        }
       }
     }
   }
@@ -1615,15 +1615,15 @@ func (this *TEncSbac) codeTransformSkipFlags ( pcCU *TLibCommon.TComDataCU, uiAb
   // -------------------------------------------------------------------------------------------------------------------
   // for RD-optimizatioon
   // -------------------------------------------------------------------------------------------------------------------
-  
+
 func (this *TEncSbac) estBit               (pcEstBitsSbac *TLibCommon.EstBitsSbacStruct,  width, height int,  eTType TLibCommon.TextType){
   this.estCBFBit( pcEstBitsSbac, 0, eTType );
 
   this.estSignificantCoeffGroupMapBit( pcEstBitsSbac, 0, eTType );
-  
+
   // encode significance map
   this.estSignificantMapBit( pcEstBitsSbac, width, height, eTType );
-  
+
   // encode significant coefficients
   this.estSignificantCoefficientsBit( pcEstBitsSbac, 0, eTType );
 }
@@ -1637,7 +1637,7 @@ func (this *TEncSbac) estCBFBit                     ( pcEstBitsSbac *TLibCommon.
   }
 
   pCtx = this.m_cCUQtRootCbfSCModel.Get1( 0 );
-  
+
   for uiCtxInc := 0; uiCtxInc < 4; uiCtxInc++ {
     pcEstBitsSbac.BlockRootCbpBits[ uiCtxInc ][ 0 ] = pCtx[ uiCtxInc ].GetEntropyBits( 0 );
     pcEstBitsSbac.BlockRootCbpBits[ uiCtxInc ][ 1 ] = pCtx[ uiCtxInc ].GetEntropyBits( 1 );
@@ -1674,7 +1674,7 @@ func (this *TEncSbac) estSignificantMapBit          ( pcEstBitsSbac *TLibCommon.
     	numCtx = 3;
     }
   }
-  
+
   if eTType == TLibCommon.TEXT_LUMA {
     for bin := int16(0); bin < 2; bin++ {
       pcEstBitsSbac.SignificantBits[ 0 ][ bin ] = this.m_cCUSigSCModel.Get3(  0, 0, 0 ).GetEntropyBits( bin );
@@ -1699,7 +1699,7 @@ func (this *TEncSbac) estSignificantMapBit          ( pcEstBitsSbac *TLibCommon.
   iBitsY := 0;
   var blkSizeOffsetX, blkSizeOffsetY int;
   var shiftX, shiftY uint;
-  
+
   if eTType!=0 {
   	blkSizeOffsetX = 0;
   	blkSizeOffsetY = 0;
@@ -1711,7 +1711,7 @@ func (this *TEncSbac) estSignificantMapBit          ( pcEstBitsSbac *TLibCommon.
   	shiftX = uint((TLibCommon.G_aucConvertToBit[ width  ]+3)>>2);
   	shiftY = uint((TLibCommon.G_aucConvertToBit[ height ]+3)>>2);
   }
-  	
+
   var ctx int;
   pCtxX := this.m_cCuCtxLastX.Get2( 0, uint(eTType) );
   for ctx = 0; ctx < int(TLibCommon.G_uiGroupIdx[ width - 1 ]); ctx++ {
@@ -1736,12 +1736,12 @@ func (this *TEncSbac) estSignificantCoefficientsBit ( pcEstBitsSbac *TLibCommon.
 
     for ctxIdx := 0; ctxIdx < TLibCommon.NUM_ONE_FLAG_CTX_LUMA; ctxIdx++ {
       pcEstBitsSbac.GreaterOneBits[ ctxIdx ][ 0 ] = ctxOne[ ctxIdx ].GetEntropyBits( 0 );
-      pcEstBitsSbac.GreaterOneBits[ ctxIdx ][ 1 ] = ctxOne[ ctxIdx ].GetEntropyBits( 1 );    
+      pcEstBitsSbac.GreaterOneBits[ ctxIdx ][ 1 ] = ctxOne[ ctxIdx ].GetEntropyBits( 1 );
     }
 
     for ctxIdx := 0; ctxIdx < TLibCommon.NUM_ABS_FLAG_CTX_LUMA; ctxIdx++ {
       pcEstBitsSbac.LevelAbsBits[ ctxIdx ][ 0 ] = ctxAbs[ ctxIdx ].GetEntropyBits( 0 );
-      pcEstBitsSbac.LevelAbsBits[ ctxIdx ][ 1 ] = ctxAbs[ ctxIdx ].GetEntropyBits( 1 );    
+      pcEstBitsSbac.LevelAbsBits[ ctxIdx ][ 1 ] = ctxAbs[ ctxIdx ].GetEntropyBits( 1 );
     }
   }else{
     ctxOne := this.m_cCUOneSCModel.Get2(0, 0) [ TLibCommon.NUM_ONE_FLAG_CTX_LUMA:];
@@ -1749,16 +1749,16 @@ func (this *TEncSbac) estSignificantCoefficientsBit ( pcEstBitsSbac *TLibCommon.
 
     for ctxIdx := 0; ctxIdx < TLibCommon.NUM_ONE_FLAG_CTX_CHROMA; ctxIdx++ {
       pcEstBitsSbac.GreaterOneBits[ ctxIdx ][ 0 ] = ctxOne[ ctxIdx ].GetEntropyBits( 0 );
-      pcEstBitsSbac.GreaterOneBits[ ctxIdx ][ 1 ] = ctxOne[ ctxIdx ].GetEntropyBits( 1 );    
+      pcEstBitsSbac.GreaterOneBits[ ctxIdx ][ 1 ] = ctxOne[ ctxIdx ].GetEntropyBits( 1 );
     }
 
     for ctxIdx := 0; ctxIdx < TLibCommon.NUM_ABS_FLAG_CTX_CHROMA; ctxIdx++ {
       pcEstBitsSbac.LevelAbsBits[ ctxIdx ][ 0 ] = ctxAbs[ ctxIdx ].GetEntropyBits( 0 );
-      pcEstBitsSbac.LevelAbsBits[ ctxIdx ][ 1 ] = ctxAbs[ ctxIdx ].GetEntropyBits( 1 );    
+      pcEstBitsSbac.LevelAbsBits[ ctxIdx ][ 1 ] = ctxAbs[ ctxIdx ].GetEntropyBits( 1 );
     }
   }
 }
-  
+
 func (this *TEncSbac) updateContextTables3           (  eSliceType TLibCommon.SliceType, iQp int, bExecuteFinish bool  ){
   this.m_pcBinIf.encodeBinTrm(1);
   if bExecuteFinish {
@@ -1794,10 +1794,10 @@ func (this *TEncSbac) updateContextTables3           (  eSliceType TLibCommon.Sl
   this.m_pcBinIf.start();
 }
 
-func (this *TEncSbac) updateContextTables2           ( eSliceType TLibCommon.SliceType, iQp int ) { 
-	this.updateContextTables3( eSliceType, iQp, true); 
+func (this *TEncSbac) updateContextTables2           ( eSliceType TLibCommon.SliceType, iQp int ) {
+	this.updateContextTables3( eSliceType, iQp, true);
 };
-  
-func (this *TEncSbac)  getEncBinIf() TEncBinIf { 
-	return this.m_pcBinIf; 
+
+func (this *TEncSbac)  getEncBinIf() TEncBinIf {
+	return this.m_pcBinIf;
 }
