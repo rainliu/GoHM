@@ -398,28 +398,6 @@ func (this *TAppEncTop)  xInitLibCfg       (){                               ///
   pcEncCfg.SetMaxBitsPerMinCuDenom( this.m_maxBitsPerMinCuDenom );
   pcEncCfg.SetLog2MaxMvLengthHorizontal( this.m_log2MaxMvLengthHorizontal );
   pcEncCfg.SetLog2MaxMvLengthVertical( this.m_log2MaxMvLengthVertical );
-//#if SIGNAL_BITRATE_PICRATE_IN_VPS
-  bitRatePicRateInfo := pcEncCfg.GetVPS().GetBitratePicrateInfo();
-  // The number of bit rate/pic rate have to equal to number of sub-layers.
-  if this.m_bitRatePicRateMaxTLayers!=0 {
-    //assert(this.m_bitRatePicRateMaxTLayers == this.m_cTEncTop.getVPS()->getMaxTLayers());
-  }
-  for i := 0; i < this.m_bitRatePicRateMaxTLayers; i++ {
-    bitRatePicRateInfo.SetBitRateInfoPresentFlag( i, this.m_bitRateInfoPresentFlag[i] );
-    if bitRatePicRateInfo.GetBitRateInfoPresentFlag(i) {
-      bitRatePicRateInfo.SetAvgBitRate(i, this.m_avgBitRate[i]);
-      bitRatePicRateInfo.SetMaxBitRate(i, this.m_maxBitRate[i]);
-    }
-  }
-  for i := 0; i < this.m_bitRatePicRateMaxTLayers; i++ {
-    bitRatePicRateInfo.SetPicRateInfoPresentFlag( i, this.m_picRateInfoPresentFlag[i] );
-    if bitRatePicRateInfo.GetPicRateInfoPresentFlag(i)  {
-      bitRatePicRateInfo.SetAvgPicRate     (i, this.m_avgPicRate[i]);
-      bitRatePicRateInfo.SetConstantPicRateIdc(i, this.m_constantPicRateIdc[i]);
-    }
-  }
-//#endif
-
 	
   this.m_cTEncTop.SetEncCfg(pcEncCfg);
 }

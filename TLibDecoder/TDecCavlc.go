@@ -464,8 +464,6 @@ func (this *TDecCavlc) ParseVPS(pcVPS *TLibCommon.TComVPS) {
     this.READ_CODE(16, &uiCode, "vps_reserved_ffff_16bits") //assert(uiCode == 0xffff);
     this.ParsePTL(pcVPS.GetPTL(), true, int(pcVPS.GetMaxTLayers())-1)
 
-    this.ParseBitratePicRateInfo(pcVPS.GetBitratePicrateInfo(), 0, int(pcVPS.GetMaxTLayers())-1)
-
     var subLayerOrderingInfoPresentFlag uint
     this.READ_FLAG(&subLayerOrderingInfoPresentFlag, "vps_sub_layer_ordering_info_present_flag")
 
@@ -1003,8 +1001,8 @@ func (this *TDecCavlc) ParsePTL(rpcPTL *TLibCommon.TComPTL, profilePresentFlag b
     }
     this.READ_CODE(8, &uiCode, "general_level_idc")
     rpcPTL.GetGeneralPTL().SetLevelIdc(int(uiCode))
-
-    for i := 0; i < maxNumSubLayersMinus1; i++ {
+	
+	for i := 0; i < maxNumSubLayersMinus1; i++ {
         if profilePresentFlag {
             this.READ_FLAG(&uiCode, "sub_layer_profile_present_flag[i]")
             rpcPTL.SetSubLayerProfilePresentFlag(i, uiCode != 0)
@@ -1059,38 +1057,6 @@ func (this *TDecCavlc) ParseProfileTier(ptl *TLibCommon.ProfileTierLevel) {
     this.READ_CODE(12, &uiCode, "XXX_reserved_zero_44bits[32..43]");
 }
 
-//#if SIGNAL_BITRATE_PICRATE_IN_VPS
-func (this *TDecCavlc) ParseBitratePicRateInfo(info *TLibCommon.TComBitRatePicRateInfo, tempLevelLow, tempLevelHigh int) {
-    var uiCode uint
-    for i := tempLevelLow; i <= tempLevelHigh; i++ {
-        this.READ_FLAG(&uiCode, "bit_rate_info_present_flag[i]")
-        if uiCode != 0 {
-            info.SetBitRateInfoPresentFlag(i, true)
-        } else {
-            info.SetBitRateInfoPresentFlag(i, false)
-        }
-        this.READ_FLAG(&uiCode, "pic_rate_info_present_flag[i]")
-        if uiCode != 0 {
-            info.SetPicRateInfoPresentFlag(i, true)
-        } else {
-            info.SetPicRateInfoPresentFlag(i, false)
-        }
-        if info.GetBitRateInfoPresentFlag(i) {
-            this.READ_CODE(16, &uiCode, "avg_bit_rate[i]")
-            info.SetAvgBitRate(i, int(uiCode))
-            this.READ_CODE(16, &uiCode, "max_bit_rate[i]")
-            info.SetMaxBitRate(i, int(uiCode))
-        }
-        if info.GetPicRateInfoPresentFlag(i) {
-            this.READ_CODE(2, &uiCode, "constant_pic_rate_idc[i]")
-            info.SetConstantPicRateIdc(i, int(uiCode))
-            this.READ_CODE(16, &uiCode, "avg_pic_rate[i]")
-            info.SetAvgPicRate(i, int(uiCode))
-        }
-    }
-}
-
-//#endif
 func (this *TDecCavlc) ParseHrdParameters  (hrd *TLibCommon.TComHRD, commonInfPresentFlag bool, maxNumSubLayersMinus1 uint){
   var  uiCode   uint;
   if commonInfPresentFlag {

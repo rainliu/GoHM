@@ -656,16 +656,6 @@ type TAppEncCfg struct{
   m_maxBitsPerMinCuDenom			int;                           ///< Indicates an upper bound for the number of bits of codinTLibCommon.G_unit() data
   m_log2MaxMvLengthHorizontal		int;                      ///< Indicate the maximum absolute value of a decoded horizontal MV component in quarter-pel luma units
   m_log2MaxMvLengthVertical		int;                        ///< Indicate the maximum absolute value of a decoded vertical MV component in quarter-pel luma units
-
-//#if SIGNAL_BITRATE_PICRATE_IN_VPS
-  m_bitRatePicRateMaxTLayers		int;                       ///< Indicates max. number of sub-layers for which bit rate is signalled.
-  m_bitRateInfoPresentFlag		[]bool;                         ///< Indicates whether bit rate information is signalled
-  m_picRateInfoPresentFlag		[]bool;                         ///< Indicates whether pic rate information is signalled
-  m_avgBitRate					[]int;                                     ///< Indicates avg. bit rate information for various sub-layers
-  m_maxBitRate					[]int;                                     ///< Indicates max. bit rate information for various sub-layers
-  m_avgPicRate					[]int;                                     ///< Indicates avg. picture rate information for various sub-layers
-  m_constantPicRateIdc			[]int;                                ///< Indicates constant picture rate idc for various sub-layers
-//#endif
 }
 
 func NewTAppEncCfg() *TAppEncCfg{
@@ -688,14 +678,7 @@ func  (this *TAppEncCfg) ParseCfg  ( argc int, argv []string ) error {          
   var cfg_ColumnWidth	string;
   var cfg_RowHeight		string;
   var cfg_ScalingListFile			string;
-//#if SIGNAL_BITRATE_PICRATE_IN_VPS
-  var cfg_bitRateInfoPresentFlag	string;
-  var cfg_picRateInfoPresentFlag	string;
-  var cfg_avgBitRate				string;
-  var cfg_maxBitRate				string;
-  var cfg_avgPicRate				string;
-  var cfg_constantPicRateIdc		string;
-//#endif
+
   opts := NewOptions();
 
   //("help", do_help, false, "this help text")
@@ -894,15 +877,6 @@ func  (this *TAppEncCfg) ParseCfg  ( argc int, argv []string ) error {          
 //#endif
 //#if SEI_TEMPORAL_LEVEL0_INDEX
   opts.AddOption(NewOptionInt   ("SEITemporalLevel0Index",         &this.m_temporalLevel0IndexSEIEnabled,          0, "Control generation of temporal level 0 index SEI messages"));
-//#endif
-//#if SIGNAL_BITRATE_PICRATE_IN_VPS
-  opts.AddOption(NewOptionInt   ("BitRatePicRateMaxTLayers",   	   &this.m_bitRatePicRateMaxTLayers,           0, "Maximum number of sub-layers signalled; can be inferred otherwise; here for easy parsing of config. file"));
-  opts.AddOption(NewOptionString("BitRateInfoPresent",             &cfg_bitRateInfoPresentFlag,         string(""), "Control signalling of bit rate information of avg. bit rate and max. bit rate in VPS"));
-  opts.AddOption(NewOptionString("PicRateInfoPresent",             &cfg_picRateInfoPresentFlag,         string(""), "Control signalling of picture rate information of avg. bit rate and max. bit rate in VPS"));
-  opts.AddOption(NewOptionString("AvgBitRate",                     &cfg_avgBitRate,                     string(""), "List of avg. bit rates for the different sub-layers; include non-negative number even if corresponding flag is 0"));
-  opts.AddOption(NewOptionString("MaxBitRate",                     &cfg_maxBitRate,                     string(""), "List of max. bit rates for the different sub-layers; include non-negative number even if corresponding flag is 0"));
-  opts.AddOption(NewOptionString("AvgPicRate",                     &cfg_avgPicRate,                     string(""), "List of avg. picture rates for the different sub-layers; include non-negative number even if corresponding flag is 0"));
-  opts.AddOption(NewOptionString("ConstantPicRateIdc",             &cfg_constantPicRateIdc,             string(""), "List of constant picture rate IDCs; include non-negative number even if corresponding flag is 0"));
 //#endif
 
   var emptyGOPEntry *TLibEncoder.GOPEntry;

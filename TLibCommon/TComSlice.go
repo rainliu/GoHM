@@ -566,65 +566,6 @@ func (this *TComPTL) GetSubLayerPTL(i int) *ProfileTierLevel {
     return &this.m_subLayerPTL[i]
 }
 
-/// VPS class
-
-//#if SIGNAL_BITRATE_PICRATE_IN_VPS
-type TComBitRatePicRateInfo struct {
-    m_bitRateInfoPresentFlag [MAX_TLAYER]bool
-    m_picRateInfoPresentFlag [MAX_TLAYER]bool
-    m_avgBitRate             [MAX_TLAYER]int
-    m_maxBitRate             [MAX_TLAYER]int
-    m_constantPicRateIdc     [MAX_TLAYER]int
-    m_avgPicRate             [MAX_TLAYER]int
-}
-
-func NewTComBitRatePicRateInfo() *TComBitRatePicRateInfo {
-    return &TComBitRatePicRateInfo{} //init zero by go
-}
-
-func (this *TComBitRatePicRateInfo) GetBitRateInfoPresentFlag(i int) bool {
-    return this.m_bitRateInfoPresentFlag[i]
-}
-func (this *TComBitRatePicRateInfo) SetBitRateInfoPresentFlag(i int, x bool) {
-    this.m_bitRateInfoPresentFlag[i] = x
-}
-
-func (this *TComBitRatePicRateInfo) GetPicRateInfoPresentFlag(i int) bool {
-    return this.m_picRateInfoPresentFlag[i]
-}
-func (this *TComBitRatePicRateInfo) SetPicRateInfoPresentFlag(i int, x bool) {
-    this.m_picRateInfoPresentFlag[i] = x
-}
-
-func (this *TComBitRatePicRateInfo) GetAvgBitRate(i int) int {
-    return this.m_avgBitRate[i]
-}
-func (this *TComBitRatePicRateInfo) SetAvgBitRate(i, x int) {
-    this.m_avgBitRate[i] = x
-}
-
-func (this *TComBitRatePicRateInfo) GetMaxBitRate(i int) int {
-    return this.m_maxBitRate[i]
-}
-func (this *TComBitRatePicRateInfo) SetMaxBitRate(i, x int) {
-    this.m_maxBitRate[i] = x
-}
-
-func (this *TComBitRatePicRateInfo) GetConstantPicRateIdc(i int) int {
-    return this.m_constantPicRateIdc[i]
-}
-func (this *TComBitRatePicRateInfo) SetConstantPicRateIdc(i, x int) {
-    this.m_constantPicRateIdc[i] = x
-}
-
-func (this *TComBitRatePicRateInfo) GetAvgPicRate(i int) int {
-    return this.m_avgPicRate[i]
-}
-func (this *TComBitRatePicRateInfo) SetAvgPicRate(i, x int) {
-    this.m_avgPicRate[i] = x
-}
-
-
 type HrdSubLayerInfo struct {
     fixedPicRateFlag      bool
     fixedPicRateWithinCvsFlag   bool;
@@ -787,8 +728,6 @@ type TComVPS struct {
 
     m_pcPTL TComPTL
 
-    m_bitRatePicRateInfo TComBitRatePicRateInfo
-
     m_timingInfo TimingInfo;
 }
 
@@ -884,9 +823,7 @@ func (this *TComVPS) SetLayerIdIncludedFlag(v bool, opIdx, id uint) {
 func (this *TComVPS) GetPTL() *TComPTL {
     return &this.m_pcPTL
 }
-func (this *TComVPS) GetBitratePicrateInfo() *TComBitRatePicRateInfo {
-    return &this.m_bitRatePicRateInfo
-}
+
 func (this *TComVPS) GetTimingInfo()*TimingInfo { return &this.m_timingInfo; }
 
 

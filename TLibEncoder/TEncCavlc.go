@@ -351,9 +351,6 @@ func (this *TEncCavlc)  codeVPS                 ( pcVPS *TLibCommon.TComVPS){
 //  codePTL( pcVPS.GetPTL(), true, pcVPS.GetMaxTLayers() - 1 );
 //  WRITE_CODE( 0,                                   12,        "vps_reserved_zero_12bits" );
 //#endif
-//#if SIGNAL_BITRATE_PICRATE_IN_VPS
-  this.codeBitratePicRateInfo(pcVPS.GetBitratePicrateInfo(), 0, int(pcVPS.GetMaxTLayers()) - 1);
-//#endif
 //#if HLS_ADD_SUBLAYER_ORDERING_INFO_PRESENT_FLAG
   subLayerOrderingInfoPresentFlag := uint(1);
   this.WRITE_FLAG(subLayerOrderingInfoPresentFlag,              "vps_sub_layer_ordering_info_present_flag");
@@ -1098,23 +1095,6 @@ func (this *TEncCavlc)  codeProfileTier         ( ptl *TLibCommon.ProfileTierLev
   }
   this.WRITE_CODE(0 , 16, "XXX_reserved_zero_16bits[]");
 }
-
-//#if SIGNAL_BITRATE_PICRATE_IN_VPS
-func (this *TEncCavlc)  codeBitratePicRateInfo(info *TLibCommon.TComBitRatePicRateInfo, tempLevelLow, tempLevelHigh int){
-  for i := tempLevelLow; i <= tempLevelHigh; i++ {
-    this.WRITE_FLAG( uint(TLibCommon.B2U(info.GetBitRateInfoPresentFlag(i))),  "bit_rate_info_present_flag[i]" );
-    this.WRITE_FLAG( uint(TLibCommon.B2U(info.GetPicRateInfoPresentFlag(i))),  "pic_rate_info_present_flag[i]" );
-    if info.GetBitRateInfoPresentFlag(i) {
-      this.WRITE_CODE( uint(info.GetAvgBitRate(i)), 16, "avg_bit_rate[i]" );
-      this.WRITE_CODE( uint(info.GetMaxBitRate(i)), 16, "max_bit_rate[i]" );
-    }
-    if info.GetPicRateInfoPresentFlag(i) {
-      this.WRITE_CODE( uint(info.GetConstantPicRateIdc(i)),  2, "constant_pic_rate_idc[i]" );
-      this.WRITE_CODE( uint(info.GetAvgPicRate(i)),         16, "avg_pic_rate[i]"          );
-    }
-  }
-}
-//#endif
 
 func (this *TEncCavlc)  codeTilesWPPEntryPoint( pSlice *TLibCommon.TComSlice){
   if !pSlice.GetPPS().GetTilesEnabledFlag() && !pSlice.GetPPS().GetEntropyCodingSyncEnabledFlag() {
