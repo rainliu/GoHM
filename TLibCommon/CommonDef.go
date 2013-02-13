@@ -52,10 +52,10 @@ const MAX_NUM_REF_PICS = 16             ///< max. number of pictures used for re
 const MAX_NUM_REF = 16                  ///< max. number of entries in picture reference list
 const MAX_NUM_REF_LC = MAX_NUM_REF_PICS // TODO: remove this macro definition (leftover from combined list concept)
 
-const MAX_UINT = uint(4294967295) //          0xFFFFFFFFU ///< max. value of unsigned 32-bit integer
-const MAX_INT = int(2147483647)   ///< max. value of signed 32-bit integer
-const MAX_INT64 =  uint64(0x7FFFFFFFFFFFFFFF)  ///< max. value of signed 64-bit integer
-const MAX_DOUBLE = 1.7e+308 ///< max. value of double-type value
+const MAX_UINT = uint(4294967295)            //          0xFFFFFFFFU ///< max. value of unsigned 32-bit integer
+const MAX_INT = int(2147483647)              ///< max. value of signed 32-bit integer
+const MAX_INT64 = uint64(0x7FFFFFFFFFFFFFFF) ///< max. value of signed 64-bit integer
+const MAX_DOUBLE = 1.7e+308                  ///< max. value of double-type value
 
 const MIN_QP = 0
 const MAX_QP = 51
@@ -240,9 +240,9 @@ func MIN(a, b interface{}) interface{} {
             return b
         }
     case float64:
-    	if a.(float64) > b.(float64) {
-    		return b
-    	}
+        if a.(float64) > b.(float64) {
+            return b
+        }
     default:
         fmt.Printf("unsupport data type\n")
     }
@@ -269,9 +269,9 @@ func ABS(a interface{}) interface{} {
             return -a.(int)
         }
     case float64:
-    	if a.(float64) < 0 {
-    		return -a.(float64)
-    	}
+        if a.(float64) < 0 {
+            return -a.(float64)
+        }
     default:
         fmt.Printf("unsupport data type\n")
     }

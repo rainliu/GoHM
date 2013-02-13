@@ -172,7 +172,7 @@ func (this *TDecCu) xDecodeCU(pcCU *TLibCommon.TComDataCU, uiAbsPartIdx, uiDepth
             bSubInSlice := pcCU.GetSCUAddr()+uiIdx+uiQNumParts > pcSlice.GetSliceSegmentCurStartCUAddr()
             //fmt.Printf("pcCU.GetSCUAddr()%d+uiIdx%d+uiQNumParts%d>pcSlice.GetDependentSliceCurStartCUAddr()%d\n",pcCU.GetSCUAddr(),uiIdx,uiQNumParts,pcSlice.GetDependentSliceCurStartCUAddr());
             if bSubInSlice {
-                if *ruiIsLast==0 && (uiLPelX < pcCU.GetSlice().GetSPS().GetPicWidthInLumaSamples()) && (uiTPelY < pcCU.GetSlice().GetSPS().GetPicHeightInLumaSamples()) {
+                if *ruiIsLast == 0 && (uiLPelX < pcCU.GetSlice().GetSPS().GetPicWidthInLumaSamples()) && (uiTPelY < pcCU.GetSlice().GetSPS().GetPicHeightInLumaSamples()) {
                     this.xDecodeCU(pcCU, uiIdx, uiDepth+1, ruiIsLast)
                 } else {
                     pcCU.SetOutsideCUPart(uiIdx, uiDepth+1)

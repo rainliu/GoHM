@@ -73,8 +73,8 @@ func (this *TAppDecTop) Destroy() {
 
 func (this *TAppDecTop) Decode() (err error) {
     var poc int
-    var pcListPic *list.List // = NULL;
-    var nalUnit, oldNalUnit *list.List   //vector<uint8_t>
+    var pcListPic *list.List           // = NULL;
+    var nalUnit, oldNalUnit *list.List //vector<uint8_t>
     var nalu TLibDecoder.InputNALUnit
 
     bitstreamFile, err := os.Open(this.m_pchBitstreamFile)
@@ -108,8 +108,8 @@ func (this *TAppDecTop) Decode() (err error) {
         if !bNewPicture {
             nalUnit = list.New() //vector<uint8_t>
             eof = bytestream.ByteStreamNALUnit(nalUnit, &stats)
-        }else{
-        	nalUnit = oldNalUnit;
+        } else {
+            nalUnit = oldNalUnit
         }
 
         // call actual decoding function
@@ -122,8 +122,8 @@ func (this *TAppDecTop) Decode() (err error) {
             fmt.Printf("Warning: Attempt to decode an empty NAL unit\n")
             break
         } else {
-        	//fmt.Printf("NalUnit Len=%d\n", nalUnit.Len())
-            oldNalUnit=nalu.Read(nalUnit)
+            //fmt.Printf("NalUnit Len=%d\n", nalUnit.Len())
+            oldNalUnit = nalu.Read(nalUnit)
 
             //fmt.Printf("Type=%d\n", nalu.GetNalUnitType())
 
@@ -224,19 +224,19 @@ func (this *TAppDecTop) xWriteOutput(pcListPic *list.List, tId uint) {
             // write to file
             not_displayed--
             if this.m_pchReconFile != "" {
-                conf := pcPic.GetConformanceWindow();
-                var defDisp *TLibCommon.Window;
-                if this.m_respectDefDispWindow!=0 {
-                    defDisp = pcPic.GetDefDisplayWindow();
-                }else{
-                    defDisp = TLibCommon.NewWindow();
+                conf := pcPic.GetConformanceWindow()
+                var defDisp *TLibCommon.Window
+                if this.m_respectDefDispWindow != 0 {
+                    defDisp = pcPic.GetDefDisplayWindow()
+                } else {
+                    defDisp = TLibCommon.NewWindow()
                 }
 
-                this.m_cTVideoIOYuvReconFile.Write( pcPic.GetPicYuvRec(),
-                                       conf.GetWindowLeftOffset()  + defDisp.GetWindowLeftOffset(),
-                                       conf.GetWindowRightOffset() + defDisp.GetWindowRightOffset(),
-                                       conf.GetWindowTopOffset()   + defDisp.GetWindowTopOffset(),
-                                       conf.GetWindowBottomOffset()+ defDisp.GetWindowBottomOffset() );
+                this.m_cTVideoIOYuvReconFile.Write(pcPic.GetPicYuvRec(),
+                    conf.GetWindowLeftOffset()+defDisp.GetWindowLeftOffset(),
+                    conf.GetWindowRightOffset()+defDisp.GetWindowRightOffset(),
+                    conf.GetWindowTopOffset()+defDisp.GetWindowTopOffset(),
+                    conf.GetWindowBottomOffset()+defDisp.GetWindowBottomOffset())
             }
 
             // update POC of display order
@@ -276,23 +276,23 @@ func (this *TAppDecTop) xFlushOutput(pcListPic *list.List) {
         if pcPic.GetOutputMark() {
             // write to file
             if this.m_pchReconFile != "" {
-                conf := pcPic.GetConformanceWindow();
-                var defDisp *TLibCommon.Window;
-                if this.m_respectDefDispWindow!=0 {
-                    defDisp = pcPic.GetDefDisplayWindow();
-                }else{
-                    defDisp = TLibCommon.NewWindow();
+                conf := pcPic.GetConformanceWindow()
+                var defDisp *TLibCommon.Window
+                if this.m_respectDefDispWindow != 0 {
+                    defDisp = pcPic.GetDefDisplayWindow()
+                } else {
+                    defDisp = TLibCommon.NewWindow()
                 }
 
-                this.m_cTVideoIOYuvReconFile.Write( pcPic.GetPicYuvRec(),
-                                       conf.GetWindowLeftOffset()  + defDisp.GetWindowLeftOffset(),
-                                       conf.GetWindowRightOffset() + defDisp.GetWindowRightOffset(),
-                                       conf.GetWindowTopOffset()   + defDisp.GetWindowTopOffset(),
-                                       conf.GetWindowBottomOffset()+ defDisp.GetWindowBottomOffset() );
+                this.m_cTVideoIOYuvReconFile.Write(pcPic.GetPicYuvRec(),
+                    conf.GetWindowLeftOffset()+defDisp.GetWindowLeftOffset(),
+                    conf.GetWindowRightOffset()+defDisp.GetWindowRightOffset(),
+                    conf.GetWindowTopOffset()+defDisp.GetWindowTopOffset(),
+                    conf.GetWindowBottomOffset()+defDisp.GetWindowBottomOffset())
             }
 
             // update POC of display order
-            this.m_iPOCLastDisplay = int(pcPic.GetPOC());
+            this.m_iPOCLastDisplay = int(pcPic.GetPOC())
             //fmt.Printf("m_iPOCLastDisplay=%d\n",this.m_iPOCLastDisplay);
 
             // erase non-referenced picture in the reference picture list after display

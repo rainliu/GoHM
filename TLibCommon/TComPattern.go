@@ -184,7 +184,7 @@ func (this *TComPattern) GetPredictorPtr(uiDirMode, log2BlkSize uint, piAdiBuf [
 /// set parameters from Pel buffers for accessing neighbouring pixels
 func (this *TComPattern) InitPattern(piY []Pel, piCb []Pel, piCr []Pel,
     iRoiWidth, iRoiHeight, iStride, iOffsetLeft, iOffsetAbove int) {
-    this.m_cPatternY. SetPatternParamPel(piY,  iRoiWidth,    iRoiHeight,    iStride,    iOffsetLeft,    iOffsetAbove   )
+    this.m_cPatternY.SetPatternParamPel(piY, iRoiWidth, iRoiHeight, iStride, iOffsetLeft, iOffsetAbove)
     this.m_cPatternCb.SetPatternParamPel(piCb, iRoiWidth>>1, iRoiHeight>>1, iStride>>1, iOffsetLeft>>1, iOffsetAbove>>1)
     this.m_cPatternCr.SetPatternParamPel(piCr, iRoiWidth>>1, iRoiHeight>>1, iStride>>1, iOffsetLeft>>1, iOffsetAbove>>1)
 
@@ -211,7 +211,7 @@ func (this *TComPattern) InitPattern3(pcCU *TComDataCU, uiPartDepth, uiAbsPartId
         uiOffsetAbove = 1
     }
 
-    this.m_cPatternY. SetPatternParamCU(pcCU, 0, int(uiWidth),    int(uiHeight),    uiOffsetLeft, uiOffsetAbove, uiAbsPartIdx)
+    this.m_cPatternY.SetPatternParamCU(pcCU, 0, int(uiWidth), int(uiHeight), uiOffsetLeft, uiOffsetAbove, uiAbsPartIdx)
     this.m_cPatternCb.SetPatternParamCU(pcCU, 1, int(uiWidth)>>1, int(uiHeight)>>1, uiOffsetLeft, uiOffsetAbove, uiAbsPartIdx)
     this.m_cPatternCr.SetPatternParamCU(pcCU, 2, int(uiWidth)>>1, int(uiHeight)>>1, uiOffsetLeft, uiOffsetAbove, uiAbsPartIdx)
 }

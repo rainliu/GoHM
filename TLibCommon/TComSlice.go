@@ -265,10 +265,10 @@ type TComScalingList struct {
 
 //public:
 func NewTComScalingList() *TComScalingList {
-    sl := &TComScalingList{m_useTransformSkip:false}
-    sl.Init();
+    sl := &TComScalingList{m_useTransformSkip: false}
+    sl.Init()
 
-    return sl;
+    return sl
 }
 
 func (this *TComScalingList) SetScalingListPresentFlag(b bool) {
@@ -288,15 +288,15 @@ func (this *TComScalingList) GetScalingListAddress(sizeId, listId uint) []int {
 }                                                                      //!< get matrix coefficient
 func (this *TComScalingList) CheckPredMode(sizeId, listId uint) bool { //encoder func
     /*
-      for predListIdx := int(listId) ; predListIdx >= 0; predListIdx-- {
-        if( !memcmp(getScalingListAddress(sizeId,listId),((listId == predListIdx) ?
-          getScalingListDefaultAddress(sizeId, predListIdx): getScalingListAddress(sizeId, predListIdx)),sizeof(Int)*min(MAX_MATRIX_COEF_NUM,(Int)g_scalingListSize[sizeId])) // check value of matrix
-         && ((sizeId < SCALING_LIST_16x16) || (getScalingListDC(sizeId,listId) == getScalingListDC(sizeId,predListIdx)))) // check DC value
-        {
-          setRefMatrixId(sizeId, listId, predListIdx);
-          return false;
-        }
-      }*/
+       for predListIdx := int(listId) ; predListIdx >= 0; predListIdx-- {
+         if( !memcmp(getScalingListAddress(sizeId,listId),((listId == predListIdx) ?
+           getScalingListDefaultAddress(sizeId, predListIdx): getScalingListAddress(sizeId, predListIdx)),sizeof(Int)*min(MAX_MATRIX_COEF_NUM,(Int)g_scalingListSize[sizeId])) // check value of matrix
+          && ((sizeId < SCALING_LIST_16x16) || (getScalingListDC(sizeId,listId) == getScalingListDC(sizeId,predListIdx)))) // check DC value
+         {
+           setRefMatrixId(sizeId, listId, predListIdx);
+           return false;
+         }
+       }*/
     return true
 }
 func (this *TComScalingList) SetRefMatrixId(sizeId, listId, u uint) {
@@ -475,10 +475,10 @@ type ProfileTierLevel struct {
     m_profileIdc               int
     m_profileCompatibilityFlag [32]bool
     m_levelIdc                 int
-    m_progressiveSourceFlag     bool;
-    m_interlacedSourceFlag      bool;
-    m_nonPackedConstraintFlag   bool;
-    m_frameOnlyConstraintFlag   bool;
+    m_progressiveSourceFlag    bool
+    m_interlacedSourceFlag     bool
+    m_nonPackedConstraintFlag  bool
+    m_frameOnlyConstraintFlag  bool
 }
 
 //public:
@@ -521,18 +521,17 @@ func (this *ProfileTierLevel) SetLevelIdc(x int) {
     this.m_levelIdc = x
 }
 
-func (this *ProfileTierLevel) GetProgressiveSourceFlag() bool  { return this.m_progressiveSourceFlag; }
-func (this *ProfileTierLevel) SetProgressiveSourceFlag(b bool) { this.m_progressiveSourceFlag = b; }
+func (this *ProfileTierLevel) GetProgressiveSourceFlag() bool  { return this.m_progressiveSourceFlag }
+func (this *ProfileTierLevel) SetProgressiveSourceFlag(b bool) { this.m_progressiveSourceFlag = b }
 
-func (this *ProfileTierLevel) GetInterlacedSourceFlag() bool  { return this.m_interlacedSourceFlag; }
-func (this *ProfileTierLevel) SetInterlacedSourceFlag(b bool) { this.m_interlacedSourceFlag = b; }
+func (this *ProfileTierLevel) GetInterlacedSourceFlag() bool  { return this.m_interlacedSourceFlag }
+func (this *ProfileTierLevel) SetInterlacedSourceFlag(b bool) { this.m_interlacedSourceFlag = b }
 
-func (this *ProfileTierLevel) GetNonPackedConstraintFlag() bool  { return this.m_nonPackedConstraintFlag; }
-func (this *ProfileTierLevel) SetNonPackedConstraintFlag(b bool) { this.m_nonPackedConstraintFlag = b; }
+func (this *ProfileTierLevel) GetNonPackedConstraintFlag() bool  { return this.m_nonPackedConstraintFlag }
+func (this *ProfileTierLevel) SetNonPackedConstraintFlag(b bool) { this.m_nonPackedConstraintFlag = b }
 
-func (this *ProfileTierLevel) GetFrameOnlyConstraintFlag() bool  { return this.m_frameOnlyConstraintFlag; }
-func (this *ProfileTierLevel) SetFrameOnlyConstraintFlag(b bool) { this.m_frameOnlyConstraintFlag = b; }
-
+func (this *ProfileTierLevel) GetFrameOnlyConstraintFlag() bool  { return this.m_frameOnlyConstraintFlag }
+func (this *ProfileTierLevel) SetFrameOnlyConstraintFlag(b bool) { this.m_frameOnlyConstraintFlag = b }
 
 type TComPTL struct {
     m_generalPTL                 ProfileTierLevel
@@ -567,144 +566,239 @@ func (this *TComPTL) GetSubLayerPTL(i int) *ProfileTierLevel {
 }
 
 type HrdSubLayerInfo struct {
-    fixedPicRateFlag      bool
-    fixedPicRateWithinCvsFlag   bool;
-    picDurationInTcMinus1 uint
-    lowDelayHrdFlag       bool
-    cpbCntMinus1          uint
-    bitRateValueMinus1    [MAX_CPB_CNT][2]uint
-    cpbSizeValue          [MAX_CPB_CNT][2]uint
-    ducpbSizeValue        [MAX_CPB_CNT][2]uint
-    cbrFlag               [MAX_CPB_CNT][2]bool
-    duBitRateValue        [MAX_CPB_CNT][2]uint;
+    fixedPicRateFlag          bool
+    fixedPicRateWithinCvsFlag bool
+    picDurationInTcMinus1     uint
+    lowDelayHrdFlag           bool
+    cpbCntMinus1              uint
+    bitRateValueMinus1        [MAX_CPB_CNT][2]uint
+    cpbSizeValue              [MAX_CPB_CNT][2]uint
+    ducpbSizeValue            [MAX_CPB_CNT][2]uint
+    cbrFlag                   [MAX_CPB_CNT][2]bool
+    duBitRateValue            [MAX_CPB_CNT][2]uint
 }
 
-type TComHRD struct{
-  m_nalHrdParametersPresentFlag    bool;
-  m_vclHrdParametersPresentFlag    bool;
-  m_subPicCpbParamsPresentFlag     bool;
-  m_tickDivisorMinus2              uint;
-  m_duCpbRemovalDelayLengthMinus1  uint;
-  m_subPicCpbParamsInPicTimingSEIFlag  bool;
-  m_dpbOutputDelayDuLengthMinus1   uint;
+type TComHRD struct {
+    m_nalHrdParametersPresentFlag       bool
+    m_vclHrdParametersPresentFlag       bool
+    m_subPicCpbParamsPresentFlag        bool
+    m_tickDivisorMinus2                 uint
+    m_duCpbRemovalDelayLengthMinus1     uint
+    m_subPicCpbParamsInPicTimingSEIFlag bool
+    m_dpbOutputDelayDuLengthMinus1      uint
 
-  m_bitRateScale   uint;
-  m_cpbSizeScale   uint;
-  m_ducpbSizeScale uint;
-  m_initialCpbRemovalDelayLengthMinus1 uint;
-  m_cpbRemovalDelayLengthMinus1    uint;
-  m_dpbOutputDelayLengthMinus1 uint;
-  m_numDU  uint;
-  m_HRD [MAX_TLAYER]HrdSubLayerInfo;
+    m_bitRateScale                       uint
+    m_cpbSizeScale                       uint
+    m_ducpbSizeScale                     uint
+    m_initialCpbRemovalDelayLengthMinus1 uint
+    m_cpbRemovalDelayLengthMinus1        uint
+    m_dpbOutputDelayLengthMinus1         uint
+    m_numDU                              uint
+    m_HRD                                [MAX_TLAYER]HrdSubLayerInfo
 }
 
-func NewTComHRD() *TComHRD{
-  return &TComHRD{};
+func NewTComHRD() *TComHRD {
+    return &TComHRD{}
 }
 
-func (this *TComHRD)  SetNalHrdParametersPresentFlag       ( flag bool )  { this.m_nalHrdParametersPresentFlag = flag;         }
-func (this *TComHRD)  GetNalHrdParametersPresentFlag       ( )  bool          { return this.m_nalHrdParametersPresentFlag;         }
-
-func (this *TComHRD)  SetVclHrdParametersPresentFlag       ( flag bool )  { this.m_vclHrdParametersPresentFlag = flag;         }
-func (this *TComHRD)  GetVclHrdParametersPresentFlag       ( )  bool          { return this.m_vclHrdParametersPresentFlag;         }
-
-func (this *TComHRD)  SetSubPicCpbParamsPresentFlag        ( flag bool )  { this.m_subPicCpbParamsPresentFlag = flag;          }
-func (this *TComHRD)  GetSubPicCpbParamsPresentFlag        ( )  bool          { return this.m_subPicCpbParamsPresentFlag;          }
-
-func (this *TComHRD)  SetTickDivisorMinus2                 ( value uint ) { this.m_tickDivisorMinus2 = value;                  }
-func (this *TComHRD)  GetTickDivisorMinus2                 ( )  uint          { return this.m_tickDivisorMinus2;                   }
-
-func (this *TComHRD)  SetDuCpbRemovalDelayLengthMinus1     ( value uint ) { this.m_duCpbRemovalDelayLengthMinus1 = value;      }
-func (this *TComHRD)  GetDuCpbRemovalDelayLengthMinus1     ( )   uint         { return this.m_duCpbRemovalDelayLengthMinus1;       }
-
-func (this *TComHRD)  SetSubPicCpbParamsInPicTimingSEIFlag ( flag bool)   { this.m_subPicCpbParamsInPicTimingSEIFlag = flag;   }
-func (this *TComHRD)  GetSubPicCpbParamsInPicTimingSEIFlag ()   bool          { return this.m_subPicCpbParamsInPicTimingSEIFlag;   }
-
-func (this *TComHRD)  SetDpbOutputDelayDuLengthMinus1      (value uint )  { this.m_dpbOutputDelayDuLengthMinus1 = value;       }
-func (this *TComHRD)  GetDpbOutputDelayDuLengthMinus1      ()   uint          { return this.m_dpbOutputDelayDuLengthMinus1;        }
-
-func (this *TComHRD)  SetBitRateScale                      ( value uint ) { this.m_bitRateScale = value;                       }
-func (this *TComHRD)  GetBitRateScale                      ( )  uint          { return this.m_bitRateScale;                        }
-
-func (this *TComHRD)  SetCpbSizeScale                      ( value uint ) { this.m_cpbSizeScale = value;                       }
-func (this *TComHRD)  GetCpbSizeScale                      ( )  uint          { return this.m_cpbSizeScale;                        }
-func (this *TComHRD)  SetDuCpbSizeScale                    ( value uint ) { this.m_ducpbSizeScale = value;                     }
-func (this *TComHRD)  GetDuCpbSizeScale                    ( )  uint          { return this.m_ducpbSizeScale;                      }
-
-func (this *TComHRD)  SetInitialCpbRemovalDelayLengthMinus1( value uint ) { this.m_initialCpbRemovalDelayLengthMinus1 = value; }
-func (this *TComHRD)  GetInitialCpbRemovalDelayLengthMinus1( )  uint          { return this.m_initialCpbRemovalDelayLengthMinus1;  }
-
-func (this *TComHRD)  SetCpbRemovalDelayLengthMinus1       ( value uint ) { this.m_cpbRemovalDelayLengthMinus1 = value;        }
-func (this *TComHRD)  GetCpbRemovalDelayLengthMinus1       ( )  uint          { return this.m_cpbRemovalDelayLengthMinus1;         }
-
-func (this *TComHRD)  SetDpbOutputDelayLengthMinus1        ( value uint ) { this.m_dpbOutputDelayLengthMinus1 = value;         }
-func (this *TComHRD)  GetDpbOutputDelayLengthMinus1        ( )  uint          { return this.m_dpbOutputDelayLengthMinus1;          }
-
-func (this *TComHRD)  SetFixedPicRateFlag       ( layer int, flag bool )  { this.m_HRD[layer].fixedPicRateFlag = flag;         }
-func (this *TComHRD)  GetFixedPicRateFlag       ( layer int  )  bool{ return this.m_HRD[layer].fixedPicRateFlag;         }
-
-func (this *TComHRD)  SetFixedPicRateWithinCvsFlag       ( layer int, flag bool )  { this.m_HRD[layer].fixedPicRateWithinCvsFlag = flag;         }
-func (this *TComHRD)  GetFixedPicRateWithinCvsFlag       ( layer int  ) bool { return this.m_HRD[layer].fixedPicRateWithinCvsFlag;         }
-
-func (this *TComHRD)  SetPicDurationInTcMinus1  ( layer int, value uint ) { this.m_HRD[layer].picDurationInTcMinus1 = value;   }
-func (this *TComHRD)  GetPicDurationInTcMinus1  ( layer int   ) uint{ return this.m_HRD[layer].picDurationInTcMinus1;    }
-
-func (this *TComHRD)  SetLowDelayHrdFlag        ( layer int, flag bool )  { this.m_HRD[layer].lowDelayHrdFlag = flag;          }
-func (this *TComHRD)  GetLowDelayHrdFlag        ( layer int            ) bool { return this.m_HRD[layer].lowDelayHrdFlag;          }
-
-func (this *TComHRD)  SetCpbCntMinus1           ( layer int, value uint ) { this.m_HRD[layer].cpbCntMinus1 = value; }
-func (this *TComHRD)  GetCpbCntMinus1           ( layer int            ) uint { return this.m_HRD[layer].cpbCntMinus1; }
-
-func (this *TComHRD)  SetBitRateValueMinus1     ( layer int, cpbcnt,  nalOrVcl int, value uint ) { this.m_HRD[layer].bitRateValueMinus1[cpbcnt][nalOrVcl] = value; }
-func (this *TComHRD)  GetBitRateValueMinus1     ( layer int, cpbcnt,  nalOrVcl int             ) uint{ return this.m_HRD[layer].bitRateValueMinus1[cpbcnt][nalOrVcl];  }
-
-func (this *TComHRD)  SetCpbSizeValueMinus1     ( layer int, cpbcnt,  nalOrVcl int, value uint ) { this.m_HRD[layer].cpbSizeValue[cpbcnt][nalOrVcl] = value;       }
-func (this *TComHRD)  GetCpbSizeValueMinus1     ( layer int, cpbcnt,  nalOrVcl int            ) uint { return this.m_HRD[layer].cpbSizeValue[cpbcnt][nalOrVcl];        }
-func (this *TComHRD)  SetDuCpbSizeValueMinus1     ( layer int, cpbcnt,  nalOrVcl int, value uint ) { this.m_HRD[layer].ducpbSizeValue[cpbcnt][nalOrVcl] = value;       }
-func (this *TComHRD)  GetDuCpbSizeValueMinus1     ( layer int, cpbcnt,  nalOrVcl int            )uint  { return this.m_HRD[layer].ducpbSizeValue[cpbcnt][nalOrVcl];        }
-
-func (this *TComHRD)  SetDuBitRateValueMinus1     ( layer int, cpbcnt,  nalOrVcl int, value uint ) { this.m_HRD[layer].duBitRateValue[cpbcnt][nalOrVcl] = value;       }
-func (this *TComHRD)  GetDuBitRateValueMinus1     (layer int, cpbcnt,  nalOrVcl int )  uint            { return this.m_HRD[layer].duBitRateValue[cpbcnt][nalOrVcl];        }
-
-func (this *TComHRD)  SetCbrFlag                ( layer int, cpbcnt,  nalOrVcl int, value bool ) { this.m_HRD[layer].cbrFlag[cpbcnt][nalOrVcl] = value;            }
-func (this *TComHRD)  GetCbrFlag                ( layer int, cpbcnt,  nalOrVcl int             ) bool{ return this.m_HRD[layer].cbrFlag[cpbcnt][nalOrVcl];             }
-
-func (this *TComHRD)  SetNumDU                              ( value uint ) { this.m_numDU = value;                            }
-func (this *TComHRD)  GetNumDU                              ( )   uint         { return this.m_numDU;          }
-
-func (this *TComHRD)  GetCpbDpbDelaysPresentFlag() bool { return this.GetNalHrdParametersPresentFlag() || this.GetVclHrdParametersPresentFlag(); }
-
-type TimingInfo struct{
-  m_timingInfoPresentFlag  bool;
-  m_numUnitsInTick uint;
-  m_timeScale  uint;
-  m_pocProportionalToTimingFlag    bool;
-  m_numTicksPocDiffOneMinus1   int;
+func (this *TComHRD) SetNalHrdParametersPresentFlag(flag bool) {
+    this.m_nalHrdParametersPresentFlag = flag
+}
+func (this *TComHRD) GetNalHrdParametersPresentFlag() bool {
+    return this.m_nalHrdParametersPresentFlag
 }
 
-func NewTimingInfo() *TimingInfo{
-  return &TimingInfo{ m_timingInfoPresentFlag:false,
-   m_numUnitsInTick:1001,
-   m_timeScale:60000,
-   m_pocProportionalToTimingFlag:false,
-   m_numTicksPocDiffOneMinus1:0};
+func (this *TComHRD) SetVclHrdParametersPresentFlag(flag bool) {
+    this.m_vclHrdParametersPresentFlag = flag
+}
+func (this *TComHRD) GetVclHrdParametersPresentFlag() bool {
+    return this.m_vclHrdParametersPresentFlag
 }
 
-func (this *TimingInfo)  SetTimingInfoPresentFlag             ( flag bool)  { this.m_timingInfoPresentFlag = flag;               }
-func (this *TimingInfo)  GetTimingInfoPresentFlag             ( ) bool           { return this.m_timingInfoPresentFlag;               }
+func (this *TComHRD) SetSubPicCpbParamsPresentFlag(flag bool) {
+    this.m_subPicCpbParamsPresentFlag = flag
+}
+func (this *TComHRD) GetSubPicCpbParamsPresentFlag() bool {
+    return this.m_subPicCpbParamsPresentFlag
+}
 
-func (this *TimingInfo)  SetNumUnitsInTick                    ( value uint) { this.m_numUnitsInTick = value;                     }
-func (this *TimingInfo)  GetNumUnitsInTick                    ( ) uint           { return this.m_numUnitsInTick;                      }
+func (this *TComHRD) SetTickDivisorMinus2(value uint) {
+    this.m_tickDivisorMinus2 = value
+}
+func (this *TComHRD) GetTickDivisorMinus2() uint { return this.m_tickDivisorMinus2 }
 
-func (this *TimingInfo)  SetTimeScale                         ( value uint) { this.m_timeScale = value;                          }
-func (this *TimingInfo)  GetTimeScale                         ( ) uint           { return this.m_timeScale;                           }
+func (this *TComHRD) SetDuCpbRemovalDelayLengthMinus1(value uint) {
+    this.m_duCpbRemovalDelayLengthMinus1 = value
+}
+func (this *TComHRD) GetDuCpbRemovalDelayLengthMinus1() uint {
+    return this.m_duCpbRemovalDelayLengthMinus1
+}
 
-func (this *TimingInfo)  GetPocProportionalToTimingFlag       ( )   bool         { return this.m_pocProportionalToTimingFlag;         }
-func (this *TimingInfo)  SetPocProportionalToTimingFlag       ( x   bool   ) { this.m_pocProportionalToTimingFlag = x;            }
+func (this *TComHRD) SetSubPicCpbParamsInPicTimingSEIFlag(flag bool) {
+    this.m_subPicCpbParamsInPicTimingSEIFlag = flag
+}
+func (this *TComHRD) GetSubPicCpbParamsInPicTimingSEIFlag() bool {
+    return this.m_subPicCpbParamsInPicTimingSEIFlag
+}
 
-func (this *TimingInfo)  GetNumTicksPocDiffOneMinus1          ( )   int         { return this.m_numTicksPocDiffOneMinus1;            }
-func (this *TimingInfo)  SetNumTicksPocDiffOneMinus1          ( x   int    ) { this.m_numTicksPocDiffOneMinus1 = x;               }
+func (this *TComHRD) SetDpbOutputDelayDuLengthMinus1(value uint) {
+    this.m_dpbOutputDelayDuLengthMinus1 = value
+}
+func (this *TComHRD) GetDpbOutputDelayDuLengthMinus1() uint {
+    return this.m_dpbOutputDelayDuLengthMinus1
+}
 
+func (this *TComHRD) SetBitRateScale(value uint) { this.m_bitRateScale = value }
+func (this *TComHRD) GetBitRateScale() uint      { return this.m_bitRateScale }
+
+func (this *TComHRD) SetCpbSizeScale(value uint) { this.m_cpbSizeScale = value }
+func (this *TComHRD) GetCpbSizeScale() uint      { return this.m_cpbSizeScale }
+func (this *TComHRD) SetDuCpbSizeScale(value uint) {
+    this.m_ducpbSizeScale = value
+}
+func (this *TComHRD) GetDuCpbSizeScale() uint { return this.m_ducpbSizeScale }
+
+func (this *TComHRD) SetInitialCpbRemovalDelayLengthMinus1(value uint) {
+    this.m_initialCpbRemovalDelayLengthMinus1 = value
+}
+func (this *TComHRD) GetInitialCpbRemovalDelayLengthMinus1() uint {
+    return this.m_initialCpbRemovalDelayLengthMinus1
+}
+
+func (this *TComHRD) SetCpbRemovalDelayLengthMinus1(value uint) {
+    this.m_cpbRemovalDelayLengthMinus1 = value
+}
+func (this *TComHRD) GetCpbRemovalDelayLengthMinus1() uint {
+    return this.m_cpbRemovalDelayLengthMinus1
+}
+
+func (this *TComHRD) SetDpbOutputDelayLengthMinus1(value uint) {
+    this.m_dpbOutputDelayLengthMinus1 = value
+}
+func (this *TComHRD) GetDpbOutputDelayLengthMinus1() uint {
+    return this.m_dpbOutputDelayLengthMinus1
+}
+
+func (this *TComHRD) SetFixedPicRateFlag(layer int, flag bool) {
+    this.m_HRD[layer].fixedPicRateFlag = flag
+}
+func (this *TComHRD) GetFixedPicRateFlag(layer int) bool {
+    return this.m_HRD[layer].fixedPicRateFlag
+}
+
+func (this *TComHRD) SetFixedPicRateWithinCvsFlag(layer int, flag bool) {
+    this.m_HRD[layer].fixedPicRateWithinCvsFlag = flag
+}
+func (this *TComHRD) GetFixedPicRateWithinCvsFlag(layer int) bool {
+    return this.m_HRD[layer].fixedPicRateWithinCvsFlag
+}
+
+func (this *TComHRD) SetPicDurationInTcMinus1(layer int, value uint) {
+    this.m_HRD[layer].picDurationInTcMinus1 = value
+}
+func (this *TComHRD) GetPicDurationInTcMinus1(layer int) uint {
+    return this.m_HRD[layer].picDurationInTcMinus1
+}
+
+func (this *TComHRD) SetLowDelayHrdFlag(layer int, flag bool) {
+    this.m_HRD[layer].lowDelayHrdFlag = flag
+}
+func (this *TComHRD) GetLowDelayHrdFlag(layer int) bool {
+    return this.m_HRD[layer].lowDelayHrdFlag
+}
+
+func (this *TComHRD) SetCpbCntMinus1(layer int, value uint) {
+    this.m_HRD[layer].cpbCntMinus1 = value
+}
+func (this *TComHRD) GetCpbCntMinus1(layer int) uint {
+    return this.m_HRD[layer].cpbCntMinus1
+}
+
+func (this *TComHRD) SetBitRateValueMinus1(layer int, cpbcnt, nalOrVcl int, value uint) {
+    this.m_HRD[layer].bitRateValueMinus1[cpbcnt][nalOrVcl] = value
+}
+func (this *TComHRD) GetBitRateValueMinus1(layer int, cpbcnt, nalOrVcl int) uint {
+    return this.m_HRD[layer].bitRateValueMinus1[cpbcnt][nalOrVcl]
+}
+
+func (this *TComHRD) SetCpbSizeValueMinus1(layer int, cpbcnt, nalOrVcl int, value uint) {
+    this.m_HRD[layer].cpbSizeValue[cpbcnt][nalOrVcl] = value
+}
+func (this *TComHRD) GetCpbSizeValueMinus1(layer int, cpbcnt, nalOrVcl int) uint {
+    return this.m_HRD[layer].cpbSizeValue[cpbcnt][nalOrVcl]
+}
+func (this *TComHRD) SetDuCpbSizeValueMinus1(layer int, cpbcnt, nalOrVcl int, value uint) {
+    this.m_HRD[layer].ducpbSizeValue[cpbcnt][nalOrVcl] = value
+}
+func (this *TComHRD) GetDuCpbSizeValueMinus1(layer int, cpbcnt, nalOrVcl int) uint {
+    return this.m_HRD[layer].ducpbSizeValue[cpbcnt][nalOrVcl]
+}
+
+func (this *TComHRD) SetDuBitRateValueMinus1(layer int, cpbcnt, nalOrVcl int, value uint) {
+    this.m_HRD[layer].duBitRateValue[cpbcnt][nalOrVcl] = value
+}
+func (this *TComHRD) GetDuBitRateValueMinus1(layer int, cpbcnt, nalOrVcl int) uint {
+    return this.m_HRD[layer].duBitRateValue[cpbcnt][nalOrVcl]
+}
+
+func (this *TComHRD) SetCbrFlag(layer int, cpbcnt, nalOrVcl int, value bool) {
+    this.m_HRD[layer].cbrFlag[cpbcnt][nalOrVcl] = value
+}
+func (this *TComHRD) GetCbrFlag(layer int, cpbcnt, nalOrVcl int) bool {
+    return this.m_HRD[layer].cbrFlag[cpbcnt][nalOrVcl]
+}
+
+func (this *TComHRD) SetNumDU(value uint) { this.m_numDU = value }
+func (this *TComHRD) GetNumDU() uint      { return this.m_numDU }
+
+func (this *TComHRD) GetCpbDpbDelaysPresentFlag() bool {
+    return this.GetNalHrdParametersPresentFlag() || this.GetVclHrdParametersPresentFlag()
+}
+
+type TimingInfo struct {
+    m_timingInfoPresentFlag       bool
+    m_numUnitsInTick              uint
+    m_timeScale                   uint
+    m_pocProportionalToTimingFlag bool
+    m_numTicksPocDiffOneMinus1    int
+}
+
+func NewTimingInfo() *TimingInfo {
+    return &TimingInfo{m_timingInfoPresentFlag: false,
+        m_numUnitsInTick:              1001,
+        m_timeScale:                   60000,
+        m_pocProportionalToTimingFlag: false,
+        m_numTicksPocDiffOneMinus1:    0}
+}
+
+func (this *TimingInfo) SetTimingInfoPresentFlag(flag bool) {
+    this.m_timingInfoPresentFlag = flag
+}
+func (this *TimingInfo) GetTimingInfoPresentFlag() bool {
+    return this.m_timingInfoPresentFlag
+}
+
+func (this *TimingInfo) SetNumUnitsInTick(value uint) {
+    this.m_numUnitsInTick = value
+}
+func (this *TimingInfo) GetNumUnitsInTick() uint { return this.m_numUnitsInTick }
+
+func (this *TimingInfo) SetTimeScale(value uint) { this.m_timeScale = value }
+func (this *TimingInfo) GetTimeScale() uint      { return this.m_timeScale }
+
+func (this *TimingInfo) GetPocProportionalToTimingFlag() bool {
+    return this.m_pocProportionalToTimingFlag
+}
+func (this *TimingInfo) SetPocProportionalToTimingFlag(x bool) {
+    this.m_pocProportionalToTimingFlag = x
+}
+
+func (this *TimingInfo) GetNumTicksPocDiffOneMinus1() int {
+    return this.m_numTicksPocDiffOneMinus1
+}
+func (this *TimingInfo) SetNumTicksPocDiffOneMinus1(x int) {
+    this.m_numTicksPocDiffOneMinus1 = x
+}
 
 type TComVPS struct {
     //private:
@@ -719,16 +813,16 @@ type TComVPS struct {
 
     m_numHrdParameters          uint
     m_maxNuhReservedZeroLayerId uint
-    m_hrdParameters []TComHRD;
-    m_hrdOpSetIdx   []uint;
-    m_cprmsPresentFlag  []bool;
-    m_numOpSets uint;
+    m_hrdParameters             []TComHRD
+    m_hrdOpSetIdx               []uint
+    m_cprmsPresentFlag          []bool
+    m_numOpSets                 uint
 
-    m_layerIdIncludedFlag     [MAX_VPS_OP_SETS_PLUS1][MAX_VPS_NUH_RESERVED_ZERO_LAYER_ID_PLUS1]bool
+    m_layerIdIncludedFlag [MAX_VPS_OP_SETS_PLUS1][MAX_VPS_NUH_RESERVED_ZERO_LAYER_ID_PLUS1]bool
 
     m_pcPTL TComPTL
 
-    m_timingInfo TimingInfo;
+    m_timingInfo TimingInfo
 }
 
 //public:
@@ -737,17 +831,17 @@ func NewTComVPS() *TComVPS {
     return &TComVPS{}
 }
 
-func (this *TComVPS) CreateHrdParamBuffer(){
-    this.m_hrdParameters    = make([]TComHRD, this.GetNumHrdParameters() );
-    this.m_hrdOpSetIdx      = make([]uint,    this.GetNumHrdParameters() );
-    this.m_cprmsPresentFlag = make([]bool,    this.GetNumHrdParameters() );
+func (this *TComVPS) CreateHrdParamBuffer() {
+    this.m_hrdParameters = make([]TComHRD, this.GetNumHrdParameters())
+    this.m_hrdOpSetIdx = make([]uint, this.GetNumHrdParameters())
+    this.m_cprmsPresentFlag = make([]bool, this.GetNumHrdParameters())
 }
 
-func (this *TComVPS) GetHrdParameters    ( i uint) *TComHRD            { return &this.m_hrdParameters[ i ]; }
-func (this *TComVPS) GetHrdOpSetIdx      ( i uint) uint            { return this.m_hrdOpSetIdx[ i ]; }
-func (this *TComVPS) SetHrdOpSetIdx      ( val, i uint)   { this.m_hrdOpSetIdx[ i ] = val;  }
-func (this *TComVPS) GetCprmsPresentFlag ( i uint) bool            { return this.m_cprmsPresentFlag[ i ]; }
-func (this *TComVPS) SetCprmsPresentFlag ( val bool, i uint)   { this.m_cprmsPresentFlag[ i ] = val;  }
+func (this *TComVPS) GetHrdParameters(i uint) *TComHRD     { return &this.m_hrdParameters[i] }
+func (this *TComVPS) GetHrdOpSetIdx(i uint) uint           { return this.m_hrdOpSetIdx[i] }
+func (this *TComVPS) SetHrdOpSetIdx(val, i uint)           { this.m_hrdOpSetIdx[i] = val }
+func (this *TComVPS) GetCprmsPresentFlag(i uint) bool      { return this.m_cprmsPresentFlag[i] }
+func (this *TComVPS) SetCprmsPresentFlag(val bool, i uint) { this.m_cprmsPresentFlag[i] = val }
 
 func (this *TComVPS) GetVPSId() int {
     return this.m_VPSId
@@ -811,8 +905,8 @@ func (this *TComVPS) GetMaxNuhReservedZeroLayerId() uint {
 func (this *TComVPS) SetMaxNuhReservedZeroLayerId(v uint) {
     this.m_maxNuhReservedZeroLayerId = v
 }
-func (this *TComVPS) GetMaxOpSets() uint                                    { return this.m_numOpSets; }
-func (this *TComVPS) SetMaxOpSets(v uint)                                  { this.m_numOpSets = v;    }
+func (this *TComVPS) GetMaxOpSets() uint  { return this.m_numOpSets }
+func (this *TComVPS) SetMaxOpSets(v uint) { this.m_numOpSets = v }
 func (this *TComVPS) GetLayerIdIncludedFlag(opIdx, id uint) bool {
     return this.m_layerIdIncludedFlag[opIdx][id]
 }
@@ -824,8 +918,7 @@ func (this *TComVPS) GetPTL() *TComPTL {
     return &this.m_pcPTL
 }
 
-func (this *TComVPS) GetTimingInfo()*TimingInfo { return &this.m_timingInfo; }
-
+func (this *TComVPS) GetTimingInfo() *TimingInfo { return &this.m_timingInfo }
 
 type Window struct {
     //private:
@@ -840,65 +933,65 @@ func NewWindow() *Window {
     return &Window{}
 }
 
-func (this *Window)  GetWindowEnabledFlag() bool {
+func (this *Window) GetWindowEnabledFlag() bool {
     return this.m_enabledFlag
 }
-func (this *Window)  SetWindowEnabledFlag(enabledFlag bool) {
+func (this *Window) SetWindowEnabledFlag(enabledFlag bool) {
     this.m_enabledFlag = enabledFlag
 }
-func (this *Window)  ResetWindow()                   {
-    this.m_enabledFlag = false;
-    this.m_winLeftOffset = 0;
-    this.m_winRightOffset = 0;
-    this.m_winTopOffset = 0;
-    this.m_winBottomOffset = 0;
+func (this *Window) ResetWindow() {
+    this.m_enabledFlag = false
+    this.m_winLeftOffset = 0
+    this.m_winRightOffset = 0
+    this.m_winTopOffset = 0
+    this.m_winBottomOffset = 0
 }
-func (this *Window)  GetWindowLeftOffset() int       {
+func (this *Window) GetWindowLeftOffset() int {
     if this.m_enabledFlag {
-        return this.m_winLeftOffset;
+        return this.m_winLeftOffset
     }
-    return  0;
+    return 0
 }
-func (this *Window)  SetWindowLeftOffset(val int)    {
-    this.m_winLeftOffset = val;
-    this.m_enabledFlag = true;
+func (this *Window) SetWindowLeftOffset(val int) {
+    this.m_winLeftOffset = val
+    this.m_enabledFlag = true
 }
-func (this *Window)  GetWindowRightOffset() int      {
+func (this *Window) GetWindowRightOffset() int {
     if this.m_enabledFlag {
-        return this.m_winRightOffset;
+        return this.m_winRightOffset
     }
-    return 0;
+    return 0
 }
-func (this *Window)  SetWindowRightOffset(val int)   {
-    this.m_winRightOffset = val;
-    this.m_enabledFlag = true;
+func (this *Window) SetWindowRightOffset(val int) {
+    this.m_winRightOffset = val
+    this.m_enabledFlag = true
 }
-func (this *Window)  GetWindowTopOffset() int        {
+func (this *Window) GetWindowTopOffset() int {
     if this.m_enabledFlag {
         return this.m_winTopOffset
     }
-    return 0;
+    return 0
 }
-func (this *Window)  SetWindowTopOffset(val int)     {
-    this.m_winTopOffset = val;
-    this.m_enabledFlag = true;
+func (this *Window) SetWindowTopOffset(val int) {
+    this.m_winTopOffset = val
+    this.m_enabledFlag = true
 }
-func (this *Window)  GetWindowBottomOffset() int     {
+func (this *Window) GetWindowBottomOffset() int {
     if this.m_enabledFlag {
-        return this.m_winBottomOffset;
+        return this.m_winBottomOffset
     }
-    return 0;
+    return 0
 }
-func (this *Window)  SetWindowBottomOffset(val int)  {
-    this.m_winBottomOffset = val;
-    this.m_enabledFlag = true;
+func (this *Window) SetWindowBottomOffset(val int) {
+    this.m_winBottomOffset = val
+    this.m_enabledFlag = true
 }
-func (this *Window)  SetWindow(offsetLeft, offsetLRight, offsetLTop, offsetLBottom int){
-    this.m_enabledFlag       = true;
-    this.m_winLeftOffset     = offsetLeft;
-    this.m_winRightOffset    = offsetLRight;
-    this.m_winTopOffset      = offsetLTop;
-    this.m_winBottomOffset   = offsetLBottom;
+func (this *Window) SetWindow(offsetLeft, offsetLRight, offsetLTop, offsetLBottom int) {
+    this.m_enabledFlag = true
+    this.m_winLeftOffset = offsetLeft
+    this.m_winRightOffset = offsetLRight
+    this.m_winTopOffset = offsetLTop
+    this.m_winBottomOffset = offsetLBottom
 }
 
 type TComVUI struct {
@@ -922,20 +1015,20 @@ type TComVUI struct {
     m_neutralChromaIndicationFlag    bool
     m_fieldSeqFlag                   bool
 
-    m_defaultDisplayWindow          *Window;
-    m_frameFieldInfoPresentFlag      bool;
+    m_defaultDisplayWindow               *Window
+    m_frameFieldInfoPresentFlag          bool
     m_hrdParametersPresentFlag           bool
     m_bitstreamRestrictionFlag           bool
     m_tilesFixedStructureFlag            bool
     m_motionVectorsOverPicBoundariesFlag bool
-    m_restrictedRefPicListsFlag bool
-    m_minSpatialSegmentationIdc int
-    m_maxBytesPerPicDenom           int
-    m_maxBitsPerMinCuDenom          int
-    m_log2MaxMvLengthHorizontal     int
-    m_log2MaxMvLengthVertical       int
-    m_hrdParameters                 TComHRD;
-    m_timingInfo                    TimingInfo;
+    m_restrictedRefPicListsFlag          bool
+    m_minSpatialSegmentationIdc          int
+    m_maxBytesPerPicDenom                int
+    m_maxBitsPerMinCuDenom               int
+    m_log2MaxMvLengthHorizontal          int
+    m_log2MaxMvLengthVertical            int
+    m_hrdParameters                      TComHRD
+    m_timingInfo                         TimingInfo
 }
 
 //public:
@@ -964,8 +1057,8 @@ func NewTComVUI() *TComVUI {
         m_bitstreamRestrictionFlag:           false,
         m_tilesFixedStructureFlag:            false,
         m_motionVectorsOverPicBoundariesFlag: true,
-        m_restrictedRefPicListsFlag: true,
-        m_minSpatialSegmentationIdc: 0,
+        m_restrictedRefPicListsFlag:          true,
+        m_minSpatialSegmentationIdc:          0,
         m_maxBytesPerPicDenom:                2,
         m_maxBitsPerMinCuDenom:               1,
         m_log2MaxMvLengthHorizontal:          15,
@@ -1099,12 +1192,13 @@ func (this *TComVUI) SetFieldSeqFlag(i bool) {
     this.m_fieldSeqFlag = i
 }
 
-func (this *TComVUI) GetFrameFieldInfoPresentFlag() bool { return this.m_frameFieldInfoPresentFlag; }
-func (this *TComVUI) SetFrameFieldInfoPresentFlag(i bool) { this.m_frameFieldInfoPresentFlag = i; }
+func (this *TComVUI) GetFrameFieldInfoPresentFlag() bool  { return this.m_frameFieldInfoPresentFlag }
+func (this *TComVUI) SetFrameFieldInfoPresentFlag(i bool) { this.m_frameFieldInfoPresentFlag = i }
 
-func (this *TComVUI) GetDefaultDisplayWindow() *Window                     { return this.m_defaultDisplayWindow;                }
-func (this *TComVUI) SetDefaultDisplayWindow(defaultDisplayWindow *Window) { this.m_defaultDisplayWindow = defaultDisplayWindow; }
-
+func (this *TComVUI) GetDefaultDisplayWindow() *Window { return this.m_defaultDisplayWindow }
+func (this *TComVUI) SetDefaultDisplayWindow(defaultDisplayWindow *Window) {
+    this.m_defaultDisplayWindow = defaultDisplayWindow
+}
 
 func (this *TComVUI) GetHrdParametersPresentFlag() bool {
     return this.m_hrdParametersPresentFlag
@@ -1175,10 +1269,9 @@ func (this *TComVUI) GetLog2MaxMvLengthVertical() int {
 func (this *TComVUI) SetLog2MaxMvLengthVertical(i int) {
     this.m_log2MaxMvLengthVertical = i
 }
-func (this *TComVUI) GetHrdParameters                 () *TComHRD             { return &this.m_hrdParameters; }
+func (this *TComVUI) GetHrdParameters() *TComHRD { return &this.m_hrdParameters }
 
-func (this *TComVUI) GetTimingInfo() *TimingInfo { return &this.m_timingInfo; }
-
+func (this *TComVUI) GetTimingInfo() *TimingInfo { return &this.m_timingInfo }
 
 /// SPS class
 type TComSPS struct {
@@ -1193,7 +1286,7 @@ type TComSPS struct {
     m_picWidthInLumaSamples  uint
     m_picHeightInLumaSamples uint
 
-    m_conformanceWindow *Window;
+    m_conformanceWindow *Window
 
     m_uiMaxCUWidth         uint
     m_uiMaxCUHeight        uint
@@ -1256,58 +1349,58 @@ type TComSPS struct {
 
     m_winUnitX [MAX_CHROMA_FORMAT_IDC + 1]int
     m_winUnitY [MAX_CHROMA_FORMAT_IDC + 1]int
-    m_pcPTL     TComPTL
+    m_pcPTL    TComPTL
 }
 
 //public:
 func NewTComSPS() *TComSPS {
-    sps := &TComSPS{ m_SPSId                     :  0        ,
-                     m_VPSId                     :  0        ,
-                     m_chromaFormatIdc           :CHROMA_420 ,
-                     m_uiMaxTLayers              :  1        ,
-                     // Structure
-                     m_picWidthInLumaSamples     :352        ,
-                     m_picHeightInLumaSamples    :288        ,
-                     m_uiMaxCUWidth              : 32        ,
-                     m_uiMaxCUHeight             : 32        ,
-                     m_uiMaxCUDepth              :  3        ,
-                     m_uiMinTrDepth              :  0        ,
-                     m_uiMaxTrDepth              :  1        ,
-                     m_bLongTermRefsPresent      :false      ,
-                     m_uiQuadtreeTULog2MaxSize   :  0        ,
-                     m_uiQuadtreeTULog2MinSize   :  0        ,
-                     m_uiQuadtreeTUMaxDepthInter :  0        ,
-                     m_uiQuadtreeTUMaxDepthIntra :  0        ,
-                     m_usePCM                    :false      ,
-                     m_pcmLog2MaxSize            :  5        ,
-                     m_uiPCMLog2MinSize          :  7        ,
-                     m_bUseLComb                 :false      ,
-                     m_bitDepthY                 :  8        ,
-                     m_bitDepthC                 :  8        ,
-                     m_qpBDOffsetY               :  0        ,
-                     m_qpBDOffsetC               :  0        ,
-                     m_useLossless               :false      ,
-                     m_uiPCMBitDepthLuma         :  8        ,
-                     m_uiPCMBitDepthChroma       :  8        ,
-                     m_bPCMFilterDisableFlag     :false      ,
-                     m_uiBitsForPOC              :  8        ,
-                     m_numLongTermRefPicSPS      :  0        ,
-                     m_uiMaxTrSize               : 32        ,
-                     m_bUseSAO                   :false      ,
-                     m_bTemporalIdNestingFlag    :false      ,
-                     m_scalingListEnabledFlag    :false      ,
-                     m_useStrongIntraSmoothing   :false      ,
-                     m_vuiParametersPresentFlag  :false      }
+    sps := &TComSPS{m_SPSId: 0,
+        m_VPSId:           0,
+        m_chromaFormatIdc: CHROMA_420,
+        m_uiMaxTLayers:    1,
+        // Structure
+        m_picWidthInLumaSamples:     352,
+        m_picHeightInLumaSamples:    288,
+        m_uiMaxCUWidth:              32,
+        m_uiMaxCUHeight:             32,
+        m_uiMaxCUDepth:              3,
+        m_uiMinTrDepth:              0,
+        m_uiMaxTrDepth:              1,
+        m_bLongTermRefsPresent:      false,
+        m_uiQuadtreeTULog2MaxSize:   0,
+        m_uiQuadtreeTULog2MinSize:   0,
+        m_uiQuadtreeTUMaxDepthInter: 0,
+        m_uiQuadtreeTUMaxDepthIntra: 0,
+        m_usePCM:                    false,
+        m_pcmLog2MaxSize:            5,
+        m_uiPCMLog2MinSize:          7,
+        m_bUseLComb:                 false,
+        m_bitDepthY:                 8,
+        m_bitDepthC:                 8,
+        m_qpBDOffsetY:               0,
+        m_qpBDOffsetC:               0,
+        m_useLossless:               false,
+        m_uiPCMBitDepthLuma:         8,
+        m_uiPCMBitDepthChroma:       8,
+        m_bPCMFilterDisableFlag:     false,
+        m_uiBitsForPOC:              8,
+        m_numLongTermRefPicSPS:      0,
+        m_uiMaxTrSize:               32,
+        m_bUseSAO:                   false,
+        m_bTemporalIdNestingFlag:    false,
+        m_scalingListEnabledFlag:    false,
+        m_useStrongIntraSmoothing:   false,
+        m_vuiParametersPresentFlag:  false}
 
     for i := 0; i < MAX_TLAYER; i++ {
-      sps.m_uiMaxLatencyIncrease[i] = 0;
-      sps.m_uiMaxDecPicBuffering[i] = 0;
-      sps.m_numReorderPics[i]       = 0;
+        sps.m_uiMaxLatencyIncrease[i] = 0
+        sps.m_uiMaxDecPicBuffering[i] = 0
+        sps.m_numReorderPics[i] = 0
     }
-    sps.m_scalingList = NewTComScalingList();
-    for i:=0; i<33; i++ {
-        sps.m_ltRefPicPocLsbSps[i] = 0;
-        sps.m_usedByCurrPicLtSPSFlag[i] = false;
+    sps.m_scalingList = NewTComScalingList()
+    for i := 0; i < 33; i++ {
+        sps.m_ltRefPicPocLsbSps[i] = 0
+        sps.m_usedByCurrPicLtSPSFlag[i] = false
     }
 
     sps.m_conformanceWindow = NewWindow()
@@ -1651,10 +1744,10 @@ func (this *TComSPS) SetHrdParameters(frameRate, numDU, bitRate uint, randomAcce
     }
 
     vui := this.GetVuiParameters()
-    hrd := vui.GetHrdParameters();
+    hrd := vui.GetHrdParameters()
 
-    timingInfo := vui.GetTimingInfo();
-    timingInfo.SetTimingInfoPresentFlag( true );
+    timingInfo := vui.GetTimingInfo()
+    timingInfo.SetTimingInfoPresentFlag(true)
 
     switch frameRate {
     case 24:
@@ -1690,16 +1783,16 @@ func (this *TComSPS) SetHrdParameters(frameRate, numDU, bitRate uint, randomAcce
     hrd.SetSubPicCpbParamsPresentFlag((numDU > 1))
 
     if hrd.GetSubPicCpbParamsPresentFlag() {
-        hrd.SetTickDivisorMinus2( 100 - 2 );                          //
-        hrd.SetDuCpbRemovalDelayLengthMinus1( 7 );                    // 8-bit precision ( plus 1 for last DU in AU )
-        hrd.SetSubPicCpbParamsInPicTimingSEIFlag( true );
-        hrd.SetDpbOutputDelayDuLengthMinus1( 5 + 7 );                 // With sub-clock tick factor of 100, at least 7 bits to have the same value as AU dpb delay
-    }else{
-        hrd.SetSubPicCpbParamsInPicTimingSEIFlag( false );
+        hrd.SetTickDivisorMinus2(100 - 2)       //
+        hrd.SetDuCpbRemovalDelayLengthMinus1(7) // 8-bit precision ( plus 1 for last DU in AU )
+        hrd.SetSubPicCpbParamsInPicTimingSEIFlag(true)
+        hrd.SetDpbOutputDelayDuLengthMinus1(5 + 7) // With sub-clock tick factor of 100, at least 7 bits to have the same value as AU dpb delay
+    } else {
+        hrd.SetSubPicCpbParamsInPicTimingSEIFlag(false)
     }
 
-    hrd.SetBitRateScale(4) // in units of 2~( 6 + 4 ) = 1,024 bps
-    hrd.SetCpbSizeScale(6) // in units of 2~( 4 + 4 ) = 1,024 bit
+    hrd.SetBitRateScale(4)   // in units of 2~( 6 + 4 ) = 1,024 bps
+    hrd.SetCpbSizeScale(6)   // in units of 2~( 4 + 4 ) = 1,024 bit
     hrd.SetDuCpbSizeScale(6) // in units of 2~( 4 + 4 ) = 1,024 bit
 
     hrd.SetInitialCpbRemovalDelayLengthMinus1(15) // assuming 0.5 sec, log2( 90,000 * 0.5 ) = 16-bit
@@ -1717,7 +1810,7 @@ func (this *TComSPS) SetHrdParameters(frameRate, numDU, bitRate uint, randomAcce
     var i, j int
     var birateValue, cpbSizeValue uint
     var ducpbSizeValue uint
-    duBitRateValue := uint(0);
+    duBitRateValue := uint(0)
 
     for i = 0; i < MAX_TLAYER; i++ {
         hrd.SetFixedPicRateFlag(i, true)
@@ -1729,7 +1822,7 @@ func (this *TComSPS) SetHrdParameters(frameRate, numDU, bitRate uint, randomAcce
         cpbSizeValue = bitRate // 1 second
 
         ducpbSizeValue = bitRate / numDU
-        duBitRateValue = bitRate;
+        duBitRateValue = bitRate
 
         for j = 0; j < int(hrd.GetCpbCntMinus1(i)+1); j++ {
             hrd.SetBitRateValueMinus1(i, j, 0, (birateValue - 1))
@@ -1740,7 +1833,7 @@ func (this *TComSPS) SetHrdParameters(frameRate, numDU, bitRate uint, randomAcce
             hrd.SetBitRateValueMinus1(i, j, 1, (birateValue - 1))
             hrd.SetCpbSizeValueMinus1(i, j, 1, (cpbSizeValue - 1))
             hrd.SetDuCpbSizeValueMinus1(i, j, 1, (ducpbSizeValue - 1))
-            hrd.SetDuBitRateValueMinus1( i, j, 1, ( duBitRateValue - 1 ) );
+            hrd.SetDuBitRateValueMinus1(i, j, 1, (duBitRateValue - 1))
             hrd.SetCbrFlag(i, j, 1, (j == 0))
         }
     }
@@ -1823,11 +1916,11 @@ type TComPPS struct {
     m_useWeightedBiPred     bool // Use of Weighting Bi-Prediction (B_SLICE)
     m_OutputFlagPresentFlag bool // Indicates the presence of output_flag in slice header
 
-    m_TransquantBypassEnableFlag   bool // Indicates presence of cu_transquant_bypass_flag in CUs.
-    m_useTransformSkip             bool
-    m_dependentSliceSegmentsEnabledFlag    bool //!< Indicates the presence of dependent slices
-    m_tilesEnabledFlag             bool //!< Indicates the presence of tiles
-    m_entropyCodingSyncEnabledFlag bool //!< Indicates the presence of wavefronts
+    m_TransquantBypassEnableFlag        bool // Indicates presence of cu_transquant_bypass_flag in CUs.
+    m_useTransformSkip                  bool
+    m_dependentSliceSegmentsEnabledFlag bool //!< Indicates the presence of dependent slices
+    m_tilesEnabledFlag                  bool //!< Indicates the presence of tiles
+    m_entropyCodingSyncEnabledFlag      bool //!< Indicates the presence of wavefronts
 
     m_loopFilterAcrossTilesEnabledFlag bool
     m_uniformSpacingFlag               bool
@@ -1855,47 +1948,47 @@ type TComPPS struct {
 
     m_listsModificationPresentFlag bool
     m_log2ParallelMergeLevelMinus2 uint
-    m_numExtraSliceHeaderBits int
+    m_numExtraSliceHeaderBits      int
 }
 
 //public:
 func NewTComPPS() *TComPPS {
-    pps := &TComPPS{ m_PPSId                       :0               ,
-                     m_SPSId                       :0               ,
-                     m_picInitQPMinus26            :0               ,
-                     m_useDQP                      :false           ,
-                     m_bConstrainedIntraPred       :false           ,
-                     m_bSliceChromaQpFlag          :false           ,
-                     m_pcSPS                       :nil             ,
-                     m_uiMaxCuDQPDepth             :0               ,
-                     m_uiMinCuDQPSize              :0               ,
-                     m_chromaCbQpOffset            :0               ,
-                     m_chromaCrQpOffset            :0               ,
-                     m_numRefIdxL0DefaultActive    :1               ,
-                     m_numRefIdxL1DefaultActive    :1               ,
-                     m_TransquantBypassEnableFlag  :false           ,
-                     m_useTransformSkip            :false           ,
-                     m_dependentSliceSegmentsEnabledFlag   :false           ,
-                     m_tilesEnabledFlag            :false           ,
-                     m_entropyCodingSyncEnabledFlag:false           ,
-                     m_loopFilterAcrossTilesEnabledFlag:true        ,
-                     m_uniformSpacingFlag           :false          ,
-                     m_iNumColumnsMinus1            :0              ,
-                     m_puiColumnWidth               :nil            ,
-                     m_iNumRowsMinus1               :0              ,
-                     m_puiRowHeight                 :nil            ,
-                     m_iNumSubstreams               :1              ,
-                     m_signHideFlag                 :false          ,
-                     m_cabacInitPresentFlag         :false          ,
-                     m_encCABACTableIdx             :I_SLICE        ,
-                     m_sliceHeaderExtensionPresentFlag   :false     ,
-                     m_loopFilterAcrossSlicesEnabledFlag :false     ,
-                     m_listsModificationPresentFlag :false          ,
-                     m_numExtraSliceHeaderBits      :0              };
+    pps := &TComPPS{m_PPSId: 0,
+        m_SPSId:                             0,
+        m_picInitQPMinus26:                  0,
+        m_useDQP:                            false,
+        m_bConstrainedIntraPred:             false,
+        m_bSliceChromaQpFlag:                false,
+        m_pcSPS:                             nil,
+        m_uiMaxCuDQPDepth:                   0,
+        m_uiMinCuDQPSize:                    0,
+        m_chromaCbQpOffset:                  0,
+        m_chromaCrQpOffset:                  0,
+        m_numRefIdxL0DefaultActive:          1,
+        m_numRefIdxL1DefaultActive:          1,
+        m_TransquantBypassEnableFlag:        false,
+        m_useTransformSkip:                  false,
+        m_dependentSliceSegmentsEnabledFlag: false,
+        m_tilesEnabledFlag:                  false,
+        m_entropyCodingSyncEnabledFlag:      false,
+        m_loopFilterAcrossTilesEnabledFlag:  true,
+        m_uniformSpacingFlag:                false,
+        m_iNumColumnsMinus1:                 0,
+        m_puiColumnWidth:                    nil,
+        m_iNumRowsMinus1:                    0,
+        m_puiRowHeight:                      nil,
+        m_iNumSubstreams:                    1,
+        m_signHideFlag:                      false,
+        m_cabacInitPresentFlag:              false,
+        m_encCABACTableIdx:                  I_SLICE,
+        m_sliceHeaderExtensionPresentFlag:   false,
+        m_loopFilterAcrossSlicesEnabledFlag: false,
+        m_listsModificationPresentFlag:      false,
+        m_numExtraSliceHeaderBits:           0}
 
-  pps.m_scalingList = NewTComScalingList();
+    pps.m_scalingList = NewTComScalingList()
 
-  return pps;
+    return pps
 }
 
 func (this *TComPPS) GetPPSId() int {
@@ -2190,28 +2283,28 @@ type WpScalingParam struct {
 }
 
 func (this *WpScalingParam) SetPresentFlag(bPresentFlag bool) {
-    this.bPresentFlag = bPresentFlag;
+    this.bPresentFlag = bPresentFlag
 }
 func (this *WpScalingParam) SetLog2WeightDenom(uiLog2WeightDenom uint) {
-    this.uiLog2WeightDenom = uiLog2WeightDenom;
+    this.uiLog2WeightDenom = uiLog2WeightDenom
 }
-func (this *WpScalingParam) SetWeight(iWeight int ) {
-    this.iWeight = iWeight;
+func (this *WpScalingParam) SetWeight(iWeight int) {
+    this.iWeight = iWeight
 }
 func (this *WpScalingParam) SetOffset(iOffset int) {
-    this.iOffset = iOffset;
+    this.iOffset = iOffset
 }
 func (this *WpScalingParam) GetPresentFlag() bool {
-    return this.bPresentFlag;
+    return this.bPresentFlag
 }
 func (this *WpScalingParam) GetLog2WeightDenom() uint {
-    return this.uiLog2WeightDenom;
+    return this.uiLog2WeightDenom
 }
-func (this *WpScalingParam) GetWeight() int  {
-    return this.iWeight;
+func (this *WpScalingParam) GetWeight() int {
+    return this.iWeight
 }
 func (this *WpScalingParam) GetOffset() int {
-    return this.iOffset;
+    return this.iOffset
 }
 
 type wpACDCParam struct {
@@ -2223,22 +2316,22 @@ type wpACDCParam struct {
 type TComSlice struct {
     //private:
     //  Bitstream writing
-    m_saoEnabledFlag            bool
-    m_saoEnabledFlagChroma      bool ///< SAO Cb&Cr enabled flag
-    m_iPPSId                    int  ///< picture parameter set ID
-    m_PicOutputFlag             bool ///< pic_output_flag
-    m_iPOC                      int
-    m_iLastIDR                  int
-    m_prevPOC                   int
-    m_pcRPS                     *TComReferencePictureSet
-    m_LocalRPS                  TComReferencePictureSet
-    m_iBDidx                    int
+    m_saoEnabledFlag       bool
+    m_saoEnabledFlagChroma bool ///< SAO Cb&Cr enabled flag
+    m_iPPSId               int  ///< picture parameter set ID
+    m_PicOutputFlag        bool ///< pic_output_flag
+    m_iPOC                 int
+    m_iLastIDR             int
+    m_prevPOC              int
+    m_pcRPS                *TComReferencePictureSet
+    m_LocalRPS             TComReferencePictureSet
+    m_iBDidx               int
 
     m_RefPicListModification    TComRefPicListModification
     m_eNalUnitType              NalUnitType ///< Nal unit type for the slice
     m_eSliceType                SliceType
     m_iSliceQp                  int
-    m_dependentSliceSegmentFlag        bool
+    m_dependentSliceSegmentFlag bool
     //#if ADAPTIVE_QP_SELECTION
     m_iSliceQpBase int
     //#endif
@@ -2260,13 +2353,13 @@ type TComSlice struct {
     m_bCheckLDC bool
 
     //  Data
-    m_iSliceQpDelta   int
-    m_iSliceQpDeltaCb int
-    m_iSliceQpDeltaCr int
-    m_apcRefPicList   [2][MAX_NUM_REF + 1]*TComPic
-    m_aiRefPOCList    [2][MAX_NUM_REF + 1]int
-    m_bIsUsedAsLongTerm [2][MAX_NUM_REF+1]bool;
-    m_iDepth          int
+    m_iSliceQpDelta     int
+    m_iSliceQpDeltaCb   int
+    m_iSliceQpDeltaCr   int
+    m_apcRefPicList     [2][MAX_NUM_REF + 1]*TComPic
+    m_aiRefPOCList      [2][MAX_NUM_REF + 1]int
+    m_bIsUsedAsLongTerm [2][MAX_NUM_REF + 1]bool
+    m_iDepth            int
 
     // referenced slice?
     m_bRefenced bool
@@ -2297,20 +2390,20 @@ type TComSlice struct {
     m_uiTLayer             uint
     m_bTLayerSwitchingFlag bool
 
-    m_sliceMode   uint;
-    m_sliceArgument   uint;
-    m_sliceCurStartCUAddr uint;
-    m_sliceCurEndCUAddr   uint;
-    m_sliceIdx    uint;
-    m_sliceSegmentMode    uint;
-    m_sliceSegmentArgument    uint;
-    m_sliceSegmentCurStartCUAddr  uint;
-    m_sliceSegmentCurEndCUAddr    uint;
-    m_nextSlice   bool;
-    m_nextSliceSegment    bool;
-    m_sliceBits   uint;
-    m_sliceSegmentBits    uint;
-    m_bFinalized                     bool
+    m_sliceMode                  uint
+    m_sliceArgument              uint
+    m_sliceCurStartCUAddr        uint
+    m_sliceCurEndCUAddr          uint
+    m_sliceIdx                   uint
+    m_sliceSegmentMode           uint
+    m_sliceSegmentArgument       uint
+    m_sliceSegmentCurStartCUAddr uint
+    m_sliceSegmentCurEndCUAddr   uint
+    m_nextSlice                  bool
+    m_nextSliceSegment           bool
+    m_sliceBits                  uint
+    m_sliceSegmentBits           uint
+    m_bFinalized                 bool
 
     m_weightPredTable [2][MAX_NUM_REF][3]WpScalingParam // [REF_PIC_LIST_0 or REF_PIC_LIST_1][refIdx][0:Y, 1:U, 2:V]
     m_weightACDCParam [3]wpACDCParam                    // [0:Y, 1:U, 2:V]
@@ -2333,11 +2426,11 @@ type TComSlice struct {
 //public:
 func NewTComSlice() *TComSlice {
     pSlice := &TComSlice{m_iPPSId: -1,
-        m_iPOC:               0,
-        m_iLastIDR:           0,
-        m_eNalUnitType:       NAL_UNIT_CODED_SLICE_IDR,
-        m_eSliceType:         I_SLICE,
-        m_iSliceQp:           0,
+        m_iPOC:                      0,
+        m_iLastIDR:                  0,
+        m_eNalUnitType:              NAL_UNIT_CODED_SLICE_IDR,
+        m_eSliceType:                I_SLICE,
+        m_iSliceQp:                  0,
         m_dependentSliceSegmentFlag: false,
         //#if ADAPTIVE_QP_SELECTION
         m_iSliceQpBase: 0,
@@ -2365,24 +2458,24 @@ func NewTComSlice() *TComSlice {
         //#else
         //, m_dLambda                       ( 0.0 )
         //#endif
-        m_bNoBackPredFlag:                false,
-        m_uiTLayer:                       0,
-        m_bTLayerSwitchingFlag:           false,
-        m_sliceMode:                    0,
-        m_sliceArgument:                0,
-        m_sliceCurStartCUAddr:          0,
-        m_sliceCurEndCUAddr:            0,
-        m_sliceIdx:                     0,
-        m_sliceSegmentMode:             0,
-        m_sliceSegmentArgument:         0,
-        m_sliceSegmentCurStartCUAddr:   0,
-        m_sliceSegmentCurEndCUAddr:     0,
-        m_nextSlice:                    false,
-        m_nextSliceSegment:             false,
-        m_sliceBits:                    0,
-        m_sliceSegmentBits:             0,
-        m_bFinalized:                     false,
-        m_uiTileOffstForMultES:           0,
+        m_bNoBackPredFlag:            false,
+        m_uiTLayer:                   0,
+        m_bTLayerSwitchingFlag:       false,
+        m_sliceMode:                  0,
+        m_sliceArgument:              0,
+        m_sliceCurStartCUAddr:        0,
+        m_sliceCurEndCUAddr:          0,
+        m_sliceIdx:                   0,
+        m_sliceSegmentMode:           0,
+        m_sliceSegmentArgument:       0,
+        m_sliceSegmentCurStartCUAddr: 0,
+        m_sliceSegmentCurEndCUAddr:   0,
+        m_nextSlice:                  false,
+        m_nextSliceSegment:           false,
+        m_sliceBits:                  0,
+        m_sliceSegmentBits:           0,
+        m_bFinalized:                 false,
+        m_uiTileOffstForMultES:       0,
         //m_puiSubstreamSizes             : NULL ,
         m_cabacInitFlag:                 false,
         m_bLMvdL1Zero:                   false,
@@ -2612,7 +2705,7 @@ func (this *TComSlice) CheckColRefIdx(curSliceIdx uint, pic *TComPic) {
         }
     }
 }
-func (this *TComSlice) GetIsUsedAsLongTerm ( i,  j int) bool                  { return this.m_bIsUsedAsLongTerm[i][j]; }
+func (this *TComSlice) GetIsUsedAsLongTerm(i, j int) bool { return this.m_bIsUsedAsLongTerm[i][j] }
 
 func (this *TComSlice) GetCheckLDC() bool {
     return this.m_bCheckLDC
@@ -2702,7 +2795,7 @@ func (this *TComSlice) CheckCRA(pReferencePictureSet *TComReferencePictureSet, p
         }
     }
     if this.GetNalUnitType() == NAL_UNIT_CODED_SLICE_IDR || this.GetNalUnitType() == NAL_UNIT_CODED_SLICE_IDR_N_LP { // IDR picture found
-        *pocCRA = this.GetPOC();
+        *pocCRA = this.GetPOC()
         *prevRAPisBLA = false
     } else if this.GetNalUnitType() == NAL_UNIT_CODED_SLICE_CRA { // CRA picture found
         *pocCRA = this.GetPOC()
@@ -2904,19 +2997,19 @@ func (this *TComSlice) SetRefPicList(rcListPic *list.List) {
         }
     }
 
-    for j:=0; j<2; j++ {
-        for i:=0; i<MAX_NUM_REF+1; i++ {
-            this.m_bIsUsedAsLongTerm[j][i] = false;//, [2][MAX_NUM_REF+1]boolsizeof(m_bIsUsedAsLongTerm));
+    for j := 0; j < 2; j++ {
+        for i := 0; i < MAX_NUM_REF+1; i++ {
+            this.m_bIsUsedAsLongTerm[j][i] = false //, [2][MAX_NUM_REF+1]boolsizeof(m_bIsUsedAsLongTerm));
         }
     }
 
     for rIdx := 0; rIdx <= (this.m_aiNumRefIdx[0] - 1); rIdx++ {
         if this.m_RefPicListModification.GetRefPicListModificationFlagL0() {
             this.m_apcRefPicList[0][rIdx] = rpsCurrList0[this.m_RefPicListModification.GetRefPicSetIdxL0(uint(rIdx))]
-            this.m_bIsUsedAsLongTerm[0][rIdx] =  (this.m_RefPicListModification.GetRefPicSetIdxL0(uint(rIdx)) >= uint(NumPocStCurr0 + NumPocStCurr1));
+            this.m_bIsUsedAsLongTerm[0][rIdx] = (this.m_RefPicListModification.GetRefPicSetIdxL0(uint(rIdx)) >= uint(NumPocStCurr0+NumPocStCurr1))
         } else {
             this.m_apcRefPicList[0][rIdx] = rpsCurrList0[rIdx%numPocTotalCurr]
-            this.m_bIsUsedAsLongTerm[0][rIdx] =  ((rIdx % numPocTotalCurr) >= (NumPocStCurr0 + NumPocStCurr1));
+            this.m_bIsUsedAsLongTerm[0][rIdx] = ((rIdx % numPocTotalCurr) >= (NumPocStCurr0 + NumPocStCurr1))
         }
     }
     if this.m_eSliceType == P_SLICE {
@@ -2926,10 +3019,10 @@ func (this *TComSlice) SetRefPicList(rcListPic *list.List) {
         for rIdx := 0; rIdx <= (this.m_aiNumRefIdx[1] - 1); rIdx++ {
             if this.m_RefPicListModification.GetRefPicListModificationFlagL1() {
                 this.m_apcRefPicList[1][rIdx] = rpsCurrList1[this.m_RefPicListModification.GetRefPicSetIdxL1(uint(rIdx))]
-                this.m_bIsUsedAsLongTerm[1][rIdx] = (this.m_RefPicListModification.GetRefPicSetIdxL1(uint(rIdx)) >= uint(NumPocStCurr0 + NumPocStCurr1));
+                this.m_bIsUsedAsLongTerm[1][rIdx] = (this.m_RefPicListModification.GetRefPicSetIdxL1(uint(rIdx)) >= uint(NumPocStCurr0+NumPocStCurr1))
             } else {
                 this.m_apcRefPicList[1][rIdx] = rpsCurrList1[rIdx%numPocTotalCurr]
-                this.m_bIsUsedAsLongTerm[1][rIdx] = ((rIdx % numPocTotalCurr) >= (NumPocStCurr0 + NumPocStCurr1));
+                this.m_bIsUsedAsLongTerm[1][rIdx] = ((rIdx % numPocTotalCurr) >= (NumPocStCurr0 + NumPocStCurr1))
             }
         }
     }
@@ -3384,17 +3477,23 @@ func (this *TComSlice) GetMaxNumMergeCand() uint {
     return this.m_maxNumMergeCand
 }
 
-func (this *TComSlice)  SetSliceMode                     ( uiMode uint )     { this.m_sliceMode = uiMode;                     }
-func (this *TComSlice)  GetSliceMode                     ()   uint               { return this.m_sliceMode;                       }
-func (this *TComSlice)  SetSliceArgument                 ( uiArgument uint) { this.m_sliceArgument = uiArgument;             }
-func (this *TComSlice)  GetSliceArgument                 ()   uint               { return this.m_sliceArgument;                   }
-func (this *TComSlice)  SetSliceCurStartCUAddr           ( uiAddr uint)     { this.m_sliceCurStartCUAddr = uiAddr;           }
-func (this *TComSlice)  GetSliceCurStartCUAddr           ()   uint               { return this.m_sliceCurStartCUAddr;             }
-func (this *TComSlice)  SetSliceCurEndCUAddr             ( uiAddr uint)     { this.m_sliceCurEndCUAddr = uiAddr;             }
-func (this *TComSlice)  GetSliceCurEndCUAddr             ()   uint               { return this.m_sliceCurEndCUAddr;               }
-func (this *TComSlice)  SetSliceIdx                      ( i uint)           { this.m_sliceIdx = i;                           }
-func (this *TComSlice)  GetSliceIdx                      ()   uint               { return  this.m_sliceIdx;                       }
-func (this *TComSlice)  CopySliceInfo(pSrc *TComSlice) {
+func (this *TComSlice) SetSliceMode(uiMode uint) { this.m_sliceMode = uiMode }
+func (this *TComSlice) GetSliceMode() uint       { return this.m_sliceMode }
+func (this *TComSlice) SetSliceArgument(uiArgument uint) {
+    this.m_sliceArgument = uiArgument
+}
+func (this *TComSlice) GetSliceArgument() uint { return this.m_sliceArgument }
+func (this *TComSlice) SetSliceCurStartCUAddr(uiAddr uint) {
+    this.m_sliceCurStartCUAddr = uiAddr
+}
+func (this *TComSlice) GetSliceCurStartCUAddr() uint { return this.m_sliceCurStartCUAddr }
+func (this *TComSlice) SetSliceCurEndCUAddr(uiAddr uint) {
+    this.m_sliceCurEndCUAddr = uiAddr
+}
+func (this *TComSlice) GetSliceCurEndCUAddr() uint { return this.m_sliceCurEndCUAddr }
+func (this *TComSlice) SetSliceIdx(i uint)         { this.m_sliceIdx = i }
+func (this *TComSlice) GetSliceIdx() uint          { return this.m_sliceIdx }
+func (this *TComSlice) CopySliceInfo(pSrc *TComSlice) {
     //assert( pSrc != NULL );
 
     var i, j, k int
@@ -3439,8 +3538,8 @@ func (this *TComSlice)  CopySliceInfo(pSrc *TComSlice) {
         }
     }
     for i = 0; i < 2; i++ {
-        for j = 0; j < MAX_NUM_REF + 1; j++ {
-            this.m_bIsUsedAsLongTerm[i][j] = pSrc.m_bIsUsedAsLongTerm[i][j];
+        for j = 0; j < MAX_NUM_REF+1; j++ {
+            this.m_bIsUsedAsLongTerm[i][j] = pSrc.m_bIsUsedAsLongTerm[i][j]
         }
     }
     this.m_iDepth = pSrc.m_iDepth
@@ -3476,18 +3575,17 @@ func (this *TComSlice)  CopySliceInfo(pSrc *TComSlice) {
     this.m_uiTLayer = pSrc.m_uiTLayer
     this.m_bTLayerSwitchingFlag = pSrc.m_bTLayerSwitchingFlag
 
-
-  this.m_sliceMode                   = pSrc.m_sliceMode;
-  this.m_sliceArgument               = pSrc.m_sliceArgument;
-  this.m_sliceCurStartCUAddr         = pSrc.m_sliceCurStartCUAddr;
-  this.m_sliceCurEndCUAddr           = pSrc.m_sliceCurEndCUAddr;
-  this.m_sliceIdx                    = pSrc.m_sliceIdx;
-  this.m_sliceSegmentMode            = pSrc.m_sliceSegmentMode;
-  this.m_sliceSegmentArgument        = pSrc.m_sliceSegmentArgument;
-  this.m_sliceSegmentCurStartCUAddr  = pSrc.m_sliceSegmentCurStartCUAddr;
-  this.m_sliceSegmentCurEndCUAddr    = pSrc.m_sliceSegmentCurEndCUAddr;
-  this.m_nextSlice                   = pSrc.m_nextSlice;
-  this.m_nextSliceSegment            = pSrc.m_nextSliceSegment;
+    this.m_sliceMode = pSrc.m_sliceMode
+    this.m_sliceArgument = pSrc.m_sliceArgument
+    this.m_sliceCurStartCUAddr = pSrc.m_sliceCurStartCUAddr
+    this.m_sliceCurEndCUAddr = pSrc.m_sliceCurEndCUAddr
+    this.m_sliceIdx = pSrc.m_sliceIdx
+    this.m_sliceSegmentMode = pSrc.m_sliceSegmentMode
+    this.m_sliceSegmentArgument = pSrc.m_sliceSegmentArgument
+    this.m_sliceSegmentCurStartCUAddr = pSrc.m_sliceSegmentCurStartCUAddr
+    this.m_sliceSegmentCurEndCUAddr = pSrc.m_sliceSegmentCurEndCUAddr
+    this.m_nextSlice = pSrc.m_nextSlice
+    this.m_nextSliceSegment = pSrc.m_nextSliceSegment
     for e := 0; e < 2; e++ {
         for n := 0; n < MAX_NUM_REF; n++ {
             for m := 0; m < 3; m++ {
@@ -3506,22 +3604,36 @@ func (this *TComSlice)  CopySliceInfo(pSrc *TComSlice) {
     this.m_enableTMVPFlag = pSrc.m_enableTMVPFlag
     this.m_maxNumMergeCand = pSrc.m_maxNumMergeCand
 }
-func (this *TComSlice)  SetSliceSegmentMode              ( uiMode uint)     { this.m_sliceSegmentMode = uiMode;              }
-func (this *TComSlice)  GetSliceSegmentMode              ()   uint               { return this.m_sliceSegmentMode;                }
-func (this *TComSlice)  SetSliceSegmentArgument          ( uiArgument uint) { this.m_sliceSegmentArgument = uiArgument;      }
-func (this *TComSlice)  GetSliceSegmentArgument          ()   uint               { return this.m_sliceSegmentArgument;            }
-func (this *TComSlice)  SetSliceSegmentCurStartCUAddr    (  uiAddr uint)     { this.m_sliceSegmentCurStartCUAddr = uiAddr;    }
-func (this *TComSlice)  GetSliceSegmentCurStartCUAddr    ()   uint               { return this.m_sliceSegmentCurStartCUAddr;      }
-func (this *TComSlice)  SetSliceSegmentCurEndCUAddr      (  uiAddr uint)     { this.m_sliceSegmentCurEndCUAddr = uiAddr;      }
-func (this *TComSlice)  GetSliceSegmentCurEndCUAddr      ()   uint               { return this.m_sliceSegmentCurEndCUAddr;        }
-func (this *TComSlice)  SetNextSlice                     (  b bool)          { this.m_nextSlice = b;                           }
-func (this *TComSlice)  IsNextSlice                      ()   bool               { return this.m_nextSlice;                        }
-func (this *TComSlice)  SetNextSliceSegment              (  b bool)          { this.m_nextSliceSegment = b;                    }
-func (this *TComSlice)  IsNextSliceSegment               ()   bool               { return this.m_nextSliceSegment;                 }
-func (this *TComSlice)  SetSliceBits                     (  uiVal uint )      { this.m_sliceBits = uiVal;                      }
-func (this *TComSlice)  GetSliceBits                     ()   uint               { return this.m_sliceBits;                       }
-func (this *TComSlice)  SetSliceSegmentBits              (  uiVal uint)      { this.m_sliceSegmentBits = uiVal;            }
-func (this *TComSlice)  GetSliceSegmentBits              ()   uint               { return this.m_sliceSegmentBits;             }
+func (this *TComSlice) SetSliceSegmentMode(uiMode uint) {
+    this.m_sliceSegmentMode = uiMode
+}
+func (this *TComSlice) GetSliceSegmentMode() uint { return this.m_sliceSegmentMode }
+func (this *TComSlice) SetSliceSegmentArgument(uiArgument uint) {
+    this.m_sliceSegmentArgument = uiArgument
+}
+func (this *TComSlice) GetSliceSegmentArgument() uint { return this.m_sliceSegmentArgument }
+func (this *TComSlice) SetSliceSegmentCurStartCUAddr(uiAddr uint) {
+    this.m_sliceSegmentCurStartCUAddr = uiAddr
+}
+func (this *TComSlice) GetSliceSegmentCurStartCUAddr() uint {
+    return this.m_sliceSegmentCurStartCUAddr
+}
+func (this *TComSlice) SetSliceSegmentCurEndCUAddr(uiAddr uint) {
+    this.m_sliceSegmentCurEndCUAddr = uiAddr
+}
+func (this *TComSlice) GetSliceSegmentCurEndCUAddr() uint {
+    return this.m_sliceSegmentCurEndCUAddr
+}
+func (this *TComSlice) SetNextSlice(b bool)        { this.m_nextSlice = b }
+func (this *TComSlice) IsNextSlice() bool          { return this.m_nextSlice }
+func (this *TComSlice) SetNextSliceSegment(b bool) { this.m_nextSliceSegment = b }
+func (this *TComSlice) IsNextSliceSegment() bool   { return this.m_nextSliceSegment }
+func (this *TComSlice) SetSliceBits(uiVal uint)    { this.m_sliceBits = uiVal }
+func (this *TComSlice) GetSliceBits() uint         { return this.m_sliceBits }
+func (this *TComSlice) SetSliceSegmentBits(uiVal uint) {
+    this.m_sliceSegmentBits = uiVal
+}
+func (this *TComSlice) GetSliceSegmentBits() uint { return this.m_sliceSegmentBits }
 func (this *TComSlice) SetFinalized(uiVal bool) {
     this.m_bFinalized = uiVal
 }
@@ -3599,7 +3711,7 @@ func (this *TComSlice) InitWpAcDcParam() {
 }
 
 func (this *TComSlice) SetTileLocationCount1(cnt uint) {
-	this.m_tileByteLocation = make(map[int]uint, cnt)
+    this.m_tileByteLocation = make(map[int]uint, cnt)
 }
 func (this *TComSlice) GetTileLocationCount() uint {
     return uint(len(this.m_tileByteLocation))
@@ -3648,22 +3760,22 @@ func (this *TComSlice) SetDefaultScalingList() {
 func (this *TComSlice) CheckDefaultScalingList() bool {
     /* Encoder func
 
-      defaultCounter:=uint(0);
+         defaultCounter:=uint(0);
 
-      for sizeId := uint(0); sizeId < SCALING_LIST_SIZE_NUM; sizeId++ {
-        for listId:= uint(0);listId<G_scalingListNum[sizeId];listId++ {
-        	slDstAddr := this.GetScalingList().GetScalingListAddress(sizeId,listId);
-        	slSrcAddr := this.GetScalingList().GetScalingListDefaultAddress(sizeId, listId);
+         for sizeId := uint(0); sizeId < SCALING_LIST_SIZE_NUM; sizeId++ {
+           for listId:= uint(0);listId<G_scalingListNum[sizeId];listId++ {
+           	slDstAddr := this.GetScalingList().GetScalingListAddress(sizeId,listId);
+           	slSrcAddr := this.GetScalingList().GetScalingListDefaultAddress(sizeId, listId);
 
-    		sizeof(Int)*min(MAX_MATRIX_COEF_NUM,G_scalingListSize[sizeId])
-          if( !memcmp() // check value of matrix
-         && ((sizeId < SCALING_LIST_16x16) || (getScalingList().GetScalingListDC(sizeId,listId) == 16))) // check DC value
-          {
-            defaultCounter++;
-          }
-        }
-      }
-      return (defaultCounter == (SCALING_LIST_NUM * SCALING_LIST_SIZE_NUM - 4)) ? false : true; // -4 for 32x32
+       		sizeof(Int)*min(MAX_MATRIX_COEF_NUM,G_scalingListSize[sizeId])
+             if( !memcmp() // check value of matrix
+            && ((sizeId < SCALING_LIST_16x16) || (getScalingList().GetScalingListDC(sizeId,listId) == 16))) // check DC value
+             {
+               defaultCounter++;
+             }
+           }
+         }
+         return (defaultCounter == (SCALING_LIST_NUM * SCALING_LIST_SIZE_NUM - 4)) ? false : true; // -4 for 32x32
     */
     return true
 }
@@ -3777,9 +3889,9 @@ type ParameterSetManager struct {
     m_spsMap map[int]*TComSPS
     m_ppsMap map[int]*TComPPS
 
-    m_activeVPSId int;
-    m_activeSPSId int;
-    m_activePPSId int;
+    m_activeVPSId int
+    m_activeSPSId int
+    m_activePPSId int
 }
 
 //public:
@@ -3824,41 +3936,40 @@ func (this *ParameterSetManager) GetPPS(ppsId int) *TComPPS {
 func (this *ParameterSetManager) ApplyPS() {
 }
 
-func (this *ParameterSetManager) GetActiveVPS()*TComVPS { return this.m_vpsMap[this.m_activeVPSId]; };
-func (this *ParameterSetManager) GetActiveSPS()*TComSPS { return this.m_spsMap[this.m_activeSPSId]; };
-func (this *ParameterSetManager) GetActivePPS()*TComPPS { return this.m_ppsMap[this.m_activePPSId]; };
+func (this *ParameterSetManager) GetActiveVPS() *TComVPS { return this.m_vpsMap[this.m_activeVPSId] }
+func (this *ParameterSetManager) GetActiveSPS() *TComSPS { return this.m_spsMap[this.m_activeSPSId] }
+func (this *ParameterSetManager) GetActivePPS() *TComPPS { return this.m_ppsMap[this.m_activePPSId] }
 
-func (this *ParameterSetManager) ActivatePPS( ppsId int, isIDR bool) bool{
-  pps := this.m_ppsMap[ppsId];
-  if pps!=nil {
-    spsId := pps.GetSPSId();
-    if !isIDR && (spsId != this.m_activeSPSId){
-      fmt.Printf("Warning: tried to activate PPS referring to a inactive SPS at non-IDR.");
-      return false;
+func (this *ParameterSetManager) ActivatePPS(ppsId int, isIDR bool) bool {
+    pps := this.m_ppsMap[ppsId]
+    if pps != nil {
+        spsId := pps.GetSPSId()
+        if !isIDR && (spsId != this.m_activeSPSId) {
+            fmt.Printf("Warning: tried to activate PPS referring to a inactive SPS at non-IDR.")
+            return false
+        }
+        sps := this.m_spsMap[spsId]
+        if sps != nil {
+            vpsId := sps.GetVPSId()
+            if !isIDR && (vpsId != this.m_activeVPSId) {
+                fmt.Printf("Warning: tried to activate PPS referring to a inactive VPS at non-IDR.")
+                return false
+            }
+            if this.m_vpsMap[vpsId] != nil {
+                this.m_activePPSId = ppsId
+                this.m_activeVPSId = vpsId
+                this.m_activeSPSId = spsId
+                return true
+            } else {
+                fmt.Printf("Warning: tried to activate PPS that refers to a non-existing VPS.")
+            }
+        } else {
+            fmt.Printf("Warning: tried to activate a PPS that refers to a non-existing SPS.")
+        }
+    } else {
+        fmt.Printf("Warning: tried to activate non-existing PPS.")
     }
-    sps := this.m_spsMap[spsId];
-    if sps!=nil {
-      vpsId := sps.GetVPSId();
-      if !isIDR && (vpsId != this.m_activeVPSId){
-        fmt.Printf("Warning: tried to activate PPS referring to a inactive VPS at non-IDR.");
-        return false;
-      }
-      if this.m_vpsMap[vpsId]!=nil {
-        this.m_activePPSId = ppsId;
-        this.m_activeVPSId = vpsId;
-        this.m_activeSPSId = spsId;
-        return true;
-      }else{
-        fmt.Printf("Warning: tried to activate PPS that refers to a non-existing VPS.");
-      }
-    }else{
-      fmt.Printf("Warning: tried to activate a PPS that refers to a non-existing SPS.");
-    }
-  }else{
-    fmt.Printf("Warning: tried to activate non-existing PPS.");
-  }
-  return false;
+    return false
 }
-
 
 //func (this *ParameterSetManager)  TComPPS* getFirstPPS()      { return m_ppsMap.getFirstPS(); };

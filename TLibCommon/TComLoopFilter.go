@@ -104,7 +104,6 @@ func (this *TComLoopFilter) Destroy() {
     }*/
 }
 
-
 func (this *TComLoopFilter) QpUV(iQpY int) int {
     if iQpY < 0 {
         return iQpY
@@ -127,7 +126,7 @@ func (this *TComLoopFilter) LoopFilterPic(pcPic *TComPic) {
         pcCU := pcPic.GetCU(uiCUAddr)
 
         for i := uint(0); i < this.m_uiNumPartitions; i++ {
-            this.m_aapucBS[EDGE_VER][i] = 0 //, sizeof( UChar ) *  );
+            this.m_aapucBS[EDGE_VER][i] = 0            //, sizeof( UChar ) *  );
             this.m_aapbEdgeFilter[EDGE_VER][i] = false //, sizeof( Bool  ) * this.m_uiNumPartitions );
         }
 
@@ -140,7 +139,7 @@ func (this *TComLoopFilter) LoopFilterPic(pcPic *TComPic) {
         pcCU := pcPic.GetCU(uiCUAddr)
 
         for i := uint(0); i < this.m_uiNumPartitions; i++ {
-            this.m_aapucBS[EDGE_HOR][i] = 0 //, sizeof( UChar ) * this.m_uiNumPartitions );
+            this.m_aapucBS[EDGE_HOR][i] = 0            //, sizeof( UChar ) * this.m_uiNumPartitions );
             this.m_aapbEdgeFilter[EDGE_HOR][i] = false //, sizeof( Bool  ) * this.m_uiNumPartitions );
         }
 
@@ -376,16 +375,16 @@ func (this *TComLoopFilter) xGetBoundaryStrengthSingle(pcCU *TComDataCU, iDir in
                 pcMvQ1 := pcCUQ.GetCUMvField(REF_PIC_LIST_1).GetMv(int(uiPartQ))
 
                 if piRefP0 == nil {
-                    pcMvP0.SetZero();
+                    pcMvP0.SetZero()
                 }
                 if piRefP1 == nil {
-                    pcMvP1.SetZero();
+                    pcMvP1.SetZero()
                 }
                 if piRefQ0 == nil {
-                    pcMvQ0.SetZero();
+                    pcMvQ0.SetZero()
                 }
                 if piRefQ1 == nil {
-                    pcMvQ1.SetZero();
+                    pcMvQ1.SetZero()
                 }
 
                 if ((piRefP0 == piRefQ0) && (piRefP1 == piRefQ1)) || ((piRefP0 == piRefQ1) && (piRefP1 == piRefQ0)) {
@@ -393,36 +392,36 @@ func (this *TComLoopFilter) xGetBoundaryStrengthSingle(pcCU *TComDataCU, iDir in
                     uiBs = 0
                     if piRefP0 != piRefP1 { // Different L0 & L1
                         if piRefP0 == piRefQ0 {
-                            if (ABS(pcMvQ0.GetHor() - pcMvP0.GetHor()).(int16) >= 4) ||
-                               (ABS(pcMvQ0.GetVer() - pcMvP0.GetVer()).(int16) >= 4) ||
-                               (ABS(pcMvQ1.GetHor() - pcMvP1.GetHor()).(int16) >= 4) ||
-                               (ABS(pcMvQ1.GetVer() - pcMvP1.GetVer()).(int16) >= 4) {
-                                uiBs = 1;
-                            }else{
-                                uiBs = 0;
+                            if (ABS(pcMvQ0.GetHor()-pcMvP0.GetHor()).(int16) >= 4) ||
+                                (ABS(pcMvQ0.GetVer()-pcMvP0.GetVer()).(int16) >= 4) ||
+                                (ABS(pcMvQ1.GetHor()-pcMvP1.GetHor()).(int16) >= 4) ||
+                                (ABS(pcMvQ1.GetVer()-pcMvP1.GetVer()).(int16) >= 4) {
+                                uiBs = 1
+                            } else {
+                                uiBs = 0
                             }
                         } else {
-                            if (ABS(pcMvQ1.GetHor() - pcMvP0.GetHor()).(int16) >= 4) ||
-                               (ABS(pcMvQ1.GetVer() - pcMvP0.GetVer()).(int16) >= 4) ||
-                               (ABS(pcMvQ0.GetHor() - pcMvP1.GetHor()).(int16) >= 4) ||
-                               (ABS(pcMvQ0.GetVer() - pcMvP1.GetVer()).(int16) >= 4) {
-                                uiBs = 1;
-                            }else{
-                                uiBs = 0;
+                            if (ABS(pcMvQ1.GetHor()-pcMvP0.GetHor()).(int16) >= 4) ||
+                                (ABS(pcMvQ1.GetVer()-pcMvP0.GetVer()).(int16) >= 4) ||
+                                (ABS(pcMvQ0.GetHor()-pcMvP1.GetHor()).(int16) >= 4) ||
+                                (ABS(pcMvQ0.GetVer()-pcMvP1.GetVer()).(int16) >= 4) {
+                                uiBs = 1
+                            } else {
+                                uiBs = 0
                             }
                         }
                     } else { // Same L0 & L1
-                        if ((ABS(pcMvQ0.GetHor() - pcMvP0.GetHor()).(int16) >= 4) ||
-                            (ABS(pcMvQ0.GetVer() - pcMvP0.GetVer()).(int16) >= 4) ||
-                            (ABS(pcMvQ1.GetHor() - pcMvP1.GetHor()).(int16) >= 4) ||
-                            (ABS(pcMvQ1.GetVer() - pcMvP1.GetVer()).(int16) >= 4)) &&
-                           ((ABS(pcMvQ1.GetHor() - pcMvP0.GetHor()).(int16) >= 4) ||
-                            (ABS(pcMvQ1.GetVer() - pcMvP0.GetVer()).(int16) >= 4) ||
-                            (ABS(pcMvQ0.GetHor() - pcMvP1.GetHor()).(int16) >= 4) ||
-                            (ABS(pcMvQ0.GetVer() - pcMvP1.GetVer()).(int16) >= 4)) {
-                            uiBs = 1;
-                        }else{
-                            uiBs = 0;
+                        if ((ABS(pcMvQ0.GetHor()-pcMvP0.GetHor()).(int16) >= 4) ||
+                            (ABS(pcMvQ0.GetVer()-pcMvP0.GetVer()).(int16) >= 4) ||
+                            (ABS(pcMvQ1.GetHor()-pcMvP1.GetHor()).(int16) >= 4) ||
+                            (ABS(pcMvQ1.GetVer()-pcMvP1.GetVer()).(int16) >= 4)) &&
+                            ((ABS(pcMvQ1.GetHor()-pcMvP0.GetHor()).(int16) >= 4) ||
+                                (ABS(pcMvQ1.GetVer()-pcMvP0.GetVer()).(int16) >= 4) ||
+                                (ABS(pcMvQ0.GetHor()-pcMvP1.GetHor()).(int16) >= 4) ||
+                                (ABS(pcMvQ0.GetVer()-pcMvP1.GetVer()).(int16) >= 4)) {
+                            uiBs = 1
+                        } else {
+                            uiBs = 0
                         }
                     }
                 } else { // for all different Ref_Idx
@@ -448,18 +447,18 @@ func (this *TComLoopFilter) xGetBoundaryStrengthSingle(pcCU *TComDataCU, iDir in
                 //fmt.Printf("p(%d,%d),q(%d,%d)\n", pcMvP0.GetAbsHor(), pcMvP0.GetAbsVer(), pcMvQ0.GetAbsHor(), pcMvQ0.GetAbsVer());
 
                 if piRefP0 == nil {
-                    pcMvP0.SetZero();
+                    pcMvP0.SetZero()
                 }
                 if piRefQ0 == nil {
-                    pcMvQ0.SetZero();
+                    pcMvQ0.SetZero()
                 }
 
                 if (piRefP0 != piRefQ0) ||
-                   (ABS(pcMvQ0.GetHor() - pcMvP0.GetHor()).(int16) >= 4) ||
-                   (ABS(pcMvQ0.GetVer() - pcMvP0.GetVer()).(int16) >= 4) {
-                    uiBs = 1;
-                }else{
-                    uiBs = 0;
+                    (ABS(pcMvQ0.GetHor()-pcMvP0.GetHor()).(int16) >= 4) ||
+                    (ABS(pcMvQ0.GetVer()-pcMvP0.GetVer()).(int16) >= 4) {
+                    uiBs = 1
+                } else {
+                    uiBs = 0
                 }
                 //fmt.Printf("(%d,%d):%d | %d>=4 | %d>=4\n",uiPartP,uiPartQ,B2U(piRefP0!=piRefQ0),pcMvP0.GetAbsHor(),pcMvP0.GetAbsVer());
             }

@@ -130,8 +130,8 @@ func (this *TDecGop) DecompressSlice(pcBitstream *TLibCommon.TComInputBitstream,
     this.m_pcSbacDecoders = make([]*TDecSbac, uiNumSubstreams)
     this.m_pcBinCABACs = make([]*TDecBinCabac, uiNumSubstreams)
     for ui := uint(0); ui < uiNumSubstreams; ui++ {
-    	this.m_pcSbacDecoders[ui] = NewTDecSbac();
-    	this.m_pcBinCABACs[ui]    = NewTDecBinCabac();
+        this.m_pcSbacDecoders[ui] = NewTDecSbac()
+        this.m_pcBinCABACs[ui] = NewTDecBinCabac()
         this.m_pcSbacDecoders[ui].Init(this.m_pcBinCABACs[ui])
         if ui+1 < uiNumSubstreams {
             ppcSubstreams[ui] = pcBitstream.ExtractSubstream(puiSubstreamSizes[ui])
@@ -199,7 +199,7 @@ func (this *TDecGop) FilterPicture(rpcPic *TLibCommon.TComPic) {
         saoParam.SaoFlag[0] = pcSlice.GetSaoEnabledFlag()
         saoParam.SaoFlag[1] = pcSlice.GetSaoEnabledFlagChroma()
         this.m_pcSAO.SetSaoLcuBasedOptimization(true)
-        this.m_pcSAO.CreatePicSaoInfo(rpcPic);//, len(this.m_sliceStartCUAddress)-1)
+        this.m_pcSAO.CreatePicSaoInfo(rpcPic) //, len(this.m_sliceStartCUAddress)-1)
         this.m_pcSAO.SAOProcess(saoParam)
         this.m_pcSAO.PCMLFDisableProcess(rpcPic)
         this.m_pcSAO.DestroyPicSaoInfo()
@@ -312,69 +312,69 @@ func (this *TDecGop) DumpMotionField(rpcPic *TLibCommon.TComPic) {
 
 func (this *TDecGop) CalcAndPrintHashStatus(pic *TLibCommon.TComPicYuv, seis *TLibCommon.SEImessages) {
     /*
-      // calculate MD5sum for entire reconstructed picture
-      UChar recon_digest[3][16];
-      Int numChar=0;
-      const Char* hashType = "\0";
+       // calculate MD5sum for entire reconstructed picture
+       UChar recon_digest[3][16];
+       Int numChar=0;
+       const Char* hashType = "\0";
 
-      if (seis && seis->picture_digest)
-      {
-        switch (seis->picture_digest->method)
-        {
-        case SEIDecodedPictureHash::MD5:
-          {
-            hashType = "MD5";
-            calcMD5(pic, recon_digest);
-            numChar = 16;
-            break;
-          }
-        case SEIDecodedPictureHash::CRC:
-          {
-            hashType = "CRC";
-            calcCRC(pic, recon_digest);
-            numChar = 2;
-            break;
-          }
-        case SEIDecodedPictureHash::CHECKSUM:
-          {
-            hashType = "Checksum";
-            calcChecksum(pic, recon_digest);
-            numChar = 4;
-            break;
-          }
-        default:
-          {
-            assert (!"unknown hash type");
-          }
-        }
-      }
+       if (seis && seis->picture_digest)
+       {
+         switch (seis->picture_digest->method)
+         {
+         case SEIDecodedPictureHash::MD5:
+           {
+             hashType = "MD5";
+             calcMD5(pic, recon_digest);
+             numChar = 16;
+             break;
+           }
+         case SEIDecodedPictureHash::CRC:
+           {
+             hashType = "CRC";
+             calcCRC(pic, recon_digest);
+             numChar = 2;
+             break;
+           }
+         case SEIDecodedPictureHash::CHECKSUM:
+           {
+             hashType = "Checksum";
+             calcChecksum(pic, recon_digest);
+             numChar = 4;
+             break;
+           }
+         default:
+           {
+             assert (!"unknown hash type");
+           }
+         }
+       }
 
-      // compare digest against received version
-      const Char* ok = "(unk)";
-      Bool mismatch = false;
+       // compare digest against received version
+       const Char* ok = "(unk)";
+       Bool mismatch = false;
 
-      if (seis && seis->picture_digest)
-      {
-        ok = "(OK)";
-        for(Int yuvIdx = 0; yuvIdx < 3; yuvIdx++)
-        {
-          for (UInt i = 0; i < numChar; i++)
-          {
-            if (recon_digest[yuvIdx][i] != seis->picture_digest->digest[yuvIdx][i])
-            {
-              ok = "(***ERROR***)";
-              mismatch = true;
-            }
-          }
-        }
-      }
+       if (seis && seis->picture_digest)
+       {
+         ok = "(OK)";
+         for(Int yuvIdx = 0; yuvIdx < 3; yuvIdx++)
+         {
+           for (UInt i = 0; i < numChar; i++)
+           {
+             if (recon_digest[yuvIdx][i] != seis->picture_digest->digest[yuvIdx][i])
+             {
+               ok = "(***ERROR***)";
+               mismatch = true;
+             }
+           }
+         }
+       }
 
-      //printf("[%s:%s,%s] ", hashType, digestToString(recon_digest, numChar), ok);
+       //printf("[%s:%s,%s] ", hashType, digestToString(recon_digest, numChar), ok);
 
-      if (mismatch)
-      {
-        g_md5_mismatch = true;
-        printf("[rx%s:%s] ", hashType, digestToString(seis->picture_digest->digest, numChar));
-      }
+       if (mismatch)
+       {
+         g_md5_mismatch = true;
+         printf("[rx%s:%s] ", hashType, digestToString(seis->picture_digest->digest, numChar));
+       }
     */
 }

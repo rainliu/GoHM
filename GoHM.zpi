@@ -145,7 +145,7 @@
         <File>TLibEncoder\TEncGop.go</File>
         <File>TLibEncoder\TEncNAL.go</File>
         <File>TLibEncoder\TEncRateCtrl.go</File>
-        <File>TLibEncoder\TEncSao.go</File>
+        <File>TLibEncoder\TEncRdCost.go</File>
         <File>TLibEncoder\TEncSearch.go</File>
         <File>TLibEncoder\TEncSlice.go</File>
         <File>TLibEncoder\TEncTop.go</File>

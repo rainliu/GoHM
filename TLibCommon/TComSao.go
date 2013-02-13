@@ -107,18 +107,18 @@ type TComSampleAdaptiveOffset struct {
     m_uiSaoBitIncreaseC uint //for chroma
     m_uiQP              uint
 
-    m_pClipTableOffset     int;//[]Pel
-    m_pClipTableBase       []Pel
-    m_lumaTableBo          []Pel
-    m_pChromaClipTableOffset int;//[]Pel
-    m_pChromaClipTableBase []Pel
-    m_chromaTableBo        []Pel
-    m_iUpBuff1             []int
+    m_pClipTableOffset       int //[]Pel
+    m_pClipTableBase         []Pel
+    m_lumaTableBo            []Pel
+    m_pChromaClipTableOffset int //[]Pel
+    m_pChromaClipTableBase   []Pel
+    m_chromaTableBo          []Pel
+    m_iUpBuff1               []int
     //m_iUpBuff2             []int
-    m_iUpBufft         []int
-    m_ipSwap           []int
-    m_bUseNIF          bool        //!< true for performing non-cross slice boundary ALF
-    m_pcYuvTmp         *TComPicYuv //!< temporary picture buffer pointer when non-across slice/tile boundary SAO is enabled
+    m_iUpBufft []int
+    m_ipSwap   []int
+    m_bUseNIF  bool        //!< true for performing non-cross slice boundary ALF
+    m_pcYuvTmp *TComPicYuv //!< temporary picture buffer pointer when non-across slice/tile boundary SAO is enabled
 
     m_pTmpU1                  []Pel
     m_pTmpU2                  []Pel
@@ -212,7 +212,7 @@ func (this *TComSampleAdaptiveOffset) Create(uiSourceWidth, uiSourceHeight, uiMa
         this.m_pClipTableBase[i] = Pel(uiMaxY)
     }
 
-    this.m_pClipTableOffset = iCRangeExt;//this.m_pClipTableBase[iCRangeExt:]
+    this.m_pClipTableOffset = iCRangeExt //this.m_pClipTableBase[iCRangeExt:]
 
     uiMaxC := int(1<<uint(G_bitDepthC)) - 1
     uiMinC := int(0)
@@ -234,7 +234,7 @@ func (this *TComSampleAdaptiveOffset) Create(uiSourceWidth, uiSourceHeight, uiMa
         this.m_pChromaClipTableBase[i] = Pel(uiMaxC)
     }
 
-    this.m_pChromaClipTableOffset = iCRangeExtC;//this.m_pChromaClipTableBase[iCRangeExtC:]
+    this.m_pChromaClipTableOffset = iCRangeExtC //this.m_pChromaClipTableBase[iCRangeExtC:]
 
     this.m_pTmpL1 = make([]Pel, this.m_uiMaxCUHeight+1)
     this.m_pTmpL2 = make([]Pel, this.m_uiMaxCUHeight+1)
@@ -531,9 +531,9 @@ func (this *TComSampleAdaptiveOffset) ProcessSaoCu(iAddr, iSaoType, iYCbCr int) 
             posOffset = yPos*uint(stride) + xPos
             //fmt.Printf("posOffset=%d\n", posOffset);
             /*for j:=0; j<8; j++ {
-                fmt.Printf("%d ", B2U(pbBorderAvail[j]));
-            }
-            fmt.Printf("\n");*/
+                  fmt.Printf("%d ", B2U(pbBorderAvail[j]));
+              }
+              fmt.Printf("\n");*/
 
             this.ProcessSaoBlock(pPicDec, int(posOffset), pPicRest[posOffset:], stride, iSaoType, int(width), int(height), pbBorderAvail, iYCbCr)
         }
@@ -578,7 +578,7 @@ func (this *TComSampleAdaptiveOffset) ProcessSaoCuOrg(iAddr, iSaoType, iYCbCr in
     var iShift, iCuHeightTmp int
     var pTmpLSwap, pTmpL, pTmpU, pClipTbl []Pel
     var pOffsetBo []int
-    var pClipTblOffset int;
+    var pClipTblOffset int
 
     iPicWidthTmp = this.m_iPicWidth >> iIsChroma
     iPicHeightTmp = this.m_iPicHeight >> iIsChroma
@@ -816,7 +816,7 @@ func (this *TComSampleAdaptiveOffset) ProcessSaoBlock(pDec2 []Pel, posOffset int
     var edgeType uint
     var pClipTbl []Pel
     var pOffsetBo []int
-    var pClipTblOffset int;
+    var pClipTblOffset int
 
     if iYCbCr == 0 {
         pClipTbl = this.m_pClipTableBase
@@ -827,7 +827,6 @@ func (this *TComSampleAdaptiveOffset) ProcessSaoBlock(pDec2 []Pel, posOffset int
         pClipTblOffset = this.m_pChromaClipTableOffset
         pOffsetBo = this.m_iChromaOffsetBo
     }
-
 
     switch saoType {
     case SAO_EO_0: // dir: -
@@ -854,8 +853,8 @@ func (this *TComSampleAdaptiveOffset) ProcessSaoBlock(pDec2 []Pel, posOffset int
 
                 pRest[x] = pClipTbl[pClipTblOffset+int(pDec[x])+this.m_iOffsetEo[edgeType]]
             }
-            pDec2 = pDec2[stride:];
-            pDec  = pDec[stride:]
+            pDec2 = pDec2[stride:]
+            pDec = pDec[stride:]
             pRest = pRest[stride:]
         }
     case SAO_EO_1: // dir: |
@@ -874,8 +873,8 @@ func (this *TComSampleAdaptiveOffset) ProcessSaoBlock(pDec2 []Pel, posOffset int
         //fmt.Printf("type=%d, %d\n", saoType, pDec[0]);
 
         if !pbBorderAvail[SGU_T] {
-            posOffset +=stride;
-            pDec  = pDec[stride:]
+            posOffset += stride
+            pDec = pDec[stride:]
             pRest = pRest[stride:]
         }
         for x = 0; x < width; x++ {
@@ -891,8 +890,8 @@ func (this *TComSampleAdaptiveOffset) ProcessSaoBlock(pDec2 []Pel, posOffset int
 
                 pRest[x] = pClipTbl[pClipTblOffset+int(pDec[x])+this.m_iOffsetEo[edgeType]]
             }
-            pDec  = pDec [stride:];
-            pRest = pRest[stride:];
+            pDec = pDec[stride:]
+            pRest = pRest[stride:]
         }
     case SAO_EO_2: // dir: 135
         pDec := pDec2[posOffset:]
@@ -931,7 +930,7 @@ func (this *TComSampleAdaptiveOffset) ProcessSaoBlock(pDec2 []Pel, posOffset int
             }
         }
         pDec2 = pDec2[stride:]
-        pDec  = pDec [stride:]
+        pDec = pDec[stride:]
         pRest = pRest[stride:]
 
         //middle lines
@@ -950,7 +949,7 @@ func (this *TComSampleAdaptiveOffset) ProcessSaoBlock(pDec2 []Pel, posOffset int
             this.m_iUpBufft = this.m_ipSwap
 
             pDec2 = pDec2[stride:]
-            pDec  = pDec [stride:]
+            pDec = pDec[stride:]
             pRest = pRest[stride:]
         }
 
@@ -1123,7 +1122,7 @@ func (this *TComSampleAdaptiveOffset) ProcessSaoUnitAll(saoLcuParam []SaoLcuPara
     var pClipTable []Pel  //= NULL;
     var pOffsetBo []int   //= NULL;
     var typeIdx int
-    var pClipTableOffset int;
+    var pClipTableOffset int
 
     var offset [LUMA_GROUP_NUM + 1]int
     var idxX, idxY, addr int

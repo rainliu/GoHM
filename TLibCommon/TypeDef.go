@@ -37,59 +37,37 @@ import ()
 
 //! \ingroup TLibCommon
 //! \{
-const SUFFIX_SEI_NUT_DECODED_HASH_SEI = 1             ///< K0120: Use the suffix SEI NUT for the decoded hash SEI message
-const HLS_SEI_GENERIC_EXTENSION = 1                   ///< K0371: generic SEI payload extension mechanism
-const HLS_REMOVE_ACTIVE_PARAM_SET_SEI_EXT_FLAG = 1    ///< K0371: remove active_parameter_set_sei_extension_flag
-const HLS_ADD_SUBLAYER_ORDERING_INFO_PRESENT_FLAG = 1 ///< K0330: Use sub_layer_ordering_info_present_flag in VPS and SPS as a shortcut to signal only one set of values
-const HLS_GROUP_SPS_PCM_FLAGS = 1                     ///< K0217: Group together syntax elements for PCM in SPS
-const HLS_EXTRA_SLICE_HEADER_BITS = 1                 ///< K0210: signal num_extra_slice_header_bits in PPS
-const HLS_MOVE_SPS_PICLIST_FLAGS = 1                  ///< K0170: move restricted_ref_pic_lists_flag and lists_modification_present_flag
-const HLS_ADD_VUI_PICSTRUCT_PRESENT_FLAG = 1          ///< add pic_struct_present_flag to VUI
-const HLS_DISPLAY_WINDOW_PLACEHOLDER = 1              ///< K0382: add display window flag placeholder
+const L0363_DU_BIT_RATE = 1             ///< L0363: add bit_rate_du_value_minus1 to HRD parameters
+const L0328_SPLICING = 1                ///< L0328: splicing support in HRD
+const L0044_DU_DPB_OUTPUT_DELAY_HRD = 1 ///< L0044: Include dpb_output_delay_du_length_minus1 in hrd_parameters(), dpb_output_du_delay in
+///<        picture timing SEI and DU information SEI
+const L0045_PERSISTENCE_FLAGS = 1           ///< L0045: Replace "repetition_period" syntax elements in SEI with "persistence_flag"
+const L0045_NON_NESTED_SEI_RESTRICTIONS = 1 ///< L0045; Include restriction on the order of APS and non-nested BP, PT and DU info SEI messages
+const L0044_CPB_DPB_DELAY_OFFSET = 1        ///< L0044: Include syntax elements cpb_delay_offset and dpb_delay_offset in the BP SEI message
+const L0047_APS_FLAGS = 1                   ///< L0047: Include full_random_access_flag and no_param_set_update_flag in the active parameter set SEI message
+const L0043_TIMING_INFO = 1                 ///< L0043: Timing information is signalled in VUI outside hrd_parameters()
+const L0046_RENAME_PROG_SRC_IDC = 1         ///< L0046: Rename progressive_source_idc to source_scan_type
+const L0045_CONDITION_SIGNALLING = 1        ///< L0045: Condition the signaling of some syntax elements in picture timing SEI message
+const L0043_MSS_IDC = 1
+const L0116_ENTRY_POINT = 1
+const L0363_MORE_BITS = 1
+const L0363_MVP_POC = 1
+const L0363_BYTE_ALIGN = 1
+const L0363_SEI_ALLOW_SUFFIX = 1
+const L0323_LIMIT_DEFAULT_LIST_SIZE = 1
+const L0046_CONSTRAINT_FLAGS = 1
+const L0255_MOVE_PPS_FLAGS = 1 ///< move some flags to earlier positions in the PPS
+const L0444_FPA_TYPE = 1       ///< allow only FPA types 3, 4 and 5
+const L0372 = 1
+const SIGNAL_BITRATE_PICRATE_IN_VPS = 0 ///< K0125: Signal bit_rate and pic_rate in VPS
+const L0232_RD_PENALTY = 1              ///< L0232: RD-penalty for 32x32 TU for intra in non-intra slices
 
-const VARYING_DBL_PARAMS = 1 ///< K0289: Specifying varying deblocking parameters in GOP
-
-const DISALLOW_LTRP_REPETITIONS = 1            ///< K0123: Disallow duplicate LTRP entries in RPS
-const REMOVE_LTRP_LSB_RESTRICTIONS = 1         ///< K0123: Remove restrictions that LTRP LSBs have to be increasing/decreasing
-const POC_TEMPORAL_RELATIONSHIP = 1            ///< K0120: Add syntax in SPS/VUI to indicate POC temporal relationship
-const SIGNAL_BITRATE_PICRATE_IN_VPS = 1        ///< K0125: Signal bit_rate and pic_rate in VPS
-const MOVE_SPS_TEMPORAL_ID_NESTING_FLAG = 1    ///< K0120: Move sps_temporal_id_nesting_flag and replace sps_reserved_zero_bit
-const CONDITION_SUBLAYERPROFILEPRESENTFLAG = 1 ///< K0125: Condition signalling of sub_layer_profile_present_flag
-
-const VPS_OPERATING_POINT = 1 ///< K0204 - Operation point added to VPS
-//#if VPS_OPERATING_POINT
 const MAX_VPS_NUM_HRD_PARAMETERS = 1
 const MAX_VPS_OP_SETS_PLUS1 = 1024
 const MAX_VPS_NUH_RESERVED_ZERO_LAYER_ID_PLUS1 = 1
 
-//#endif
-const SEI_DISPLAY_ORIENTATION = 1   ///< Display orientation SEI message
-const SEI_TEMPORAL_LEVEL0_INDEX = 1 ///< K0205 - Temporal level zero index SEI message
-
 const RATE_CONTROL_LAMBDA_DOMAIN = 1 ///< JCTVC-K0103, rate control by R-lambda model
-
-const MIN_SPATIAL_SEGMENTATION = 1      ///< JCTVC-K0236
-const SAVE_BITS_REFPICLIST_MOD_FLAG = 1 ///< K0224 Proposal#1: Send ref_pic_list_modification_flag_lX only when NumPocTotalCurr is greater than 1.
-
-const VPS_REARRANGE = 1 ///< JCTVC-K0254
-const HRD_BUFFER = 1    ///< JCTVC-K0221
-
-const USE_PIC_CHROMA_QP_OFFSETS_IN_DEBLOCKING = 1 ///< K0220: Use picture-based chroma QP offsets in deblocking filter.
-
-const REMOVE_BURST_IPCM = 1 /// Ticket763
-const REMOVE_ENTROPY_SLICES = 1
-
-const DEPENDENT_SLICE_SEGMENT_FLAGS = 1 ///< K0184: Move dependent_slice_enabled_flag after seq_parameter_set_id in PPS.
-///< Move dependent_slice_flag between pic_parameter_set_id and slice_address.
-const SPS_INTER_REF_SET_PRED = 1 ///< K0136: Not send inter_ref_pic_set_prediction_flag for index 0
-const HM9_NALU_TYPES = 1
-
-const STRONG_INTRA_SMOOTHING = 1 ///< Enables Bilinear interploation of reference samples instead of 121 filter in intra prediction when reference samples are flat.
-
-const RESTRICT_INTRA_BOUNDARY_SMOOTHING = 1 ///< K0380, K0186
-const LINEBUF_CLEANUP = 1                   ///< K0101
-const MERGE_CLEANUP_AND_K0197 = 1           //<Code cleanup and K0197: removal of indirect use of A1 and B1 in merging candidate list construction.
-const RPL_INIT_FIX = 1                      ///< K0255 2nd part (editorial)
+const L0033_RC_BUGFIX = 1            ///< JCTVC-L0033, bug fix for R-lambda model based rate control
 
 const MAX_CPB_CNT = 32 ///< Upper bound of (cpb_cnt_minus1 + 1)
 const MAX_NUM_LAYER_IDS = 64
@@ -111,15 +89,15 @@ const C2FLAG_NUMBER = 1 // maximum number of largerThan2 flag coded in one chunk
 
 const REMOVE_SAO_LCU_ENC_CONSTRAINTS_3 = 1 ///< disable the encoder constraint that conditionally disable SAO for chroma for entire slice in interleaved mode
 
-const SAO_SKIP_RIGHT = 1 ///< H1101: disallow using unavailable pixel during RDO
+const REMOVE_SINGLE_SEI_EXTENSION_FLAGS = 1 ///< remove display orientation SEI extension flag (there is a generic SEI extension mechanism now)
 
 const SAO_ENCODING_CHOICE = 1 ///< I0184: picture early termination
 //#if SAO_ENCODING_CHOICE
 const SAO_ENCODING_RATE = 0.75
-const SAO_ENCODING_CHOICE_CHROMA = 1 ///< J0044: picture early termination Luma and Chroma are handled separatenly
+const SAO_ENCODING_CHOICE_CHROMA = 1 ///< J0044: picture early termination Luma and Chroma are handled separately
 //#if SAO_ENCODING_CHOICE_CHROMA
 const SAO_ENCODING_RATE_CHROMA = 0.5
-const SAO_ENCODING_CHOICE_CHROMA_BF = 1 ///  K0156: Bug fix for SAO selection consistency
+
 //#endif
 //#endif
 
@@ -145,8 +123,6 @@ const LEVEL_RANGE = 30    ///< G382: max coefficient level in statistics collect
 //#endif
 
 const NS_HAD = 0
-
-const K0251 = 1 ///< explicitly signal slice_temporal_mvp_enable_flag in non-IDR I Slices
 
 const HHI_RQT_INTRA_SPEEDUP = 1     ///< tests one best mode with full rqt
 const HHI_RQT_INTRA_SPEEDUP_MOD = 0 ///< tests two best modes with full rqt
@@ -195,25 +171,13 @@ const RDO_WITHOUT_DQP_BITS = 0 ///< Disable counting dQP bits in RDO-based mode 
 
 const FULL_NBIT = 0 ///< When enabled, compute costs using full sample bitdepth.  When disabled, compute costs as if it is 8-bit source video.
 
-func DISTORTION_PRECISION_ADJUSTMENT(x interface{}) interface{}{
-//#if FULL_NBIT
-//# define DISTORTION_PRECISION_ADJUSTMENT(x) 0
-//#else
-  return x; // DISTORTION_PRECISION_ADJUSTMENT(x) (x)
-//#endif
+func DISTORTION_PRECISION_ADJUSTMENT(x interface{}) interface{} {
+    //#if FULL_NBIT
+    //# define DISTORTION_PRECISION_ADJUSTMENT(x) 0
+    //#else
+    return x // DISTORTION_PRECISION_ADJUSTMENT(x) (x)
+    //#endif
 }
-
-const AD_HOC_SLICES_FIXED_NUMBER_OF_LCU_IN_SLICE = 1   ///< OPTION IDENTIFIER. mode==1 -> Limit maximum number of largest coding tree blocks in a slice
-const AD_HOC_SLICES_FIXED_NUMBER_OF_BYTES_IN_SLICE = 2 ///< OPTION IDENTIFIER. mode==2 -> Limit maximum number of bins/bits in a slice
-const AD_HOC_SLICES_FIXED_NUMBER_OF_TILES_IN_SLICE = 3
-
-const DEPENDENT_SLICES = 1 ///< JCTVC-I0229
-// Dependent slice options
-const SHARP_FIXED_NUMBER_OF_LCU_IN_DEPENDENT_SLICE = 1    ///< OPTION IDENTIFIER. Limit maximum number of largest coding tree blocks in an dependent slice
-const SHARP_MULTIPLE_CONSTRAINT_BASED_DEPENDENT_SLICE = 2 ///< OPTION IDENTIFIER. Limit maximum number of bins/bits in an dependent slice
-//#if DEPENDENT_SLICES
-const FIXED_NUMBER_OF_TILES_IN_DEPENDENT_SLICE = 3 // JCTVC-I0229
-//#endif
 
 const LOG2_MAX_NUM_COLUMNS_MINUS1 = 7
 const LOG2_MAX_NUM_ROWS_MINUS1 = 7
@@ -233,6 +197,7 @@ const AMP_MRG = 1 ///< encoder only force merge for AMP partition (no motion sea
 const SCALING_LIST_OUTPUT_RESULT = 0 //JCTVC-G880/JCTVC-G1016 quantization matrices
 
 const CABAC_INIT_PRESENT_FLAG = 1
+
 // ====================================================================================================================
 // Basic type redefinition
 // ====================================================================================================================
@@ -269,11 +234,11 @@ type TCoeff int32 ///< transform coefficient
 // Slice / Slice segment encoding modes
 type SliceConstraint uint8
 
-const (//SliceConstraint
-  NO_SLICES              = 0          ///< don't use slices / slice segments
-  FIXED_NUMBER_OF_LCU    = 1          ///< Limit maximum number of largest coding tree blocks in a slice / slice segments
-  FIXED_NUMBER_OF_BYTES  = 2          ///< Limit maximum number of bytes in a slice / slice segment
-  FIXED_NUMBER_OF_TILES  = 3          ///< slices / slice segments span an integer number of tiles
+const ( //SliceConstraint
+    NO_SLICES             = 0 ///< don't use slices / slice segments
+    FIXED_NUMBER_OF_LCU   = 1 ///< Limit maximum number of largest coding tree blocks in a slice / slice segments
+    FIXED_NUMBER_OF_BYTES = 2 ///< Limit maximum number of bytes in a slice / slice segment
+    FIXED_NUMBER_OF_TILES = 3 ///< slices / slice segments span an integer number of tiles
 )
 
 const NUM_DOWN_PART = 4

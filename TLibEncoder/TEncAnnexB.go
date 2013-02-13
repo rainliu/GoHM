@@ -34,25 +34,25 @@
 package TLibEncoder
 
 import (
-	"io"
-	"container/list"
-	"gohm/TLibCommon"
+    "container/list"
+    "gohm/TLibCommon"
+    "io"
 )
 
-type AccessUnit struct{
- 	*list.List
+type AccessUnit struct {
+    *list.List
 }
 
-func NewAccessUnit() *AccessUnit{
-	return &AccessUnit{list.New()}
+func NewAccessUnit() *AccessUnit {
+    return &AccessUnit{list.New()}
 }
 
-type AccessUnits struct{
-	*list.List
+type AccessUnits struct {
+    *list.List
 }
 
-func NewAccessUnits() *AccessUnits{
-	return &AccessUnits{list.New()}
+func NewAccessUnits() *AccessUnits {
+    return &AccessUnits{list.New()}
 }
 
 /**
@@ -62,41 +62,41 @@ func NewAccessUnits() *AccessUnits{
  *  - the initial startcode in the access unit,
  *  - any SPS/PPS nal units
  */
-var start_code_prefix=[4]byte{0,0,0,1};
- 
-func WriteAnnexB( out io.Writer, au *AccessUnit) *list.List {
-  annexBsizes := list.New();
+var start_code_prefix = [4]byte{0, 0, 0, 1}
 
-  for  it:= au.Front(); it != nil; it=it.Next() {
-    nalu := it.Value.(*OutputNALUnit);
-    size := uint(0); /* size of annexB unit in bytes */
-    
-    if it == au.Front() || nalu.GetNalUnitType() == TLibCommon.NAL_UNIT_SPS || nalu.GetNalUnitType() == TLibCommon.NAL_UNIT_PPS {
-      /* From AVC, When any of the following conditions are fulfilled, the
-       * zero_byte syntax element shall be present:
-       *  - the nal_unit_type within the nal_unit() is equal to 7 (sequence
-       *    parameter set) or 8 (picture parameter set),
-       *  - the byte stream NAL unit syntax structure contains the first NAL
-       *    unit of an access unit in decoding order, as specified by subclause
-       *    7.4.1.2.3.
-       */
-      out.Write(start_code_prefix[:]);
-      size += 4;
-    }else{
-      out.Write(start_code_prefix[1:]);
-      size += 3;
+func WriteAnnexB(out io.Writer, au *AccessUnit) *list.List {
+    annexBsizes := list.New()
+
+    for it := au.Front(); it != nil; it = it.Next() {
+        nalu := it.Value.(*OutputNALUnit)
+        size := uint(0) /* size of annexB unit in bytes */
+
+        if it == au.Front() || nalu.GetNalUnitType() == TLibCommon.NAL_UNIT_SPS || nalu.GetNalUnitType() == TLibCommon.NAL_UNIT_PPS {
+            /* From AVC, When any of the following conditions are fulfilled, the
+             * zero_byte syntax element shall be present:
+             *  - the nal_unit_type within the nal_unit() is equal to 7 (sequence
+             *    parameter set) or 8 (picture parameter set),
+             *  - the byte stream NAL unit syntax structure contains the first NAL
+             *    unit of an access unit in decoding order, as specified by subclause
+             *    7.4.1.2.3.
+             */
+            out.Write(start_code_prefix[:])
+            size += 4
+        } else {
+            out.Write(start_code_prefix[1:])
+            size += 3
+        }
+
+        var buf [1]byte
+        for e := nalu.m_Bitstream.GetFIFO().Front(); e != nil; e = e.Next() {
+            buf[0] = e.Value.(byte)
+            out.Write(buf[:])
+        }
+        //out << nalu.m_nalUnitData.str();
+        size += uint(nalu.m_Bitstream.GetFIFO().Len())
+
+        annexBsizes.PushBack(size)
     }
-    
-    var buf [1]byte;
-    for e:= nalu.m_Bitstream.GetFIFO().Front(); e!=nil; e=e.Next() {
-  		buf[0] = e.Value.(byte);
-  		out.Write(buf[:]);
-  	}
-    //out << nalu.m_nalUnitData.str();
-    size += uint(nalu.m_Bitstream.GetFIFO().Len());
 
-    annexBsizes.PushBack(size);
-  }
-
-  return annexBsizes;
+    return annexBsizes
 }

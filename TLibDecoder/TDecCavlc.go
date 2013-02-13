@@ -321,16 +321,16 @@ func (this *TDecCavlc) xReadUnaryMaxSymbol(ruiSymbol, uiMaxSymbol uint) {
 }
 
 func (this *TDecCavlc) xReadPCMAlignZero() {
-  uiNumberOfBits := this.m_pcBitstream.GetNumBitsUntilByteAligned();
+    uiNumberOfBits := this.m_pcBitstream.GetNumBitsUntilByteAligned()
 
-  if uiNumberOfBits!=0 {
-    var uiBits, uiSymbol uint;
+    if uiNumberOfBits != 0 {
+        var uiBits, uiSymbol uint
 
-    for uiBits = 0; uiBits < uiNumberOfBits; uiBits++{
-      this.xReadFlag( &uiSymbol );
-      //assert( uiSymbol == 0 );
+        for uiBits = 0; uiBits < uiNumberOfBits; uiBits++ {
+            this.xReadFlag(&uiSymbol)
+            //assert( uiSymbol == 0 );
+        }
     }
-  }
 }
 
 func (this *TDecCavlc) xGetBit() uint {
@@ -364,7 +364,7 @@ func (this *TDecCavlc) ParseShortTermRefPicSet(sps *TLibCommon.TComSPS, rps *TLi
         k1 := 0
         this.READ_CODE(1, &bit, "delta_rps_sign")     // delta_RPS_sign
         this.READ_UVLC(&code, "abs_delta_rps_minus1") // absolute delta RPS minus 1
-        deltaRPS := (1 - 2*bit) * (code + 1)     // delta_RPS
+        deltaRPS := (1 - 2*bit) * (code + 1)          // delta_RPS
         for j := 0; j <= rpsRef.GetNumberOfPictures(); j++ {
             this.READ_CODE(1, &bit, "used_by_curr_pic_flag") //first bit is "1" if Idc is 1
             refIdc := bit
@@ -454,12 +454,12 @@ func (this *TDecCavlc) ParseVPS(pcVPS *TLibCommon.TComVPS) {
     pcVPS.SetVPSId(int(uiCode))
 
     this.READ_CODE(2, &uiCode, "vps_reserved_three_2bits") //assert(uiCode == 3);
-    this.READ_CODE(6, &uiCode, "vps_reserved_zero_6bits") //assert(uiCode == 0);
+    this.READ_CODE(6, &uiCode, "vps_reserved_zero_6bits")  //assert(uiCode == 0);
     this.READ_CODE(3, &uiCode, "vps_max_sub_layers_minus1")
-    pcVPS.SetMaxTLayers(uiCode + 1);
+    pcVPS.SetMaxTLayers(uiCode + 1)
 
-    this.READ_FLAG(    &uiCode,  "vps_temporal_id_nesting_flag" );
-    pcVPS.SetTemporalNestingFlag( uiCode!=0 );
+    this.READ_FLAG(&uiCode, "vps_temporal_id_nesting_flag")
+    pcVPS.SetTemporalNestingFlag(uiCode != 0)
 
     this.READ_CODE(16, &uiCode, "vps_reserved_ffff_16bits") //assert(uiCode == 0xffff);
     this.ParsePTL(pcVPS.GetPTL(), true, int(pcVPS.GetMaxTLayers())-1)
@@ -485,54 +485,54 @@ func (this *TDecCavlc) ParseVPS(pcVPS *TLibCommon.TComVPS) {
         }
     }
 
-  this.READ_CODE( 6, &uiCode, "vps_max_nuh_reserved_zero_layer_id" );
-  pcVPS.SetMaxNuhReservedZeroLayerId( uiCode );
-  this.READ_UVLC(    &uiCode, "vps_max_op_sets_minus1" );
-  pcVPS.SetMaxOpSets( uiCode + 1 );
-  for opsIdx := uint(1); opsIdx <= ( pcVPS.GetMaxOpSets() - 1 ); opsIdx ++ {
-    // Operation point set
-    for i := uint(0); i <= pcVPS.GetMaxNuhReservedZeroLayerId(); i ++ {
-      this.READ_FLAG( &uiCode, "layer_id_included_flag[opsIdx][i]" );
-      pcVPS.SetLayerIdIncludedFlag( uiCode == 1, opsIdx, i );
-    }
-  }
-
-  timingInfo := pcVPS.GetTimingInfo();
-  this.READ_FLAG(       &uiCode, "vps_timing_info_present_flag");
-  timingInfo.SetTimingInfoPresentFlag      (uiCode!=0);
-  if timingInfo.GetTimingInfoPresentFlag() {
-    this.READ_CODE( 32, &uiCode, "vps_num_units_in_tick");
-    timingInfo.SetNumUnitsInTick             (uiCode);
-    this.READ_CODE( 32, &uiCode, "vps_time_scale");
-    timingInfo.SetTimeScale                  (uiCode);
-    this.READ_FLAG(     &uiCode, "vps_poc_proportional_to_timing_flag");
-    timingInfo.SetPocProportionalToTimingFlag(uiCode!=0);
-    if timingInfo.GetPocProportionalToTimingFlag(){
-      this.READ_UVLC(   &uiCode, "vps_num_ticks_poc_diff_one_minus1");
-      timingInfo.SetNumTicksPocDiffOneMinus1   (int(uiCode));
+    this.READ_CODE(6, &uiCode, "vps_max_nuh_reserved_zero_layer_id")
+    pcVPS.SetMaxNuhReservedZeroLayerId(uiCode)
+    this.READ_UVLC(&uiCode, "vps_max_op_sets_minus1")
+    pcVPS.SetMaxOpSets(uiCode + 1)
+    for opsIdx := uint(1); opsIdx <= (pcVPS.GetMaxOpSets() - 1); opsIdx++ {
+        // Operation point set
+        for i := uint(0); i <= pcVPS.GetMaxNuhReservedZeroLayerId(); i++ {
+            this.READ_FLAG(&uiCode, "layer_id_included_flag[opsIdx][i]")
+            pcVPS.SetLayerIdIncludedFlag(uiCode == 1, opsIdx, i)
+        }
     }
 
-    this.READ_UVLC( &uiCode, "vps_num_hrd_parameters" );
-    pcVPS.SetNumHrdParameters( uiCode );
+    timingInfo := pcVPS.GetTimingInfo()
+    this.READ_FLAG(&uiCode, "vps_timing_info_present_flag")
+    timingInfo.SetTimingInfoPresentFlag(uiCode != 0)
+    if timingInfo.GetTimingInfoPresentFlag() {
+        this.READ_CODE(32, &uiCode, "vps_num_units_in_tick")
+        timingInfo.SetNumUnitsInTick(uiCode)
+        this.READ_CODE(32, &uiCode, "vps_time_scale")
+        timingInfo.SetTimeScale(uiCode)
+        this.READ_FLAG(&uiCode, "vps_poc_proportional_to_timing_flag")
+        timingInfo.SetPocProportionalToTimingFlag(uiCode != 0)
+        if timingInfo.GetPocProportionalToTimingFlag() {
+            this.READ_UVLC(&uiCode, "vps_num_ticks_poc_diff_one_minus1")
+            timingInfo.SetNumTicksPocDiffOneMinus1(int(uiCode))
+        }
 
-    if pcVPS.GetNumHrdParameters() > 0 {
-      pcVPS.CreateHrdParamBuffer();
+        this.READ_UVLC(&uiCode, "vps_num_hrd_parameters")
+        pcVPS.SetNumHrdParameters(uiCode)
+
+        if pcVPS.GetNumHrdParameters() > 0 {
+            pcVPS.CreateHrdParamBuffer()
+        }
+        for i := uint(0); i < pcVPS.GetNumHrdParameters(); i++ {
+            this.READ_UVLC(&uiCode, "hrd_op_set_idx")
+            pcVPS.SetHrdOpSetIdx(uiCode, i)
+            if i > 0 {
+                this.READ_FLAG(&uiCode, "cprms_present_flag[i]")
+                pcVPS.SetCprmsPresentFlag(uiCode == 1, i)
+            }
+            this.ParseHrdParameters(pcVPS.GetHrdParameters(i), pcVPS.GetCprmsPresentFlag(i), pcVPS.GetMaxTLayers()-1)
+        }
     }
-    for i := uint(0); i < pcVPS.GetNumHrdParameters(); i ++ {
-      this.READ_UVLC( &uiCode, "hrd_op_set_idx" );
-      pcVPS.SetHrdOpSetIdx( uiCode, i );
-      if i > 0 {
-        this.READ_FLAG( &uiCode, "cprms_present_flag[i]" );
-        pcVPS.SetCprmsPresentFlag( uiCode == 1, i );
-      }
-      this.ParseHrdParameters(pcVPS.GetHrdParameters(i), pcVPS.GetCprmsPresentFlag( i ), pcVPS.GetMaxTLayers() - 1);
-    }
-  }
 
     this.READ_FLAG(&uiCode, "vps_extension_flag") //assert(!uiCode);
-    if uiCode!=0 {
+    if uiCode != 0 {
         for this.xMoreRbspData() {
-          this.READ_FLAG( &uiCode, "vps_extension_data_flag");
+            this.READ_FLAG(&uiCode, "vps_extension_data_flag")
         }
     }
 }
@@ -733,11 +733,11 @@ func (this *TDecCavlc) ParsePPS(pcPPS *TLibCommon.TComPPS) {
     this.READ_FLAG(&uiCode, "dependent_slice_segments_enabled_flag")
     pcPPS.SetDependentSliceSegmentsEnabledFlag(uiCode == 1)
 
-    this.READ_FLAG( &uiCode, "output_flag_present_flag" );
-    pcPPS.SetOutputFlagPresentFlag( uiCode==1 );
+    this.READ_FLAG(&uiCode, "output_flag_present_flag")
+    pcPPS.SetOutputFlagPresentFlag(uiCode == 1)
 
-    this.READ_CODE(3, &uiCode, "num_extra_slice_header_bits");
-    pcPPS.SetNumExtraSliceHeaderBits(int(uiCode));
+    this.READ_CODE(3, &uiCode, "num_extra_slice_header_bits")
+    pcPPS.SetNumExtraSliceHeaderBits(int(uiCode))
 
     this.READ_FLAG(&uiCode, "sign_data_hiding_flag")
     pcPPS.SetSignHideFlag(uiCode != 0)
@@ -745,13 +745,13 @@ func (this *TDecCavlc) ParsePPS(pcPPS *TLibCommon.TComPPS) {
     this.READ_FLAG(&uiCode, "cabac_init_present_flag")
     pcPPS.SetCabacInitPresentFlag(uiCode != 0)
 
-    this.READ_UVLC(&uiCode, "num_ref_idx_l0_default_active_minus1");
+    this.READ_UVLC(&uiCode, "num_ref_idx_l0_default_active_minus1")
     //assert(uiCode <= 14);
-    pcPPS.SetNumRefIdxL0DefaultActive(uiCode+1);
+    pcPPS.SetNumRefIdxL0DefaultActive(uiCode + 1)
 
-    this.READ_UVLC(&uiCode, "num_ref_idx_l1_default_active_minus1");
+    this.READ_UVLC(&uiCode, "num_ref_idx_l1_default_active_minus1")
     //assert(uiCode <= 14);
-    pcPPS.SetNumRefIdxL1DefaultActive(uiCode+1);
+    pcPPS.SetNumRefIdxL1DefaultActive(uiCode + 1)
 
     this.READ_SVLC(&iCode, "init_qp_minus26")
     pcPPS.SetPicInitQPMinus26(iCode)
@@ -870,127 +870,127 @@ func (this *TDecCavlc) ParsePPS(pcPPS *TLibCommon.TComPPS) {
     }
 }
 func (this *TDecCavlc) ParseVUI(pcVUI *TLibCommon.TComVUI, pcSPS *TLibCommon.TComSPS) {
-//#if ENC_DEC_TRACE
-  //fprintf( g_hTrace, "----------- vui_parameters -----------\n");
-  this.xTraceVUIHeader(pcVUI);
-//#endif
-  var  uiCode uint;
+    //#if ENC_DEC_TRACE
+    //fprintf( g_hTrace, "----------- vui_parameters -----------\n");
+    this.xTraceVUIHeader(pcVUI)
+    //#endif
+    var uiCode uint
 
-  this.READ_FLAG(     &uiCode, "aspect_ratio_info_present_flag");
-  pcVUI.SetAspectRatioInfoPresentFlag(uiCode!=0);
-  if pcVUI.GetAspectRatioInfoPresentFlag() {
-    this.READ_CODE(8, &uiCode, "aspect_ratio_idc");
-    pcVUI.SetAspectRatioIdc(int(uiCode));
-    if pcVUI.GetAspectRatioIdc() == 255 {
-      this.READ_CODE(16, &uiCode, "sar_width");
-      pcVUI.SetSarWidth(int(uiCode));
-      this.READ_CODE(16, &uiCode, "sar_height");
-      pcVUI.SetSarHeight(int(uiCode));
+    this.READ_FLAG(&uiCode, "aspect_ratio_info_present_flag")
+    pcVUI.SetAspectRatioInfoPresentFlag(uiCode != 0)
+    if pcVUI.GetAspectRatioInfoPresentFlag() {
+        this.READ_CODE(8, &uiCode, "aspect_ratio_idc")
+        pcVUI.SetAspectRatioIdc(int(uiCode))
+        if pcVUI.GetAspectRatioIdc() == 255 {
+            this.READ_CODE(16, &uiCode, "sar_width")
+            pcVUI.SetSarWidth(int(uiCode))
+            this.READ_CODE(16, &uiCode, "sar_height")
+            pcVUI.SetSarHeight(int(uiCode))
+        }
     }
-  }
 
-  this.READ_FLAG(     &uiCode, "overscan_info_present_flag");
-  pcVUI.SetOverscanInfoPresentFlag(uiCode!=0);
-  if pcVUI.GetOverscanInfoPresentFlag(){
-    this.READ_FLAG(   &uiCode, "overscan_appropriate_flag");
-    pcVUI.SetOverscanAppropriateFlag(uiCode!=0);
-  }
-
-  this.READ_FLAG(     &uiCode, "video_signal_type_present_flag");
-  pcVUI.SetVideoSignalTypePresentFlag(uiCode!=0);
-  if pcVUI.GetVideoSignalTypePresentFlag() {
-    this.READ_CODE(3, &uiCode, "video_format");
-    pcVUI.SetVideoFormat(int(uiCode));
-    this.READ_FLAG(   &uiCode, "video_full_range_flag");
-    pcVUI.SetVideoFullRangeFlag(uiCode!=0);
-    this.READ_FLAG(   &uiCode, "colour_description_present_flag");
-    pcVUI.SetColourDescriptionPresentFlag(uiCode!=0);
-    if pcVUI.GetColourDescriptionPresentFlag() {
-      this.READ_CODE(8, &uiCode, "colour_primaries");
-      pcVUI.SetColourPrimaries(int(uiCode));
-      this.READ_CODE(8, &uiCode, "transfer_characteristics");
-      pcVUI.SetTransferCharacteristics(int(uiCode));
-      this.READ_CODE(8, &uiCode, "matrix_coefficients");
-      pcVUI.SetMatrixCoefficients(int(uiCode));
+    this.READ_FLAG(&uiCode, "overscan_info_present_flag")
+    pcVUI.SetOverscanInfoPresentFlag(uiCode != 0)
+    if pcVUI.GetOverscanInfoPresentFlag() {
+        this.READ_FLAG(&uiCode, "overscan_appropriate_flag")
+        pcVUI.SetOverscanAppropriateFlag(uiCode != 0)
     }
-  }
 
-  this.READ_FLAG(     &uiCode, "chroma_loc_info_present_flag");
-  pcVUI.SetChromaLocInfoPresentFlag(uiCode!=0);
-  if pcVUI.GetChromaLocInfoPresentFlag() {
-    this.READ_UVLC(   &uiCode, "chroma_sample_loc_type_top_field" );
-    pcVUI.SetChromaSampleLocTypeTopField(int(uiCode));
-    this.READ_UVLC(   &uiCode, "chroma_sample_loc_type_bottom_field" );
-    pcVUI.SetChromaSampleLocTypeBottomField(int(uiCode));
-  }
-
-  this.READ_FLAG(     &uiCode, "neutral_chroma_indication_flag");
-  pcVUI.SetNeutralChromaIndicationFlag(uiCode!=0);
-
-  this.READ_FLAG(     &uiCode, "field_seq_flag");
-  pcVUI.SetFieldSeqFlag(uiCode!=0);
-  //assert(pcVUI.GetFieldSeqFlag() == false);        // not supported yet
-
-  this.READ_FLAG(&uiCode, "frame_field_info_present_flag");
-  pcVUI.SetFrameFieldInfoPresentFlag(uiCode!=0);
-
-  this.READ_FLAG(&uiCode, "default_display_window_flag");                   //assert(uiCode == 0);
-  if uiCode != 0 {
-    defDisp := pcVUI.GetDefaultDisplayWindow();
-    this.READ_UVLC(   &uiCode, "def_disp_win_left_offset" );
-    defDisp.SetWindowLeftOffset  ( int(uiCode * uint(pcSPS.GetWinUnitX( pcSPS.GetChromaFormatIdc()))) );
-    this.READ_UVLC(   &uiCode, "def_disp_win_right_offset" );
-    defDisp.SetWindowRightOffset ( int(uiCode * uint(pcSPS.GetWinUnitX( pcSPS.GetChromaFormatIdc()))) );
-    this.READ_UVLC(   &uiCode, "def_disp_win_top_offset" );
-    defDisp.SetWindowTopOffset   ( int(uiCode * uint(pcSPS.GetWinUnitY( pcSPS.GetChromaFormatIdc()))) );
-    this.READ_UVLC(   &uiCode, "def_disp_win_bottom_offset" );
-    defDisp.SetWindowBottomOffset( int(uiCode * uint(pcSPS.GetWinUnitY( pcSPS.GetChromaFormatIdc()))) );
-  }
-
-  timingInfo := pcVUI.GetTimingInfo();
-  this.READ_FLAG(    &uiCode, "vui_timing_info_present_flag");
-  timingInfo.SetTimingInfoPresentFlag  (uiCode!=0);
-  if timingInfo.GetTimingInfoPresentFlag() {
-    this.READ_CODE( 32, &uiCode, "vui_num_units_in_tick");
-    timingInfo.SetNumUnitsInTick             (uiCode);
-    this.READ_CODE( 32, &uiCode, "vui_time_scale");
-    timingInfo.SetTimeScale                  (uiCode);
-    this.READ_FLAG(     &uiCode, "vui_poc_proportional_to_timing_flag");
-    timingInfo.SetPocProportionalToTimingFlag(uiCode!=0);
-    if timingInfo.GetPocProportionalToTimingFlag() {
-      this.READ_UVLC(   &uiCode, "vui_num_ticks_poc_diff_one_minus1");
-      timingInfo.SetNumTicksPocDiffOneMinus1   (int(uiCode));
+    this.READ_FLAG(&uiCode, "video_signal_type_present_flag")
+    pcVUI.SetVideoSignalTypePresentFlag(uiCode != 0)
+    if pcVUI.GetVideoSignalTypePresentFlag() {
+        this.READ_CODE(3, &uiCode, "video_format")
+        pcVUI.SetVideoFormat(int(uiCode))
+        this.READ_FLAG(&uiCode, "video_full_range_flag")
+        pcVUI.SetVideoFullRangeFlag(uiCode != 0)
+        this.READ_FLAG(&uiCode, "colour_description_present_flag")
+        pcVUI.SetColourDescriptionPresentFlag(uiCode != 0)
+        if pcVUI.GetColourDescriptionPresentFlag() {
+            this.READ_CODE(8, &uiCode, "colour_primaries")
+            pcVUI.SetColourPrimaries(int(uiCode))
+            this.READ_CODE(8, &uiCode, "transfer_characteristics")
+            pcVUI.SetTransferCharacteristics(int(uiCode))
+            this.READ_CODE(8, &uiCode, "matrix_coefficients")
+            pcVUI.SetMatrixCoefficients(int(uiCode))
+        }
     }
-    this.READ_FLAG(     &uiCode, "hrd_parameters_present_flag");
-    pcVUI.SetHrdParametersPresentFlag(uiCode!=0);
-    if pcVUI.GetHrdParametersPresentFlag()  {
-        this.ParseHrdParameters( pcVUI.GetHrdParameters(), true, pcSPS.GetMaxTLayers() - 1 );
+
+    this.READ_FLAG(&uiCode, "chroma_loc_info_present_flag")
+    pcVUI.SetChromaLocInfoPresentFlag(uiCode != 0)
+    if pcVUI.GetChromaLocInfoPresentFlag() {
+        this.READ_UVLC(&uiCode, "chroma_sample_loc_type_top_field")
+        pcVUI.SetChromaSampleLocTypeTopField(int(uiCode))
+        this.READ_UVLC(&uiCode, "chroma_sample_loc_type_bottom_field")
+        pcVUI.SetChromaSampleLocTypeBottomField(int(uiCode))
     }
-  }
 
-  this.READ_FLAG(     &uiCode, "bitstream_restriction_flag");
-  pcVUI.SetBitstreamRestrictionFlag(uiCode!=0);
-  if pcVUI.GetBitstreamRestrictionFlag() {
-    this.READ_FLAG(   &uiCode, "tiles_fixed_structure_flag");
-    pcVUI.SetTilesFixedStructureFlag(uiCode!=0);
-    this.READ_FLAG(   &uiCode, "motion_vectors_over_pic_boundaries_flag");
-    pcVUI.SetMotionVectorsOverPicBoundariesFlag(uiCode!=0);
+    this.READ_FLAG(&uiCode, "neutral_chroma_indication_flag")
+    pcVUI.SetNeutralChromaIndicationFlag(uiCode != 0)
 
-    this.READ_FLAG(   &uiCode, "restricted_ref_pic_lists_flag");
-    pcVUI.SetRestrictedRefPicListsFlag(uiCode!=0);
+    this.READ_FLAG(&uiCode, "field_seq_flag")
+    pcVUI.SetFieldSeqFlag(uiCode != 0)
+    //assert(pcVUI.GetFieldSeqFlag() == false);        // not supported yet
 
-    this.READ_UVLC( &uiCode, "min_spatial_segmentation_idc");
-    pcVUI.SetMinSpatialSegmentationIdc(int(uiCode));
+    this.READ_FLAG(&uiCode, "frame_field_info_present_flag")
+    pcVUI.SetFrameFieldInfoPresentFlag(uiCode != 0)
 
-    this.READ_UVLC(   &uiCode, "max_bytes_per_pic_denom" );
-    pcVUI.SetMaxBytesPerPicDenom(int(uiCode));
-    this.READ_UVLC(   &uiCode, "max_bits_per_mincu_denom" );
-    pcVUI.SetMaxBitsPerMinCuDenom(int(uiCode));
-    this.READ_UVLC(   &uiCode, "log2_max_mv_length_horizontal" );
-    pcVUI.SetLog2MaxMvLengthHorizontal(int(uiCode));
-    this.READ_UVLC(   &uiCode, "log2_max_mv_length_vertical" );
-    pcVUI.SetLog2MaxMvLengthVertical(int(uiCode));
-  }
+    this.READ_FLAG(&uiCode, "default_display_window_flag") //assert(uiCode == 0);
+    if uiCode != 0 {
+        defDisp := pcVUI.GetDefaultDisplayWindow()
+        this.READ_UVLC(&uiCode, "def_disp_win_left_offset")
+        defDisp.SetWindowLeftOffset(int(uiCode * uint(pcSPS.GetWinUnitX(pcSPS.GetChromaFormatIdc()))))
+        this.READ_UVLC(&uiCode, "def_disp_win_right_offset")
+        defDisp.SetWindowRightOffset(int(uiCode * uint(pcSPS.GetWinUnitX(pcSPS.GetChromaFormatIdc()))))
+        this.READ_UVLC(&uiCode, "def_disp_win_top_offset")
+        defDisp.SetWindowTopOffset(int(uiCode * uint(pcSPS.GetWinUnitY(pcSPS.GetChromaFormatIdc()))))
+        this.READ_UVLC(&uiCode, "def_disp_win_bottom_offset")
+        defDisp.SetWindowBottomOffset(int(uiCode * uint(pcSPS.GetWinUnitY(pcSPS.GetChromaFormatIdc()))))
+    }
+
+    timingInfo := pcVUI.GetTimingInfo()
+    this.READ_FLAG(&uiCode, "vui_timing_info_present_flag")
+    timingInfo.SetTimingInfoPresentFlag(uiCode != 0)
+    if timingInfo.GetTimingInfoPresentFlag() {
+        this.READ_CODE(32, &uiCode, "vui_num_units_in_tick")
+        timingInfo.SetNumUnitsInTick(uiCode)
+        this.READ_CODE(32, &uiCode, "vui_time_scale")
+        timingInfo.SetTimeScale(uiCode)
+        this.READ_FLAG(&uiCode, "vui_poc_proportional_to_timing_flag")
+        timingInfo.SetPocProportionalToTimingFlag(uiCode != 0)
+        if timingInfo.GetPocProportionalToTimingFlag() {
+            this.READ_UVLC(&uiCode, "vui_num_ticks_poc_diff_one_minus1")
+            timingInfo.SetNumTicksPocDiffOneMinus1(int(uiCode))
+        }
+        this.READ_FLAG(&uiCode, "hrd_parameters_present_flag")
+        pcVUI.SetHrdParametersPresentFlag(uiCode != 0)
+        if pcVUI.GetHrdParametersPresentFlag() {
+            this.ParseHrdParameters(pcVUI.GetHrdParameters(), true, pcSPS.GetMaxTLayers()-1)
+        }
+    }
+
+    this.READ_FLAG(&uiCode, "bitstream_restriction_flag")
+    pcVUI.SetBitstreamRestrictionFlag(uiCode != 0)
+    if pcVUI.GetBitstreamRestrictionFlag() {
+        this.READ_FLAG(&uiCode, "tiles_fixed_structure_flag")
+        pcVUI.SetTilesFixedStructureFlag(uiCode != 0)
+        this.READ_FLAG(&uiCode, "motion_vectors_over_pic_boundaries_flag")
+        pcVUI.SetMotionVectorsOverPicBoundariesFlag(uiCode != 0)
+
+        this.READ_FLAG(&uiCode, "restricted_ref_pic_lists_flag")
+        pcVUI.SetRestrictedRefPicListsFlag(uiCode != 0)
+
+        this.READ_UVLC(&uiCode, "min_spatial_segmentation_idc")
+        pcVUI.SetMinSpatialSegmentationIdc(int(uiCode))
+
+        this.READ_UVLC(&uiCode, "max_bytes_per_pic_denom")
+        pcVUI.SetMaxBytesPerPicDenom(int(uiCode))
+        this.READ_UVLC(&uiCode, "max_bits_per_mincu_denom")
+        pcVUI.SetMaxBitsPerMinCuDenom(int(uiCode))
+        this.READ_UVLC(&uiCode, "log2_max_mv_length_horizontal")
+        pcVUI.SetLog2MaxMvLengthHorizontal(int(uiCode))
+        this.READ_UVLC(&uiCode, "log2_max_mv_length_vertical")
+        pcVUI.SetLog2MaxMvLengthVertical(int(uiCode))
+    }
 }
 func (this *TDecCavlc) ParseSEI(sei *TLibCommon.SEImessages) {
 }
@@ -1001,8 +1001,8 @@ func (this *TDecCavlc) ParsePTL(rpcPTL *TLibCommon.TComPTL, profilePresentFlag b
     }
     this.READ_CODE(8, &uiCode, "general_level_idc")
     rpcPTL.GetGeneralPTL().SetLevelIdc(int(uiCode))
-	
-	for i := 0; i < maxNumSubLayersMinus1; i++ {
+
+    for i := 0; i < maxNumSubLayersMinus1; i++ {
         if profilePresentFlag {
             this.READ_FLAG(&uiCode, "sub_layer_profile_present_flag[i]")
             rpcPTL.SetSubLayerProfilePresentFlag(i, uiCode != 0)
@@ -1012,7 +1012,7 @@ func (this *TDecCavlc) ParsePTL(rpcPTL *TLibCommon.TComPTL, profilePresentFlag b
     }
     if maxNumSubLayersMinus1 > 0 {
         for i := maxNumSubLayersMinus1; i < 8; i++ {
-            this.READ_CODE(2, &uiCode, "reserved_zero_2bits");
+            this.READ_CODE(2, &uiCode, "reserved_zero_2bits")
             //assert(uiCode == 0);
         }
     }
@@ -1040,105 +1040,105 @@ func (this *TDecCavlc) ParseProfileTier(ptl *TLibCommon.ProfileTierLevel) {
         ptl.SetProfileCompatibilityFlag(j, uiCode != 0)
     }
 
-    this.READ_FLAG(&uiCode, "general_progressive_source_flag");
-    ptl.SetProgressiveSourceFlag(uiCode!=0);
+    this.READ_FLAG(&uiCode, "general_progressive_source_flag")
+    ptl.SetProgressiveSourceFlag(uiCode != 0)
 
-    this.READ_FLAG(&uiCode, "general_interlaced_source_flag");
-    ptl.SetInterlacedSourceFlag(uiCode!=0);
+    this.READ_FLAG(&uiCode, "general_interlaced_source_flag")
+    ptl.SetInterlacedSourceFlag(uiCode != 0)
 
-    this.READ_FLAG(&uiCode, "general_non_packed_constraint_flag");
-    ptl.SetNonPackedConstraintFlag(uiCode!=0);
+    this.READ_FLAG(&uiCode, "general_non_packed_constraint_flag")
+    ptl.SetNonPackedConstraintFlag(uiCode != 0)
 
-    this.READ_FLAG(&uiCode, "general_frame_only_constraint_flag");
-    ptl.SetFrameOnlyConstraintFlag(uiCode!=0);
+    this.READ_FLAG(&uiCode, "general_frame_only_constraint_flag")
+    ptl.SetFrameOnlyConstraintFlag(uiCode != 0)
 
-    this.READ_CODE(16, &uiCode, "XXX_reserved_zero_44bits[0..15]");
-    this.READ_CODE(16, &uiCode, "XXX_reserved_zero_44bits[16..31]");
-    this.READ_CODE(12, &uiCode, "XXX_reserved_zero_44bits[32..43]");
+    this.READ_CODE(16, &uiCode, "XXX_reserved_zero_44bits[0..15]")
+    this.READ_CODE(16, &uiCode, "XXX_reserved_zero_44bits[16..31]")
+    this.READ_CODE(12, &uiCode, "XXX_reserved_zero_44bits[32..43]")
 }
 
-func (this *TDecCavlc) ParseHrdParameters  (hrd *TLibCommon.TComHRD, commonInfPresentFlag bool, maxNumSubLayersMinus1 uint){
-  var  uiCode   uint;
-  if commonInfPresentFlag {
-    this.READ_FLAG( &uiCode, "nal_hrd_parameters_present_flag" );
-    hrd.SetNalHrdParametersPresentFlag( uiCode == 1 );
-    this.READ_FLAG( &uiCode, "vcl_hrd_parameters_present_flag" );
-    hrd.SetVclHrdParametersPresentFlag( uiCode == 1);
-    if hrd.GetNalHrdParametersPresentFlag() || hrd.GetVclHrdParametersPresentFlag() {
-      this.READ_FLAG( &uiCode, "sub_pic_cpb_params_present_flag" );
-      hrd.SetSubPicCpbParamsPresentFlag( uiCode == 1 );
-      if hrd.GetSubPicCpbParamsPresentFlag()  {
-        this.READ_CODE( 8, &uiCode, "tick_divisor_minus2" );
-        hrd.SetTickDivisorMinus2( uiCode );
-        this.READ_CODE( 5, &uiCode, "du_cpb_removal_delay_length_minus1" );
-        hrd.SetDuCpbRemovalDelayLengthMinus1( uiCode );
-        this.READ_FLAG(    &uiCode, "sub_pic_cpb_params_in_pic_timing_sei_flag" );
-        hrd.SetSubPicCpbParamsInPicTimingSEIFlag( uiCode == 1  );
-        this.READ_CODE( 5, &uiCode, "dpb_output_delay_du_length_minus1"  );
-        hrd.SetDpbOutputDelayDuLengthMinus1( uiCode );
-      }
-      this.READ_CODE( 4, &uiCode, "bit_rate_scale" );
-      hrd.SetBitRateScale( uiCode );
-      this.READ_CODE( 4, &uiCode, "cpb_size_scale" );
-      hrd.SetCpbSizeScale( uiCode );
-      if hrd.GetSubPicCpbParamsPresentFlag() {
-        this.READ_CODE( 4, &uiCode, "cpb_size_du_scale" );
-        hrd.SetDuCpbSizeScale( uiCode );
-      }
-      this.READ_CODE( 5, &uiCode, "initial_cpb_removal_delay_length_minus1" );
-      hrd.SetInitialCpbRemovalDelayLengthMinus1( uiCode );
-      this.READ_CODE( 5, &uiCode, "au_cpb_removal_delay_length_minus1" );
-      hrd.SetCpbRemovalDelayLengthMinus1( uiCode );
-      this.READ_CODE( 5, &uiCode, "dpb_output_delay_length_minus1" );
-      hrd.SetDpbOutputDelayLengthMinus1( uiCode );
-    }
-  }
-  var i, j, nalOrVcl int;
-  for i = 0; i <= int(maxNumSubLayersMinus1); i ++  {
-    this.READ_FLAG( &uiCode, "fixed_pic_rate_general_flag" );
-    hrd.SetFixedPicRateFlag( i, uiCode == 1 );
-    if !hrd.GetFixedPicRateFlag( i ) {
-      this.READ_FLAG( &uiCode, "fixed_pic_rate_within_cvs_flag" );
-      hrd.SetFixedPicRateWithinCvsFlag( i, uiCode == 1 );
-    }else{
-      hrd.SetFixedPicRateWithinCvsFlag( i, true );
-    }
-
-    hrd.SetLowDelayHrdFlag( i, false ); // Infered to be 0 when not present
-    hrd.SetCpbCntMinus1   ( i, 0 ); // Infered to be 0 when not present
-
-    if hrd.GetFixedPicRateWithinCvsFlag( i )  {
-      this.READ_UVLC( &uiCode, "elemental_duration_in_tc_minus1" );
-      hrd.SetPicDurationInTcMinus1( i, uiCode );
-    }else{
-      this.READ_FLAG( &uiCode, "low_delay_hrd_flag" );
-      hrd.SetLowDelayHrdFlag( i, uiCode == 1 );
-    }
-    if !hrd.GetLowDelayHrdFlag( i ) {
-      this.READ_UVLC( &uiCode, "cpb_cnt_minus1" );
-      hrd.SetCpbCntMinus1( i, uiCode );
-    }
-
-    for nalOrVcl = 0; nalOrVcl < 2; nalOrVcl ++ {
-      if  ( ( nalOrVcl == 0 ) && ( hrd.GetNalHrdParametersPresentFlag() ) ) ||
-          ( ( nalOrVcl == 1 ) && ( hrd.GetVclHrdParametersPresentFlag() ) ) {
-        for j = 0; j <= int( hrd.GetCpbCntMinus1( i ) ); j ++ {
-          this.READ_UVLC( &uiCode, "bit_rate_value_minus1" );
-          hrd.SetBitRateValueMinus1( i, j, nalOrVcl, uiCode );
-          this.READ_UVLC( &uiCode, "cpb_size_value_minus1" );
-          hrd.SetCpbSizeValueMinus1( i, j, nalOrVcl, uiCode );
-          if hrd.GetSubPicCpbParamsPresentFlag() {
-            this.READ_UVLC( &uiCode, "bit_rate_du_value_minus1" );
-            hrd.SetDuBitRateValueMinus1( i, j, nalOrVcl, uiCode );
-            this.READ_UVLC( &uiCode, "cpb_size_du_value_minus1" );
-            hrd.SetDuCpbSizeValueMinus1( i, j, nalOrVcl, uiCode );
-          }
-          this.READ_FLAG( &uiCode, "cbr_flag" );
-          hrd.SetCbrFlag( i, j, nalOrVcl, uiCode == 1 );
+func (this *TDecCavlc) ParseHrdParameters(hrd *TLibCommon.TComHRD, commonInfPresentFlag bool, maxNumSubLayersMinus1 uint) {
+    var uiCode uint
+    if commonInfPresentFlag {
+        this.READ_FLAG(&uiCode, "nal_hrd_parameters_present_flag")
+        hrd.SetNalHrdParametersPresentFlag(uiCode == 1)
+        this.READ_FLAG(&uiCode, "vcl_hrd_parameters_present_flag")
+        hrd.SetVclHrdParametersPresentFlag(uiCode == 1)
+        if hrd.GetNalHrdParametersPresentFlag() || hrd.GetVclHrdParametersPresentFlag() {
+            this.READ_FLAG(&uiCode, "sub_pic_cpb_params_present_flag")
+            hrd.SetSubPicCpbParamsPresentFlag(uiCode == 1)
+            if hrd.GetSubPicCpbParamsPresentFlag() {
+                this.READ_CODE(8, &uiCode, "tick_divisor_minus2")
+                hrd.SetTickDivisorMinus2(uiCode)
+                this.READ_CODE(5, &uiCode, "du_cpb_removal_delay_length_minus1")
+                hrd.SetDuCpbRemovalDelayLengthMinus1(uiCode)
+                this.READ_FLAG(&uiCode, "sub_pic_cpb_params_in_pic_timing_sei_flag")
+                hrd.SetSubPicCpbParamsInPicTimingSEIFlag(uiCode == 1)
+                this.READ_CODE(5, &uiCode, "dpb_output_delay_du_length_minus1")
+                hrd.SetDpbOutputDelayDuLengthMinus1(uiCode)
+            }
+            this.READ_CODE(4, &uiCode, "bit_rate_scale")
+            hrd.SetBitRateScale(uiCode)
+            this.READ_CODE(4, &uiCode, "cpb_size_scale")
+            hrd.SetCpbSizeScale(uiCode)
+            if hrd.GetSubPicCpbParamsPresentFlag() {
+                this.READ_CODE(4, &uiCode, "cpb_size_du_scale")
+                hrd.SetDuCpbSizeScale(uiCode)
+            }
+            this.READ_CODE(5, &uiCode, "initial_cpb_removal_delay_length_minus1")
+            hrd.SetInitialCpbRemovalDelayLengthMinus1(uiCode)
+            this.READ_CODE(5, &uiCode, "au_cpb_removal_delay_length_minus1")
+            hrd.SetCpbRemovalDelayLengthMinus1(uiCode)
+            this.READ_CODE(5, &uiCode, "dpb_output_delay_length_minus1")
+            hrd.SetDpbOutputDelayLengthMinus1(uiCode)
         }
-      }
     }
-  }
+    var i, j, nalOrVcl int
+    for i = 0; i <= int(maxNumSubLayersMinus1); i++ {
+        this.READ_FLAG(&uiCode, "fixed_pic_rate_general_flag")
+        hrd.SetFixedPicRateFlag(i, uiCode == 1)
+        if !hrd.GetFixedPicRateFlag(i) {
+            this.READ_FLAG(&uiCode, "fixed_pic_rate_within_cvs_flag")
+            hrd.SetFixedPicRateWithinCvsFlag(i, uiCode == 1)
+        } else {
+            hrd.SetFixedPicRateWithinCvsFlag(i, true)
+        }
+
+        hrd.SetLowDelayHrdFlag(i, false) // Infered to be 0 when not present
+        hrd.SetCpbCntMinus1(i, 0)        // Infered to be 0 when not present
+
+        if hrd.GetFixedPicRateWithinCvsFlag(i) {
+            this.READ_UVLC(&uiCode, "elemental_duration_in_tc_minus1")
+            hrd.SetPicDurationInTcMinus1(i, uiCode)
+        } else {
+            this.READ_FLAG(&uiCode, "low_delay_hrd_flag")
+            hrd.SetLowDelayHrdFlag(i, uiCode == 1)
+        }
+        if !hrd.GetLowDelayHrdFlag(i) {
+            this.READ_UVLC(&uiCode, "cpb_cnt_minus1")
+            hrd.SetCpbCntMinus1(i, uiCode)
+        }
+
+        for nalOrVcl = 0; nalOrVcl < 2; nalOrVcl++ {
+            if ((nalOrVcl == 0) && (hrd.GetNalHrdParametersPresentFlag())) ||
+                ((nalOrVcl == 1) && (hrd.GetVclHrdParametersPresentFlag())) {
+                for j = 0; j <= int(hrd.GetCpbCntMinus1(i)); j++ {
+                    this.READ_UVLC(&uiCode, "bit_rate_value_minus1")
+                    hrd.SetBitRateValueMinus1(i, j, nalOrVcl, uiCode)
+                    this.READ_UVLC(&uiCode, "cpb_size_value_minus1")
+                    hrd.SetCpbSizeValueMinus1(i, j, nalOrVcl, uiCode)
+                    if hrd.GetSubPicCpbParamsPresentFlag() {
+                        this.READ_UVLC(&uiCode, "bit_rate_du_value_minus1")
+                        hrd.SetDuBitRateValueMinus1(i, j, nalOrVcl, uiCode)
+                        this.READ_UVLC(&uiCode, "cpb_size_du_value_minus1")
+                        hrd.SetDuCpbSizeValueMinus1(i, j, nalOrVcl, uiCode)
+                    }
+                    this.READ_FLAG(&uiCode, "cbr_flag")
+                    hrd.SetCbrFlag(i, j, nalOrVcl, uiCode == 1)
+                }
+            }
+        }
+    }
 }
 
 func (this *TDecCavlc) ParseSliceHeader(rpcSlice *TLibCommon.TComSlice, parameterSetManager *TLibCommon.ParameterSetManager) { //Decoder
@@ -1167,7 +1167,7 @@ func (this *TDecCavlc) ParseSliceHeader(rpcSlice *TLibCommon.TComSlice, paramete
     rpcSlice.SetSPS(sps)
     rpcSlice.SetPPS(pps)
 
-    if pps.GetDependentSliceSegmentsEnabledFlag() && firstSliceSegmentInPic==0 {
+    if pps.GetDependentSliceSegmentsEnabledFlag() && firstSliceSegmentInPic == 0 {
         this.READ_FLAG(&uiCode, "dependent_slice_segment_flag")
         rpcSlice.SetDependentSliceSegmentFlag(uiCode != 0)
     } else {
@@ -1176,19 +1176,19 @@ func (this *TDecCavlc) ParseSliceHeader(rpcSlice *TLibCommon.TComSlice, paramete
 
     numCTUs := ((sps.GetPicWidthInLumaSamples() + sps.GetMaxCUWidth() - 1) / sps.GetMaxCUWidth()) * ((sps.GetPicHeightInLumaSamples() + sps.GetMaxCUHeight() - 1) / sps.GetMaxCUHeight())
     maxParts := uint(1 << (sps.GetMaxCUDepth() << 1))
-    sliceSegmentAddress := uint(0);
-    bitsSliceSegmentAddress := uint(0);
-    for numCTUs>(1<<bitsSliceSegmentAddress) {
-        bitsSliceSegmentAddress++;
+    sliceSegmentAddress := uint(0)
+    bitsSliceSegmentAddress := uint(0)
+    for numCTUs > (1 << bitsSliceSegmentAddress) {
+        bitsSliceSegmentAddress++
     }
 
-    if firstSliceSegmentInPic==0 {
-        this.READ_CODE( bitsSliceSegmentAddress, &sliceSegmentAddress, "slice_segment_address" );
+    if firstSliceSegmentInPic == 0 {
+        this.READ_CODE(bitsSliceSegmentAddress, &sliceSegmentAddress, "slice_segment_address")
     }
     //set uiCode to equal slice start address (or dependent slice start address)
-    startCuAddress := maxParts*sliceSegmentAddress;
-    rpcSlice.SetSliceSegmentCurStartCUAddr( startCuAddress );
-    rpcSlice.SetSliceSegmentCurEndCUAddr(numCTUs*maxParts);
+    startCuAddress := maxParts * sliceSegmentAddress
+    rpcSlice.SetSliceSegmentCurStartCUAddr(startCuAddress)
+    rpcSlice.SetSliceSegmentCurEndCUAddr(numCTUs * maxParts)
 
     if rpcSlice.GetDependentSliceSegmentFlag() {
         rpcSlice.SetNextSlice(false)
@@ -1197,8 +1197,8 @@ func (this *TDecCavlc) ParseSliceHeader(rpcSlice *TLibCommon.TComSlice, paramete
         rpcSlice.SetNextSlice(true)
         rpcSlice.SetNextSliceSegment(false)
 
-        rpcSlice.SetSliceCurStartCUAddr(startCuAddress);
-        rpcSlice.SetSliceCurEndCUAddr(numCTUs*maxParts);
+        rpcSlice.SetSliceCurStartCUAddr(startCuAddress)
+        rpcSlice.SetSliceCurEndCUAddr(numCTUs * maxParts)
     }
 
     if !rpcSlice.GetDependentSliceSegmentFlag() {
@@ -1296,9 +1296,9 @@ func (this *TDecCavlc) ParseSliceHeader(rpcSlice *TLibCommon.TComSlice, paramete
                 for k := uint(0); k < numOfLtrp; k++ {
                     var pocLsbLt int
                     if k < numLtrpInSPS {
-                        uiCode = 0;
-                        if bitsForLtrpInSPS > 0{
-                          this.READ_CODE(bitsForLtrpInSPS, &uiCode, "lt_idx_sps[i]");
+                        uiCode = 0
+                        if bitsForLtrpInSPS > 0 {
+                            this.READ_CODE(bitsForLtrpInSPS, &uiCode, "lt_idx_sps[i]")
                         }
 
                         usedByCurrFromSPS := rpcSlice.GetSPS().GetUsedByCurrPicLtSPSFlag(int(uiCode))
@@ -1361,15 +1361,15 @@ func (this *TDecCavlc) ParseSliceHeader(rpcSlice *TLibCommon.TComSlice, paramete
                 rpcSlice.SetEnableTMVPFlag(false)
             }
         }
-        if sps.GetUseSAO(){
-            this.READ_FLAG(&uiCode, "slice_sao_luma_flag");
-            rpcSlice.SetSaoEnabledFlag(uiCode!=0);
-            this.READ_FLAG(&uiCode, "slice_sao_chroma_flag");
-            rpcSlice.SetSaoEnabledFlagChroma(uiCode!=0);
+        if sps.GetUseSAO() {
+            this.READ_FLAG(&uiCode, "slice_sao_luma_flag")
+            rpcSlice.SetSaoEnabledFlag(uiCode != 0)
+            this.READ_FLAG(&uiCode, "slice_sao_chroma_flag")
+            rpcSlice.SetSaoEnabledFlagChroma(uiCode != 0)
         }
 
         if rpcSlice.GetIdrPicFlag() {
-            rpcSlice.SetEnableTMVPFlag(false);
+            rpcSlice.SetEnableTMVPFlag(false)
         }
 
         if !rpcSlice.IsIntra() {
@@ -1573,8 +1573,8 @@ func (this *TDecCavlc) ParseSliceHeader(rpcSlice *TLibCommon.TComSlice, paramete
         }
         entryPointOffset := make([]uint, numEntryPointOffsets)
         for idx := uint(0); idx < numEntryPointOffsets; idx++ {
-            this.READ_CODE(offsetLenMinus1+1, &uiCode, "entry_point_offset_minus1");
-            entryPointOffset[ idx ] = uiCode + 1;
+            this.READ_CODE(offsetLenMinus1+1, &uiCode, "entry_point_offset_minus1")
+            entryPointOffset[idx] = uiCode + 1
         }
 
         if pps.GetTilesEnabledFlag() {
@@ -1654,94 +1654,94 @@ func (this *TDecCavlc) UpdateContextTables(eSliceType TLibCommon.SliceType, iQp 
 }
 
 func (this *TDecCavlc) xParsePredWeightTable(pcSlice *TLibCommon.TComSlice) {
-  var wp []TLibCommon.WpScalingParam;
-  bChroma     := true; // color always present in HEVC ?
+    var wp []TLibCommon.WpScalingParam
+    bChroma := true // color always present in HEVC ?
 
-  eSliceType  := pcSlice.GetSliceType();
-  iNbRef      := int(1+TLibCommon.B2U(eSliceType == TLibCommon.B_SLICE ));
-  var   uiLog2WeightDenomLuma, uiLog2WeightDenomChroma uint;
+    eSliceType := pcSlice.GetSliceType()
+    iNbRef := int(1 + TLibCommon.B2U(eSliceType == TLibCommon.B_SLICE))
+    var uiLog2WeightDenomLuma, uiLog2WeightDenomChroma uint
 
-  uiTotalSignalledWeightFlags := uint(0);
+    uiTotalSignalledWeightFlags := uint(0)
 
-  var iDeltaDenom int;
-  // decode delta_luma_log2_weight_denom :
-  this.READ_UVLC( &uiLog2WeightDenomLuma, "luma_log2_weight_denom" );     // ue(v): luma_log2_weight_denom
-  if bChroma {
-    this.READ_SVLC( &iDeltaDenom, "delta_chroma_log2_weight_denom" );     // se(v): delta_chroma_log2_weight_denom
-    //assert((iDeltaDenom + (Int)uiLog2WeightDenomLuma)>=0);
-    uiLog2WeightDenomChroma = uint(iDeltaDenom + int(uiLog2WeightDenomLuma));
-  }
-
-  for iNumRef:=0 ; iNumRef<iNbRef ; iNumRef++ {
-    var eRefPicList TLibCommon.RefPicList;
-    if iNumRef!=0 {
-       eRefPicList = TLibCommon.REF_PIC_LIST_1;
-    }else{
-       eRefPicList = TLibCommon.REF_PIC_LIST_0;
-    }
-    for iRefIdx:=0 ; iRefIdx<pcSlice.GetNumRefIdx(eRefPicList) ; iRefIdx++ {
-      wp = pcSlice.GetWpScaling(eRefPicList, iRefIdx);
-
-      wp[0].SetLog2WeightDenom (uiLog2WeightDenomLuma  );
-      wp[1].SetLog2WeightDenom (uiLog2WeightDenomChroma);
-      wp[2].SetLog2WeightDenom (uiLog2WeightDenomChroma);
-
-      var  uiCode uint;
-      this.READ_FLAG( &uiCode, "luma_weight_lX_flag" );           // u(1): luma_weight_l0_flag
-      wp[0].SetPresentFlag ( uiCode == 1 );
-      uiTotalSignalledWeightFlags += uint(TLibCommon.B2U(wp[0].GetPresentFlag()));
-    }
+    var iDeltaDenom int
+    // decode delta_luma_log2_weight_denom :
+    this.READ_UVLC(&uiLog2WeightDenomLuma, "luma_log2_weight_denom") // ue(v): luma_log2_weight_denom
     if bChroma {
-      var  uiCode uint;
-      for iRefIdx:=0 ; iRefIdx<pcSlice.GetNumRefIdx(eRefPicList) ; iRefIdx++ {
-        wp = pcSlice.GetWpScaling(eRefPicList, iRefIdx);
-        this.READ_FLAG( &uiCode, "chroma_weight_lX_flag" );      // u(1): chroma_weight_l0_flag
-        wp[1].SetPresentFlag ( uiCode == 1 );
-        wp[2].SetPresentFlag ( uiCode == 1 );
-        uiTotalSignalledWeightFlags += 2*uint(TLibCommon.B2U(wp[1].GetPresentFlag()));
-      }
+        this.READ_SVLC(&iDeltaDenom, "delta_chroma_log2_weight_denom") // se(v): delta_chroma_log2_weight_denom
+        //assert((iDeltaDenom + (Int)uiLog2WeightDenomLuma)>=0);
+        uiLog2WeightDenomChroma = uint(iDeltaDenom + int(uiLog2WeightDenomLuma))
     }
-    for iRefIdx:=0 ; iRefIdx<pcSlice.GetNumRefIdx(eRefPicList) ; iRefIdx++ {
-      wp = pcSlice.GetWpScaling(eRefPicList, iRefIdx);
-      if wp[0].GetPresentFlag (){
-        var iDeltaWeight, iOffset int;
-        this.READ_SVLC( &iDeltaWeight, "delta_luma_weight_lX" );  // se(v): delta_luma_weight_l0[i]
-        wp[0].SetWeight (iDeltaWeight + (1<<wp[0].GetLog2WeightDenom()));
-        this.READ_SVLC( &iOffset, "luma_offset_lX" );       // se(v): luma_offset_l0[i]
-        wp[0].SetOffset( iOffset);
-      }else{
-        wp[0].SetWeight (1 << wp[0].GetLog2WeightDenom());
-        wp[0].SetOffset (0);
-      }
-      if bChroma {
-        if wp[1].GetPresentFlag (){
-          for j:=1 ; j<3 ; j++ {
-            var iDeltaWeight int;
-            this.READ_SVLC( &iDeltaWeight, "delta_chroma_weight_lX" );  // se(v): chroma_weight_l0[i][j]
-            wp[j].SetWeight (iDeltaWeight + (1<<wp[1].GetLog2WeightDenom()));
 
-            var iDeltaChroma int;
-            this.READ_SVLC( &iDeltaChroma, "delta_chroma_offset_lX" );  // se(v): delta_chroma_offset_l0[i][j]
-            pred := ( 128 - ( ( 128*wp[j].GetWeight())>>(wp[j].GetLog2WeightDenom()) ) );
-            wp[j].SetOffset (TLibCommon.CLIP3(-128, 127, (iDeltaChroma + pred) ).(int));
-          }
-        }else{
-          for j:=1 ; j<3 ; j++ {
-            wp[j].SetWeight (1 << wp[j].GetLog2WeightDenom());
-            wp[j].SetOffset ( 0 );
-          }
+    for iNumRef := 0; iNumRef < iNbRef; iNumRef++ {
+        var eRefPicList TLibCommon.RefPicList
+        if iNumRef != 0 {
+            eRefPicList = TLibCommon.REF_PIC_LIST_1
+        } else {
+            eRefPicList = TLibCommon.REF_PIC_LIST_0
         }
-      }
-    }
+        for iRefIdx := 0; iRefIdx < pcSlice.GetNumRefIdx(eRefPicList); iRefIdx++ {
+            wp = pcSlice.GetWpScaling(eRefPicList, iRefIdx)
 
-    for iRefIdx:=pcSlice.GetNumRefIdx(eRefPicList) ; iRefIdx<TLibCommon.MAX_NUM_REF ; iRefIdx++  {
-      wp = pcSlice.GetWpScaling(eRefPicList, iRefIdx);
+            wp[0].SetLog2WeightDenom(uiLog2WeightDenomLuma)
+            wp[1].SetLog2WeightDenom(uiLog2WeightDenomChroma)
+            wp[2].SetLog2WeightDenom(uiLog2WeightDenomChroma)
 
-      wp[0].SetPresentFlag ( false);
-      wp[1].SetPresentFlag ( false);
-      wp[2].SetPresentFlag ( false);
+            var uiCode uint
+            this.READ_FLAG(&uiCode, "luma_weight_lX_flag") // u(1): luma_weight_l0_flag
+            wp[0].SetPresentFlag(uiCode == 1)
+            uiTotalSignalledWeightFlags += uint(TLibCommon.B2U(wp[0].GetPresentFlag()))
+        }
+        if bChroma {
+            var uiCode uint
+            for iRefIdx := 0; iRefIdx < pcSlice.GetNumRefIdx(eRefPicList); iRefIdx++ {
+                wp = pcSlice.GetWpScaling(eRefPicList, iRefIdx)
+                this.READ_FLAG(&uiCode, "chroma_weight_lX_flag") // u(1): chroma_weight_l0_flag
+                wp[1].SetPresentFlag(uiCode == 1)
+                wp[2].SetPresentFlag(uiCode == 1)
+                uiTotalSignalledWeightFlags += 2 * uint(TLibCommon.B2U(wp[1].GetPresentFlag()))
+            }
+        }
+        for iRefIdx := 0; iRefIdx < pcSlice.GetNumRefIdx(eRefPicList); iRefIdx++ {
+            wp = pcSlice.GetWpScaling(eRefPicList, iRefIdx)
+            if wp[0].GetPresentFlag() {
+                var iDeltaWeight, iOffset int
+                this.READ_SVLC(&iDeltaWeight, "delta_luma_weight_lX") // se(v): delta_luma_weight_l0[i]
+                wp[0].SetWeight(iDeltaWeight + (1 << wp[0].GetLog2WeightDenom()))
+                this.READ_SVLC(&iOffset, "luma_offset_lX") // se(v): luma_offset_l0[i]
+                wp[0].SetOffset(iOffset)
+            } else {
+                wp[0].SetWeight(1 << wp[0].GetLog2WeightDenom())
+                wp[0].SetOffset(0)
+            }
+            if bChroma {
+                if wp[1].GetPresentFlag() {
+                    for j := 1; j < 3; j++ {
+                        var iDeltaWeight int
+                        this.READ_SVLC(&iDeltaWeight, "delta_chroma_weight_lX") // se(v): chroma_weight_l0[i][j]
+                        wp[j].SetWeight(iDeltaWeight + (1 << wp[1].GetLog2WeightDenom()))
+
+                        var iDeltaChroma int
+                        this.READ_SVLC(&iDeltaChroma, "delta_chroma_offset_lX") // se(v): delta_chroma_offset_l0[i][j]
+                        pred := (128 - ((128 * wp[j].GetWeight()) >> (wp[j].GetLog2WeightDenom())))
+                        wp[j].SetOffset(TLibCommon.CLIP3(-128, 127, (iDeltaChroma + pred)).(int))
+                    }
+                } else {
+                    for j := 1; j < 3; j++ {
+                        wp[j].SetWeight(1 << wp[j].GetLog2WeightDenom())
+                        wp[j].SetOffset(0)
+                    }
+                }
+            }
+        }
+
+        for iRefIdx := pcSlice.GetNumRefIdx(eRefPicList); iRefIdx < TLibCommon.MAX_NUM_REF; iRefIdx++ {
+            wp = pcSlice.GetWpScaling(eRefPicList, iRefIdx)
+
+            wp[0].SetPresentFlag(false)
+            wp[1].SetPresentFlag(false)
+            wp[2].SetPresentFlag(false)
+        }
     }
-  }
 }
 func (this *TDecCavlc) ParseScalingList(scalingList *TLibCommon.TComScalingList) {
     var code, sizeId, listId uint
@@ -1769,29 +1769,29 @@ func (this *TDecCavlc) ParseScalingList(scalingList *TLibCommon.TComScalingList)
     }
 }
 func (this *TDecCavlc) xDecodeScalingList(scalingList *TLibCommon.TComScalingList, sizeId, listId uint) {
-    var i,coefNum int;
-    coefNum = TLibCommon.MIN(int(TLibCommon.MAX_MATRIX_COEF_NUM), int(TLibCommon.G_scalingListSize[sizeId])).(int);
-    var data int;
-    scalingListDcCoefMinus8 := int(0);
-    nextCoef := int(TLibCommon.SCALING_LIST_START_VALUE);
-    var scan []uint;
+    var i, coefNum int
+    coefNum = TLibCommon.MIN(int(TLibCommon.MAX_MATRIX_COEF_NUM), int(TLibCommon.G_scalingListSize[sizeId])).(int)
+    var data int
+    scalingListDcCoefMinus8 := int(0)
+    nextCoef := int(TLibCommon.SCALING_LIST_START_VALUE)
+    var scan []uint
     if sizeId == 0 {
-        scan = TLibCommon.G_auiSigLastScan [ TLibCommon.SCAN_DIAG ] [ 1 ][:];
-    }else{
-        scan = TLibCommon.G_sigLastScanCG32x32[:];
+        scan = TLibCommon.G_auiSigLastScan[TLibCommon.SCAN_DIAG][1][:]
+    } else {
+        scan = TLibCommon.G_sigLastScanCG32x32[:]
     }
-    dst := scalingList.GetScalingListAddress(sizeId, listId);
+    dst := scalingList.GetScalingListAddress(sizeId, listId)
 
     if sizeId > TLibCommon.SCALING_LIST_8x8 {
-      this.READ_SVLC( &scalingListDcCoefMinus8, "scaling_list_dc_coef_minus8");
-      scalingList.SetScalingListDC(sizeId,listId,uint(scalingListDcCoefMinus8 + 8));
-      nextCoef = scalingList.GetScalingListDC(sizeId,listId);
+        this.READ_SVLC(&scalingListDcCoefMinus8, "scaling_list_dc_coef_minus8")
+        scalingList.SetScalingListDC(sizeId, listId, uint(scalingListDcCoefMinus8+8))
+        nextCoef = scalingList.GetScalingListDC(sizeId, listId)
     }
 
     for i = 0; i < coefNum; i++ {
-      this.READ_SVLC( &data, "scaling_list_delta_coef");
-      nextCoef = (nextCoef + data + 256 ) % 256;
-      dst[scan[i]] = nextCoef;
+        this.READ_SVLC(&data, "scaling_list_delta_coef")
+        nextCoef = (nextCoef + data + 256) % 256
+        dst[scan[i]] = nextCoef
     }
 }
 

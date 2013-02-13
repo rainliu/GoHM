@@ -34,8 +34,8 @@
 package TLibEncoder
 
 import (
-    "math"
     "gohm/TLibCommon"
+    "math"
 )
 
 //#if FASTME_SMOOTHER_MV
@@ -119,9 +119,9 @@ type TEncSearch struct {
     m_ppcQTTempArlCoeffY  [][]TLibCommon.TCoeff //int
     m_ppcQTTempArlCoeffCb [][]TLibCommon.TCoeff //int
     m_ppcQTTempArlCoeffCr [][]TLibCommon.TCoeff //int
-    m_pcQTTempArlCoeffY   []TLibCommon.TCoeff //int
-    m_pcQTTempArlCoeffCb  []TLibCommon.TCoeff //int
-    m_pcQTTempArlCoeffCr  []TLibCommon.TCoeff //int
+    m_pcQTTempArlCoeffY   []TLibCommon.TCoeff   //int
+    m_pcQTTempArlCoeffCb  []TLibCommon.TCoeff   //int
+    m_pcQTTempArlCoeffCr  []TLibCommon.TCoeff   //int
     //#endif
     m_puhQTTempTrIdx []byte
     m_puhQTTempCbf   [3][]byte
@@ -1151,7 +1151,7 @@ func (this *TEncSearch) predInterSearch(pcCU *TLibCommon.TComDataCU,
 
     rpcRecoYuv.Clear()
 
-    var  cMvZero, TempMv TLibCommon.TComMv //kolya cMvSrchRngLT, cMvSrchRngRB,
+    var cMvZero, TempMv TLibCommon.TComMv //kolya cMvSrchRngLT, cMvSrchRngRB,
 
     var cMv [2]TLibCommon.TComMv
     var cMvBi [2]TLibCommon.TComMv
@@ -1714,7 +1714,7 @@ func (this *TEncSearch) predInterSearch(pcCU *TLibCommon.TComDataCU,
                 pcCU.SetMVPNumSubParts(-1, TLibCommon.REF_PIC_LIST_1, uiPartAddr, uint(iPartIdx), uint(pcCU.GetDepth1(uiPartAddr)))
             } else {
                 // set ME result
-                pcCU.SetMergeFlagSubParts(false,       uiPartAddr, uint(iPartIdx), uint(pcCU.GetDepth1(uiPartAddr)))
+                pcCU.SetMergeFlagSubParts(false, uiPartAddr, uint(iPartIdx), uint(pcCU.GetDepth1(uiPartAddr)))
                 pcCU.SetInterDirSubParts(uiMEInterDir, uiPartAddr, uint(iPartIdx), uint(pcCU.GetDepth1(uiPartAddr)))
 
                 pcCU.GetCUMvField(TLibCommon.REF_PIC_LIST_0).SetAllMvField(&cMEMvField[0], ePartSize, int(uiPartAddr), 0, iPartIdx)
@@ -1762,9 +1762,9 @@ func (this *TEncSearch) encodeResAndCalcRdInterCU(pcCU *TLibCommon.TComDataCU,
         pcYuvPred.CopyToPartYuv(rpcYuvRec, 0)
 
         //#if WEIGHTED_CHROMA_DISTORTION
-        uiDistortion = this.m_pcRdCost.getDistPart(TLibCommon.G_bitDepthY, rpcYuvRec.GetLumaAddr(), int(rpcYuvRec.GetStride()),  pcYuvOrg.GetLumaAddr(), int(pcYuvOrg.GetStride()),  uiWidth, uiHeight, false, TLibCommon.DF_SSE)+
-                       this.m_pcRdCost.getDistPart(TLibCommon.G_bitDepthC, rpcYuvRec.GetCbAddr(),   int(rpcYuvRec.GetCStride()), pcYuvOrg.GetCbAddr(),   int(pcYuvOrg.GetCStride()), uiWidth>>1, uiHeight>>1, true, TLibCommon.DF_SSE)+
-                       this.m_pcRdCost.getDistPart(TLibCommon.G_bitDepthC, rpcYuvRec.GetCrAddr(),   int(rpcYuvRec.GetCStride()), pcYuvOrg.GetCrAddr(),   int(pcYuvOrg.GetCStride()), uiWidth>>1, uiHeight>>1, true, TLibCommon.DF_SSE)
+        uiDistortion = this.m_pcRdCost.getDistPart(TLibCommon.G_bitDepthY, rpcYuvRec.GetLumaAddr(), int(rpcYuvRec.GetStride()), pcYuvOrg.GetLumaAddr(), int(pcYuvOrg.GetStride()), uiWidth, uiHeight, TLibCommon.TEXT_LUMA, TLibCommon.DF_SSE) +
+            this.m_pcRdCost.getDistPart(TLibCommon.G_bitDepthC, rpcYuvRec.GetCbAddr(), int(rpcYuvRec.GetCStride()), pcYuvOrg.GetCbAddr(), int(pcYuvOrg.GetCStride()), uiWidth>>1, uiHeight>>1, TLibCommon.TEXT_CHROMA_U, TLibCommon.DF_SSE) +
+            this.m_pcRdCost.getDistPart(TLibCommon.G_bitDepthC, rpcYuvRec.GetCrAddr(), int(rpcYuvRec.GetCStride()), pcYuvOrg.GetCrAddr(), int(pcYuvOrg.GetCStride()), uiWidth>>1, uiHeight>>1, TLibCommon.TEXT_CHROMA_V, TLibCommon.DF_SSE)
         //#else
         //    uiDistortion = this.m_pcRdCost.GetDistPart(TLibCommon.G_bitDepthY, rpcYuvRec.GetLumaAddr(), rpcYuvRec.GetStride(),  pcYuvOrg.GetLumaAddr(), pcYuvOrg.GetStride(),  uiWidth,      uiHeight      )
         //    + this.m_pcRdCost.GetDistPart(TLibCommon.G_bitDepthC, rpcYuvRec.GetCbAddr(),   rpcYuvRec.GetCStride(), pcYuvOrg.GetCbAddr(),   pcYuvOrg.GetCStride(), uiWidth >> 1, uiHeight >> 1 )
@@ -1780,12 +1780,12 @@ func (this *TEncSearch) encodeResAndCalcRdInterCU(pcCU *TLibCommon.TComDataCU,
             this.m_pcEntropyCoder.encodeCUTransquantBypassFlag(pcCU, 0, true)
         }
         this.m_pcEntropyCoder.encodeSkipFlag(pcCU, 0, true)
-        this.m_pcEntropyCoder.encodeMergeIndex(pcCU, 0, 0, true)
+        this.m_pcEntropyCoder.encodeMergeIndex(pcCU, 0, true)
 
         uiBits = this.m_pcEntropyCoder.getNumberOfWrittenBits()
-        pcCU.SetTotalBits( uiBits)
-        pcCU.SetTotalDistortion( uiDistortion)
-        pcCU.SetTotalCost( this.m_pcRdCost.calcRdCost(uiBits, uiDistortion, false, TLibCommon.DF_DEFAULT))
+        pcCU.SetTotalBits(uiBits)
+        pcCU.SetTotalDistortion(uiDistortion)
+        pcCU.SetTotalCost(this.m_pcRdCost.calcRdCost(uiBits, uiDistortion, false, TLibCommon.DF_DEFAULT))
 
         if this.m_bUseSBACRD {
             this.m_pcRDGoOnSbacCoder.store(this.m_pppcRDSbacCoder[pcCU.GetDepth1(0)][TLibCommon.CI_TEMP_BEST])
@@ -1835,7 +1835,7 @@ func (this *TEncSearch) encodeResAndCalcRdInterCU(pcCU *TLibCommon.TComDataCU,
         this.xEstimateResidualQT(pcCU, 0, 0, 0, rpcYuvResi, uint(pcCU.GetDepth1(0)), &dCost, &uiBits, &uiDistortion, &uiZeroDistortion)
 
         this.m_pcEntropyCoder.resetBits()
-        this.m_pcEntropyCoder.encodeQtRootCbfZero(pcCU, 0)
+        this.m_pcEntropyCoder.encodeQtRootCbfZero(pcCU)
         zeroResiBits := uint(this.m_pcEntropyCoder.getNumberOfWrittenBits())
         dZeroCost := this.m_pcRdCost.calcRdCost(zeroResiBits, uiZeroDistortion, false, TLibCommon.DF_DEFAULT)
         if pcCU.IsLosslessCoded(0) {
@@ -1849,7 +1849,7 @@ func (this *TEncSearch) encodeResAndCalcRdInterCU(pcCU *TLibCommon.TComDataCU,
             uiQPartNum := pcCU.GetPic().GetNumPartInCU() >> (pcCU.GetDepth1(0) << 1)
 
             for i := uint(0); i < uiQPartNum; i++ {
-                pcCU.GetTransformIdx()[i] = 0     //, uiQPartNum * sizeof(byte) );
+                pcCU.GetTransformIdx()[i] = 0                 //, uiQPartNum * sizeof(byte) );
                 pcCU.GetCbf1(TLibCommon.TEXT_LUMA)[i] = 0     //, uiQPartNum * sizeof(byte) );
                 pcCU.GetCbf1(TLibCommon.TEXT_CHROMA_U)[i] = 0 //, uiQPartNum * sizeof(byte) );
                 pcCU.GetCbf1(TLibCommon.TEXT_CHROMA_V)[i] = 0 //, uiQPartNum * sizeof(byte) );
@@ -1901,7 +1901,7 @@ func (this *TEncSearch) encodeResAndCalcRdInterCU(pcCU *TLibCommon.TComDataCU,
             if qpMin != qpMax && qp != qpMax {
                 uiQPartNum := pcCU.GetPic().GetNumPartInCU() >> (uint(pcCU.GetDepth1(0)) << 1)
                 for i := uint(0); i < uiQPartNum; i++ {
-                    this.m_puhQTTempTrIdx[i] = pcCU.GetTransformIdx()[i]                              //,        uiQPartNum * sizeof(byte) );
+                    this.m_puhQTTempTrIdx[i] = pcCU.GetTransformIdx()[i]                                          //,        uiQPartNum * sizeof(byte) );
                     this.m_puhQTTempCbf[0][i] = pcCU.GetCbf1(TLibCommon.TEXT_LUMA)[i]                             //,     uiQPartNum * sizeof(byte) );
                     this.m_puhQTTempCbf[1][i] = pcCU.GetCbf1(TLibCommon.TEXT_CHROMA_U)[i]                         //, uiQPartNum * sizeof(byte) );
                     this.m_puhQTTempCbf[2][i] = pcCU.GetCbf1(TLibCommon.TEXT_CHROMA_V)[i]                         //, uiQPartNum * sizeof(byte) );
@@ -1945,7 +1945,7 @@ func (this *TEncSearch) encodeResAndCalcRdInterCU(pcCU *TLibCommon.TComDataCU,
         // copy best cbf and trIdx to pcCU
         uiQPartNum := pcCU.GetPic().GetNumPartInCU() >> (uint(pcCU.GetDepth1(0)) << 1)
         for i := uint(0); i < uiQPartNum; i++ {
-            pcCU.GetTransformIdx()[i] = this.m_puhQTTempTrIdx[i]                              //,  uiQPartNum * sizeof(byte) );
+            pcCU.GetTransformIdx()[i] = this.m_puhQTTempTrIdx[i]                                          //,  uiQPartNum * sizeof(byte) );
             pcCU.GetCbf1(TLibCommon.TEXT_LUMA)[i] = this.m_puhQTTempCbf[0][i]                             //, uiQPartNum * sizeof(byte) );
             pcCU.GetCbf1(TLibCommon.TEXT_CHROMA_U)[i] = this.m_puhQTTempCbf[1][i]                         //, uiQPartNum * sizeof(byte) );
             pcCU.GetCbf1(TLibCommon.TEXT_CHROMA_V)[i] = this.m_puhQTTempCbf[2][i]                         //, uiQPartNum * sizeof(byte) );
@@ -1971,9 +1971,9 @@ func (this *TEncSearch) encodeResAndCalcRdInterCU(pcCU *TLibCommon.TComDataCU,
 
     // update with clipped distortion and cost (qp estimation loop uses unclipped values)
     //#if WEIGHTED_CHROMA_DISTORTION
-    uiDistortionBest =  this.m_pcRdCost.getDistPart(TLibCommon.G_bitDepthY, rpcYuvRec.GetLumaAddr(), int(rpcYuvRec.GetStride()) , pcYuvOrg.GetLumaAddr(), int(pcYuvOrg.GetStride()) , uiWidth,    uiHeight,    false, TLibCommon.DF_SSE)+
-                        this.m_pcRdCost.getDistPart(TLibCommon.G_bitDepthC, rpcYuvRec.GetCbAddr(),   int(rpcYuvRec.GetCStride()), pcYuvOrg.GetCbAddr()  , int(pcYuvOrg.GetCStride()), uiWidth>>1, uiHeight>>1, true,  TLibCommon.DF_SSE)+
-                        this.m_pcRdCost.getDistPart(TLibCommon.G_bitDepthC, rpcYuvRec.GetCrAddr(),   int(rpcYuvRec.GetCStride()), pcYuvOrg.GetCrAddr()  , int(pcYuvOrg.GetCStride()), uiWidth>>1, uiHeight>>1, true,  TLibCommon.DF_SSE)
+    uiDistortionBest = this.m_pcRdCost.getDistPart(TLibCommon.G_bitDepthY, rpcYuvRec.GetLumaAddr(), int(rpcYuvRec.GetStride()), pcYuvOrg.GetLumaAddr(), int(pcYuvOrg.GetStride()), uiWidth, uiHeight, TLibCommon.TEXT_LUMA, TLibCommon.DF_SSE) +
+        this.m_pcRdCost.getDistPart(TLibCommon.G_bitDepthC, rpcYuvRec.GetCbAddr(), int(rpcYuvRec.GetCStride()), pcYuvOrg.GetCbAddr(), int(pcYuvOrg.GetCStride()), uiWidth>>1, uiHeight>>1, TLibCommon.TEXT_CHROMA_U, TLibCommon.DF_SSE) +
+        this.m_pcRdCost.getDistPart(TLibCommon.G_bitDepthC, rpcYuvRec.GetCrAddr(), int(rpcYuvRec.GetCStride()), pcYuvOrg.GetCrAddr(), int(pcYuvOrg.GetCStride()), uiWidth>>1, uiHeight>>1, TLibCommon.TEXT_CHROMA_V, TLibCommon.DF_SSE)
     /*#else
       uiDistortionBest = this.m_pcRdCost.getDistPart(TLibCommon.G_bitDepthY, rpcYuvRec.GetLumaAddr(), rpcYuvRec.GetStride(),  pcYuvOrg.GetLumaAddr(), pcYuvOrg.GetStride(),  uiWidth,      uiHeight      )
       + this.m_pcRdCost.getDistPart(TLibCommon.G_bitDepthC, rpcYuvRec.GetCbAddr(),   rpcYuvRec.GetCStride(), pcYuvOrg.GetCbAddr(),   pcYuvOrg.GetCStride(), uiWidth >> 1, uiHeight >> 1 )
@@ -1981,9 +1981,9 @@ func (this *TEncSearch) encodeResAndCalcRdInterCU(pcCU *TLibCommon.TComDataCU,
     #endif*/
     dCostBest = this.m_pcRdCost.calcRdCost(uiBitsBest, uiDistortionBest, false, TLibCommon.DF_DEFAULT)
 
-    pcCU.SetTotalBits( uiBitsBest )
-    pcCU.SetTotalDistortion( uiDistortionBest )
-    pcCU.SetTotalCost( dCostBest )
+    pcCU.SetTotalBits(uiBitsBest)
+    pcCU.SetTotalDistortion(uiDistortionBest)
+    pcCU.SetTotalCost(dCostBest)
 
     if pcCU.IsSkipped(0) {
         pcCU.SetCbfSubParts(0, 0, 0, 0, uint(pcCU.GetDepth1(0)))
@@ -2081,7 +2081,7 @@ func (this *TEncSearch) IPCMSearch(pcCU *TLibCommon.TComDataCU, pcOrgYuv *TLibCo
     pResi = rpcResiYuv.GetLumaAddr2(0, uiWidth)
     pPred = rpcPredYuv.GetLumaAddr2(0, uiWidth)
     pReco = rpcRecoYuv.GetLumaAddr2(0, uiWidth)
-    pPCM = pcCU.GetPCMSampleY() [ uiLumaOffset:]
+    pPCM = pcCU.GetPCMSampleY()[uiLumaOffset:]
 
     this.xEncPCM(pcCU, 0, pOrig, pPCM, pPred, pResi, pReco, uiStride, uiWidth, uiHeight, TLibCommon.TEXT_LUMA)
 
@@ -2090,7 +2090,7 @@ func (this *TEncSearch) IPCMSearch(pcCU *TLibCommon.TComDataCU, pcOrgYuv *TLibCo
     pResi = rpcResiYuv.GetCbAddr()
     pPred = rpcPredYuv.GetCbAddr()
     pReco = rpcRecoYuv.GetCbAddr()
-    pPCM = pcCU.GetPCMSampleCb() [ uiChromaOffset:]
+    pPCM = pcCU.GetPCMSampleCb()[uiChromaOffset:]
 
     this.xEncPCM(pcCU, 0, pOrig, pPCM, pPred, pResi, pReco, uiStrideC, uiWidthC, uiHeightC, TLibCommon.TEXT_CHROMA_U)
 
@@ -2099,7 +2099,7 @@ func (this *TEncSearch) IPCMSearch(pcCU *TLibCommon.TComDataCU, pcOrgYuv *TLibCo
     pResi = rpcResiYuv.GetCrAddr()
     pPred = rpcPredYuv.GetCrAddr()
     pReco = rpcRecoYuv.GetCrAddr()
-    pPCM = pcCU.GetPCMSampleCr() [ uiChromaOffset:]
+    pPCM = pcCU.GetPCMSampleCr()[uiChromaOffset:]
 
     this.xEncPCM(pcCU, 0, pOrig, pPCM, pPred, pResi, pReco, uiStrideC, uiWidthC, uiHeightC, TLibCommon.TEXT_CHROMA_V)
 
@@ -2113,9 +2113,9 @@ func (this *TEncSearch) IPCMSearch(pcCU *TLibCommon.TComDataCU, pcOrgYuv *TLibCo
         this.m_pcRDGoOnSbacCoder.load(this.m_pppcRDSbacCoder[uiDepth][TLibCommon.CI_CURR_BEST])
     }
 
-    pcCU.SetTotalBits( uiBits)
-    pcCU.SetTotalCost( dCost)
-    pcCU.SetTotalDistortion( uiDistortion)
+    pcCU.SetTotalBits(uiBits)
+    pcCU.SetTotalCost(dCost)
+    pcCU.SetTotalDistortion(uiDistortion)
 
     pcCU.CopyToPic3(uiDepth, 0, 0)
 }
@@ -2153,16 +2153,16 @@ func (this *TEncSearch) xEncSubdivCbfQT(pcCU *TLibCommon.TComDataCU,
 
     if bChroma {
         if uiLog2TrafoSize > 2 {
-            if uiTrDepth == 0 || pcCU.GetCbf3(uiAbsPartIdx, TLibCommon.TEXT_CHROMA_U, uiTrDepth-1)!=0 {
+            if uiTrDepth == 0 || pcCU.GetCbf3(uiAbsPartIdx, TLibCommon.TEXT_CHROMA_U, uiTrDepth-1) != 0 {
                 this.m_pcEntropyCoder.encodeQtCbf(pcCU, uiAbsPartIdx, TLibCommon.TEXT_CHROMA_U, uiTrDepth)
             }
-            if uiTrDepth == 0 || pcCU.GetCbf3(uiAbsPartIdx, TLibCommon.TEXT_CHROMA_V, uiTrDepth-1)!=0 {
+            if uiTrDepth == 0 || pcCU.GetCbf3(uiAbsPartIdx, TLibCommon.TEXT_CHROMA_V, uiTrDepth-1) != 0 {
                 this.m_pcEntropyCoder.encodeQtCbf(pcCU, uiAbsPartIdx, TLibCommon.TEXT_CHROMA_V, uiTrDepth)
             }
         }
     }
 
-    if uiSubdiv!=0 {
+    if uiSubdiv != 0 {
         uiQPartNum := pcCU.GetPic().GetNumPartInCU() >> ((uiFullDepth + 1) << 1)
         for uiPart := uint(0); uiPart < 4; uiPart++ {
             this.xEncSubdivCbfQT(pcCU, uiTrDepth+1, uiAbsPartIdx+uiPart*uiQPartNum, bLuma, bChroma)
@@ -2189,7 +2189,7 @@ func (this *TEncSearch) xEncCoeffQT(pcCU *TLibCommon.TComDataCU,
     uiLog2TrafoSize := uint(TLibCommon.G_aucConvertToBit[pcCU.GetSlice().GetSPS().GetMaxCUWidth()]) + 2 - uiFullDepth
     uiChroma := uint(TLibCommon.B2U(eTextType != TLibCommon.TEXT_LUMA))
 
-    if uiSubdiv!=0 {
+    if uiSubdiv != 0 {
         uiQPartNum := pcCU.GetPic().GetNumPartInCU() >> ((uiFullDepth + 1) << 1)
         for uiPart := uint(0); uiPart < 4; uiPart++ {
             this.xEncCoeffQT(pcCU, uiTrDepth+1, uiAbsPartIdx+uiPart*uiQPartNum, eTextType, bRealCoeff)
@@ -2340,7 +2340,7 @@ func (this *TEncSearch) xIntraCodingLumaBlk(pcCU *TLibCommon.TComDataCU,
     uiWidth := uint(uint(pcCU.GetWidth1(0))) >> uiTrDepth
     uiHeight := uint(pcCU.GetHeight1(0)) >> uiTrDepth
     uiStride := uint(pcOrgYuv.GetStride())
-    piOrg  := pcOrgYuv.GetLumaAddr1(uiAbsPartIdx)
+    piOrg := pcOrgYuv.GetLumaAddr1(uiAbsPartIdx)
     piPred := pcPredYuv.GetLumaAddr1(uiAbsPartIdx)
     piResi := pcResiYuv.GetLumaAddr1(uiAbsPartIdx)
     piReco := pcPredYuv.GetLumaAddr1(uiAbsPartIdx)
@@ -2411,7 +2411,6 @@ func (this *TEncSearch) xIntraCodingLumaBlk(pcCU *TLibCommon.TComDataCU,
 
     //===== transform and quantization =====
     //--- init rate estimation arrays for RDOQ ---
-    //#if RDOQ_TRANSFORMSKIP
     var rdoqflag bool
     if useTransformSkip {
         rdoqflag = this.m_pcEncCfg.GetUseRDOQTS()
@@ -2419,9 +2418,6 @@ func (this *TEncSearch) xIntraCodingLumaBlk(pcCU *TLibCommon.TComDataCU,
         rdoqflag = this.m_pcEncCfg.GetUseRDOQ()
     }
     if rdoqflag {
-        //#else
-        //  if(this.m_pcEncCfg.GetUseRDOQ() && useTransformSkip == false)
-        //#endif
         this.m_pcEntropyCoder.estimateBit(this.m_pcTrQuant.GetEstBitsSbac(), int(uiWidth), int(uiWidth), TLibCommon.TEXT_LUMA)
     }
     //--- transform and quantization ---
@@ -2482,7 +2478,7 @@ func (this *TEncSearch) xIntraCodingLumaBlk(pcCU *TLibCommon.TComDataCU,
     }
 
     //===== update distortion =====
-    *ruiDist += this.m_pcRdCost.getDistPart(TLibCommon.G_bitDepthY, piReco, int(uiStride), piOrg, int(uiStride), uiWidth, uiHeight, false, TLibCommon.DF_SSE)
+    *ruiDist += this.m_pcRdCost.getDistPart(TLibCommon.G_bitDepthY, piReco, int(uiStride), piOrg, int(uiStride), uiWidth, uiHeight, TLibCommon.TEXT_LUMA, TLibCommon.DF_SSE)
 }
 
 func (this *TEncSearch) xIntraCodingChromaBlk(pcCU *TLibCommon.TComDataCU,
@@ -2519,12 +2515,12 @@ func (this *TEncSearch) xIntraCodingChromaBlk(pcCU *TLibCommon.TComDataCU,
     uiStride := uint(pcOrgYuv.GetCStride())
     var piOrg, piPred, piResi, piReco []TLibCommon.Pel
     if uiChromaId > 0 {
-        piOrg  = pcOrgYuv.GetCrAddr1(uiAbsPartIdx)
+        piOrg = pcOrgYuv.GetCrAddr1(uiAbsPartIdx)
         piPred = pcPredYuv.GetCrAddr1(uiAbsPartIdx)
         piResi = pcResiYuv.GetCrAddr1(uiAbsPartIdx)
         piReco = pcPredYuv.GetCrAddr1(uiAbsPartIdx)
     } else {
-        piOrg  = pcOrgYuv.GetCbAddr1(uiAbsPartIdx)
+        piOrg = pcOrgYuv.GetCbAddr1(uiAbsPartIdx)
         piPred = pcPredYuv.GetCbAddr1(uiAbsPartIdx)
         piResi = pcResiYuv.GetCbAddr1(uiAbsPartIdx)
         piReco = pcPredYuv.GetCbAddr1(uiAbsPartIdx)
@@ -2626,11 +2622,7 @@ func (this *TEncSearch) xIntraCodingChromaBlk(pcCU *TLibCommon.TComDataCU,
         } else {
             rdoqflag = this.m_pcEncCfg.GetUseRDOQ()
         }
-        //#if RDOQ_TRANSFORMSKIP
         if rdoqflag {
-            //#else
-            //    if( this.m_pcEncCfg.GetUseRDOQ() && !useTransformSkipChroma)
-            //#endif
             this.m_pcEntropyCoder.estimateBit(this.m_pcTrQuant.GetEstBitsSbac(), int(uiWidth), int(uiWidth), eText)
         }
         //--- transform and quantization ---
@@ -2696,9 +2688,9 @@ func (this *TEncSearch) xIntraCodingChromaBlk(pcCU *TLibCommon.TComDataCU,
 
     //===== update distortion =====
     //#if WEIGHTED_CHROMA_DISTORTION
-    *ruiDist += this.m_pcRdCost.getDistPart(TLibCommon.G_bitDepthC, piReco, int(uiStride), piOrg, int(uiStride), uiWidth, uiHeight, true, TLibCommon.DF_SSE)
+    *ruiDist += this.m_pcRdCost.getDistPart(TLibCommon.G_bitDepthC, piReco, int(uiStride), piOrg, int(uiStride), uiWidth, uiHeight, eText, TLibCommon.DF_SSE)
     //#else
-    //  ruiDist += this.m_pcRdCost.getDistPart(TLibCommon.G_bitDepthC, piReco, uiStride, piOrg, uiStride, uiWidth, uiHeight );
+    //  ruiDist += m_pcRdCost->getDistPart(g_bitDepthC, piReco, uiStride, piOrg, uiStride, uiWidth, uiHeight );
     //#endif
 }
 
@@ -2721,7 +2713,24 @@ func (this *TEncSearch) xRecurIntraCodingQT(pcCU *TLibCommon.TComDataCU,
     bCheckSplit := (uiLog2TrSize > pcCU.GetQuadtreeTULog2MinSizeInCU(uiAbsPartIdx))
 
     //#if HHI_RQT_INTRA_SPEEDUP
-    if bCheckFirst && bCheckFull {
+    //#if L0232_RD_PENALTY
+    maxTuSize := int(pcCU.GetSlice().GetSPS().GetQuadtreeTULog2MaxSize())
+    isIntraSlice := (pcCU.GetSlice().GetSliceType() == TLibCommon.I_SLICE)
+    // don't check split if TU size is less or equal to max TU size
+    noSplitIntraMaxTuSize := bCheckFull
+    if this.m_pcEncCfg.GetRDpenalty() != 0 && !isIntraSlice {
+        // in addition don't check split if TU size is less or equal to 16x16 TU size for non-intra slice
+        noSplitIntraMaxTuSize = (int(uiLog2TrSize) <= TLibCommon.MIN(maxTuSize, 4).(int))
+
+        // if maximum RD-penalty don't check TU size 32x32
+        if this.m_pcEncCfg.GetRDpenalty() == 2 {
+            bCheckFull = (int(uiLog2TrSize) <= TLibCommon.MIN(maxTuSize, 4).(int))
+        }
+    }
+    if bCheckFirst && noSplitIntraMaxTuSize {
+        //#else
+        //    if bCheckFirst && bCheckFull {
+        //#endif
         bCheckSplit = false
     }
     //#endif
@@ -2737,10 +2746,10 @@ func (this *TEncSearch) xRecurIntraCodingQT(pcCU *TLibCommon.TComDataCU,
     bestModeId := 0
     var bestModeIdUV = [2]int{0, 0}
     checkTransformSkip = checkTransformSkip && (widthTransformSkip == 4 && heightTransformSkip == 4)
-    checkTransformSkip = checkTransformSkip &&  (!pcCU.GetCUTransquantBypass1(0))
-    checkTransformSkip = checkTransformSkip &&  (!((pcCU.GetQP1(0) == 0) && (pcCU.GetSlice().GetSPS().GetUseLossless())))
+    checkTransformSkip = checkTransformSkip && (!pcCU.GetCUTransquantBypass1(0))
+    checkTransformSkip = checkTransformSkip && (!((pcCU.GetQP1(0) == 0) && (pcCU.GetSlice().GetSPS().GetUseLossless())))
     if this.m_pcEncCfg.GetUseTransformSkipFast() {
-        checkTransformSkip = checkTransformSkip &&  (pcCU.GetPartitionSize1(uiAbsPartIdx) == TLibCommon.SIZE_NxN)
+        checkTransformSkip = checkTransformSkip && (pcCU.GetPartitionSize1(uiAbsPartIdx) == TLibCommon.SIZE_NxN)
     }
     if bCheckFull {
         if checkTransformSkip == true {
@@ -2763,7 +2772,7 @@ func (this *TEncSearch) xRecurIntraCodingQT(pcCU *TLibCommon.TComDataCU,
             for modeId := firstCheckId; modeId < 2; modeId++ {
                 singleDistYTmp = 0
                 singleDistCTmp = 0
-                pcCU.SetTransformSkipSubParts4(modeId!=0, TLibCommon.TEXT_LUMA, uiAbsPartIdx, uiFullDepth)
+                pcCU.SetTransformSkipSubParts4(modeId != 0, TLibCommon.TEXT_LUMA, uiAbsPartIdx, uiFullDepth)
                 if modeId == firstCheckId {
                     default0Save1Load2 = 1
                 } else {
@@ -2775,8 +2784,8 @@ func (this *TEncSearch) xRecurIntraCodingQT(pcCU *TLibCommon.TComDataCU,
                 //----- code chroma blocks with given intra prediction mode and store Cbf-----
                 if !bLumaOnly {
                     if bFirstQ {
-                        pcCU.SetTransformSkipSubParts4(modeId!=0, TLibCommon.TEXT_CHROMA_U, uiAbsPartIdx, uiFullDepth)
-                        pcCU.SetTransformSkipSubParts4(modeId!=0, TLibCommon.TEXT_CHROMA_V, uiAbsPartIdx, uiFullDepth)
+                        pcCU.SetTransformSkipSubParts4(modeId != 0, TLibCommon.TEXT_CHROMA_U, uiAbsPartIdx, uiFullDepth)
+                        pcCU.SetTransformSkipSubParts4(modeId != 0, TLibCommon.TEXT_CHROMA_V, uiAbsPartIdx, uiFullDepth)
                     }
                     this.xIntraCodingChromaBlk(pcCU, uiTrDepth, uiAbsPartIdx, pcOrgYuv, pcPredYuv, pcResiYuv, &singleDistCTmp, 0, default0Save1Load2)
                     this.xIntraCodingChromaBlk(pcCU, uiTrDepth, uiAbsPartIdx, pcOrgYuv, pcPredYuv, pcResiYuv, &singleDistCTmp, 1, default0Save1Load2)
@@ -2789,6 +2798,11 @@ func (this *TEncSearch) xRecurIntraCodingQT(pcCU *TLibCommon.TComDataCU,
                     singleCostTmp = float64(TLibCommon.MAX_DOUBLE)
                 } else {
                     uiSingleBits := this.xGetIntraBitsQT(pcCU, uiTrDepth, uiAbsPartIdx, true, !bLumaOnly, false)
+                    //#if L0232_RD_PENALTY
+                    if this.m_pcEncCfg.GetRDpenalty() != 0 && (uiLog2TrSize == 5) && !isIntraSlice {
+                        uiSingleBits = uiSingleBits * 4
+                    }
+                    //#endif
                     singleCostTmp = this.m_pcRdCost.calcRdCost(uiSingleBits, singleDistYTmp+singleDistCTmp, false, TLibCommon.DF_DEFAULT)
                 }
 
@@ -2812,7 +2826,7 @@ func (this *TEncSearch) xRecurIntraCodingQT(pcCU *TLibCommon.TComDataCU,
                 }
             }
 
-            pcCU.SetTransformSkipSubParts4(bestModeId!=0, TLibCommon.TEXT_LUMA, uiAbsPartIdx, uiFullDepth)
+            pcCU.SetTransformSkipSubParts4(bestModeId != 0, TLibCommon.TEXT_LUMA, uiAbsPartIdx, uiFullDepth)
 
             if bestModeId == firstCheckId {
                 this.xLoadIntraResultQT(pcCU, uiTrDepth, uiAbsPartIdx, bLumaOnly)
@@ -2851,7 +2865,7 @@ func (this *TEncSearch) xRecurIntraCodingQT(pcCU *TLibCommon.TComDataCU,
             }
             //----- code luma block with given intra prediction mode and store Cbf-----
             dSingleCost = 0.0
-            this.xIntraCodingLumaBlk(pcCU, uiTrDepth, uiAbsPartIdx, pcOrgYuv, pcPredYuv, pcResiYuv, &uiSingleDistY,  0)
+            this.xIntraCodingLumaBlk(pcCU, uiTrDepth, uiAbsPartIdx, pcOrgYuv, pcPredYuv, pcResiYuv, &uiSingleDistY, 0)
             if bCheckSplit {
                 uiSingleCbfY = uint(pcCU.GetCbf3(uiAbsPartIdx, TLibCommon.TEXT_LUMA, uiTrDepth))
             }
@@ -2942,12 +2956,12 @@ func (this *TEncSearch) xRecurIntraCodingQT(pcCU *TLibCommon.TComDataCU,
         //--- set transform index and Cbf values ---
         pcCU.SetTrIdxSubParts(uiTrDepth, uiAbsPartIdx, uiFullDepth)
         pcCU.SetCbfSubParts4(byte(uiSingleCbfY<<uiTrDepth), TLibCommon.TEXT_LUMA, uiAbsPartIdx, uiFullDepth)
-        pcCU.SetTransformSkipSubParts4(bestModeId!=0, TLibCommon.TEXT_LUMA, uiAbsPartIdx, uiFullDepth)
+        pcCU.SetTransformSkipSubParts4(bestModeId != 0, TLibCommon.TEXT_LUMA, uiAbsPartIdx, uiFullDepth)
         if !bLumaOnly {
             pcCU.SetCbfSubParts4(byte(uiSingleCbfU<<uiTrDepth), TLibCommon.TEXT_CHROMA_U, uiAbsPartIdx, uiFullDepth)
             pcCU.SetCbfSubParts4(byte(uiSingleCbfV<<uiTrDepth), TLibCommon.TEXT_CHROMA_V, uiAbsPartIdx, uiFullDepth)
-            pcCU.SetTransformSkipSubParts4(bestModeIdUV[0]!=0, TLibCommon.TEXT_CHROMA_U, uiAbsPartIdx, uiFullDepth)
-            pcCU.SetTransformSkipSubParts4(bestModeIdUV[1]!=0, TLibCommon.TEXT_CHROMA_V, uiAbsPartIdx, uiFullDepth)
+            pcCU.SetTransformSkipSubParts4(bestModeIdUV[0] != 0, TLibCommon.TEXT_CHROMA_U, uiAbsPartIdx, uiFullDepth)
+            pcCU.SetTransformSkipSubParts4(bestModeIdUV[1] != 0, TLibCommon.TEXT_CHROMA_V, uiAbsPartIdx, uiFullDepth)
         }
 
         //--- set reconstruction for next intra prediction blocks ---
@@ -3134,7 +3148,7 @@ func (this *TEncSearch) xRecurIntraChromaCodingQT(pcCU *TLibCommon.TComDataCU,
                 firstCheckId := 0
 
                 for chromaModeId := firstCheckId; chromaModeId < 2; chromaModeId++ {
-                    pcCU.SetTransformSkipSubParts4(chromaModeId!=0, TLibCommon.TextType(chromaId+2), uiAbsPartIdx, uint(pcCU.GetDepth1(0))+actualTrDepth)
+                    pcCU.SetTransformSkipSubParts4(chromaModeId != 0, TLibCommon.TextType(chromaId+2), uiAbsPartIdx, uint(pcCU.GetDepth1(0))+actualTrDepth)
                     if chromaModeId == firstCheckId {
                         default0Save1Load2 = 1
                     } else {
@@ -3177,7 +3191,7 @@ func (this *TEncSearch) xRecurIntraChromaCodingQT(pcCU *TLibCommon.TComDataCU,
                         this.m_pcRDGoOnSbacCoder.load(this.m_pppcRDSbacCoder[uiFullDepth][TLibCommon.CI_TEMP_BEST])
                     }
                 }
-                pcCU.SetTransformSkipSubParts4(bestModeId!=0, TLibCommon.TextType(chromaId+2), uiAbsPartIdx, uint(pcCU.GetDepth1(0))+actualTrDepth)
+                pcCU.SetTransformSkipSubParts4(bestModeId != 0, TLibCommon.TextType(chromaId+2), uiAbsPartIdx, uint(pcCU.GetDepth1(0))+actualTrDepth)
                 *ruiDist += singleDistC
 
                 if chromaId == 0 {
@@ -3653,7 +3667,7 @@ func (this *TEncSearch) xEstimateMvPredAMVP(pcCU *TLibCommon.TComDataCU,
     //#endif
     pcAMVPInfo := pcCU.GetCUMvField(eRefPicList).GetAMVPInfo()
 
-    var cBestMv TLibCommon.TComMv  //, cZeroMv, cMvPred
+    var cBestMv TLibCommon.TComMv //, cZeroMv, cMvPred
 
     iBestIdx := 0
 
@@ -3810,27 +3824,14 @@ func (this *TEncSearch) xGetTemplateCost(pcCU *TLibCommon.TComDataCU,
     }
 
     // calc distortion
-    /*#if ZERO_MVD_EST
-        this.m_pcRdCost.GetMotionCost( 1, 0 );
-        DistParam cDistParam;
-        this.m_pcRdCost.SetDistParam( cDistParam, TLibCommon.G_bitDepthY,
-                                  pcOrgYuv.GetLumaAddr(uiPartAddr), pcOrgYuv.GetStride(),
-                                  pcTemplateCand.GetLumaAddr(uiPartAddr), pcTemplateCand.GetStride(),
-      #if NS_HAD
-                                  iSizeX, iSizeY, this.m_pcEncCfg.GetUseHADME(), this.m_pcEncCfg.GetUseNSQT() );
-      #else
-                                  iSizeX, iSizeY, this.m_pcEncCfg.GetUseHADME() );
-      #endif
-        ruiDist = cDistParam.DistFunc( &cDistParam );
-        uiCost = ruiDist + this.m_pcRdCost.getCost( this.m_auiMVPIdxCost[iMVPIdx][iMVPNum] );
-      #else
-      #if WEIGHTED_CHROMA_DISTORTION
-        uiCost = this.m_pcRdCost.getDistPart(TLibCommon.G_bitDepthY, pcTemplateCand.GetLumaAddr(uiPartAddr), pcTemplateCand.GetStride(), pcOrgYuv.GetLumaAddr(uiPartAddr), pcOrgYuv.GetStride(), iSizeX, iSizeY, false, DF_SAD );
-      #else
-        uiCost = this.m_pcRdCost.getDistPart(TLibCommon.G_bitDepthY, pcTemplateCand.GetLumaAddr(uiPartAddr), pcTemplateCand.GetStride(), pcOrgYuv.GetLumaAddr(uiPartAddr), pcOrgYuv.GetStride(), iSizeX, iSizeY, DF_SAD );
-      #endif
-        uiCost = (UInt) this.m_pcRdCost->calcRdCost( this.m_auiMVPIdxCost[iMVPIdx][iMVPNum], uiCost, false, DF_SAD );
-      #endif*/
+
+    //#if WEIGHTED_CHROMA_DISTORTION
+    uiCost = this.m_pcRdCost.getDistPart(TLibCommon.G_bitDepthY, pcTemplateCand.GetLumaAddr1(uiPartAddr), int(pcTemplateCand.GetStride()), pcOrgYuv.GetLumaAddr1(uiPartAddr), int(pcOrgYuv.GetStride()), uint(iSizeX), uint(iSizeY), TLibCommon.TEXT_LUMA, TLibCommon.DF_SAD)
+    //#else
+    //   uiCost = this.m_pcRdCost.getDistPart(TLibCommon.G_bitDepthY, pcTemplateCand.GetLumaAddr(uiPartAddr), pcTemplateCand.GetStride(), pcOrgYuv.GetLumaAddr(uiPartAddr), pcOrgYuv.GetStride(), iSizeX, iSizeY, DF_SAD );
+    //#endif
+    uiCost = uint(this.m_pcRdCost.calcRdCost(this.m_auiMVPIdxCost[iMVPIdx][iMVPNum], uiCost, false, TLibCommon.DF_SAD))
+
     return uiCost
 }
 
@@ -3927,7 +3928,7 @@ func (this *TEncSearch) xMergeEstimation(pcCU *TLibCommon.TComDataCU,
     pcCU.GetPartIndexAndSize(uint(iPUIdx), &uiAbsPartIdx, &iWidth, &iHeight)
     uiDepth := uint(pcCU.GetDepth1(uiAbsPartIdx))
     partSize := pcCU.GetPartitionSize1(0)
-    if pcCU.GetSlice().GetPPS().GetLog2ParallelMergeLevelMinus2()!=0 && partSize != TLibCommon.SIZE_2Nx2N && uint(pcCU.GetWidth1(0)) <= 8 {
+    if pcCU.GetSlice().GetPPS().GetLog2ParallelMergeLevelMinus2() != 0 && partSize != TLibCommon.SIZE_2Nx2N && uint(pcCU.GetWidth1(0)) <= 8 {
         pcCU.SetPartSizeSubParts(TLibCommon.SIZE_2Nx2N, 0, uiDepth)
         if iPUIdx == 0 {
             pcCU.GetInterMergeCandidates(0, 0, cMvFieldNeighbours, uhInterDirNeighbours, numValidMergeCand, -1)
@@ -4015,7 +4016,7 @@ func (this *TEncSearch) xMotionEstimation(pcCU *TLibCommon.TComDataCU,
     pcCU.GetPartIndexAndSize(uint(iPartIdx), &uiPartAddr, &iRoiWidth, &iRoiHeight)
 
     if bBi {
-        pcYuvOther := this.GetYuvPred(1-int(eRefPicList))
+        pcYuvOther := this.GetYuvPred(1 - int(eRefPicList))
         pcYuv = this.GetYuvPredTemp()
 
         pcYuvOrg.CopyPartToPartYuv(pcYuv, uiPartAddr, uint(iRoiWidth), uint(iRoiHeight))
@@ -4052,7 +4053,7 @@ func (this *TEncSearch) xMotionEstimation(pcCU *TLibCommon.TComDataCU,
 
     this.setWpScalingDistParam(pcCU, iRefIdxPred, eRefPicList)
     //  Do integer search
-    if this.m_iFastSearch==0 || bBi {
+    if this.m_iFastSearch == 0 || bBi {
         this.xPatternSearch(pcPatternKey, piRefY, iRefStride, &cMvSrchRngLT, &cMvSrchRngRB, rcMv, ruiCost)
     } else {
         *rcMv = *pcMvPred
@@ -4065,7 +4066,7 @@ func (this *TEncSearch) xMotionEstimation(pcCU *TLibCommon.TComDataCU,
     this.xPatternSearchFracDIF(pcCU, pcPatternKey, piRefY, iRefStride, rcMv, &cMvHalf, &cMvQter, *ruiCost, bBi)
 
     this.m_pcRdCost.setCostScale(0)
-    rcMv.ScaleMv(4);// <<= 2
+    rcMv.ScaleMv(4) // <<= 2
     cMvHalf.ScaleMv(2)
     rcMv.AddMv(cMvHalf) //(cMvHalf <<= 1);
     rcMv.AddMv(cMvQter)
@@ -4084,16 +4085,16 @@ func (this *TEncSearch) xTZSearch(pcCU *TLibCommon.TComDataCU,
     pcMvSrchRngRB *TLibCommon.TComMv,
     rcMv *TLibCommon.TComMv,
     ruiSAD uint) {
-    iSrchRngHorLeft   := int(pcMvSrchRngLT.GetHor())
-    iSrchRngHorRight  := int(pcMvSrchRngRB.GetHor())
-    iSrchRngVerTop    := int(pcMvSrchRngLT.GetVer())
+    iSrchRngHorLeft := int(pcMvSrchRngLT.GetHor())
+    iSrchRngHorRight := int(pcMvSrchRngRB.GetHor())
+    iSrchRngVerTop := int(pcMvSrchRngLT.GetVer())
     iSrchRngVerBottom := int(pcMvSrchRngRB.GetVer())
 
     //TZ_SEARCH_CONFIGURATION
 
     uiSearchRange := this.m_iSearchRange
     pcCU.ClipMv(rcMv)
-    rcMv.Set(rcMv.GetHor()/4,rcMv.GetVer()/4);// >>= 2
+    rcMv.Set(rcMv.GetHor()/4, rcMv.GetVer()/4) // >>= 2
     // init TZSearchStruct
     var cStruct IntTZSearchStruct
     cStruct.iYStride = iRefStride
@@ -4108,8 +4109,8 @@ func (this *TEncSearch) xTZSearch(pcCU *TLibCommon.TComDataCU,
         for index := 0; index < 3; index++ {
             cMv := this.m_acMvPredictors[index]
             pcCU.ClipMv(&cMv)
-            cMv.Set(cMv.GetHor()/4,cMv.GetVer()/4);// >>= 2
-//            cMv >>= 2
+            cMv.Set(cMv.GetHor()/4, cMv.GetVer()/4) // >>= 2
+            //            cMv >>= 2
             this.xTZSearchHelp(pcPatternKey, &cStruct, int(cMv.GetHor()), int(cMv.GetVer()), 0, 0)
         }
     }
@@ -4200,7 +4201,7 @@ func (this *TEncSearch) xTZSearch(pcCU *TLibCommon.TComDataCU,
             cStruct.uiBestDistance = 0
             cStruct.ucPointNr = 0
             for iDist = 1; iDist < int(uiSearchRange)+1; iDist *= 2 {
-                if bStarRefinementDiamond  {
+                if bStarRefinementDiamond {
                     this.xTZ8PointDiamondSearch(pcPatternKey, &cStruct, pcMvSrchRngLT, pcMvSrchRngRB, iStartX, iStartY, iDist)
                 } else {
                     this.xTZ8PointSquareSearch(pcPatternKey, &cStruct, pcMvSrchRngLT, pcMvSrchRngRB, iStartX, iStartY, iDist)
@@ -4234,16 +4235,16 @@ func (this *TEncSearch) xSetSearchRange(pcCU *TLibCommon.TComDataCU,
     cTmpMvPred := cMvPred
     pcCU.ClipMv(cTmpMvPred)
 
-    rcMvSrchRngLT.SetHor(cTmpMvPred.GetHor() - int16(iSrchRng << iMvShift))
-    rcMvSrchRngLT.SetVer(cTmpMvPred.GetVer() - int16(iSrchRng << iMvShift))
+    rcMvSrchRngLT.SetHor(cTmpMvPred.GetHor() - int16(iSrchRng<<iMvShift))
+    rcMvSrchRngLT.SetVer(cTmpMvPred.GetVer() - int16(iSrchRng<<iMvShift))
 
-    rcMvSrchRngRB.SetHor(cTmpMvPred.GetHor() + int16(iSrchRng << iMvShift))
-    rcMvSrchRngRB.SetVer(cTmpMvPred.GetVer() + int16(iSrchRng << iMvShift))
+    rcMvSrchRngRB.SetHor(cTmpMvPred.GetHor() + int16(iSrchRng<<iMvShift))
+    rcMvSrchRngRB.SetVer(cTmpMvPred.GetVer() + int16(iSrchRng<<iMvShift))
     pcCU.ClipMv(rcMvSrchRngLT)
     pcCU.ClipMv(rcMvSrchRngRB)
 
-    rcMvSrchRngLT.Set(rcMvSrchRngLT.GetHor()>>iMvShift, rcMvSrchRngLT.GetVer() >> iMvShift)
-    rcMvSrchRngRB.Set(rcMvSrchRngRB.GetHor()>>iMvShift, rcMvSrchRngRB.GetVer() >> iMvShift)
+    rcMvSrchRngLT.Set(rcMvSrchRngLT.GetHor()>>iMvShift, rcMvSrchRngLT.GetVer()>>iMvShift)
+    rcMvSrchRngRB.Set(rcMvSrchRngRB.GetHor()>>iMvShift, rcMvSrchRngRB.GetVer()>>iMvShift)
     //rcMvSrchRngRB >>= iMvShift
 }
 
@@ -4256,9 +4257,9 @@ func (this *TEncSearch) xPatternSearchFast(pcCU *TLibCommon.TComDataCU,
     rcMv *TLibCommon.TComMv,
     ruiSAD *uint) {
 
-    this.m_acMvPredictors[0]=pcCU.GetMvPredLeft()
-    this.m_acMvPredictors[1]=pcCU.GetMvPredAbove()
-    this.m_acMvPredictors[2]=pcCU.GetMvPredAboveRight()
+    this.m_acMvPredictors[0] = pcCU.GetMvPredLeft()
+    this.m_acMvPredictors[1] = pcCU.GetMvPredAbove()
+    this.m_acMvPredictors[2] = pcCU.GetMvPredAboveRight()
 
     switch this.m_iFastSearch {
     case 1:
@@ -4274,9 +4275,9 @@ func (this *TEncSearch) xPatternSearch(pcPatternKey *TLibCommon.TComPattern,
     pcMvSrchRngRB *TLibCommon.TComMv,
     rcMv *TLibCommon.TComMv,
     ruiSAD *uint) {
-    iSrchRngHorLeft   := int(pcMvSrchRngLT.GetHor())
-    iSrchRngHorRight  := int(pcMvSrchRngRB.GetHor())
-    iSrchRngVerTop    := int(pcMvSrchRngLT.GetVer())
+    iSrchRngHorLeft := int(pcMvSrchRngLT.GetHor())
+    iSrchRngHorRight := int(pcMvSrchRngRB.GetHor())
+    iSrchRngVerTop := int(pcMvSrchRngLT.GetVer())
     iSrchRngVerBottom := int(pcMvSrchRngRB.GetVer())
 
     var uiSad uint
@@ -4350,7 +4351,7 @@ func (this *TEncSearch) xPatternSearchFracDIF(pcCU *TLibCommon.TComDataCU,
     this.xExtDIFUpSamplingH(&cPatternRoi, biPred)
 
     *rcMvHalf = *pcMvInt
-    rcMvHalf.ScaleMv(2);// <<= 1 // for mv-cost
+    rcMvHalf.ScaleMv(2) // <<= 1 // for mv-cost
     baseRefMv := TLibCommon.NewTComMv(0, 0)
     ruiCost = this.xPatternRefinement(pcPatternKey, *baseRefMv, 2, rcMvHalf)
 
@@ -4358,55 +4359,55 @@ func (this *TEncSearch) xPatternSearchFracDIF(pcCU *TLibCommon.TComDataCU,
 
     this.xExtDIFUpSamplingQ(&cPatternRoi, *rcMvHalf, biPred)
     *baseRefMv = *rcMvHalf
-    baseRefMv.ScaleMv(2);// <<= 1
+    baseRefMv.ScaleMv(2) // <<= 1
 
     *rcMvQter = *pcMvInt
-    rcMvQter.ScaleMv(2);// <<= 1 // for mv-cost
+    rcMvQter.ScaleMv(2) // <<= 1 // for mv-cost
     rcMvQter.AddMv(*rcMvHalf)
-    rcMvQter.ScaleMv(2);// <<= 1
+    rcMvQter.ScaleMv(2) // <<= 1
     ruiCost = this.xPatternRefinement(pcPatternKey, *baseRefMv, 1, rcMvQter)
 }
 
 func (this *TEncSearch) xExtDIFUpSamplingH(pattern *TLibCommon.TComPattern, biPred bool) {
-    width  := pattern.GetROIYWidth()
+    width := pattern.GetROIYWidth()
     height := pattern.GetROIYHeight()
     srcStride := pattern.GetPatternLStride()
 
     intStride := int(this.GetFilteredBlockTmp(0).GetStride())
-    dstStride := int(this.GetFilteredBlock(0,0).GetStride())
+    dstStride := int(this.GetFilteredBlock(0, 0).GetStride())
     var intPtr, dstPtr []TLibCommon.Pel
     filterSize := TLibCommon.NTAPS_LUMA
     halfFilterSize := (filterSize >> 1)
-	srcPtr := pattern.GetROIY() [- halfFilterSize*srcStride - 1:]
+    srcPtr := pattern.GetROIY()[-halfFilterSize*srcStride-1:]
 
     this.GetIf().FilterHorLuma(srcPtr, srcStride, this.GetFilteredBlockTmp(0).GetLumaAddr(), intStride, width+1, height+filterSize, 0, false)
     this.GetIf().FilterHorLuma(srcPtr, srcStride, this.GetFilteredBlockTmp(2).GetLumaAddr(), intStride, width+1, height+filterSize, 2, false)
 
-    intPtr = this.GetFilteredBlockTmp(0).GetLumaAddr() [ halfFilterSize*intStride + 1:]
-    dstPtr = this.GetFilteredBlock(0,0).GetLumaAddr()
+    intPtr = this.GetFilteredBlockTmp(0).GetLumaAddr()[halfFilterSize*intStride+1:]
+    dstPtr = this.GetFilteredBlock(0, 0).GetLumaAddr()
     this.GetIf().FilterVerLuma(intPtr, intStride, dstPtr, dstStride, width+0, height+0, 0, false, true)
 
-    intPtr = this.GetFilteredBlockTmp(0).GetLumaAddr() [ (halfFilterSize-1)*intStride + 1:]
-    dstPtr = this.GetFilteredBlock(2,0).GetLumaAddr()
+    intPtr = this.GetFilteredBlockTmp(0).GetLumaAddr()[(halfFilterSize-1)*intStride+1:]
+    dstPtr = this.GetFilteredBlock(2, 0).GetLumaAddr()
     this.GetIf().FilterVerLuma(intPtr, intStride, dstPtr, dstStride, width+0, height+1, 2, false, true)
 
-    intPtr = this.GetFilteredBlockTmp(2).GetLumaAddr() [ halfFilterSize*intStride:]
-    dstPtr = this.GetFilteredBlock(0,2).GetLumaAddr()
+    intPtr = this.GetFilteredBlockTmp(2).GetLumaAddr()[halfFilterSize*intStride:]
+    dstPtr = this.GetFilteredBlock(0, 2).GetLumaAddr()
     this.GetIf().FilterVerLuma(intPtr, intStride, dstPtr, dstStride, width+1, height+0, 0, false, true)
 
-    intPtr = this.GetFilteredBlockTmp(2).GetLumaAddr() [ (halfFilterSize-1)*intStride:]
-    dstPtr = this.GetFilteredBlock(2,2).GetLumaAddr()
+    intPtr = this.GetFilteredBlockTmp(2).GetLumaAddr()[(halfFilterSize-1)*intStride:]
+    dstPtr = this.GetFilteredBlock(2, 2).GetLumaAddr()
     this.GetIf().FilterVerLuma(intPtr, intStride, dstPtr, dstStride, width+1, height+1, 2, false, true)
 }
 
 func (this *TEncSearch) xExtDIFUpSamplingQ(pattern *TLibCommon.TComPattern, halfPelRef TLibCommon.TComMv, biPred bool) {
-    width  := pattern.GetROIYWidth()
+    width := pattern.GetROIYWidth()
     height := pattern.GetROIYHeight()
     srcStride := pattern.GetPatternLStride()
 
     var srcPtr []TLibCommon.Pel
     intStride := int(this.GetFilteredBlockTmp(0).GetStride())
-    dstStride := int(this.GetFilteredBlock(0,0).GetStride())
+    dstStride := int(this.GetFilteredBlock(0, 0).GetStride())
     var intPtr, dstPtr []TLibCommon.Pel
     filterSize := TLibCommon.NTAPS_LUMA
     halfFilterSize := (filterSize >> 1)
@@ -4419,7 +4420,7 @@ func (this *TEncSearch) xExtDIFUpSamplingQ(pattern *TLibCommon.TComPattern, half
     }
 
     // Horizontal filter 1/4
-    srcPtr = pattern.GetROIY() [- halfFilterSize*srcStride - 1:]
+    srcPtr = pattern.GetROIY()[-halfFilterSize*srcStride-1:]
     intPtr = this.GetFilteredBlockTmp(1).GetLumaAddr()
     if halfPelRef.GetVer() > 0 {
         srcPtr = srcPtr[srcStride:]
@@ -4430,7 +4431,7 @@ func (this *TEncSearch) xExtDIFUpSamplingQ(pattern *TLibCommon.TComPattern, half
     this.GetIf().FilterHorLuma(srcPtr, srcStride, intPtr, int(intStride), width, extHeight, 1, false)
 
     // Horizontal filter 3/4
-    srcPtr = pattern.GetROIY() [- halfFilterSize*srcStride - 1:]
+    srcPtr = pattern.GetROIY()[-halfFilterSize*srcStride-1:]
     intPtr = this.GetFilteredBlockTmp(3).GetLumaAddr()
     if halfPelRef.GetVer() > 0 {
         srcPtr = srcPtr[srcStride:]
@@ -4441,50 +4442,50 @@ func (this *TEncSearch) xExtDIFUpSamplingQ(pattern *TLibCommon.TComPattern, half
     this.GetIf().FilterHorLuma(srcPtr, srcStride, intPtr, int(intStride), width, extHeight, 3, false)
 
     // Generate @ 1,1
-    intPtr = this.GetFilteredBlockTmp(1).GetLumaAddr() [ (halfFilterSize-1)*int(intStride):]
-    dstPtr = this.GetFilteredBlock(1,1).GetLumaAddr()
+    intPtr = this.GetFilteredBlockTmp(1).GetLumaAddr()[(halfFilterSize-1)*int(intStride):]
+    dstPtr = this.GetFilteredBlock(1, 1).GetLumaAddr()
     if halfPelRef.GetVer() == 0 {
         intPtr = intPtr[intStride:]
     }
     this.GetIf().FilterVerLuma(intPtr, int(intStride), dstPtr, int(dstStride), width, height, 1, false, true)
 
     // Generate @ 3,1
-    intPtr = this.GetFilteredBlockTmp(1).GetLumaAddr() [ (halfFilterSize-1)*int(intStride):]
-    dstPtr = this.GetFilteredBlock(3,1).GetLumaAddr()
+    intPtr = this.GetFilteredBlockTmp(1).GetLumaAddr()[(halfFilterSize-1)*int(intStride):]
+    dstPtr = this.GetFilteredBlock(3, 1).GetLumaAddr()
     this.GetIf().FilterVerLuma(intPtr, int(intStride), dstPtr, int(dstStride), width, height, 3, false, true)
 
     if halfPelRef.GetVer() != 0 {
         // Generate @ 2,1
-        intPtr = this.GetFilteredBlockTmp(1).GetLumaAddr() [ (halfFilterSize-1)*int(intStride):]
-        dstPtr = this.GetFilteredBlock(2,1).GetLumaAddr()
+        intPtr = this.GetFilteredBlockTmp(1).GetLumaAddr()[(halfFilterSize-1)*int(intStride):]
+        dstPtr = this.GetFilteredBlock(2, 1).GetLumaAddr()
         if halfPelRef.GetVer() == 0 {
             intPtr = intPtr[intStride:]
         }
         this.GetIf().FilterVerLuma(intPtr, int(intStride), dstPtr, int(dstStride), width, height, 2, false, true)
 
         // Generate @ 2,3
-        intPtr = this.GetFilteredBlockTmp(3).GetLumaAddr() [ (halfFilterSize-1)*intStride:]
-        dstPtr = this.GetFilteredBlock(2,3).GetLumaAddr()
+        intPtr = this.GetFilteredBlockTmp(3).GetLumaAddr()[(halfFilterSize-1)*intStride:]
+        dstPtr = this.GetFilteredBlock(2, 3).GetLumaAddr()
         if halfPelRef.GetVer() == 0 {
             intPtr = intPtr[intStride:]
         }
         this.GetIf().FilterVerLuma(intPtr, intStride, dstPtr, dstStride, width, height, 2, false, true)
     } else {
         // Generate @ 0,1
-        intPtr = this.GetFilteredBlockTmp(1).GetLumaAddr() [ halfFilterSize*intStride:]
-        dstPtr = this.GetFilteredBlock(0,1).GetLumaAddr()
+        intPtr = this.GetFilteredBlockTmp(1).GetLumaAddr()[halfFilterSize*intStride:]
+        dstPtr = this.GetFilteredBlock(0, 1).GetLumaAddr()
         this.GetIf().FilterVerLuma(intPtr, intStride, dstPtr, dstStride, width, height, 0, false, true)
 
         // Generate @ 0,3
-        intPtr = this.GetFilteredBlockTmp(3).GetLumaAddr() [ halfFilterSize*intStride:]
-        dstPtr = this.GetFilteredBlock(0,3).GetLumaAddr()
+        intPtr = this.GetFilteredBlockTmp(3).GetLumaAddr()[halfFilterSize*intStride:]
+        dstPtr = this.GetFilteredBlock(0, 3).GetLumaAddr()
         this.GetIf().FilterVerLuma(intPtr, intStride, dstPtr, dstStride, width, height, 0, false, true)
     }
 
     if halfPelRef.GetHor() != 0 {
         // Generate @ 1,2
-        intPtr = this.GetFilteredBlockTmp(2).GetLumaAddr() [ (halfFilterSize-1)*intStride:]
-        dstPtr = this.GetFilteredBlock(1,2).GetLumaAddr()
+        intPtr = this.GetFilteredBlockTmp(2).GetLumaAddr()[(halfFilterSize-1)*intStride:]
+        dstPtr = this.GetFilteredBlock(1, 2).GetLumaAddr()
         if halfPelRef.GetHor() > 0 {
             intPtr = intPtr[1:]
         }
@@ -4494,8 +4495,8 @@ func (this *TEncSearch) xExtDIFUpSamplingQ(pattern *TLibCommon.TComPattern, half
         this.GetIf().FilterVerLuma(intPtr, intStride, dstPtr, dstStride, width, height, 1, false, true)
 
         // Generate @ 3,2
-        intPtr = this.GetFilteredBlockTmp(2).GetLumaAddr() [ (halfFilterSize-1)*intStride:]
-        dstPtr = this.GetFilteredBlock(3,2).GetLumaAddr()
+        intPtr = this.GetFilteredBlockTmp(2).GetLumaAddr()[(halfFilterSize-1)*intStride:]
+        dstPtr = this.GetFilteredBlock(3, 2).GetLumaAddr()
         if halfPelRef.GetHor() > 0 {
             intPtr = intPtr[1:]
         }
@@ -4505,16 +4506,16 @@ func (this *TEncSearch) xExtDIFUpSamplingQ(pattern *TLibCommon.TComPattern, half
         this.GetIf().FilterVerLuma(intPtr, intStride, dstPtr, dstStride, width, height, 3, false, true)
     } else {
         // Generate @ 1,0
-        intPtr = this.GetFilteredBlockTmp(0).GetLumaAddr() [ (halfFilterSize-1)*intStride + 1:]
-        dstPtr = this.GetFilteredBlock(1,0).GetLumaAddr()
+        intPtr = this.GetFilteredBlockTmp(0).GetLumaAddr()[(halfFilterSize-1)*intStride+1:]
+        dstPtr = this.GetFilteredBlock(1, 0).GetLumaAddr()
         if halfPelRef.GetVer() >= 0 {
             intPtr = intPtr[intStride:]
         }
         this.GetIf().FilterVerLuma(intPtr, intStride, dstPtr, dstStride, width, height, 1, false, true)
 
         // Generate @ 3,0
-        intPtr = this.GetFilteredBlockTmp(0).GetLumaAddr() [ (halfFilterSize-1)*intStride + 1:]
-        dstPtr = this.GetFilteredBlock(3,0).GetLumaAddr()
+        intPtr = this.GetFilteredBlockTmp(0).GetLumaAddr()[(halfFilterSize-1)*intStride+1:]
+        dstPtr = this.GetFilteredBlock(3, 0).GetLumaAddr()
         if halfPelRef.GetVer() > 0 {
             intPtr = intPtr[intStride:]
         }
@@ -4522,16 +4523,16 @@ func (this *TEncSearch) xExtDIFUpSamplingQ(pattern *TLibCommon.TComPattern, half
     }
 
     // Generate @ 1,3
-    intPtr = this.GetFilteredBlockTmp(3).GetLumaAddr() [ (halfFilterSize-1)*intStride:]
-    dstPtr = this.GetFilteredBlock(1,3).GetLumaAddr()
+    intPtr = this.GetFilteredBlockTmp(3).GetLumaAddr()[(halfFilterSize-1)*intStride:]
+    dstPtr = this.GetFilteredBlock(1, 3).GetLumaAddr()
     if halfPelRef.GetVer() == 0 {
         intPtr = intPtr[intStride:]
     }
     this.GetIf().FilterVerLuma(intPtr, intStride, dstPtr, dstStride, width, height, 1, false, true)
 
     // Generate @ 3,3
-    intPtr = this.GetFilteredBlockTmp(3).GetLumaAddr() [ (halfFilterSize-1)*intStride:]
-    dstPtr = this.GetFilteredBlock(3,3).GetLumaAddr()
+    intPtr = this.GetFilteredBlockTmp(3).GetLumaAddr()[(halfFilterSize-1)*intStride:]
+    dstPtr = this.GetFilteredBlock(3, 3).GetLumaAddr()
     this.GetIf().FilterVerLuma(intPtr, intStride, dstPtr, dstStride, width, height, 3, false, true)
 }
 
@@ -4557,10 +4558,10 @@ func (this *TEncSearch) xEncodeResidualQT(pcCU *TLibCommon.TComDataCU, uiAbsPart
         if bSubdivAndCbf {
             bFirstCbfOfCU := uiCurrTrMode == 0
             if bFirstCbfOfCU || uiLog2TrSize > 2 {
-                if bFirstCbfOfCU || pcCU.GetCbf3(uiAbsPartIdx, TLibCommon.TEXT_CHROMA_U, uiCurrTrMode-1)!=0 {
+                if bFirstCbfOfCU || pcCU.GetCbf3(uiAbsPartIdx, TLibCommon.TEXT_CHROMA_U, uiCurrTrMode-1) != 0 {
                     this.m_pcEntropyCoder.encodeQtCbf(pcCU, uiAbsPartIdx, TLibCommon.TEXT_CHROMA_U, uiCurrTrMode)
                 }
-                if bFirstCbfOfCU || pcCU.GetCbf3(uiAbsPartIdx, TLibCommon.TEXT_CHROMA_V, uiCurrTrMode-1)!=0 {
+                if bFirstCbfOfCU || pcCU.GetCbf3(uiAbsPartIdx, TLibCommon.TEXT_CHROMA_V, uiCurrTrMode-1) != 0 {
                     this.m_pcEntropyCoder.encodeQtCbf(pcCU, uiAbsPartIdx, TLibCommon.TEXT_CHROMA_V, uiCurrTrMode)
                 }
             } else if uiLog2TrSize == 2 {
@@ -4591,7 +4592,7 @@ func (this *TEncSearch) xEncodeResidualQT(pcCU *TLibCommon.TComDataCU, uiAbsPart
         if bSubdivAndCbf {
             this.m_pcEntropyCoder.encodeQtCbf(pcCU, uiAbsPartIdx, TLibCommon.TEXT_LUMA, uiTrMode)
         } else {
-            if eType == TLibCommon.TEXT_LUMA && pcCU.GetCbf3(uiAbsPartIdx, TLibCommon.TEXT_LUMA, uiTrMode)!=0 {
+            if eType == TLibCommon.TEXT_LUMA && pcCU.GetCbf3(uiAbsPartIdx, TLibCommon.TEXT_LUMA, uiTrMode) != 0 {
                 trWidth := uint(1) << uiLog2TrSize
                 trHeight := uint(1) << uiLog2TrSize
                 this.m_pcEntropyCoder.encodeCoeffNxN(pcCU, pcCoeffCurrY, uiAbsPartIdx, trWidth, trHeight, uiDepth, TLibCommon.TEXT_LUMA)
@@ -4599,16 +4600,16 @@ func (this *TEncSearch) xEncodeResidualQT(pcCU *TLibCommon.TComDataCU, uiAbsPart
             if bCodeChroma {
                 trWidth := uint(1) << uiLog2TrSizeC
                 trHeight := uint(1) << uiLog2TrSizeC
-                if eType == TLibCommon.TEXT_CHROMA_U && pcCU.GetCbf3(uiAbsPartIdx, TLibCommon.TEXT_CHROMA_U, uiTrMode)!=0 {
+                if eType == TLibCommon.TEXT_CHROMA_U && pcCU.GetCbf3(uiAbsPartIdx, TLibCommon.TEXT_CHROMA_U, uiTrMode) != 0 {
                     this.m_pcEntropyCoder.encodeCoeffNxN(pcCU, pcCoeffCurrU, uiAbsPartIdx, trWidth, trHeight, uiDepth, TLibCommon.TEXT_CHROMA_U)
                 }
-                if eType == TLibCommon.TEXT_CHROMA_V && pcCU.GetCbf3(uiAbsPartIdx, TLibCommon.TEXT_CHROMA_V, uiTrMode)!=0 {
+                if eType == TLibCommon.TEXT_CHROMA_V && pcCU.GetCbf3(uiAbsPartIdx, TLibCommon.TEXT_CHROMA_V, uiTrMode) != 0 {
                     this.m_pcEntropyCoder.encodeCoeffNxN(pcCU, pcCoeffCurrV, uiAbsPartIdx, trWidth, trHeight, uiDepth, TLibCommon.TEXT_CHROMA_V)
                 }
             }
         }
     } else {
-        if bSubdivAndCbf || pcCU.GetCbf3(uiAbsPartIdx, eType, uiCurrTrMode)!=0 {
+        if bSubdivAndCbf || pcCU.GetCbf3(uiAbsPartIdx, eType, uiCurrTrMode) != 0 {
             uiQPartNumSubdiv := pcCU.GetPic().GetNumPartInCU() >> ((uiDepth + 1) << 1)
             for ui := uint(0); ui < 4; ui++ {
                 this.xEncodeResidualQT(pcCU, uiAbsPartIdx+ui*uiQPartNumSubdiv, uiDepth+1, bSubdivAndCbf, eType)
@@ -4687,8 +4688,8 @@ func (this *TEncSearch) xEstimateResidualQT(pcCU *TLibCommon.TComDataCU, uiQuadr
         checkTransformSkipY := pcCU.GetSlice().GetPPS().GetUseTransformSkip() && trWidth == 4 && trHeight == 4
         checkTransformSkipUV := pcCU.GetSlice().GetPPS().GetUseTransformSkip() && trWidthC == 4 && trHeightC == 4
 
-        checkTransformSkipY  =checkTransformSkipY  && (!pcCU.IsLosslessCoded(0))
-        checkTransformSkipUV =checkTransformSkipUV && (!pcCU.IsLosslessCoded(0))
+        checkTransformSkipY = checkTransformSkipY && (!pcCU.IsLosslessCoded(0))
+        checkTransformSkipUV = checkTransformSkipUV && (!pcCU.IsLosslessCoded(0))
 
         pcCU.SetTransformSkipSubParts4(false, TLibCommon.TEXT_LUMA, uiAbsPartIdx, uiDepth)
         if bCodeChroma {
@@ -4781,9 +4782,9 @@ func (this *TEncSearch) xEstimateResidualQT(pcCU *TLibCommon.TComDataCU, uiQuadr
         for i := int(0); i < uiNumSamplesLuma; i++ {
             this.m_pTempPel[i] = 0 //, sizeof( TLibCommon.Pel ) * uiNumSamplesLuma ); // not necessary needed for inside of recursion (only at the beginning)
         }
-        uiDistY := this.m_pcRdCost.getDistPart(TLibCommon.G_bitDepthY, this.m_pTempPel, int(trWidth), pcResi.GetLumaAddr1(absTUPartIdx), int(pcResi.GetStride()), uint(trWidth), uint(trHeight), false, TLibCommon.DF_SSE) // initialized with zero residual destortion
+        uiDistY := this.m_pcRdCost.getDistPart(TLibCommon.G_bitDepthY, this.m_pTempPel, int(trWidth), pcResi.GetLumaAddr1(absTUPartIdx), int(pcResi.GetStride()), uint(trWidth), uint(trHeight), TLibCommon.TEXT_LUMA, TLibCommon.DF_SSE) // initialized with zero residual destortion
 
-        if puiZeroDist!=nil {
+        if puiZeroDist != nil {
             *puiZeroDist += uiDistY
         }
         if uiAbsSumY != 0 {
@@ -4796,13 +4797,13 @@ func (this *TEncSearch) xEstimateResidualQT(pcCU *TLibCommon.TComDataCU, uiQuadr
             this.m_pcTrQuant.InvtransformNxN(pcCU.GetCUTransquantBypass1(uiAbsPartIdx), TLibCommon.TEXT_LUMA, TLibCommon.REG_DCT, pcResiCurrY, this.m_pcQTTempTComYuv[uiQTTempAccessLayer].GetStride(), pcCoeffCurrY, uint(trWidth), uint(trHeight), scalingListType, false) //this is for inter mode only
 
             uiNonzeroDistY := this.m_pcRdCost.getDistPart(TLibCommon.G_bitDepthY, this.m_pcQTTempTComYuv[uiQTTempAccessLayer].GetLumaAddr1(absTUPartIdx), int(this.m_pcQTTempTComYuv[uiQTTempAccessLayer].GetStride()),
-                pcResi.GetLumaAddr1(absTUPartIdx), int(pcResi.GetStride()), trWidth, trHeight, false, TLibCommon.DF_SSE)
+                pcResi.GetLumaAddr1(absTUPartIdx), int(pcResi.GetStride()), trWidth, trHeight, TLibCommon.TEXT_LUMA, TLibCommon.DF_SSE)
             if pcCU.IsLosslessCoded(0) {
                 uiDistY = uiNonzeroDistY
             } else {
                 singleCostY := this.m_pcRdCost.calcRdCost(uiSingleBitsY, uiNonzeroDistY, false, TLibCommon.DF_DEFAULT)
                 this.m_pcEntropyCoder.resetBits()
-                this.m_pcEntropyCoder.encodeQtCbfZero(pcCU, uiAbsPartIdx, TLibCommon.TEXT_LUMA, uiTrMode)
+                this.m_pcEntropyCoder.encodeQtCbfZero(pcCU, TLibCommon.TEXT_LUMA, uiTrMode)
                 uiNullBitsY := this.m_pcEntropyCoder.getNumberOfWrittenBits()
                 nullCostY := this.m_pcRdCost.calcRdCost(uiNullBitsY, uiDistY, false, TLibCommon.DF_DEFAULT)
                 if nullCostY < singleCostY {
@@ -4822,12 +4823,12 @@ func (this *TEncSearch) xEstimateResidualQT(pcCU *TLibCommon.TComDataCU, uiQuadr
             }
         } else if checkTransformSkipY {
             this.m_pcEntropyCoder.resetBits()
-            this.m_pcEntropyCoder.encodeQtCbfZero(pcCU, uiAbsPartIdx, TLibCommon.TEXT_LUMA, uiTrMode)
+            this.m_pcEntropyCoder.encodeQtCbfZero(pcCU, TLibCommon.TEXT_LUMA, uiTrMode)
             uiNullBitsY := this.m_pcEntropyCoder.getNumberOfWrittenBits()
             minCostY = this.m_pcRdCost.calcRdCost(uiNullBitsY, uiDistY, false, TLibCommon.DF_DEFAULT)
         }
 
-        if uiAbsSumY==0 {
+        if uiAbsSumY == 0 {
             pcPtr := this.m_pcQTTempTComYuv[uiQTTempAccessLayer].GetLumaAddr1(absTUPartIdx)
             uiStride := this.m_pcQTTempTComYuv[uiQTTempAccessLayer].GetStride()
             for uiY := uint(0); uiY < trHeight; uiY++ {
@@ -4842,15 +4843,15 @@ func (this *TEncSearch) xEstimateResidualQT(pcCU *TLibCommon.TComDataCU, uiQuadr
         uiDistU := uint(0)
         uiDistV := uint(0)
         if bCodeChroma {
-            uiDistU = this.m_pcRdCost.getDistPart(TLibCommon.G_bitDepthC, this.m_pTempPel, int(trWidthC), pcResi.GetCbAddr1(absTUPartIdxC), int(pcResi.GetCStride()), trWidthC, trHeightC, true, TLibCommon.DF_SSE)
+            uiDistU = this.m_pcRdCost.getDistPart(TLibCommon.G_bitDepthC, this.m_pTempPel, int(trWidthC), pcResi.GetCbAddr1(absTUPartIdxC), int(pcResi.GetCStride()), trWidthC, trHeightC, TLibCommon.TEXT_CHROMA_U, TLibCommon.DF_SSE)
             //#if WEIGHTED_CHROMA_DISTORTION
 
             //#endif
             // initialized with zero residual destortion
-            if puiZeroDist!=nil {
+            if puiZeroDist != nil {
                 *puiZeroDist += uiDistU
             }
-            if uiAbsSumU!=0 {
+            if uiAbsSumU != 0 {
                 pcResiCurrU := this.m_pcQTTempTComYuv[uiQTTempAccessLayer].GetCbAddr1(absTUPartIdxC)
 
                 curChromaQpOffset := pcCU.GetSlice().GetPPS().GetChromaCbQpOffset() + pcCU.GetSlice().GetSliceQpDeltaCb()
@@ -4861,7 +4862,7 @@ func (this *TEncSearch) xEstimateResidualQT(pcCU *TLibCommon.TComDataCU, uiQuadr
                 this.m_pcTrQuant.InvtransformNxN(pcCU.GetCUTransquantBypass1(uiAbsPartIdx), TLibCommon.TEXT_CHROMA, TLibCommon.REG_DCT, pcResiCurrU, this.m_pcQTTempTComYuv[uiQTTempAccessLayer].GetCStride(), pcCoeffCurrU, trWidthC, trHeightC, scalingListType, false)
 
                 uiNonzeroDistU := this.m_pcRdCost.getDistPart(TLibCommon.G_bitDepthC, this.m_pcQTTempTComYuv[uiQTTempAccessLayer].GetCbAddr1(absTUPartIdxC), int(this.m_pcQTTempTComYuv[uiQTTempAccessLayer].GetCStride()),
-                    pcResi.GetCbAddr1(absTUPartIdxC), int(pcResi.GetCStride()), trWidthC, trHeightC, true, TLibCommon.DF_SSE)
+                    pcResi.GetCbAddr1(absTUPartIdxC), int(pcResi.GetCStride()), trWidthC, trHeightC, TLibCommon.TEXT_CHROMA_U, TLibCommon.DF_SSE)
                 //#if WEIGHTED_CHROMA_DISTORTION
 
                 //#endif
@@ -4871,7 +4872,7 @@ func (this *TEncSearch) xEstimateResidualQT(pcCU *TLibCommon.TComDataCU, uiQuadr
                 } else {
                     dSingleCostU := this.m_pcRdCost.calcRdCost(uiSingleBitsU, uiNonzeroDistU, false, TLibCommon.DF_DEFAULT)
                     this.m_pcEntropyCoder.resetBits()
-                    this.m_pcEntropyCoder.encodeQtCbfZero(pcCU, uiAbsPartIdx, TLibCommon.TEXT_CHROMA_U, uiTrMode)
+                    this.m_pcEntropyCoder.encodeQtCbfZero(pcCU, TLibCommon.TEXT_CHROMA_U, uiTrMode)
                     uiNullBitsU := this.m_pcEntropyCoder.getNumberOfWrittenBits()
                     dNullCostU := this.m_pcRdCost.calcRdCost(uiNullBitsU, uiDistU, false, TLibCommon.DF_DEFAULT)
                     if dNullCostU < dSingleCostU {
@@ -4891,7 +4892,7 @@ func (this *TEncSearch) xEstimateResidualQT(pcCU *TLibCommon.TComDataCU, uiQuadr
                 }
             } else if checkTransformSkipUV {
                 this.m_pcEntropyCoder.resetBits()
-                this.m_pcEntropyCoder.encodeQtCbfZero(pcCU, uiAbsPartIdx, TLibCommon.TEXT_CHROMA_U, uiTrModeC)
+                this.m_pcEntropyCoder.encodeQtCbfZero(pcCU, TLibCommon.TEXT_CHROMA_U, uiTrModeC)
                 uiNullBitsU := this.m_pcEntropyCoder.getNumberOfWrittenBits()
                 minCostU = this.m_pcRdCost.calcRdCost(uiNullBitsU, uiDistU, false, TLibCommon.DF_DEFAULT)
             }
@@ -4906,15 +4907,15 @@ func (this *TEncSearch) xEstimateResidualQT(pcCU *TLibCommon.TComDataCU, uiQuadr
                 }
             }
 
-            uiDistV = this.m_pcRdCost.getDistPart(TLibCommon.G_bitDepthC, this.m_pTempPel, int(trWidthC), pcResi.GetCrAddr1(absTUPartIdxC), int(pcResi.GetCStride()), trWidthC, trHeightC, true, TLibCommon.DF_SSE)
+            uiDistV = this.m_pcRdCost.getDistPart(TLibCommon.G_bitDepthC, this.m_pTempPel, int(trWidthC), pcResi.GetCrAddr1(absTUPartIdxC), int(pcResi.GetCStride()), trWidthC, trHeightC, TLibCommon.TEXT_CHROMA_V, TLibCommon.DF_SSE)
             //#if WEIGHTED_CHROMA_DISTORTION
 
             //#endif
             // initialized with zero residual destortion
-            if puiZeroDist!=nil {
+            if puiZeroDist != nil {
                 *puiZeroDist += uiDistV
             }
-            if uiAbsSumV!=0 {
+            if uiAbsSumV != 0 {
                 pcResiCurrV := this.m_pcQTTempTComYuv[uiQTTempAccessLayer].GetCrAddr1(absTUPartIdxC)
                 curChromaQpOffset := pcCU.GetSlice().GetPPS().GetChromaCrQpOffset() + pcCU.GetSlice().GetSliceQpDeltaCr()
                 this.m_pcTrQuant.SetQPforQuant(int(pcCU.GetQP1(0)), TLibCommon.TEXT_CHROMA, pcCU.GetSlice().GetSPS().GetQpBDOffsetC(), curChromaQpOffset)
@@ -4924,7 +4925,7 @@ func (this *TEncSearch) xEstimateResidualQT(pcCU *TLibCommon.TComDataCU, uiQuadr
                 this.m_pcTrQuant.InvtransformNxN(pcCU.GetCUTransquantBypass1(uiAbsPartIdx), TLibCommon.TEXT_CHROMA, TLibCommon.REG_DCT, pcResiCurrV, this.m_pcQTTempTComYuv[uiQTTempAccessLayer].GetCStride(), pcCoeffCurrV, trWidthC, trHeightC, scalingListType, false)
 
                 uiNonzeroDistV := this.m_pcRdCost.getDistPart(TLibCommon.G_bitDepthC, this.m_pcQTTempTComYuv[uiQTTempAccessLayer].GetCrAddr1(absTUPartIdxC), int(this.m_pcQTTempTComYuv[uiQTTempAccessLayer].GetCStride()),
-                    pcResi.GetCrAddr1(absTUPartIdxC), int(pcResi.GetCStride()), trWidthC, trHeightC, true, TLibCommon.DF_SSE)
+                    pcResi.GetCrAddr1(absTUPartIdxC), int(pcResi.GetCStride()), trWidthC, trHeightC, TLibCommon.TEXT_CHROMA_V, TLibCommon.DF_SSE)
                 //#if WEIGHTED_CHROMA_DISTORTION
 
                 //#endif
@@ -4934,7 +4935,7 @@ func (this *TEncSearch) xEstimateResidualQT(pcCU *TLibCommon.TComDataCU, uiQuadr
                 } else {
                     dSingleCostV := this.m_pcRdCost.calcRdCost(uiSingleBitsV, uiNonzeroDistV, false, TLibCommon.DF_DEFAULT)
                     this.m_pcEntropyCoder.resetBits()
-                    this.m_pcEntropyCoder.encodeQtCbfZero(pcCU, uiAbsPartIdx, TLibCommon.TEXT_CHROMA_V, uiTrMode)
+                    this.m_pcEntropyCoder.encodeQtCbfZero(pcCU, TLibCommon.TEXT_CHROMA_V, uiTrMode)
                     uiNullBitsV := this.m_pcEntropyCoder.getNumberOfWrittenBits()
                     dNullCostV := this.m_pcRdCost.calcRdCost(uiNullBitsV, uiDistV, false, TLibCommon.DF_DEFAULT)
                     if dNullCostV < dSingleCostV {
@@ -4954,11 +4955,11 @@ func (this *TEncSearch) xEstimateResidualQT(pcCU *TLibCommon.TComDataCU, uiQuadr
                 }
             } else if checkTransformSkipUV {
                 this.m_pcEntropyCoder.resetBits()
-                this.m_pcEntropyCoder.encodeQtCbfZero(pcCU, uiAbsPartIdx, TLibCommon.TEXT_CHROMA_V, uiTrModeC)
+                this.m_pcEntropyCoder.encodeQtCbfZero(pcCU, TLibCommon.TEXT_CHROMA_V, uiTrModeC)
                 uiNullBitsV := this.m_pcEntropyCoder.getNumberOfWrittenBits()
                 minCostV = this.m_pcRdCost.calcRdCost(uiNullBitsV, uiDistV, false, TLibCommon.DF_DEFAULT)
             }
-            if uiAbsSumV==0 {
+            if uiAbsSumV == 0 {
                 pcPtr := this.m_pcQTTempTComYuv[uiQTTempAccessLayer].GetCrAddr1(absTUPartIdxC)
                 uiStride := this.m_pcQTTempTComYuv[uiQTTempAccessLayer].GetCStride()
                 for uiY := uint(0); uiY < trHeightC; uiY++ {
@@ -5019,11 +5020,7 @@ func (this *TEncSearch) xEstimateResidualQT(pcCU *TLibCommon.TComDataCU, uiQuadr
 
             pcCU.SetTransformSkipSubParts4(true, TLibCommon.TEXT_LUMA, uiAbsPartIdx, uiDepth)
 
-            //#if RDOQ_TRANSFORMSKIP
             if this.m_pcEncCfg.GetUseRDOQTS() {
-                //#else
-                //      if (this.m_pcEncCfg.GetUseRDOQ())
-                //#endif
                 this.m_pcEntropyCoder.estimateBit(this.m_pcTrQuant.GetEstBitsSbac(), int(trWidth), int(trHeight), TLibCommon.TEXT_LUMA)
             }
 
@@ -5057,12 +5054,12 @@ func (this *TEncSearch) xEstimateResidualQT(pcCU *TLibCommon.TComDataCU, uiQuadr
                 this.m_pcTrQuant.InvtransformNxN(pcCU.GetCUTransquantBypass1(uiAbsPartIdx), TLibCommon.TEXT_LUMA, TLibCommon.REG_DCT, pcResiCurrY, this.m_pcQTTempTComYuv[uiQTTempAccessLayer].GetStride(), pcCoeffCurrY, trWidth, trHeight, scalingListType, true)
 
                 uiNonzeroDistY = this.m_pcRdCost.getDistPart(TLibCommon.G_bitDepthY, this.m_pcQTTempTComYuv[uiQTTempAccessLayer].GetLumaAddr1(absTUPartIdx), int(this.m_pcQTTempTComYuv[uiQTTempAccessLayer].GetStride()),
-                    pcResi.GetLumaAddr1(absTUPartIdx), int(pcResi.GetStride()), trWidth, trHeight, false, TLibCommon.DF_SSE)
+                    pcResi.GetLumaAddr1(absTUPartIdx), int(pcResi.GetStride()), trWidth, trHeight, TLibCommon.TEXT_LUMA, TLibCommon.DF_SSE)
 
                 dSingleCostY = this.m_pcRdCost.calcRdCost(uiTsSingleBitsY, uiNonzeroDistY, false, TLibCommon.DF_DEFAULT)
             }
 
-            if uiAbsSumTransformSkipY==0 || minCostY < dSingleCostY {
+            if uiAbsSumTransformSkipY == 0 || minCostY < dSingleCostY {
                 pcCU.SetTransformSkipSubParts4(false, TLibCommon.TEXT_LUMA, uiAbsPartIdx, uiDepth)
                 for i := int(0); i < uiNumSamplesLuma; i++ {
                     pcCoeffCurrY[i] = bestCoeffY[i] //, sizeof(TLibCommon.TCoeff) * uiNumSamplesLuma );
@@ -5123,11 +5120,7 @@ func (this *TEncSearch) xEstimateResidualQT(pcCU *TLibCommon.TComDataCU, uiQuadr
             pcCU.SetTransformSkipSubParts4(true, TLibCommon.TEXT_CHROMA_U, uiAbsPartIdx, uint(pcCU.GetDepth1(0))+uiTrModeC)
             pcCU.SetTransformSkipSubParts4(true, TLibCommon.TEXT_CHROMA_V, uiAbsPartIdx, uint(pcCU.GetDepth1(0))+uiTrModeC)
 
-            //#if RDOQ_TRANSFORMSKIP
             if this.m_pcEncCfg.GetUseRDOQTS() {
-                //#else
-                //      if (this.m_pcEncCfg.GetUseRDOQ())
-                //#endif
                 this.m_pcEntropyCoder.estimateBit(this.m_pcTrQuant.GetEstBitsSbac(), int(trWidthC), int(trHeightC), TLibCommon.TEXT_CHROMA)
             }
 
@@ -5179,7 +5172,7 @@ func (this *TEncSearch) xEstimateResidualQT(pcCU *TLibCommon.TComDataCU, uiQuadr
                 this.m_pcTrQuant.InvtransformNxN(pcCU.GetCUTransquantBypass1(uiAbsPartIdx), TLibCommon.TEXT_CHROMA, TLibCommon.REG_DCT, pcResiCurrU, this.m_pcQTTempTComYuv[uiQTTempAccessLayer].GetCStride(), pcCoeffCurrU, trWidthC, trHeightC, scalingListType, true)
 
                 uiNonzeroDistU = this.m_pcRdCost.getDistPart(TLibCommon.G_bitDepthC, this.m_pcQTTempTComYuv[uiQTTempAccessLayer].GetCbAddr1(absTUPartIdxC), int(this.m_pcQTTempTComYuv[uiQTTempAccessLayer].GetCStride()),
-                    pcResi.GetCbAddr1(absTUPartIdxC), int(pcResi.GetCStride()), trWidthC, trHeightC, true, TLibCommon.DF_SSE)
+                    pcResi.GetCbAddr1(absTUPartIdxC), int(pcResi.GetCStride()), trWidthC, trHeightC, TLibCommon.TEXT_CHROMA_U, TLibCommon.DF_SSE)
                 //#if WEIGHTED_CHROMA_DISTORTION
 
                 //#endif
@@ -5221,7 +5214,7 @@ func (this *TEncSearch) xEstimateResidualQT(pcCU *TLibCommon.TComDataCU, uiQuadr
                 this.m_pcTrQuant.InvtransformNxN(pcCU.GetCUTransquantBypass1(uiAbsPartIdx), TLibCommon.TEXT_CHROMA, TLibCommon.REG_DCT, pcResiCurrV, this.m_pcQTTempTComYuv[uiQTTempAccessLayer].GetCStride(), pcCoeffCurrV, trWidthC, trHeightC, scalingListType, true)
 
                 uiNonzeroDistV = this.m_pcRdCost.getDistPart(TLibCommon.G_bitDepthC, this.m_pcQTTempTComYuv[uiQTTempAccessLayer].GetCrAddr1(absTUPartIdxC), int(this.m_pcQTTempTComYuv[uiQTTempAccessLayer].GetCStride()),
-                    pcResi.GetCrAddr1(absTUPartIdxC), int(pcResi.GetCStride()), trWidthC, trHeightC, true, TLibCommon.DF_SSE)
+                    pcResi.GetCrAddr1(absTUPartIdxC), int(pcResi.GetCStride()), trWidthC, trHeightC, TLibCommon.TEXT_CHROMA_V, TLibCommon.DF_SSE)
                 //#if WEIGHTED_CHROMA_DISTORTION
 
                 //#endif
@@ -5319,12 +5312,12 @@ func (this *TEncSearch) xEstimateResidualQT(pcCU *TLibCommon.TComDataCU, uiQuadr
         uiUCbf := uint(0)
         uiVCbf := uint(0)
         for ui := uint(0); ui < 4; ui++ {
-            uiYCbf |= uint(pcCU.GetCbf3(uiAbsPartIdx+ui*uiQPartNumSubdiv, TLibCommon.TEXT_LUMA,     uiTrMode+1))
+            uiYCbf |= uint(pcCU.GetCbf3(uiAbsPartIdx+ui*uiQPartNumSubdiv, TLibCommon.TEXT_LUMA, uiTrMode+1))
             uiUCbf |= uint(pcCU.GetCbf3(uiAbsPartIdx+ui*uiQPartNumSubdiv, TLibCommon.TEXT_CHROMA_U, uiTrMode+1))
             uiVCbf |= uint(pcCU.GetCbf3(uiAbsPartIdx+ui*uiQPartNumSubdiv, TLibCommon.TEXT_CHROMA_V, uiTrMode+1))
         }
         for ui := uint(0); ui < 4*uiQPartNumSubdiv; ui++ {
-            pcCU.GetCbf1(TLibCommon.TEXT_LUMA)[uiAbsPartIdx+ui]     |= byte(uiYCbf << uiTrMode)
+            pcCU.GetCbf1(TLibCommon.TEXT_LUMA)[uiAbsPartIdx+ui] |= byte(uiYCbf << uiTrMode)
             pcCU.GetCbf1(TLibCommon.TEXT_CHROMA_U)[uiAbsPartIdx+ui] |= byte(uiUCbf << uiTrMode)
             pcCU.GetCbf1(TLibCommon.TEXT_CHROMA_V)[uiAbsPartIdx+ui] |= byte(uiVCbf << uiTrMode)
         }
@@ -5335,7 +5328,7 @@ func (this *TEncSearch) xEstimateResidualQT(pcCU *TLibCommon.TComDataCU, uiQuadr
         this.m_pcEntropyCoder.resetBits()
 
         {
-            this.xEncodeResidualQT(pcCU, uiAbsPartIdx, uiDepth, true,  TLibCommon.TEXT_LUMA)
+            this.xEncodeResidualQT(pcCU, uiAbsPartIdx, uiDepth, true, TLibCommon.TEXT_LUMA)
             this.xEncodeResidualQT(pcCU, uiAbsPartIdx, uiDepth, false, TLibCommon.TEXT_LUMA)
             this.xEncodeResidualQT(pcCU, uiAbsPartIdx, uiDepth, false, TLibCommon.TEXT_CHROMA_U)
             this.xEncodeResidualQT(pcCU, uiAbsPartIdx, uiDepth, false, TLibCommon.TEXT_CHROMA_V)
@@ -5344,25 +5337,25 @@ func (this *TEncSearch) xEstimateResidualQT(pcCU *TLibCommon.TComDataCU, uiQuadr
         uiSubdivBits = this.m_pcEntropyCoder.getNumberOfWrittenBits()
         dSubdivCost = this.m_pcRdCost.calcRdCost(uiSubdivBits, uiSubdivDist, false, TLibCommon.DF_DEFAULT)
 
-        if uiYCbf!=0 || uiUCbf!=0 || uiVCbf!=0 || !bCheckFull {
+        if uiYCbf != 0 || uiUCbf != 0 || uiVCbf != 0 || !bCheckFull {
             if dSubdivCost < dSingleCost {
-                *rdCost  += dSubdivCost
+                *rdCost += dSubdivCost
                 *ruiBits += uiSubdivBits
                 *ruiDist += uiSubdivDist
                 return
             }
         }
-        pcCU.SetTransformSkipSubParts4(uiBestTransformMode[0]!=0, TLibCommon.TEXT_LUMA, uiAbsPartIdx, uiDepth)
+        pcCU.SetTransformSkipSubParts4(uiBestTransformMode[0] != 0, TLibCommon.TEXT_LUMA, uiAbsPartIdx, uiDepth)
         if bCodeChroma {
-            pcCU.SetTransformSkipSubParts4(uiBestTransformMode[1]!=0, TLibCommon.TEXT_CHROMA_U, uiAbsPartIdx, uint(pcCU.GetDepth1(0))+uiTrModeC)
-            pcCU.SetTransformSkipSubParts4(uiBestTransformMode[2]!=0, TLibCommon.TEXT_CHROMA_V, uiAbsPartIdx, uint(pcCU.GetDepth1(0))+uiTrModeC)
+            pcCU.SetTransformSkipSubParts4(uiBestTransformMode[1] != 0, TLibCommon.TEXT_CHROMA_U, uiAbsPartIdx, uint(pcCU.GetDepth1(0))+uiTrModeC)
+            pcCU.SetTransformSkipSubParts4(uiBestTransformMode[2] != 0, TLibCommon.TEXT_CHROMA_V, uiAbsPartIdx, uint(pcCU.GetDepth1(0))+uiTrModeC)
         }
         //assert( bCheckFull );
         if this.m_bUseSBACRD {
             this.m_pcRDGoOnSbacCoder.load(this.m_pppcRDSbacCoder[uiDepth][TLibCommon.CI_QT_TRAFO_TEST])
         }
     }
-    *rdCost  += dSingleCost
+    *rdCost += dSingleCost
     *ruiBits += uiSingleBits
     *ruiDist += uiSingleDist
 
@@ -5419,33 +5412,33 @@ func (this *TEncSearch) xSetResidualQTData(pcCU *TLibCommon.TComDataCU, uiQuadra
         } else {
             uiNumCoeffPerAbsPartIdxIncrement := pcCU.GetSlice().GetSPS().GetMaxCUWidth() * pcCU.GetSlice().GetSPS().GetMaxCUHeight() >> (pcCU.GetSlice().GetSPS().GetMaxCUDepth() << 1)
             uiNumCoeffY := (1 << (uiLog2TrSize << 1))
-            pcCoeffSrcY := this.m_ppcQTTempCoeffY[uiQTTempAccessLayer] [ uiNumCoeffPerAbsPartIdxIncrement*uiAbsPartIdx:]
-            pcCoeffDstY := pcCU.GetCoeffY() [ uiNumCoeffPerAbsPartIdxIncrement*uiAbsPartIdx:]
+            pcCoeffSrcY := this.m_ppcQTTempCoeffY[uiQTTempAccessLayer][uiNumCoeffPerAbsPartIdxIncrement*uiAbsPartIdx:]
+            pcCoeffDstY := pcCU.GetCoeffY()[uiNumCoeffPerAbsPartIdxIncrement*uiAbsPartIdx:]
             for i := int(0); i < uiNumCoeffY; i++ {
                 pcCoeffDstY[i] = pcCoeffSrcY[i] //, sizeof( TLibCommon.TCoeff ) * uiNumCoeffY );
             }
             //#if ADAPTIVE_QP_SELECTION
-            pcArlCoeffSrcY := this.m_ppcQTTempArlCoeffY[uiQTTempAccessLayer] [ uiNumCoeffPerAbsPartIdxIncrement*uiAbsPartIdx:]
-            pcArlCoeffDstY := pcCU.GetArlCoeffY() [ uiNumCoeffPerAbsPartIdxIncrement*uiAbsPartIdx:]
+            pcArlCoeffSrcY := this.m_ppcQTTempArlCoeffY[uiQTTempAccessLayer][uiNumCoeffPerAbsPartIdxIncrement*uiAbsPartIdx:]
+            pcArlCoeffDstY := pcCU.GetArlCoeffY()[uiNumCoeffPerAbsPartIdxIncrement*uiAbsPartIdx:]
             for i := int(0); i < uiNumCoeffY; i++ {
                 pcArlCoeffDstY[i] = pcArlCoeffSrcY[i] //, sizeof( int ) * uiNumCoeffY );
             }
             //#endif
             if bCodeChroma {
                 uiNumCoeffC := (1 << (uiLog2TrSizeC << 1))
-                pcCoeffSrcU := this.m_ppcQTTempCoeffCb[uiQTTempAccessLayer] [ (uiNumCoeffPerAbsPartIdxIncrement * uiAbsPartIdx >> 2):]
-                pcCoeffSrcV := this.m_ppcQTTempCoeffCr[uiQTTempAccessLayer] [ (uiNumCoeffPerAbsPartIdxIncrement * uiAbsPartIdx >> 2):]
-                pcCoeffDstU := pcCU.GetCoeffCb() [ (uiNumCoeffPerAbsPartIdxIncrement * uiAbsPartIdx >> 2):]
-                pcCoeffDstV := pcCU.GetCoeffCr() [ (uiNumCoeffPerAbsPartIdxIncrement * uiAbsPartIdx >> 2):]
+                pcCoeffSrcU := this.m_ppcQTTempCoeffCb[uiQTTempAccessLayer][(uiNumCoeffPerAbsPartIdxIncrement * uiAbsPartIdx >> 2):]
+                pcCoeffSrcV := this.m_ppcQTTempCoeffCr[uiQTTempAccessLayer][(uiNumCoeffPerAbsPartIdxIncrement * uiAbsPartIdx >> 2):]
+                pcCoeffDstU := pcCU.GetCoeffCb()[(uiNumCoeffPerAbsPartIdxIncrement * uiAbsPartIdx >> 2):]
+                pcCoeffDstV := pcCU.GetCoeffCr()[(uiNumCoeffPerAbsPartIdxIncrement * uiAbsPartIdx >> 2):]
                 for i := int(0); i < uiNumCoeffC; i++ {
                     pcCoeffDstU[i] = pcCoeffSrcU[i] //, sizeof( TLibCommon.TCoeff ) * uiNumCoeffC );
                     pcCoeffDstV[i] = pcCoeffSrcV[i] //, sizeof( TLibCommon.TCoeff ) * uiNumCoeffC );
                 }
                 //#if ADAPTIVE_QP_SELECTION
-                pcArlCoeffSrcU := this.m_ppcQTTempArlCoeffCb[uiQTTempAccessLayer] [ (uiNumCoeffPerAbsPartIdxIncrement * uiAbsPartIdx >> 2):]
-                pcArlCoeffSrcV := this.m_ppcQTTempArlCoeffCr[uiQTTempAccessLayer] [ (uiNumCoeffPerAbsPartIdxIncrement * uiAbsPartIdx >> 2):]
-                pcArlCoeffDstU := pcCU.GetArlCoeffCb() [ (uiNumCoeffPerAbsPartIdxIncrement * uiAbsPartIdx >> 2):]
-                pcArlCoeffDstV := pcCU.GetArlCoeffCr() [ (uiNumCoeffPerAbsPartIdxIncrement * uiAbsPartIdx >> 2):]
+                pcArlCoeffSrcU := this.m_ppcQTTempArlCoeffCb[uiQTTempAccessLayer][(uiNumCoeffPerAbsPartIdxIncrement * uiAbsPartIdx >> 2):]
+                pcArlCoeffSrcV := this.m_ppcQTTempArlCoeffCr[uiQTTempAccessLayer][(uiNumCoeffPerAbsPartIdxIncrement * uiAbsPartIdx >> 2):]
+                pcArlCoeffDstU := pcCU.GetArlCoeffCb()[(uiNumCoeffPerAbsPartIdxIncrement * uiAbsPartIdx >> 2):]
+                pcArlCoeffDstV := pcCU.GetArlCoeffCr()[(uiNumCoeffPerAbsPartIdxIncrement * uiAbsPartIdx >> 2):]
                 for i := int(0); i < uiNumCoeffC; i++ {
                     pcArlCoeffDstU[i] = pcArlCoeffSrcU[i] //, sizeof( int ) * uiNumCoeffC );
                     pcArlCoeffDstV[i] = pcArlCoeffSrcV[i] //, sizeof( int ) * uiNumCoeffC );
@@ -5516,7 +5509,7 @@ func (this *TEncSearch) xAddSymbolBitsInter(pcCU *TLibCommon.TComDataCU,
             this.m_pcEntropyCoder.encodeCUTransquantBypassFlag(pcCU, 0, true)
         }
         this.m_pcEntropyCoder.encodeSkipFlag(pcCU, 0, true)
-        this.m_pcEntropyCoder.encodeMergeIndex(pcCU, 0, 0, true)
+        this.m_pcEntropyCoder.encodeMergeIndex(pcCU, 0, true)
         *ruiBits += this.m_pcEntropyCoder.getNumberOfWrittenBits()
     } else {
         this.m_pcEntropyCoder.resetBits()

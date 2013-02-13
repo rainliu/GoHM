@@ -136,8 +136,8 @@ func (this *TEncRdCostWeightPrediction) xGetSSEw(pcDtParam *DistParam) uint {
     shift := uint(wpCur.Shift)
     round := wpCur.Round
 
-    uiSum := uint(0) 
-    uiShift := TLibCommon.DISTORTION_PRECISION_ADJUSTMENT(uint(pcDtParam.bitDepth - 8) << 1).(uint)
+    uiSum := uint(0)
+    uiShift := TLibCommon.DISTORTION_PRECISION_ADJUSTMENT(uint(pcDtParam.bitDepth-8) << 1).(uint)
 
     var iTemp int
 
@@ -539,7 +539,8 @@ type TEncRdCost struct {
     //#endif
 
     //#if WEIGHTED_CHROMA_DISTORTION
-    m_chromaDistortionWeight float64
+    m_cbDistortionWeight float64
+    m_crDistortionWeight float64
     //#endif
     m_dLambda           float64
     m_sqrtLambda        float64
@@ -653,8 +654,11 @@ func (this *TEncRdCost) calcRdCost64(uiBits, uiDistortion uint64, bFlag bool, eD
 }
 
 //#if WEIGHTED_CHROMA_DISTORTION
-func (this *TEncRdCost) setChromaDistortionWeight(chromaDistortionWeight float64) {
-    this.m_chromaDistortionWeight = chromaDistortionWeight
+func (this *TEncRdCost) setCbDistortionWeight(cbDistortionWeight float64) {
+    this.m_cbDistortionWeight = cbDistortionWeight
+}
+func (this *TEncRdCost) setCrDistortionWeight(crDistortionWeight float64) {
+    this.m_crDistortionWeight = crDistortionWeight
 }
 
 //#endif
@@ -923,7 +927,7 @@ func (this *TEncRdCost) getBits(x, y int) uint {
 }
 
 //#if WEIGHTED_CHROMA_DISTORTION
-func (this *TEncRdCost) getDistPart(bitDepth int, piCur []TLibCommon.Pel, iCurStride int, piOrg []TLibCommon.Pel, iOrgStride int, uiBlkWidth, uiBlkHeight uint, bWeighted bool, eDFunc TLibCommon.DFunc) uint {
+func (this *TEncRdCost) getDistPart(bitDepth int, piCur []TLibCommon.Pel, iCurStride int, piOrg []TLibCommon.Pel, iOrgStride int, uiBlkWidth, uiBlkHeight uint, eText TLibCommon.TextType, eDFunc TLibCommon.DFunc) uint {
     var cDtParam DistParam
     this.setDistParam1(uiBlkWidth, uiBlkHeight, eDFunc, &cDtParam)
     cDtParam.pOrg = piOrg
@@ -937,11 +941,12 @@ func (this *TEncRdCost) getDistPart(bitDepth int, piCur []TLibCommon.Pel, iCurSt
     cDtParam.bitDepth = bitDepth
 
     //#if WEIGHTED_CHROMA_DISTORTION
-    if bWeighted {
-        return uint(this.m_chromaDistortionWeight * float64(cDtParam.DistFunc(&cDtParam)))
+    if eText == TLibCommon.TEXT_CHROMA_U {
+        return uint(this.m_cbDistortionWeight * float64(cDtParam.DistFunc(&cDtParam)))
+    } else if eText == TLibCommon.TEXT_CHROMA_V {
+        return uint(this.m_crDistortionWeight * float64(cDtParam.DistFunc(&cDtParam)))
     }
     return cDtParam.DistFunc(&cDtParam)
-
     //#else
     //  return cDtParam.DistFunc( &cDtParam );
     //#endif
@@ -979,7 +984,7 @@ func (this *TEncRdCost) xGetSSE(pcDtParam *DistParam) uint {
     iStrideCur := pcDtParam.iStrideCur
 
     uiSum := uint(0)
-    uiShift := TLibCommon.DISTORTION_PRECISION_ADJUSTMENT(uint(pcDtParam.bitDepth - 8) << 1).(uint)
+    uiShift := TLibCommon.DISTORTION_PRECISION_ADJUSTMENT(uint(pcDtParam.bitDepth-8) << 1).(uint)
 
     var iTemp int
 
@@ -1007,7 +1012,7 @@ func (this *TEncRdCost) xGetSSE4(pcDtParam *DistParam) uint {
     iStrideCur := pcDtParam.iStrideCur
 
     uiSum := uint(0)
-    uiShift := TLibCommon.DISTORTION_PRECISION_ADJUSTMENT(uint(pcDtParam.bitDepth - 8) << 1).(uint)
+    uiShift := TLibCommon.DISTORTION_PRECISION_ADJUSTMENT(uint(pcDtParam.bitDepth-8) << 1).(uint)
 
     var iTemp int
 
@@ -1040,7 +1045,7 @@ func (this *TEncRdCost) xGetSSE8(pcDtParam *DistParam) uint {
     iStrideCur := pcDtParam.iStrideCur
 
     uiSum := uint(0)
-    uiShift := TLibCommon.DISTORTION_PRECISION_ADJUSTMENT(uint(pcDtParam.bitDepth - 8) << 1).(uint) 
+    uiShift := TLibCommon.DISTORTION_PRECISION_ADJUSTMENT(uint(pcDtParam.bitDepth-8) << 1).(uint)
 
     var iTemp int
 
@@ -1080,7 +1085,7 @@ func (this *TEncRdCost) xGetSSE16(pcDtParam *DistParam) uint {
     iStrideCur := pcDtParam.iStrideCur
 
     uiSum := uint(0)
-    uiShift := TLibCommon.DISTORTION_PRECISION_ADJUSTMENT(uint(pcDtParam.bitDepth - 8) << 1).(uint)
+    uiShift := TLibCommon.DISTORTION_PRECISION_ADJUSTMENT(uint(pcDtParam.bitDepth-8) << 1).(uint)
 
     var iTemp int
 
@@ -1137,7 +1142,7 @@ func (this *TEncRdCost) xGetSSE32(pcDtParam *DistParam) uint {
     iStrideCur := pcDtParam.iStrideCur
 
     uiSum := uint(0)
-    uiShift := TLibCommon.DISTORTION_PRECISION_ADJUSTMENT(uint(pcDtParam.bitDepth - 8) << 1).(uint)
+    uiShift := TLibCommon.DISTORTION_PRECISION_ADJUSTMENT(uint(pcDtParam.bitDepth-8) << 1).(uint)
     var iTemp int
 
     for ; iRows != 0; iRows-- {
@@ -1225,7 +1230,7 @@ func (this *TEncRdCost) xGetSSE64(pcDtParam *DistParam) uint {
     iStrideCur := pcDtParam.iStrideCur
 
     uiSum := uint(0)
-    uiShift := TLibCommon.DISTORTION_PRECISION_ADJUSTMENT(uint(pcDtParam.bitDepth - 8) << 1).(uint)
+    uiShift := TLibCommon.DISTORTION_PRECISION_ADJUSTMENT(uint(pcDtParam.bitDepth-8) << 1).(uint)
     var iTemp int
 
     for ; iRows != 0; iRows-- {
@@ -1377,7 +1382,7 @@ func (this *TEncRdCost) xGetSSE16N(pcDtParam *DistParam) uint {
     iStrideCur := pcDtParam.iStrideCur
 
     uiSum := uint(0)
-    uiShift := TLibCommon.DISTORTION_PRECISION_ADJUSTMENT(uint(pcDtParam.bitDepth - 8) << 1).(uint)
+    uiShift := TLibCommon.DISTORTION_PRECISION_ADJUSTMENT(uint(pcDtParam.bitDepth-8) << 1).(uint)
     var iTemp int
 
     for ; iRows != 0; iRows-- {

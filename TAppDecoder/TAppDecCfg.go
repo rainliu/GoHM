@@ -50,7 +50,7 @@ type TAppDecCfg struct {
     m_iMaxTemporalLayer            int        ///< maximum temporal layer to be decoded
     m_decodedPictureHashSEIEnabled int        ///< Checksum(3)/CRC(2)/MD5(1)/disable(0) acting on decoded picture hash SEI message
     m_targetDecLayerIdSet          *list.List ///< set of LayerIds to be included in the sub-bitstream extraction process.
-    m_respectDefDispWindow         int;       ///< Only output content inside the default display window
+    m_respectDefDispWindow         int        ///< Only output content inside the default display window
 }
 
 func NewTAppDecCfg() *TAppDecCfg {

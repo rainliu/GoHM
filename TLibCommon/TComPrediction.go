@@ -373,35 +373,35 @@ func NewTComPrediction() *TComPrediction {
     return &TComPrediction{m_iLumaRecStride: 0}
 }
 
-func (this *TComPrediction) GetFilteredBlock(i,j int) *TComYuv {
-	return &this.m_filteredBlock[i][j];
+func (this *TComPrediction) GetFilteredBlock(i, j int) *TComYuv {
+    return &this.m_filteredBlock[i][j]
 }
 
 func (this *TComPrediction) GetFilteredBlockTmp(i int) *TComYuv {
-	return &this.m_filteredBlockTmp[i];
+    return &this.m_filteredBlockTmp[i]
 }
 
-func (this *TComPrediction) GetYuvExt() []Pel{
-	return this.m_piYuvExt
+func (this *TComPrediction) GetYuvExt() []Pel {
+    return this.m_piYuvExt
 }
 
-func (this *TComPrediction) GetYuvExtStride() int{
-	return this.m_iYuvExtStride;
+func (this *TComPrediction) GetYuvExtStride() int {
+    return this.m_iYuvExtStride
 }
 
-func (this *TComPrediction) GetYuvExtHeight() int{
-	return this.m_iYuvExtHeight;
+func (this *TComPrediction) GetYuvExtHeight() int {
+    return this.m_iYuvExtHeight
 }
 
-func (this *TComPrediction) GetYuvPred(i int) *TComYuv{
-	return &this.m_acYuvPred[i];
+func (this *TComPrediction) GetYuvPred(i int) *TComYuv {
+    return &this.m_acYuvPred[i]
 }
 
-func (this *TComPrediction) GetIf() *TComInterpolationFilter{
-	return &this.m_if;
+func (this *TComPrediction) GetIf() *TComInterpolationFilter {
+    return &this.m_if
 }
-func (this *TComPrediction) GetYuvPredTemp() *TComYuv{
-	return &this.m_cYuvPredTemp;
+func (this *TComPrediction) GetYuvPredTemp() *TComYuv {
+    return &this.m_cYuvPredTemp
 }
 
 func (this *TComPrediction) InitTempBuff() {

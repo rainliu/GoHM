@@ -153,18 +153,18 @@ func (this *TDecSlice) DecompressSlice(ppcSubstreams []*TLibCommon.TComInputBits
 
     var uiTileCol, uiTileStartLCU, uiTileLCUX uint
     iNumSubstreamsPerTile := 1 // if independent.
-    depSliceSegmentsEnabled := rpcPic.GetSlice(rpcPic.GetCurrSliceIdx()).GetPPS().GetDependentSliceSegmentsEnabledFlag();
-    uiTileStartLCU = rpcPic.GetPicSym().GetTComTile(rpcPic.GetPicSym().GetTileIdxMap(iStartCUAddr)).GetFirstCUAddr();
+    depSliceSegmentsEnabled := rpcPic.GetSlice(rpcPic.GetCurrSliceIdx()).GetPPS().GetDependentSliceSegmentsEnabledFlag()
+    uiTileStartLCU = rpcPic.GetPicSym().GetTComTile(rpcPic.GetPicSym().GetTileIdxMap(iStartCUAddr)).GetFirstCUAddr()
     if depSliceSegmentsEnabled {
-        if (!rpcPic.GetSlice(rpcPic.GetCurrSliceIdx()).IsNextSlice()) && iStartCUAddr != int(rpcPic.GetPicSym().GetTComTile(rpcPic.GetPicSym().GetTileIdxMap(iStartCUAddr)).GetFirstCUAddr())  {
+        if (!rpcPic.GetSlice(rpcPic.GetCurrSliceIdx()).IsNextSlice()) && iStartCUAddr != int(rpcPic.GetPicSym().GetTComTile(rpcPic.GetPicSym().GetTileIdxMap(iStartCUAddr)).GetFirstCUAddr()) {
             if pcSlice.GetPPS().GetEntropyCodingSyncEnabledFlag() {
-                uiTileCol = rpcPic.GetPicSym().GetTileIdxMap(iStartCUAddr) % uint(rpcPic.GetPicSym().GetNumColumnsMinus1()+1);
-                this.m_pcBufferSbacDecoders[uiTileCol].LoadContexts( this.CTXMem[1]  );//2.LCU
-                if  (uint(iStartCUAddr)%uiWidthInLCUs+1) >= uiWidthInLCUs  {
-                    uiTileLCUX = uiTileStartLCU % uiWidthInLCUs;
-                    uiCol     = uint(iStartCUAddr) % uiWidthInLCUs;
-                    if uiCol==uiTileLCUX {
-                        this.CTXMem[0].LoadContexts(pcSbacDecoder);
+                uiTileCol = rpcPic.GetPicSym().GetTileIdxMap(iStartCUAddr) % uint(rpcPic.GetPicSym().GetNumColumnsMinus1()+1)
+                this.m_pcBufferSbacDecoders[uiTileCol].LoadContexts(this.CTXMem[1]) //2.LCU
+                if (uint(iStartCUAddr)%uiWidthInLCUs + 1) >= uiWidthInLCUs {
+                    uiTileLCUX = uiTileStartLCU % uiWidthInLCUs
+                    uiCol = uint(iStartCUAddr) % uiWidthInLCUs
+                    if uiCol == uiTileLCUX {
+                        this.CTXMem[0].LoadContexts(pcSbacDecoder)
                     }
                 }
             }
@@ -182,7 +182,7 @@ func (this *TDecSlice) DecompressSlice(ppcSubstreams []*TLibCommon.TComInputBits
         pcCU := rpcPic.GetCU(uint(iCUAddr))
         pcCU.InitCU(rpcPic, uint(iCUAddr))
 
-        fmt.Printf("%d ", iCUAddr);
+        fmt.Printf("%d ", iCUAddr)
 
         //#ifdef ENC_DEC_TRACE
         pcSbacDecoder.XTraceLCUHeader(TLibCommon.TRACE_LCU)
@@ -215,10 +215,10 @@ func (this *TDecSlice) DecompressSlice(ppcSubstreams []*TLibCommon.TComInputBits
                 }
                 uiMaxParts := uint(1 << (pcSlice.GetSPS().GetMaxCUDepth() << 1))
 
-                if  true && //bEnforceSliceRestriction
+                if true && //bEnforceSliceRestriction
                     ((pcCUTR == nil) || (pcCUTR.GetSlice() == nil) ||
                         ((pcCUTR.GetSCUAddr() + uiMaxParts - 1) < pcSlice.GetSliceCurStartCUAddr()) ||
-                        (rpcPic.GetPicSym().GetTileIdxMap(int(pcCUTR.GetAddr())) != rpcPic.GetPicSym().GetTileIdxMap(iCUAddr)))  {
+                        (rpcPic.GetPicSym().GetTileIdxMap(int(pcCUTR.GetAddr())) != rpcPic.GetPicSym().GetTileIdxMap(iCUAddr))) {
 
                     // TR not available.
                 } else {
@@ -287,21 +287,21 @@ func (this *TDecSlice) DecompressSlice(ppcSubstreams []*TLibCommon.TComInputBits
                 }
             }
             pcSbacDecoder.ParseSaoOneLcuInterleaving(rx, ry, saoParam, pcCU, cuAddrInSlice, cuAddrUpInSlice, allowMergeLeft, allowMergeUp)
-        }else if pcSlice.GetSPS().GetUseSAO() {
-            addr := pcCU.GetAddr();
-            saoParam := rpcPic.GetPicSym().GetSaoParam();
-            for cIdx:=0; cIdx<3; cIdx++ {
-              saoLcuParam := &(saoParam.SaoLcuParam[cIdx][addr]);
-              if  ((cIdx == 0) && !pcSlice.GetSaoEnabledFlag()) || ((cIdx == 1 || cIdx == 2) && !pcSlice.GetSaoEnabledFlagChroma()) {
-                saoLcuParam.MergeUpFlag   = false;
-                saoLcuParam.MergeLeftFlag = false;
-                saoLcuParam.SubTypeIdx    = 0;
-                saoLcuParam.TypeIdx       = -1;
-                saoLcuParam.Offset[0]     = 0;
-                saoLcuParam.Offset[1]     = 0;
-                saoLcuParam.Offset[2]     = 0;
-                saoLcuParam.Offset[3]     = 0;
-              }
+        } else if pcSlice.GetSPS().GetUseSAO() {
+            addr := pcCU.GetAddr()
+            saoParam := rpcPic.GetPicSym().GetSaoParam()
+            for cIdx := 0; cIdx < 3; cIdx++ {
+                saoLcuParam := &(saoParam.SaoLcuParam[cIdx][addr])
+                if ((cIdx == 0) && !pcSlice.GetSaoEnabledFlag()) || ((cIdx == 1 || cIdx == 2) && !pcSlice.GetSaoEnabledFlagChroma()) {
+                    saoLcuParam.MergeUpFlag = false
+                    saoLcuParam.MergeLeftFlag = false
+                    saoLcuParam.SubTypeIdx = 0
+                    saoLcuParam.TypeIdx = -1
+                    saoLcuParam.Offset[0] = 0
+                    saoLcuParam.Offset[1] = 0
+                    saoLcuParam.Offset[2] = 0
+                    saoLcuParam.Offset[3] = 0
+                }
             }
         }
         this.m_pcCuDecoder.DecodeCU(pcCU, &uiIsLast)

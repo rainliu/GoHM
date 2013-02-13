@@ -58,7 +58,7 @@ func (this *InputNALUnit) Read(nalUnitBuf *list.List) *list.List {
     pcBitstream := TLibCommon.NewTComInputBitstream(nil)
 
     firstByte := nalUnitBuf.Front().Value.(byte)
-    oldNalUnitBuf:=this.convertPayloadToRBSP(nalUnitBuf, pcBitstream, (firstByte&64) == 0)
+    oldNalUnitBuf := this.convertPayloadToRBSP(nalUnitBuf, pcBitstream, (firstByte&64) == 0)
 
     this.m_Bitstream = TLibCommon.NewTComInputBitstream(nalUnitBuf)
 
@@ -75,14 +75,14 @@ func (this *InputNALUnit) SetBitstream(bitstream *TLibCommon.TComInputBitstream)
     this.m_Bitstream = bitstream
 }
 
-func (this *InputNALUnit) convertPayloadToRBSP(nalUnitBuf *list.List, pcBitstream *TLibCommon.TComInputBitstream, isVclNalUnit bool) *list.List{
+func (this *InputNALUnit) convertPayloadToRBSP(nalUnitBuf *list.List, pcBitstream *TLibCommon.TComInputBitstream, isVclNalUnit bool) *list.List {
     zeroCount := 0
-    it_write := list.New();
-    oldBuf := list.New();
+    it_write := list.New()
+    oldBuf := list.New()
     for e := nalUnitBuf.Front(); e != nil; e = e.Next() {
         //assert(zeroCount < 2 || *it_read >= 0x03);
         it_read := e.Value.(byte)
-        oldBuf.PushBack(it_read);
+        oldBuf.PushBack(it_read)
         if zeroCount == 2 && it_read == 0x03 {
             zeroCount = 0
 
@@ -91,7 +91,7 @@ func (this *InputNALUnit) convertPayloadToRBSP(nalUnitBuf *list.List, pcBitstrea
                 break
             } else {
                 it_read = e.Value.(byte)
-                oldBuf.PushBack(it_read);
+                oldBuf.PushBack(it_read)
             }
         }
 
@@ -128,7 +128,7 @@ func (this *InputNALUnit) convertPayloadToRBSP(nalUnitBuf *list.List, pcBitstrea
         nalUnitBuf.PushBack(it_read)
     }
 
-    return oldBuf;
+    return oldBuf
 }
 
 func (this *InputNALUnit) readNalUnitHeader() error {

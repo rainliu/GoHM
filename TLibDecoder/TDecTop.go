@@ -43,7 +43,7 @@ import (
 /// decoder class
 type TDecTop struct {
     //private:
-    m_iMaxRefPicNum int
+    m_iMaxRefPicNum   int
     m_pocCRA          int  ///< POC number of the latest CRA picture
     m_prevRAPisBLA    bool ///< true if the previous RAP (CRA/CRANT/BLA/BLANT/IDR) picture is a BLA/BLANT picture
     m_pocRandomAccess int  ///< POC number of the random access point (the first IDR or CRA picture)
@@ -132,7 +132,7 @@ func (this *TDecTop) IsSkipPictureForBLA(iPOCLastDisplay *int) bool {
     if this.m_prevRAPisBLA &&
         this.m_apcSlicePilot.GetPOC() < this.m_pocCRA &&
         (this.m_apcSlicePilot.GetNalUnitType() == TLibCommon.NAL_UNIT_CODED_SLICE_TFD ||
-         this.m_apcSlicePilot.GetNalUnitType() == TLibCommon.NAL_UNIT_CODED_SLICE_RASL_N) {
+            this.m_apcSlicePilot.GetNalUnitType() == TLibCommon.NAL_UNIT_CODED_SLICE_RASL_N) {
         (*iPOCLastDisplay)++
         return true
     }
@@ -162,7 +162,7 @@ func (this *TDecTop) IsRandomAccessSkipPicture(iSkipFrame *int, iPOCLastDisplay 
         }
     } else if this.m_apcSlicePilot.GetPOC() < this.m_pocRandomAccess &&
         (this.m_apcSlicePilot.GetNalUnitType() == TLibCommon.NAL_UNIT_CODED_SLICE_TFD ||
-         this.m_apcSlicePilot.GetNalUnitType() == TLibCommon.NAL_UNIT_CODED_SLICE_RASL_N){ // skip the reordered pictures, if necessary
+            this.m_apcSlicePilot.GetNalUnitType() == TLibCommon.NAL_UNIT_CODED_SLICE_RASL_N) { // skip the reordered pictures, if necessary
         *iPOCLastDisplay++
         return true
     }
@@ -284,12 +284,12 @@ func (this *TDecTop) ExecuteLoopFilters(poc *int) *list.List {
 //protected:
 func (this *TDecTop) xGetNewPicBuffer(pcSlice *TLibCommon.TComSlice) (rpcPic *TLibCommon.TComPic) {
     var numReorderPics [TLibCommon.MAX_TLAYER]int
-    conformanceWindow := pcSlice.GetSPS().GetConformanceWindow();
+    conformanceWindow := pcSlice.GetSPS().GetConformanceWindow()
     var defaultDisplayWindow *TLibCommon.Window
     if pcSlice.GetSPS().GetVuiParametersPresentFlag() {
-        defaultDisplayWindow =  pcSlice.GetSPS().GetVuiParameters().GetDefaultDisplayWindow();
-    }else{
-        defaultDisplayWindow =  TLibCommon.NewWindow();
+        defaultDisplayWindow = pcSlice.GetSPS().GetVuiParameters().GetDefaultDisplayWindow()
+    } else {
+        defaultDisplayWindow = TLibCommon.NewWindow()
     }
 
     for temporalLayer := uint(0); temporalLayer < TLibCommon.MAX_TLAYER; temporalLayer++ {
@@ -355,8 +355,8 @@ func (this *TDecTop) xActivateParameterSets() {
 
     sps := this.m_parameterSetManagerDecoder.GetSPS(pps.GetSPSId())
     //assert (sps != 0);
-    if false == this.m_parameterSetManagerDecoder.ActivatePPS(this.m_apcSlicePilot.GetPPSId(), this.m_apcSlicePilot.GetIdrPicFlag()){
-        fmt.Printf ("Parameter set activation failed!");
+    if false == this.m_parameterSetManagerDecoder.ActivatePPS(this.m_apcSlicePilot.GetPPSId(), this.m_apcSlicePilot.GetIdrPicFlag()) {
+        fmt.Printf("Parameter set activation failed!")
         //assert (0);
     }
 
@@ -408,12 +408,12 @@ func (this *TDecTop) xDecodeSlice(nalu *InputNALUnit, iSkipFrame *int, iPOCLastD
     this.m_cEntropyDecoder.DecodeSliceHeader(this.m_apcSlicePilot, this.m_parameterSetManagerDecoder)
     if this.m_apcSlicePilot.IsNextSlice() {
         // Skip pictures due to random access
-        if this.IsRandomAccessSkipPicture(iSkipFrame, &iPOCLastDisplay){
-          return false;
+        if this.IsRandomAccessSkipPicture(iSkipFrame, &iPOCLastDisplay) {
+            return false
         }
         // Skip TFD pictures associated with BLA/BLANT pictures
-        if this.IsSkipPictureForBLA(&iPOCLastDisplay){
-          return false;
+        if this.IsSkipPictureForBLA(&iPOCLastDisplay) {
+            return false
         }
     }
 
@@ -457,16 +457,16 @@ func (this *TDecTop) xDecodeSlice(nalu *InputNALUnit, iSkipFrame *int, iPOCLastD
         this.m_cTrQuant.Init(this.m_apcSlicePilot.GetSPS().GetMaxTrSize(), false, false, false, false, false)
 
         this.m_cSliceDecoder.Create()
-    }else {
+    } else {
         // Check if any new SEI has arrived
         /*if(!m_SEIs.empty())
-        {
-          // Currently only decoding Unit SEI message occurring between VCL NALUs copied
-          SEIMessages &picSEI = pcPic->getSEIs();
-          SEIMessages decodingUnitInfos = extractSeisByType (m_SEIs, SEI::DECODING_UNIT_INFO);
-          picSEI.insert(picSEI.end(), decodingUnitInfos.begin(), decodingUnitInfos.end());
-          deleteSEIs(m_SEIs);
-        }*/
+          {
+            // Currently only decoding Unit SEI message occurring between VCL NALUs copied
+            SEIMessages &picSEI = pcPic->getSEIs();
+            SEIMessages decodingUnitInfos = extractSeisByType (m_SEIs, SEI::DECODING_UNIT_INFO);
+            picSEI.insert(picSEI.end(), decodingUnitInfos.begin(), decodingUnitInfos.end());
+            deleteSEIs(m_SEIs);
+          }*/
     }
 
     //  Set picture slice pointer
