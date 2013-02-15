@@ -1183,7 +1183,7 @@ func (this *TComTrQuant) xRateDistOptQuant(pcCU *TComDataCU,
 
                 if uiLevel >= uint(baseLevel) {
                     if uiLevel > 3*(1<<uiGoRiceParam) {
-                        uiGoRiceParam = MIN(uiGoRiceParam+1, 4).(uint)
+                        uiGoRiceParam = MIN(uiGoRiceParam+1, uint(4)).(uint)
                     }
                 }
                 if uiLevel >= 1 {
@@ -1629,7 +1629,7 @@ func (this *TComTrQuant) xGetICRate(uiAbsLevel uint,
         }
 
         ui16PrefLen := uint16(uiSymbol>>ui16AbsGoRice) + 1
-        ui16NumBins := uint16(MIN(ui16PrefLen, G_auiGoRicePrefixLen[ui16AbsGoRice]).(uint)) + ui16AbsGoRice
+        ui16NumBins := uint16(MIN(ui16PrefLen, uint16(G_auiGoRicePrefixLen[ui16AbsGoRice])).(uint16)) + ui16AbsGoRice
 
         iRate += int(ui16NumBins << 15)
 

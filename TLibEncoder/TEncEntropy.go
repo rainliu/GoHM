@@ -43,6 +43,14 @@ import (
 
 /// entropy encoder pure class
 type TEncEntropyIf interface {
+	
+	DTRACE_CABAC_F(x float32)
+    DTRACE_CABAC_V(x uint)
+    DTRACE_CABAC_VL(x uint)
+    DTRACE_CABAC_T(x string)
+    DTRACE_CABAC_X(x uint)
+    DTRACE_CABAC_N()
+    
     resetEntropy()
     determineCabacInitIdx()
     setBitstream(p TLibCommon.TComBitIf)
@@ -419,16 +427,15 @@ func (this *TEncEntropy) xEncodeTransform(pcCU *TLibCommon.TComDataCU, offsetLum
         offsetChroma += (size >> 2)
         this.xEncodeTransform(pcCU, offsetLuma, offsetChroma, uiAbsPartIdx, uiDepth, width, height, uiTrIdx, bCodeDQP)
     } else {
-        /*{
-          DTRACE_CABAC_VL( g_nSymbolCounter++ );
-          DTRACE_CABAC_T( "\tTrIdx: abspart=" );
-          DTRACE_CABAC_V( uiAbsPartIdx );
-          DTRACE_CABAC_T( "\tdepth=" );
-          DTRACE_CABAC_V( uiDepth );
-          DTRACE_CABAC_T( "\ttrdepth=" );
-          DTRACE_CABAC_V( pcCU.GetTransformIdx( uiAbsPartIdx ) );
-          DTRACE_CABAC_T( "\n" );
-        }*/
+        /*DTRACE_CABAC_VL( g_nSymbolCounter++ );*/
+        this.m_pcEntropyCoderIf.DTRACE_CABAC_T( "\tTrIdx: abspart=" );
+        this.m_pcEntropyCoderIf.DTRACE_CABAC_V( uiAbsPartIdx );
+        this.m_pcEntropyCoderIf.DTRACE_CABAC_T( "\tdepth=" );
+        this.m_pcEntropyCoderIf.DTRACE_CABAC_V( uiDepth );
+        this.m_pcEntropyCoderIf.DTRACE_CABAC_T( "\ttrdepth=" );
+        this.m_pcEntropyCoderIf.DTRACE_CABAC_V( uint(pcCU.GetTransformIdx1( uiAbsPartIdx )) );
+        this.m_pcEntropyCoderIf.DTRACE_CABAC_T( "\n" );
+        
 
         if pcCU.GetPredictionMode1(uiAbsPartIdx) != TLibCommon.MODE_INTRA && uiDepth == uint(pcCU.GetDepth1(uiAbsPartIdx)) && pcCU.GetCbf3(uiAbsPartIdx, TLibCommon.TEXT_CHROMA_U, 0) == 0 && pcCU.GetCbf3(uiAbsPartIdx, TLibCommon.TEXT_CHROMA_V, 0) == 0 {
             //assert( pcCU.GetCbf( uiAbsPartIdx, TLibCommon.TEXT_LUMA, 0 ) );
@@ -480,10 +487,10 @@ func (this *TEncEntropy) encodeCoeff(pcCU *TLibCommon.TComDataCU, uiAbsPartIdx, 
     uiChromaOffset := uiLumaOffset >> 2
 
     if pcCU.IsIntra(uiAbsPartIdx) {
-        /*DTRACE_CABAC_VL( g_nSymbolCounter++ )
-          DTRACE_CABAC_T( "\tdecodeTransformIdx()\tCUDepth=" )
-          DTRACE_CABAC_V( uiDepth )
-          DTRACE_CABAC_T( "\n" )*/
+        /*DTRACE_CABAC_VL( g_nSymbolCounter++ )*/
+        this.m_pcEntropyCoderIf.DTRACE_CABAC_T( "\tdecodeTransformIdx()\tCUDepth=" )
+        this.m_pcEntropyCoderIf.DTRACE_CABAC_V( uiDepth )
+        this.m_pcEntropyCoderIf.DTRACE_CABAC_T( "\n" )
     } else {
         if !(pcCU.GetMergeFlag1(uiAbsPartIdx) && pcCU.GetPartitionSize1(uiAbsPartIdx) == TLibCommon.SIZE_2Nx2N) {
             this.m_pcEntropyCoderIf.codeQtRootCbf(pcCU, uiAbsPartIdx)

@@ -765,6 +765,8 @@ func (this *TEncSearch) estIntraPredQT(pcCU *TLibCommon.TComDataCU,
     var CandNum uint
     var CandCostList [TLibCommon.FAST_UDI_MAX_RDMODE_NUM]float64
 
+	print("Enter estIntraPredQT\n")
+	
     //===== set QP and clear Cbf =====
     if pcCU.GetSlice().GetPPS().GetUseDQP() {
         pcCU.SetQPSubParts(int(pcCU.GetQP1(0)), 0, uiDepth)
@@ -1059,6 +1061,8 @@ func (this *TEncSearch) estIntraPredQT(pcCU *TLibCommon.TComDataCU,
     //===== set distortion (rate and r-d costs are determined later) =====
     *ruiDistC = uiOverallDistC
     pcCU.SetTotalDistortion(uiOverallDistY + uiOverallDistC)
+    
+    print("Exit estIntraPredQT\n")
 }
 
 func (this *TEncSearch) estIntraPredChromaQT(pcCU *TLibCommon.TComDataCU,
@@ -1077,7 +1081,9 @@ func (this *TEncSearch) estIntraPredChromaQT(pcCU *TLibCommon.TComDataCU,
     var uiModeList [TLibCommon.NUM_CHROMA_MODE]uint
     pcCU.GetAllowedChromaDir(0, uiModeList[:])
     uiMaxMode := uint(TLibCommon.NUM_CHROMA_MODE)
-
+	
+	print("Enter estIntraPredChromaQT\n")
+	
     //----- check chroma modes -----
     for uiMode := uiMinMode; uiMode < uiMaxMode; uiMode++ {
         //----- restore context models -----
@@ -1127,6 +1133,8 @@ func (this *TEncSearch) estIntraPredChromaQT(pcCU *TLibCommon.TComDataCU,
     if this.m_bUseSBACRD {
         this.m_pcRDGoOnSbacCoder.load(this.m_pppcRDSbacCoder[uiDepth][TLibCommon.CI_CURR_BEST])
     }
+    
+    print("Exit estIntraPredChromaQT\n")
 }
 
 /// encoder estimation - inter prediction (non-skip)
@@ -2401,11 +2409,11 @@ func (this *TEncSearch) xIntraCodingLumaBlk(pcCU *TLibCommon.TComDataCU,
         pResi := piResi
         for uiY := uint(0); uiY < uiHeight; uiY++ {
             for uiX := uint(0); uiX < uiWidth; uiX++ {
-                pResi[uiX] = pOrg[uiX] - pPred[uiX]
+                pResi[uiY*uiStride+uiX] = pOrg[uiY*uiStride+uiX] - pPred[uiY*uiStride+uiX]
             }
-            pOrg = pOrg[uiStride:]
-            pResi = pResi[uiStride:]
-            pPred = pPred[uiStride:]
+            //pOrg = pOrg[uiStride:]
+            //pResi = pResi[uiStride:]
+            //pPred = pPred[uiStride:]
         }
     }
 
@@ -2450,9 +2458,9 @@ func (this *TEncSearch) xIntraCodingLumaBlk(pcCU *TLibCommon.TComDataCU,
         }
         for uiY := uint(0); uiY < uiHeight; uiY++ {
             for uiX := uint(0); uiX < uiWidth; uiX++ {
-                pResi[uiX] = 0 //, sizeof( TLibCommon.Pel ) * uiWidth );
+                pResi[uiY*uiStride+uiX] = 0 //, sizeof( TLibCommon.Pel ) * uiWidth );
             }
-            pResi = pResi[uiStride:]
+            //pResi = pResi[uiStride:]
         }
     }
 
@@ -2465,15 +2473,15 @@ func (this *TEncSearch) xIntraCodingLumaBlk(pcCU *TLibCommon.TComDataCU,
         pRecIPred := piRecIPred
         for uiY := uint(0); uiY < uiHeight; uiY++ {
             for uiX := uint(0); uiX < uiWidth; uiX++ {
-                pReco[uiX] = TLibCommon.ClipY(pPred[uiX] + pResi[uiX])
-                pRecQt[uiX] = pReco[uiX]
-                pRecIPred[uiX] = pReco[uiX]
+                pReco[uiY*uiStride+uiX] = TLibCommon.ClipY(pPred[uiY*uiStride+uiX] + pResi[uiY*uiStride+uiX])
+                pRecQt[uiY*uiRecQtStride+uiX] = pReco[uiY*uiStride+uiX]
+                pRecIPred[uiY*uiRecIPredStride+uiX] = pReco[uiY*uiStride+uiX]
             }
-            pPred = pPred[uiStride:]
-            pResi = pResi[uiStride:]
-            pReco = pReco[uiStride:]
-            pRecQt = pRecQt[uiRecQtStride:]
-            pRecIPred = pRecIPred[uiRecIPredStride:]
+            //pPred = pPred[uiStride:]
+            //pResi = pResi[uiStride:]
+            //pReco = pReco[uiStride:]
+            //pRecQt = pRecQt[uiRecQtStride:]
+            //pRecIPred = pRecIPred[uiRecIPredStride:]
         }
     }
 
@@ -2548,7 +2556,7 @@ func (this *TEncSearch) xIntraCodingChromaBlk(pcCU *TLibCommon.TComDataCU,
     //#if ADAPTIVE_QP_SELECTION
     //#endif
 
-    uiRecIPredStride := pcCU.GetPic().GetPicYuvRec().GetCStride()
+    uiRecIPredStride := uint(pcCU.GetPic().GetPicYuvRec().GetCStride())
     useTransformSkipChroma := pcCU.GetTransformSkip2(uiAbsPartIdx, eText)
     //===== update chroma mode =====
     if uiChromaPredMode == TLibCommon.DM_CHROMA_IDX {
@@ -2605,11 +2613,11 @@ func (this *TEncSearch) xIntraCodingChromaBlk(pcCU *TLibCommon.TComDataCU,
         pResi := piResi
         for uiY := uint(0); uiY < uiHeight; uiY++ {
             for uiX := uint(0); uiX < uiWidth; uiX++ {
-                pResi[uiX] = pOrg[uiX] - pPred[uiX]
+                pResi[uiY*uiStride+uiX] = pOrg[uiY*uiStride+uiX] - pPred[uiY*uiStride+uiX]
             }
-            pOrg = pOrg[uiStride:]
-            pResi = pResi[uiStride:]
-            pPred = pPred[uiStride:]
+            //pOrg = pOrg[uiStride:]
+            //pResi = pResi[uiStride:]
+            //pPred = pPred[uiStride:]
         }
     }
 
@@ -2658,9 +2666,9 @@ func (this *TEncSearch) xIntraCodingChromaBlk(pcCU *TLibCommon.TComDataCU,
             }
             for uiY := uint(0); uiY < uiHeight; uiY++ {
                 for uiX := uint(0); uiX < uiWidth; uiX++ {
-                    pResi[uiX] = 0 //, sizeof( TLibCommon.Pel ) * uiWidth );
+                    pResi[uiY*uiStride+uiX] = 0 //, sizeof( TLibCommon.Pel ) * uiWidth );
                 }
-                pResi = pResi[uiStride:]
+                //pResi = pResi[uiStride:]
             }
         }
     }
@@ -2674,15 +2682,15 @@ func (this *TEncSearch) xIntraCodingChromaBlk(pcCU *TLibCommon.TComDataCU,
         pRecIPred := piRecIPred
         for uiY := uint(0); uiY < uiHeight; uiY++ {
             for uiX := uint(0); uiX < uiWidth; uiX++ {
-                pReco[uiX] = TLibCommon.ClipC(pPred[uiX] + pResi[uiX])
-                pRecQt[uiX] = pReco[uiX]
-                pRecIPred[uiX] = pReco[uiX]
+                pReco[uiY*uiStride+uiX] = TLibCommon.ClipC(pPred[uiY*uiStride+uiX] + pResi[uiY*uiStride+uiX])
+                pRecQt[uiY*uiRecQtStride+uiX] = pReco[uiY*uiStride+uiX]
+                pRecIPred[uiY*uiRecIPredStride+uiX] = pReco[uiY*uiStride+uiX]
             }
-            pPred = pPred[uiStride:]
-            pResi = pResi[uiStride:]
-            pReco = pReco[uiStride:]
-            pRecQt = pRecQt[uiRecQtStride:]
-            pRecIPred = pRecIPred[uiRecIPredStride:]
+            //pPred = pPred[uiStride:]
+            //pResi = pResi[uiStride:]
+            //pReco = pReco[uiStride:]
+            //pRecQt = pRecQt[uiRecQtStride:]
+            //pRecIPred = pRecIPred[uiRecIPredStride:]
         }
     }
 
@@ -2712,6 +2720,8 @@ func (this *TEncSearch) xRecurIntraCodingQT(pcCU *TLibCommon.TComDataCU,
     bCheckFull := (uiLog2TrSize <= pcCU.GetSlice().GetSPS().GetQuadtreeTULog2MaxSize())
     bCheckSplit := (uiLog2TrSize > pcCU.GetQuadtreeTULog2MinSizeInCU(uiAbsPartIdx))
 
+	print("Enter xRecurIntraCodingQT\n");
+	
     //#if HHI_RQT_INTRA_SPEEDUP
     //#if L0232_RD_PENALTY
     maxTuSize := int(pcCU.GetSlice().GetSPS().GetQuadtreeTULog2MaxSize())
@@ -3008,6 +3018,8 @@ func (this *TEncSearch) xRecurIntraCodingQT(pcCU *TLibCommon.TComDataCU,
     *ruiDistY += uiSingleDistY
     *ruiDistC += uiSingleDistC
     *dRDCost += dSingleCost
+    
+    print("Exit xRecurIntraCodingQT\n");
 }
 
 func (this *TEncSearch) xSetIntraResultQT(pcCU *TLibCommon.TComDataCU,

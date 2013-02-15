@@ -34,6 +34,7 @@
 package TLibEncoder
 
 import (
+	//"fmt"
     "gohm/TLibCommon"
     "math"
 )
@@ -565,7 +566,10 @@ type TEncRdCost struct {
 }
 
 func NewTEncRdCost() *TEncRdCost {
-    return &TEncRdCost{}
+    pRdCost := &TEncRdCost{}
+    pRdCost.init()
+    
+    return pRdCost;
 }
 
 func (this *TEncRdCost) calcRdCost(uiBits, uiDistortion uint, bFlag bool, eDFunc TLibCommon.DFunc) float64 {
@@ -839,7 +843,7 @@ func (this *TEncRdCost) setDistParam4(rcDP *DistParam, bitDepth int, p1 []TLibCo
 func (this *TEncRdCost) calcHAD(bitDepth int, pi0 []TLibCommon.Pel, iStride0 int, pi1 []TLibCommon.Pel, iStride1, iWidth, iHeight int) uint {
     uiSum := uint(0)
     var x, y int
-
+	//fmt.Printf("iStride0=%d,iStride1=%d,iWidth=%d,iHeight=%d\n",iStride0, iStride1, iWidth, iHeight);
     if ((iWidth % 8) == 0) && ((iHeight % 8) == 0) {
         for y = 0; y < iHeight; y += 8 {
             for x = 0; x < iWidth; x += 8 {
@@ -988,13 +992,14 @@ func (this *TEncRdCost) xGetSSE(pcDtParam *DistParam) uint {
 
     var iTemp int
 
-    for ; iRows != 0; iRows-- {
+    //for ; iRows != 0; iRows-- {
+    for j:=0; j<iRows; j++ {
         for n := 0; n < iCols; n++ {
-            iTemp = int(piOrg[n] - piCur[n])
+            iTemp = int(piOrg[j*iStrideOrg+n] - piCur[j*iStrideCur+n])
             uiSum += uint(iTemp*iTemp) >> uiShift
         }
-        piOrg = piOrg[iStrideOrg:]
-        piCur = piCur[iStrideCur:]
+        //piOrg = piOrg[iStrideOrg:]
+        //piCur = piCur[iStrideCur:]
     }
 
     return uiSum
@@ -1016,18 +1021,19 @@ func (this *TEncRdCost) xGetSSE4(pcDtParam *DistParam) uint {
 
     var iTemp int
 
-    for ; iRows != 0; iRows-- {
-        iTemp = int(piOrg[0] - piCur[0])
+    //for ; iRows != 0; iRows-- {
+    for j:=0; j<iRows; j++ {
+        iTemp = int(piOrg[j*iStrideOrg+0] - piCur[j*iStrideCur+0])
         uiSum += uint(iTemp*iTemp) >> uiShift
-        iTemp = int(piOrg[1] - piCur[1])
+        iTemp = int(piOrg[j*iStrideOrg+1] - piCur[j*iStrideCur+1])
         uiSum += uint(iTemp*iTemp) >> uiShift
-        iTemp = int(piOrg[2] - piCur[2])
+        iTemp = int(piOrg[j*iStrideOrg+2] - piCur[j*iStrideCur+2])
         uiSum += uint(iTemp*iTemp) >> uiShift
-        iTemp = int(piOrg[3] - piCur[3])
+        iTemp = int(piOrg[j*iStrideOrg+3] - piCur[j*iStrideCur+3])
         uiSum += uint(iTemp*iTemp) >> uiShift
 
-        piOrg = piOrg[iStrideOrg:]
-        piCur = piCur[iStrideCur:]
+        //piOrg = piOrg[iStrideOrg:]
+        //piCur = piCur[iStrideCur:]
     }
 
     return (uiSum)
@@ -1049,26 +1055,27 @@ func (this *TEncRdCost) xGetSSE8(pcDtParam *DistParam) uint {
 
     var iTemp int
 
-    for ; iRows != 0; iRows-- {
-        iTemp = int(piOrg[0] - piCur[0])
+    //for ; iRows != 0; iRows-- {
+    for j:=0; j<iRows; j++ {
+        iTemp = int(piOrg[j*iStrideOrg+0] - piCur[j*iStrideCur+0])
         uiSum += uint(iTemp*iTemp) >> uiShift
-        iTemp = int(piOrg[1] - piCur[1])
+        iTemp = int(piOrg[j*iStrideOrg+1] - piCur[j*iStrideCur+1])
         uiSum += uint(iTemp*iTemp) >> uiShift
-        iTemp = int(piOrg[2] - piCur[2])
+        iTemp = int(piOrg[j*iStrideOrg+2] - piCur[j*iStrideCur+2])
         uiSum += uint(iTemp*iTemp) >> uiShift
-        iTemp = int(piOrg[3] - piCur[3])
+        iTemp = int(piOrg[j*iStrideOrg+3] - piCur[j*iStrideCur+3])
         uiSum += uint(iTemp*iTemp) >> uiShift
-        iTemp = int(piOrg[4] - piCur[4])
+        iTemp = int(piOrg[j*iStrideOrg+4] - piCur[j*iStrideCur+4])
         uiSum += uint(iTemp*iTemp) >> uiShift
-        iTemp = int(piOrg[5] - piCur[5])
+        iTemp = int(piOrg[j*iStrideOrg+5] - piCur[j*iStrideCur+5])
         uiSum += uint(iTemp*iTemp) >> uiShift
-        iTemp = int(piOrg[6] - piCur[6])
+        iTemp = int(piOrg[j*iStrideOrg+6] - piCur[j*iStrideCur+6])
         uiSum += uint(iTemp*iTemp) >> uiShift
-        iTemp = int(piOrg[7] - piCur[7])
+        iTemp = int(piOrg[j*iStrideOrg+7] - piCur[j*iStrideCur+7])
         uiSum += uint(iTemp*iTemp) >> uiShift
 
-        piOrg = piOrg[iStrideOrg:]
-        piCur = piCur[iStrideCur:]
+        //piOrg = piOrg[iStrideOrg:]
+        //piCur = piCur[iStrideCur:]
     }
 
     return (uiSum)
@@ -1089,42 +1096,43 @@ func (this *TEncRdCost) xGetSSE16(pcDtParam *DistParam) uint {
 
     var iTemp int
 
-    for ; iRows != 0; iRows-- {
-        iTemp = int(piOrg[0] - piCur[0])
+    //for ; iRows != 0; iRows-- {
+    for j:=0; j<iRows; j++ {
+        iTemp = int(piOrg[j*iStrideOrg+0] - piCur[j*iStrideCur+0])
         uiSum += uint(iTemp*iTemp) >> uiShift
-        iTemp = int(piOrg[1] - piCur[1])
+        iTemp = int(piOrg[j*iStrideOrg+1] - piCur[j*iStrideCur+1])
         uiSum += uint(iTemp*iTemp) >> uiShift
-        iTemp = int(piOrg[2] - piCur[2])
+        iTemp = int(piOrg[j*iStrideOrg+2] - piCur[j*iStrideCur+2])
         uiSum += uint(iTemp*iTemp) >> uiShift
-        iTemp = int(piOrg[3] - piCur[3])
+        iTemp = int(piOrg[j*iStrideOrg+3] - piCur[j*iStrideCur+3])
         uiSum += uint(iTemp*iTemp) >> uiShift
-        iTemp = int(piOrg[4] - piCur[4])
+        iTemp = int(piOrg[j*iStrideOrg+4] - piCur[j*iStrideCur+4])
         uiSum += uint(iTemp*iTemp) >> uiShift
-        iTemp = int(piOrg[5] - piCur[5])
+        iTemp = int(piOrg[j*iStrideOrg+5] - piCur[j*iStrideCur+5])
         uiSum += uint(iTemp*iTemp) >> uiShift
-        iTemp = int(piOrg[6] - piCur[6])
+        iTemp = int(piOrg[j*iStrideOrg+6] - piCur[j*iStrideCur+6])
         uiSum += uint(iTemp*iTemp) >> uiShift
-        iTemp = int(piOrg[7] - piCur[7])
+        iTemp = int(piOrg[j*iStrideOrg+7] - piCur[j*iStrideCur+7])
         uiSum += uint(iTemp*iTemp) >> uiShift
-        iTemp = int(piOrg[8] - piCur[8])
+        iTemp = int(piOrg[j*iStrideOrg+8] - piCur[j*iStrideCur+8])
         uiSum += uint(iTemp*iTemp) >> uiShift
-        iTemp = int(piOrg[9] - piCur[9])
+        iTemp = int(piOrg[j*iStrideOrg+9] - piCur[j*iStrideCur+9])
         uiSum += uint(iTemp*iTemp) >> uiShift
-        iTemp = int(piOrg[10] - piCur[10])
+        iTemp = int(piOrg[j*iStrideOrg+10] - piCur[j*iStrideCur+10])
         uiSum += uint(iTemp*iTemp) >> uiShift
-        iTemp = int(piOrg[11] - piCur[11])
+        iTemp = int(piOrg[j*iStrideOrg+11] - piCur[j*iStrideCur+11])
         uiSum += uint(iTemp*iTemp) >> uiShift
-        iTemp = int(piOrg[12] - piCur[12])
+        iTemp = int(piOrg[j*iStrideOrg+12] - piCur[j*iStrideCur+12])
         uiSum += uint(iTemp*iTemp) >> uiShift
-        iTemp = int(piOrg[13] - piCur[13])
+        iTemp = int(piOrg[j*iStrideOrg+13] - piCur[j*iStrideCur+13])
         uiSum += uint(iTemp*iTemp) >> uiShift
-        iTemp = int(piOrg[14] - piCur[14])
+        iTemp = int(piOrg[j*iStrideOrg+14] - piCur[j*iStrideCur+14])
         uiSum += uint(iTemp*iTemp) >> uiShift
-        iTemp = int(piOrg[15] - piCur[15])
+        iTemp = int(piOrg[j*iStrideOrg+15] - piCur[j*iStrideCur+15])
         uiSum += uint(iTemp*iTemp) >> uiShift
 
-        piOrg = piOrg[iStrideOrg:]
-        piCur = piCur[iStrideCur:]
+        //piOrg = piOrg[iStrideOrg:]
+        //piCur = piCur[iStrideCur:]
     }
 
     return (uiSum)
@@ -2043,8 +2051,8 @@ func (this *TEncRdCost) xCalcHADs2x2(piOrg []TLibCommon.Pel, piCur []TLibCommon.
     //    assert( iStep == 1 );
     diff[0] = int(piOrg[0] - piCur[0])
     diff[1] = int(piOrg[1] - piCur[1])
-    diff[2] = int(piOrg[iStrideOrg] - piCur[0+iStrideCur])
-    diff[3] = int(piOrg[iStrideOrg+1] - piCur[1+iStrideCur])
+    diff[2] = int(piOrg[iStrideOrg+0] - piCur[iStrideCur+0])
+    diff[3] = int(piOrg[iStrideOrg+1] - piCur[iStrideCur+1])
     m[0] = diff[0] + diff[2]
     m[1] = diff[1] + diff[3]
     m[2] = diff[0] - diff[2]
@@ -2059,18 +2067,19 @@ func (this *TEncRdCost) xCalcHADs2x2(piOrg []TLibCommon.Pel, piCur []TLibCommon.
 }
 
 func (this *TEncRdCost) xCalcHADs4x4(piOrg []TLibCommon.Pel, piCur []TLibCommon.Pel, iStrideOrg, iStrideCur, iStep int) uint {
-    var k, satd int
+    var j, k, satd int
     var diff, m, d [16]int
 
     //assert( iStep == 1 );
     for k = 0; k < 16; k += 4 {
-        diff[k+0] = int(piOrg[0] - piCur[0])
-        diff[k+1] = int(piOrg[1] - piCur[1])
-        diff[k+2] = int(piOrg[2] - piCur[2])
-        diff[k+3] = int(piOrg[3] - piCur[3])
+    	j = k>>2;
+        diff[k+0] = int(piOrg[j*iStrideOrg+0] - piCur[j*iStrideCur+0])
+        diff[k+1] = int(piOrg[j*iStrideOrg+1] - piCur[j*iStrideCur+1])
+        diff[k+2] = int(piOrg[j*iStrideOrg+2] - piCur[j*iStrideCur+2])
+        diff[k+3] = int(piOrg[j*iStrideOrg+3] - piCur[j*iStrideCur+3])
 
-        piCur = piCur[iStrideCur:]
-        piOrg = piOrg[iStrideOrg:]
+        //piCur = piCur[iStrideCur:]
+        //piOrg = piOrg[iStrideOrg:]
     }
 
     /*===== hadamard transform =====*/
@@ -2155,18 +2164,21 @@ func (this *TEncRdCost) xCalcHADs8x8(piOrg []TLibCommon.Pel, piCur []TLibCommon.
     var diff [64]int
     var m1, m2, m3 [8][8]int
     //    assert( iStep == 1 );
+    //fmt.Printf("iStrideOrg=%d, iStrideCur=%d\n", iStrideOrg, iStrideCur);
+    
     for k = 0; k < 64; k += 8 {
-        diff[k+0] = int(piOrg[0] - piCur[0])
-        diff[k+1] = int(piOrg[1] - piCur[1])
-        diff[k+2] = int(piOrg[2] - piCur[2])
-        diff[k+3] = int(piOrg[3] - piCur[3])
-        diff[k+4] = int(piOrg[4] - piCur[4])
-        diff[k+5] = int(piOrg[5] - piCur[5])
-        diff[k+6] = int(piOrg[6] - piCur[6])
-        diff[k+7] = int(piOrg[7] - piCur[7])
+    	j = k>>3;
+        diff[k+0] = int(piOrg[j*iStrideOrg+0] - piCur[j*iStrideCur+0])
+        diff[k+1] = int(piOrg[j*iStrideOrg+1] - piCur[j*iStrideCur+1])
+        diff[k+2] = int(piOrg[j*iStrideOrg+2] - piCur[j*iStrideCur+2])
+        diff[k+3] = int(piOrg[j*iStrideOrg+3] - piCur[j*iStrideCur+3])
+        diff[k+4] = int(piOrg[j*iStrideOrg+4] - piCur[j*iStrideCur+4])
+        diff[k+5] = int(piOrg[j*iStrideOrg+5] - piCur[j*iStrideCur+5])
+        diff[k+6] = int(piOrg[j*iStrideOrg+6] - piCur[j*iStrideCur+6])
+        diff[k+7] = int(piOrg[j*iStrideOrg+7] - piCur[j*iStrideCur+7])
 
-        piCur = piCur[iStrideCur:]
-        piOrg = piOrg[iStrideOrg:]
+        //piCur = piCur[iStrideCur:]
+        //piOrg = piOrg[iStrideOrg:]
     }
 
     //horizontal

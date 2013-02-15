@@ -34,6 +34,8 @@
 package TLibEncoder
 
 import (
+	"io"
+	"fmt"
     "gohm/TLibCommon"
 )
 
@@ -169,14 +171,13 @@ func (this *TEncBinCABAC) getNumWrittenBits() uint {
 }
 
 func (this *TEncBinCABAC) encodeBin(binValue uint, rcCtxModel *TLibCommon.ContextModel) {
-    /*{
-      DTRACE_CABAC_VL( g_nSymbolCounter++ )
-      DTRACE_CABAC_T( "\tstate=" )
-      DTRACE_CABAC_V( ( rcCtxModel.getState() << 1 ) + rcCtxModel.getMps() )
-      DTRACE_CABAC_T( "\tsymbol=" )
-      DTRACE_CABAC_V( binValue )
-      DTRACE_CABAC_T( "\n" )
-    }*/
+    /*DTRACE_CABAC_VL( g_nSymbolCounter++ )*/
+    /*this.DTRACE_CABAC_T( "\tstate=" )
+    this.DTRACE_CABAC_V( ( rcCtxModel.GetState() << 1 ) + rcCtxModel.GetMps() )
+    this.DTRACE_CABAC_T( "\tsymbol=" )
+    this.DTRACE_CABAC_V( binValue )
+    this.DTRACE_CABAC_T( "\n" )*/
+    
     this.m_uiBinsCoded += uint(this.m_binCountIncrement)
     rcCtxModel.SetBinsCoded(1)
 
@@ -205,12 +206,11 @@ func (this *TEncBinCABAC) encodeBin(binValue uint, rcCtxModel *TLibCommon.Contex
 }
 
 func (this *TEncBinCABAC) encodeBinEP(binValue uint) {
-    /*{
-      DTRACE_CABAC_VL( g_nSymbolCounter++ )
-      DTRACE_CABAC_T( "\tEPsymbol=" )
-      DTRACE_CABAC_V( binValue )
-      DTRACE_CABAC_T( "\n" )
-    }*/
+    /*DTRACE_CABAC_VL( g_nSymbolCounter++ )*/
+    /*this.DTRACE_CABAC_T( "\tEPsymbol=" )
+    this.DTRACE_CABAC_V( binValue )
+    this.DTRACE_CABAC_T( "\n" )*/
+  
     this.m_uiBinsCoded += uint(this.m_binCountIncrement)
     this.m_uiLow <<= 1
     if binValue != 0 {
@@ -225,10 +225,10 @@ func (this *TEncBinCABAC) encodeBinsEP(binValues uint, numBins int) {
     this.m_uiBinsCoded += uint(numBins & (-this.m_binCountIncrement))
 
     for i := 0; i < numBins; i++ {
-        /*DTRACE_CABAC_VL( g_nSymbolCounter++ )
-          DTRACE_CABAC_T( "\tEPsymbol=" )
-          DTRACE_CABAC_V( ( binValues >> ( numBins - 1 - i ) ) & 1 )
-          DTRACE_CABAC_T( "\n" )*/
+        /*DTRACE_CABAC_VL( g_nSymbolCounter++ )*/
+        /*this.DTRACE_CABAC_T( "\tEPsymbol=" )
+        this.DTRACE_CABAC_V( ( binValues >> ( numBins - 1 - i ) ) & 1 )
+        this.DTRACE_CABAC_T( "\n" )*/
     }
 
     for numBins > 8 {
@@ -354,6 +354,8 @@ func (this *TEncBinCABACCounter) encodeBinTrm(binValue uint) {
 
 /// SBAC encoder class
 type TEncSbac struct { //: public TEncEntropyIf
+	m_pTraceFile  io.Writer
+
     m_pcBitIf TLibCommon.TComBitIf
     m_pcSlice *TLibCommon.TComSlice
     m_pcBinIf TEncBinIf
@@ -391,6 +393,57 @@ type TEncSbac struct { //: public TEncEntropyIf
     m_cTransformSkipSCModel         *TLibCommon.ContextModel3DBuffer
     m_CUTransquantBypassFlagSCModel *TLibCommon.ContextModel3DBuffer
 }
+
+func (this *TEncSbac) SetTraceFile(traceFile io.Writer) {
+    this.m_pTraceFile = traceFile
+}
+
+func (this *TEncSbac) GetTraceFile() io.Writer {
+    return this.m_pTraceFile
+}
+
+func (this *TEncSbac) DTRACE_CABAC_F(x float32) {
+    if this.GetTraceFile() != nil && TLibCommon.TRACE_CABAC {
+        //fmt.Printf("%f", x)
+        io.WriteString(this.m_pTraceFile, fmt.Sprintf("%f", x))
+    }
+}
+func (this *TEncSbac) DTRACE_CABAC_V(x uint) {
+    if this.GetTraceFile() != nil && TLibCommon.TRACE_CABAC {
+        //fmt.Printf ("%d", x )
+        io.WriteString(this.m_pTraceFile, fmt.Sprintf("%x", x))
+    }
+}
+func (this *TEncSbac) DTRACE_CABAC_VL(x uint) {
+    if this.GetTraceFile() != nil && TLibCommon.TRACE_CABAC {
+        //fmt.Printf ("%lld", x )
+        io.WriteString(this.m_pTraceFile, fmt.Sprintf("%lld", x))
+    }
+}
+func (this *TEncSbac) DTRACE_CABAC_T(x string) {
+    if this.GetTraceFile() != nil && TLibCommon.TRACE_CABAC {
+        //fmt.Printf ("%s", x )
+        io.WriteString(this.m_pTraceFile, fmt.Sprintf("%s", x))
+    }
+}
+func (this *TEncSbac) DTRACE_CABAC_X(x uint) {
+    if this.GetTraceFile() != nil && TLibCommon.TRACE_CABAC {
+        //fmt.Printf ("%x", x )
+        io.WriteString(this.m_pTraceFile, fmt.Sprintf("%x", x))
+    }
+}
+func (this *TEncSbac) DTRACE_CABAC_N() {
+    if this.GetTraceFile() != nil && TLibCommon.TRACE_CABAC {
+        //fmt.Printf ("\n" )
+        io.WriteString(this.m_pTraceFile, "\n")
+    }
+}
+
+/*func (this *TEncSbac) DTRACE_CABAC_R(x,y) {
+	if this.GetTraceFile()!=nil {
+		io.WriteString(this.m_pTraceFile, fmt.Sprintf (x,    y ));
+	}
+}*/
 
 func NewTEncSbac() *TEncSbac {
     pTEncSbac := &TEncSbac{m_pcBitIf: nil, m_pcSlice: nil, m_pcBinIf: nil, m_uiCoeffCost: 0, m_numContextModels: 0}
@@ -727,27 +780,27 @@ func (this *TEncSbac) codeSkipFlag(pcCU *TLibCommon.TComDataCU, uiAbsPartIdx uin
     uiSymbol := uint(TLibCommon.B2U(pcCU.IsSkipped(uiAbsPartIdx)))
     uiCtxSkip := pcCU.GetCtxSkipFlag(uiAbsPartIdx)
     this.m_pcBinIf.encodeBin(uiSymbol, this.m_cCUSkipFlagSCModel.Get3(0, 0, uiCtxSkip))
-    /*DTRACE_CABAC_VL( g_nSymbolCounter++ );
-      DTRACE_CABAC_T( "\tSkipFlag" );
-      DTRACE_CABAC_T( "\tuiCtxSkip: ");
-      DTRACE_CABAC_V( uiCtxSkip );
-      DTRACE_CABAC_T( "\tuiSymbol: ");
-      DTRACE_CABAC_V( uiSymbol );
-      DTRACE_CABAC_T( "\n");*/
+    /*DTRACE_CABAC_VL( g_nSymbolCounter++ );*/
+    this.DTRACE_CABAC_T( "\tSkipFlag" );
+    this.DTRACE_CABAC_T( "\tuiCtxSkip: ");
+    this.DTRACE_CABAC_V( uiCtxSkip );
+    this.DTRACE_CABAC_T( "\tuiSymbol: ");
+    this.DTRACE_CABAC_V( uiSymbol );
+    this.DTRACE_CABAC_T( "\n");
 }
 
 func (this *TEncSbac) codeMergeFlag(pcCU *TLibCommon.TComDataCU, uiAbsPartIdx uint) {
     uiSymbol := uint(TLibCommon.B2U(pcCU.GetMergeFlag1(uiAbsPartIdx)))
     this.m_pcBinIf.encodeBin(uiSymbol, this.m_cCUMergeFlagExtSCModel.Get3(0, 0, 0))
 
-    /*DTRACE_CABAC_VL( g_nSymbolCounter++ );
-      DTRACE_CABAC_T( "\tMergeFlag: " );
-      DTRACE_CABAC_V( uiSymbol );
-      DTRACE_CABAC_T( "\tAddress: " );
-      DTRACE_CABAC_V( pcCU.GetAddr() );
-      DTRACE_CABAC_T( "\tuiAbsPartIdx: " );
-      DTRACE_CABAC_V( uiAbsPartIdx );
-      DTRACE_CABAC_T( "\n" );*/
+    /*DTRACE_CABAC_VL( g_nSymbolCounter++ );*/
+    this.DTRACE_CABAC_T( "\tMergeFlag: " );
+    this.DTRACE_CABAC_V( uiSymbol );
+    this.DTRACE_CABAC_T( "\tAddress: " );
+    this.DTRACE_CABAC_V( pcCU.GetAddr() );
+    this.DTRACE_CABAC_T( "\tuiAbsPartIdx: " );
+    this.DTRACE_CABAC_V( uiAbsPartIdx );
+    this.DTRACE_CABAC_T( "\n" );
 }
 
 func (this *TEncSbac) codeMergeIndex(pcCU *TLibCommon.TComDataCU, uiAbsPartIdx uint) {
@@ -772,11 +825,11 @@ func (this *TEncSbac) codeMergeIndex(pcCU *TLibCommon.TComDataCU, uiAbsPartIdx u
             }
         }
     }
-    /*DTRACE_CABAC_VL( g_nSymbolCounter++ );
-      DTRACE_CABAC_T( "\tparseMergeIndex()" );
-      DTRACE_CABAC_T( "\tuiMRGIdx= " );
-      DTRACE_CABAC_V( pcCU.GetMergeIndex( uiAbsPartIdx ) );
-      DTRACE_CABAC_T( "\n" );*/
+    /*DTRACE_CABAC_VL( g_nSymbolCounter++ );*/
+    this.DTRACE_CABAC_T( "\tparseMergeIndex()" );
+    this.DTRACE_CABAC_T( "\tuiMRGIdx= " );
+    this.DTRACE_CABAC_V( uint(pcCU.GetMergeIndex1( uiAbsPartIdx )) );
+    this.DTRACE_CABAC_T( "\n" );
 }
 
 func (this *TEncSbac) codeSplitFlag(pcCU *TLibCommon.TComDataCU, uiAbsPartIdx uint, uiDepth uint) {
@@ -790,7 +843,7 @@ func (this *TEncSbac) codeSplitFlag(pcCU *TLibCommon.TComDataCU, uiAbsPartIdx ui
     //assert( uiCtx < 3 );
     this.m_pcBinIf.encodeBin(uiCurrSplitFlag, this.m_cCUSplitFlagSCModel.Get3(0, 0, uiCtx))
     //DTRACE_CABAC_VL( g_nSymbolCounter++ )
-    //DTRACE_CABAC_T( "\tSplitFlag\n" )
+    this.DTRACE_CABAC_T( "\tSplitFlag\n" )
     return
 }
 
@@ -940,13 +993,13 @@ func (this *TEncSbac) codeIPCMInfo(pcCU *TLibCommon.TComDataCU, uiAbsPartIdx uin
 }
 func (this *TEncSbac) codeTransformSubdivFlag(uiSymbol, uiCtx uint) {
     this.m_pcBinIf.encodeBin(uiSymbol, this.m_cCUTransSubdivFlagSCModel.Get3(0, 0, uiCtx))
-    /*DTRACE_CABAC_VL( g_nSymbolCounter++ )
-      DTRACE_CABAC_T( "\tparseTransformSubdivFlag()" )
-      DTRACE_CABAC_T( "\tsymbol=" )
-      DTRACE_CABAC_V( uiSymbol )
-      DTRACE_CABAC_T( "\tctx=" )
-      DTRACE_CABAC_V( uiCtx )
-      DTRACE_CABAC_T( "\n" )*/
+    /*DTRACE_CABAC_VL( g_nSymbolCounter++ )*/
+    this.DTRACE_CABAC_T( "\tparseTransformSubdivFlag()" )
+    this.DTRACE_CABAC_T( "\tsymbol=" )
+    this.DTRACE_CABAC_V( uiSymbol )
+    this.DTRACE_CABAC_T( "\tctx=" )
+    this.DTRACE_CABAC_V( uiCtx )
+    this.DTRACE_CABAC_T( "\n" )
 }
 
 func (this *TEncSbac) codeQtCbf(pcCU *TLibCommon.TComDataCU, uiAbsPartIdx uint, eType TLibCommon.TextType, uiTrDepth uint) {
@@ -957,32 +1010,32 @@ func (this *TEncSbac) codeQtCbf(pcCU *TLibCommon.TComDataCU, uiAbsPartIdx uint, 
     } else {
         this.m_pcBinIf.encodeBin(uiCbf, this.m_cCUQtCbfSCModel.Get3(0, uint(eType), uiCtx))
     }
-    /*  DTRACE_CABAC_VL( g_nSymbolCounter++ )
-    DTRACE_CABAC_T( "\tparseQtCbf()" )
-    DTRACE_CABAC_T( "\tsymbol=" )
-    DTRACE_CABAC_V( uiCbf )
-    DTRACE_CABAC_T( "\tctx=" )
-    DTRACE_CABAC_V( uiCtx )
-    DTRACE_CABAC_T( "\tetype=" )
-    DTRACE_CABAC_V( eType )
-    DTRACE_CABAC_T( "\tuiAbsPartIdx=" )
-    DTRACE_CABAC_V( uiAbsPartIdx )
-    DTRACE_CABAC_T( "\n" )*/
+    /*DTRACE_CABAC_VL( g_nSymbolCounter++ )*/
+    this.DTRACE_CABAC_T( "\tparseQtCbf()" )
+    this.DTRACE_CABAC_T( "\tsymbol=" )
+    this.DTRACE_CABAC_V( uiCbf )
+    this.DTRACE_CABAC_T( "\tctx=" )
+    this.DTRACE_CABAC_V( uiCtx )
+    this.DTRACE_CABAC_T( "\tetype=" )
+    this.DTRACE_CABAC_V( uint(eType) )
+    this.DTRACE_CABAC_T( "\tuiAbsPartIdx=" )
+    this.DTRACE_CABAC_V( uiAbsPartIdx )
+    this.DTRACE_CABAC_T( "\n" )
 }
 
 func (this *TEncSbac) codeQtRootCbf(pcCU *TLibCommon.TComDataCU, uiAbsPartIdx uint) {
     uiCbf := uint(TLibCommon.B2U(pcCU.GetQtRootCbf(uiAbsPartIdx)))
     uiCtx := uint(0)
     this.m_pcBinIf.encodeBin(uiCbf, this.m_cCUQtRootCbfSCModel.Get3(0, 0, uiCtx))
-    /*  DTRACE_CABAC_VL( g_nSymbolCounter++ )
-    DTRACE_CABAC_T( "\tparseQtRootCbf()" )
-    DTRACE_CABAC_T( "\tsymbol=" )
-    DTRACE_CABAC_V( uiCbf )
-    DTRACE_CABAC_T( "\tctx=" )
-    DTRACE_CABAC_V( uiCtx )
-    DTRACE_CABAC_T( "\tuiAbsPartIdx=" )
-    DTRACE_CABAC_V( uiAbsPartIdx )
-    DTRACE_CABAC_T( "\n" )*/
+    /*  DTRACE_CABAC_VL( g_nSymbolCounter++ )*/
+    this.DTRACE_CABAC_T( "\tparseQtRootCbf()" )
+    this.DTRACE_CABAC_T( "\tsymbol=" )
+    this.DTRACE_CABAC_V( uiCbf )
+    this.DTRACE_CABAC_T( "\tctx=" )
+    this.DTRACE_CABAC_V( uiCtx )
+    this.DTRACE_CABAC_T( "\tuiAbsPartIdx=" )
+    this.DTRACE_CABAC_V( uiAbsPartIdx )
+    this.DTRACE_CABAC_T( "\n" )
 }
 
 func (this *TEncSbac) codeQtCbfZero(pcCU *TLibCommon.TComDataCU, eType TLibCommon.TextType, uiTrDepth uint) {
@@ -1284,30 +1337,30 @@ func (this *TEncSbac) codeLastSignificantXY(uiPosX, uiPosY uint, width, height i
 }
 
 func (this *TEncSbac) codeCoeffNxN(pcCU *TLibCommon.TComDataCU, pcCoef []TLibCommon.TCoeff, uiAbsPartIdx, uiWidth, uiHeight, uiDepth uint, eTType TLibCommon.TextType) {
-    /*  DTRACE_CABAC_VL( g_nSymbolCounter++ )
-    DTRACE_CABAC_T( "\tparseCoeffNxN()\teType=" )
-    DTRACE_CABAC_V( eTType )
-    DTRACE_CABAC_T( "\twidth=" )
-    DTRACE_CABAC_V( uiWidth )
-    DTRACE_CABAC_T( "\theight=" )
-    DTRACE_CABAC_V( uiHeight )
-    DTRACE_CABAC_T( "\tdepth=" )
-    DTRACE_CABAC_V( uiDepth )
-    DTRACE_CABAC_T( "\tabspartidx=" )
-    DTRACE_CABAC_V( uiAbsPartIdx )
-    DTRACE_CABAC_T( "\ttoCU-X=" )
-    DTRACE_CABAC_V( pcCU.GetCUPelX() )
-    DTRACE_CABAC_T( "\ttoCU-Y=" )
-    DTRACE_CABAC_V( pcCU.GetCUPelY() )
-    DTRACE_CABAC_T( "\tCU-addr=" )
-    DTRACE_CABAC_V(  pcCU.GetAddr() )
-    DTRACE_CABAC_T( "\tinCU-X=" )
-    DTRACE_CABAC_V( TLibCommon.G_auiRasterToPelX[ TLibCommon.G_auiZscanToRaster[uiAbsPartIdx] ] )
-    DTRACE_CABAC_T( "\tinCU-Y=" )
-    DTRACE_CABAC_V( TLibCommon.G_auiRasterToPelY[ TLibCommon.G_auiZscanToRaster[uiAbsPartIdx] ] )
-    DTRACE_CABAC_T( "\tpredmode=" )
-    DTRACE_CABAC_V(  pcCU.GetPredictionMode( uiAbsPartIdx ) )
-    DTRACE_CABAC_T( "\n" )*/
+    /*DTRACE_CABAC_VL( g_nSymbolCounter++ )*/
+    this.DTRACE_CABAC_T( "\tparseCoeffNxN()\teType=" )
+    this.DTRACE_CABAC_V( uint(eTType) )
+    this.DTRACE_CABAC_T( "\twidth=" )
+    this.DTRACE_CABAC_V( uiWidth )
+    this.DTRACE_CABAC_T( "\theight=" )
+    this.DTRACE_CABAC_V( uiHeight )
+    this.DTRACE_CABAC_T( "\tdepth=" )
+    this.DTRACE_CABAC_V( uiDepth )
+    this.DTRACE_CABAC_T( "\tabspartidx=" )
+    this.DTRACE_CABAC_V( uiAbsPartIdx )
+    this.DTRACE_CABAC_T( "\ttoCU-X=" )
+    this.DTRACE_CABAC_V( pcCU.GetCUPelX() )
+    this.DTRACE_CABAC_T( "\ttoCU-Y=" )
+    this.DTRACE_CABAC_V( pcCU.GetCUPelY() )
+    this.DTRACE_CABAC_T( "\tCU-addr=" )
+    this.DTRACE_CABAC_V(  pcCU.GetAddr() )
+    this.DTRACE_CABAC_T( "\tinCU-X=" )
+    this.DTRACE_CABAC_V( TLibCommon.G_auiRasterToPelX[ TLibCommon.G_auiZscanToRaster[uiAbsPartIdx] ] )
+    this.DTRACE_CABAC_T( "\tinCU-Y=" )
+    this.DTRACE_CABAC_V( TLibCommon.G_auiRasterToPelY[ TLibCommon.G_auiZscanToRaster[uiAbsPartIdx] ] )
+    this.DTRACE_CABAC_T( "\tpredmode=" )
+    this.DTRACE_CABAC_V( uint(pcCU.GetPredictionMode1( uiAbsPartIdx )) )
+    this.DTRACE_CABAC_T( "\n" )
 
     if uiWidth > this.m_pcSlice.GetSPS().GetMaxTrSize() {
         uiWidth = this.m_pcSlice.GetSPS().GetMaxTrSize()
@@ -1430,7 +1483,7 @@ func (this *TEncSbac) codeCoeffNxN(pcCU *TLibCommon.TComDataCU, pcCoef []TLibCom
         firstNZPosInCG := int(TLibCommon.SCAN_SET_SIZE)
 
         if iScanPosSig == scanPosLast {
-            absCoeff[0] = TLibCommon.ABS(pcCoef[posLast]).(int)
+            absCoeff[0] = int(TLibCommon.ABS(pcCoef[posLast]).(TLibCommon.TCoeff))
             coeffSigns = uint(TLibCommon.B2U(pcCoef[posLast] < 0))
             numNonZero = 1
             lastNZPosInCG = iScanPosSig
@@ -1464,7 +1517,7 @@ func (this *TEncSbac) codeCoeffNxN(pcCU *TLibCommon.TComDataCU, pcCoef []TLibCom
                     this.m_pcBinIf.encodeBin(uiSig, &baseCtx[uiCtxSig])
                 }
                 if uiSig != 0 {
-                    absCoeff[numNonZero] = TLibCommon.ABS(pcCoef[uiBlkPos]).(int)
+                    absCoeff[numNonZero] = int(TLibCommon.ABS(pcCoef[uiBlkPos]).(TLibCommon.TCoeff))
                     coeffSigns = 2*coeffSigns + uint(TLibCommon.B2U(pcCoef[uiBlkPos] < 0))
                     numNonZero++
                     if lastNZPosInCG == -1 {
@@ -1572,17 +1625,17 @@ func (this *TEncSbac) codeTransformSkipFlags(pcCU *TLibCommon.TComDataCU, uiAbsP
     } else {
         this.m_pcBinIf.encodeBin(useTransformSkip, this.m_cTransformSkipSCModel.Get3(0, TLibCommon.TEXT_LUMA, 0))
     }
-    /*  DTRACE_CABAC_VL( g_nSymbolCounter++ )
-    DTRACE_CABAC_T("\tparseTransformSkip()");
-    DTRACE_CABAC_T( "\tsymbol=" )
-    DTRACE_CABAC_V( useTransformSkip )
-    DTRACE_CABAC_T( "\tAddr=" )
-    DTRACE_CABAC_V( pcCU.GetAddr() )
-    DTRACE_CABAC_T( "\tetype=" )
-    DTRACE_CABAC_V( eTType )
-    DTRACE_CABAC_T( "\tuiAbsPartIdx=" )
-    DTRACE_CABAC_V( uiAbsPartIdx )
-    DTRACE_CABAC_T( "\n" )*/
+    /*DTRACE_CABAC_VL( g_nSymbolCounter++ )*/
+    this.DTRACE_CABAC_T("\tparseTransformSkip()");
+    this.DTRACE_CABAC_T( "\tsymbol=" )
+    this.DTRACE_CABAC_V( useTransformSkip )
+    this.DTRACE_CABAC_T( "\tAddr=" )
+    this.DTRACE_CABAC_V( pcCU.GetAddr() )
+    this.DTRACE_CABAC_T( "\tetype=" )
+    this.DTRACE_CABAC_V( uint(eTType) )
+    this.DTRACE_CABAC_T( "\tuiAbsPartIdx=" )
+    this.DTRACE_CABAC_V( uiAbsPartIdx )
+    this.DTRACE_CABAC_T( "\n" )
 }
 
 // -------------------------------------------------------------------------------------------------------------------

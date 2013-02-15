@@ -194,6 +194,10 @@ func MAX(a, b interface{}) interface{} {
         if a.(TCoeff) < b.(TCoeff) {
             return b
         }
+    case int8:
+        if a.(int8) < b.(int8) {
+            return b
+        }
     case int16:
         if a.(int16) < b.(int16) {
             return b
@@ -202,8 +206,28 @@ func MAX(a, b interface{}) interface{} {
         if a.(int) < b.(int) {
             return b
         }
+    case int32:
+        if a.(int32) < b.(int32) {
+            return b
+        }
+    case int64:
+        if a.(int64) < b.(int64) {
+            return b
+        }
+    case uint8:
+        if a.(uint8) < b.(uint8) {
+            return b
+        }
+    case uint16:
+        if a.(uint16) < b.(uint16) {
+            return b
+        }
     case uint:
         if a.(uint) < b.(uint) {
+            return b
+        }
+    case float32:
+    	if a.(float32) < b.(float32) {
             return b
         }
     case float64:
@@ -231,6 +255,10 @@ func MIN(a, b interface{}) interface{} {
         if a.(TCoeff) > b.(TCoeff) {
             return b
         }
+    case int8:
+    	if a.(int8) > b.(int8) {
+            return b
+        }
     case int16:
         if a.(int16) > b.(int16) {
             return b
@@ -239,8 +267,28 @@ func MIN(a, b interface{}) interface{} {
         if a.(int) > b.(int) {
             return b
         }
+    case int32:
+        if a.(int32) > b.(int32) {
+            return b
+        }
+    case int64:
+        if a.(int64) > b.(int64) {
+            return b
+        }
+    case uint8:
+        if a.(uint8) > b.(uint8) {
+            return b
+        }
+    case uint16:
+        if a.(uint16) > b.(uint16) {
+            return b
+        }
     case uint:
         if a.(uint) > b.(uint) {
+            return b
+        }
+    case float32:
+        if a.(float32) > b.(float32) {
             return b
         }
     case float64:
@@ -271,6 +319,18 @@ func ABS(a interface{}) interface{} {
     case int:
         if a.(int) < 0 {
             return -a.(int)
+        }
+    case int32:
+        if a.(int32) < 0 {
+            return -a.(int32)
+        }
+    case int64:
+        if a.(int64) < 0 {
+            return -a.(int64)
+        }
+    case float32:
+        if a.(float32) < 0 {
+            return -a.(float32)
         }
     case float64:
         if a.(float64) < 0 {

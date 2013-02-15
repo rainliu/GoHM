@@ -104,6 +104,38 @@ func (this *SyntaxElementWriter) xTraceSliceHeader(pSlice *TLibCommon.TComSlice)
     }
 }
 
+
+func (this *SyntaxElementWriter) DTRACE_CABAC_F(x float32) {
+    if this.GetTraceFile() != nil {
+        io.WriteString(this.m_pTraceFile, fmt.Sprintf("%f", x))
+    }
+}
+func (this *SyntaxElementWriter) DTRACE_CABAC_V(x uint) {
+    if this.GetTraceFile() != nil {
+        io.WriteString(this.m_pTraceFile, fmt.Sprintf("%d", x))
+    }
+}
+func (this *SyntaxElementWriter) DTRACE_CABAC_VL(x uint) {
+    if this.GetTraceFile() != nil {
+        io.WriteString(this.m_pTraceFile, fmt.Sprintf("%lld", x))
+    }
+}
+func (this *SyntaxElementWriter) DTRACE_CABAC_T(x string) {
+    if this.GetTraceFile() != nil {
+        io.WriteString(this.m_pTraceFile, fmt.Sprintf("%s", x))
+    }
+}
+func (this *SyntaxElementWriter) DTRACE_CABAC_X(x uint) {
+    if this.GetTraceFile() != nil {
+        io.WriteString(this.m_pTraceFile, fmt.Sprintf("%x", x))
+    }
+}
+func (this *SyntaxElementWriter) DTRACE_CABAC_N() {
+    if this.GetTraceFile() != nil {
+        io.WriteString(this.m_pTraceFile, "\n")
+    }
+}
+
 func (this *SyntaxElementWriter) WRITE_CODE(value, length uint, pSymbolName string) {
     this.xWriteCode(value, length)
     if this.GetTraceFile() != nil {
