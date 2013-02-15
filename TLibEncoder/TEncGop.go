@@ -226,17 +226,19 @@ func (this *TEncGOP) compressGOP(iPOCLast, iNumPicRcvd int, rcListPic, rcListPic
         // start a new access unit: create an entry in the list of output access units
         accessUnitsInGOP.PushBack(NewAccessUnit())
         accessUnit := accessUnitsInGOP.Back().Value.(*AccessUnit)
-        this.xGetBuffer(rcListPic, rcListPicYuvRecOut, iNumPicRcvd, iTimeOffset, pcPic, pcPicYuvRecOut, pocCurr)
-
+        pcPic, pcPicYuvRecOut = this.xGetBuffer(rcListPic, rcListPicYuvRecOut, iNumPicRcvd, iTimeOffset, pocCurr)
+		
         //  Slice data initialization
         pcPic.ClearSliceBuffer()
         //assert(pcPic.GetNumAllocatedSlice() == 1);
         this.m_pcSliceEncoder.setSliceIdx(0)
         pcPic.SetCurrSliceIdx(0)
+		
+        pcSlice = this.m_pcSliceEncoder.initEncSlice(pcPic, iPOCLast, pocCurr, iNumPicRcvd, iGOPid, this.m_pcEncTop.getSPS(), this.m_pcEncTop.getPPS())
 
-        this.m_pcSliceEncoder.initEncSlice(pcPic, iPOCLast, pocCurr, iNumPicRcvd, iGOPid, pcSlice, this.m_pcEncTop.getSPS(), this.m_pcEncTop.getPPS())
         pcSlice.SetLastIDR(this.m_iLastIDR)
         pcSlice.SetSliceIdx(0)
+
         //set default slice level flag to the same as SPS level flag
         pcSlice.SetLFCrossSliceBoundaryFlag(pcSlice.GetPPS().GetLoopFilterAcrossSlicesEnabledFlag())
         pcSlice.SetScalingList(this.m_pcEncTop.getScalingList())
@@ -1595,13 +1597,14 @@ func (this *TEncGOP) xInitGOP(iPOCLast, iNumPicRcvd int, rcListPic *list.List, r
     return
 }
 
-func (this *TEncGOP) xGetBuffer(rcListPic, rcListPicYuvRecOut *list.List, iNumPicRcvd, iTimeOffset int, rpcPic *TLibCommon.TComPic, rpcPicYuvRecOut *TLibCommon.TComPicYuv, pocCurr int) {
+func (this *TEncGOP) xGetBuffer(rcListPic, rcListPicYuvRecOut *list.List, iNumPicRcvd, iTimeOffset int, pocCurr int) (rpcPic *TLibCommon.TComPic, rpcPicYuvRecOut *TLibCommon.TComPicYuv) {
     var i int
     //  Rec. output
     iterPicYuvRec := rcListPicYuvRecOut.Back()
-    for i = 0; i < iNumPicRcvd-iTimeOffset+1; i++ {
+    for i = 0; i < iNumPicRcvd-iTimeOffset; i++ {
         iterPicYuvRec = iterPicYuvRec.Prev()
     }
+    //fmt.Printf("len=%d, iNumPicRcvd=%d, iTimeOffset=%d\n",rcListPicYuvRecOut.Len(), iNumPicRcvd, iTimeOffset);
 
     rpcPicYuvRecOut = iterPicYuvRec.Value.(*TLibCommon.TComPicYuv)
 

@@ -1184,11 +1184,11 @@ func (this *TAppEncCfg) xConfirmPara(bflag bool, message string) int {
 
 func (this *TAppEncCfg) xCheckParameter() bool { ///< check validity of configuration values
     if this.m_decodedPictureHashSEIEnabled == 0 {
-        fmt.Printf("*************************************************************\n")
-        fmt.Printf("** WARNING: --SEIDecodedPictureHash is now disabled by default. **\n")
-        fmt.Printf("**          Automatic verification of decoded pictures by  **\n")
-        fmt.Printf("**          a decoder requires this option to be enabled.  **\n")
-        fmt.Printf("*************************************************************\n")
+        fmt.Printf("******************************************************************\n");
+    	fmt.Printf("** WARNING: --SEIDecodedPictureHash is now disabled by default. **\n");
+    	fmt.Printf("**          Automatic verification of decoded pictures by a     **\n");
+    	fmt.Printf("**          decoder requires this option to be enabled.         **\n");
+    	fmt.Printf("******************************************************************\n");
     }
 
     check_failed := 0 /* abort if there is a fatal configuration problem */
@@ -1236,9 +1236,9 @@ func (this *TAppEncCfg) xCheckParameter() bool { ///< check validity of configur
     check_failed += this.xConfirmPara((1<<this.m_uiQuadtreeTULog2MinSize) > (this.m_uiMaxCUWidth>>this.m_uiMaxCUDepth), "Minimum CU width must be greater than minimum transform size.")
     check_failed += this.xConfirmPara((1<<this.m_uiQuadtreeTULog2MinSize) > (this.m_uiMaxCUHeight>>this.m_uiMaxCUDepth), "Minimum CU height must be greater than minimum transform size.")
     check_failed += this.xConfirmPara(this.m_uiQuadtreeTUMaxDepthInter < 1, "QuadtreeTUMaxDepthInter must be greater than or equal to 1")
-    check_failed += this.xConfirmPara(this.m_uiMaxCUWidth > this.m_uiQuadtreeTULog2MinSize+this.m_uiQuadtreeTUMaxDepthInter-1, "QuadtreeTUMaxDepthInter must be less than or equal to the difference between log2(maxCUSize) and QuadtreeTULog2MinSize plus 1")
+    check_failed += this.xConfirmPara(this.m_uiMaxCUWidth < ( 1 << (this.m_uiQuadtreeTULog2MinSize + this.m_uiQuadtreeTUMaxDepthInter - 1) ), "QuadtreeTUMaxDepthInter must be less than or equal to the difference between log2(maxCUSize) and QuadtreeTULog2MinSize plus 1")
     check_failed += this.xConfirmPara(this.m_uiQuadtreeTUMaxDepthIntra < 1, "QuadtreeTUMaxDepthIntra must be greater than or equal to 1")
-    check_failed += this.xConfirmPara(this.m_uiMaxCUWidth > this.m_uiQuadtreeTULog2MinSize+this.m_uiQuadtreeTUMaxDepthIntra-1, "QuadtreeTUMaxDepthIntra must be less than or equal to the difference between log2(maxCUSize) and QuadtreeTULog2MinSize plus 1")
+    check_failed += this.xConfirmPara(this.m_uiMaxCUWidth < ( 1 << (this.m_uiQuadtreeTULog2MinSize + this.m_uiQuadtreeTUMaxDepthIntra - 1) ), "QuadtreeTUMaxDepthIntra must be less than or equal to the difference between log2(maxCUSize) and QuadtreeTULog2MinSize plus 1")
 
     check_failed += this.xConfirmPara(this.m_maxNumMergeCand < 1, "MaxNumMergeCand must be 1 or greater.")
     check_failed += this.xConfirmPara(this.m_maxNumMergeCand > 5, "MaxNumMergeCand must be 5 or smaller.")
@@ -1693,15 +1693,15 @@ func (this *TAppEncCfg) xPrintParameter() { ///< print configuration values
     fmt.Printf("Cr QP Offset                 : %d\n", this.m_crQpOffset)
 
     if this.m_bUseAdaptiveQP {
-        fmt.Printf("QP adaptation                : %v (range=%d)\n", this.m_bUseAdaptiveQP, this.m_iQPAdaptationRange)
+        fmt.Printf("QP adaptation                : %d (range=%d)\n", TLibCommon.B2U(this.m_bUseAdaptiveQP), this.m_iQPAdaptationRange)
     } else {
-        fmt.Printf("QP adaptation                : %v (range=%d)\n", this.m_bUseAdaptiveQP, 0)
+        fmt.Printf("QP adaptation                : %d (range=%d)\n", TLibCommon.B2U(this.m_bUseAdaptiveQP), 0)
     }
     fmt.Printf("GOP size                     : %d\n", this.m_iGOPSize)
     fmt.Printf("Internal bit depth           : (Y:%d, C:%d)\n", this.m_internalBitDepthY, this.m_internalBitDepthC)
     fmt.Printf("PCM sample bit depth         : (Y:%d, C:%d)\n", TLibCommon.G_uiPCMBitDepthLuma, TLibCommon.G_uiPCMBitDepthChroma)
     //#if RATE_CONTROL_LAMBDA_DOMAIN
-    fmt.Printf("RateControl                  : %v\n", this.m_RCEnableRateControl)
+    fmt.Printf("RateControl                  : %d\n", TLibCommon.B2U(this.m_RCEnableRateControl))
     if this.m_RCEnableRateControl {
         fmt.Printf("TargetBitrate                : %d\n", this.m_RCTargetBitrate)
         fmt.Printf("KeepHierarchicalBit          : %d\n", this.m_RCKeepHierarchicalBit)
@@ -1722,25 +1722,25 @@ func (this *TAppEncCfg) xPrintParameter() { ///< print configuration values
     fmt.Printf("\n")
 
     fmt.Printf("TOOL CFG: ")
-    fmt.Printf("IBD:%v ", TLibCommon.G_bitDepthY > this.m_inputBitDepthY || TLibCommon.G_bitDepthC > this.m_inputBitDepthC)
-    fmt.Printf("HAD:%v ", this.m_bUseHADME)
-    fmt.Printf("SRD:%v ", this.m_bUseSBACRD)
-    fmt.Printf("RDQ:%v ", this.m_useRDOQ)
-    fmt.Printf("RDQTS:%v ", this.m_useRDOQTS)
+    fmt.Printf("IBD:%d ", TLibCommon.B2U(TLibCommon.G_bitDepthY > this.m_inputBitDepthY || TLibCommon.G_bitDepthC > this.m_inputBitDepthC))
+    fmt.Printf("HAD:%d ", TLibCommon.B2U(this.m_bUseHADME))
+    fmt.Printf("SRD:%d ", TLibCommon.B2U(this.m_bUseSBACRD))
+    fmt.Printf("RDQ:%d ", TLibCommon.B2U(this.m_useRDOQ))
+    fmt.Printf("RDQTS:%d ", TLibCommon.B2U(this.m_useRDOQTS))
     //#if L0232_RD_PENALTY
     fmt.Printf("RDpenalty:%d ", this.m_rdPenalty)
     //#endif
     fmt.Printf("SQP:%d ", this.m_uiDeltaQpRD)
-    fmt.Printf("ASR:%v ", this.m_bUseASR)
-    fmt.Printf("LComb:%v ", this.m_bUseLComb)
-    fmt.Printf("FEN:%v ", this.m_bUseFastEnc)
-    fmt.Printf("ECU:%v ", this.m_bUseEarlyCU)
-    fmt.Printf("FDM:%v ", this.m_useFastDecisionForMerge)
-    fmt.Printf("CFM:%v ", this.m_bUseCbfFastMode)
-    fmt.Printf("ESD:%v ", this.m_useEarlySkipDetection)
-    fmt.Printf("RQT:%v ", true)
-    fmt.Printf("TransformSkip:%v ", this.m_useTransformSkip)
-    fmt.Printf("TransformSkipFast:%v ", this.m_useTransformSkipFast)
+    fmt.Printf("ASR:%d ", TLibCommon.B2U(this.m_bUseASR))
+    fmt.Printf("LComb:%d ", TLibCommon.B2U(this.m_bUseLComb))
+    fmt.Printf("FEN:%d ", TLibCommon.B2U(this.m_bUseFastEnc))
+    fmt.Printf("ECU:%d ", TLibCommon.B2U(this.m_bUseEarlyCU))
+    fmt.Printf("FDM:%d ", TLibCommon.B2U(this.m_useFastDecisionForMerge))
+    fmt.Printf("CFM:%d ", TLibCommon.B2U(this.m_bUseCbfFastMode))
+    fmt.Printf("ESD:%d ", TLibCommon.B2U(this.m_useEarlySkipDetection))
+    fmt.Printf("RQT:%d ", 1)
+    fmt.Printf("TransformSkip:%d ", TLibCommon.B2U(this.m_useTransformSkip))
+    fmt.Printf("TransformSkipFast:%d ", TLibCommon.B2U(this.m_useTransformSkipFast))
     fmt.Printf("Slice: M=%d ", this.m_sliceMode)
     if this.m_sliceMode != 0 {
         fmt.Printf("A=%d ", this.m_sliceArgument)
@@ -1749,7 +1749,7 @@ func (this *TAppEncCfg) xPrintParameter() { ///< print configuration values
     if this.m_sliceSegmentMode != 0 {
         fmt.Printf("A=%d ", this.m_sliceSegmentArgument)
     }
-    fmt.Printf("CIP:%v ", this.m_bUseConstrainedIntraPred)
+    fmt.Printf("CIP:%d ", TLibCommon.B2U(this.m_bUseConstrainedIntraPred))
     fmt.Printf("SAO:%d ", TLibCommon.B2U(this.m_bUseSAO))
     fmt.Printf("PCM:%d ", TLibCommon.B2U(this.m_usePCM && (1<<this.m_uiPCMLog2MinSize) <= this.m_uiMaxCUWidth))
     fmt.Printf("SAOLcuBasedOptimization:%d ", TLibCommon.B2U(this.m_saoLcuBasedOptimization))
@@ -1760,9 +1760,9 @@ func (this *TAppEncCfg) xPrintParameter() { ///< print configuration values
     fmt.Printf("PME:%d ", this.m_log2ParallelMergeLevel)
     fmt.Printf(" WaveFrontSynchro:%d WaveFrontSubstreams:%d", this.m_iWaveFrontSynchro, this.m_iWaveFrontSubstreams)
     fmt.Printf(" ScalingList:%d ", this.m_useScalingListId)
-    fmt.Printf("TMVPMode:%v ", this.m_TMVPModeId)
+    fmt.Printf("TMVPMode:%d ", this.m_TMVPModeId)
     //#if ADAPTIVE_QP_SELECTION
-    fmt.Printf("AQpS:%v", this.m_bUseAdaptQpSelect)
+    fmt.Printf("AQpS:%d", TLibCommon.B2U(this.m_bUseAdaptQpSelect))
     //#endif
 
     fmt.Printf(" SignBitHidingFlag:%d ", this.m_signHideFlag)

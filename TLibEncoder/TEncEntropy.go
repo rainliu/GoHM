@@ -103,6 +103,10 @@ type TEncEntropy struct {
     m_pcEntropyCoderIf  TEncEntropyIf
 }
 
+func NewTEncEntropy() *TEncEntropy{
+	return &TEncEntropy{};
+}
+
 //public:
 func (this *TEncEntropy) setEntropyCoder(e TEncEntropyIf, pcSlice *TLibCommon.TComSlice) {
     this.m_pcEntropyCoderIf = e

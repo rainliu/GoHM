@@ -47,6 +47,10 @@ type TEncSampleAdaptiveOffset struct {
     TLibCommon.TComSampleAdaptiveOffset
 }
 
+func NewTEncSampleAdaptiveOffset() *TEncSampleAdaptiveOffset{
+	return &TEncSampleAdaptiveOffset{};
+}
+
 type TEncTop struct {
     m_pcEncCfg *TEncCfg
 
@@ -85,7 +89,7 @@ type TEncTop struct {
     m_cRDGoOnSbacCoder *TEncSbac                  ///< going on SBAC model for RD stage
     //#if FAST_BIT_EST
     m_pppcBinCoderCABAC    [][]*TEncBinCABACCounter ///< temporal CABAC state storage for RD computation
-    m_cRDGoOnBinCoderCABAC []*TEncBinCABACCounter   ///< going on bin coder CABAC for RD stage
+    m_cRDGoOnBinCoderCABAC *TEncBinCABACCounter   ///< going on bin coder CABAC for RD stage
     //#else
     //  TEncBinCABAC***         m_pppcBinCoderCABAC;            ///< temporal CABAC state storage for RD computation
     //  TEncBinCABAC            m_cRDGoOnBinCoderCABAC;         ///< going on bin coder CABAC for RD stage
@@ -106,13 +110,36 @@ type TEncTop struct {
 }
 
 func NewTEncTop() *TEncTop {
-    return &TEncTop{m_iPOCLast: -1}
+    return &TEncTop{m_iPOCLast: -1,
+    				m_cListPic:list.New(),
+    				m_cSearch:NewTEncSearch(),
+    				m_cTrQuant:TLibCommon.NewTComTrQuant(),
+    				m_cLoopFilter:TLibCommon.NewTComLoopFilter(),
+    				m_cEncSAO:NewTEncSampleAdaptiveOffset(),
+    				m_cEntropyCoder:NewTEncEntropy(),
+    				m_cCavlcCoder:NewTEncCavlc(),
+    				m_cSbacCoder:NewTEncSbac(),
+    				m_cBinCoderCABAC:NewTEncBinCABAC(),
+    				m_cGOPEncoder:NewTEncGOP(),
+    				m_cSliceEncoder:NewTEncSlice(),
+    				m_cCuEncoder:NewTEncCu(),
+    				m_cSPS:TLibCommon.NewTComSPS(),
+    				m_cPPS:TLibCommon.NewTComPPS(),
+    				m_cRDGoOnBinCoderCABAC:NewTEncBinCABACCounter(),
+    				m_cBitCounter:TLibCommon.NewTComBitCounter(),
+    				m_cRdCost:NewTEncRdCost(),
+    				m_cRDGoOnSbacCoder:NewTEncSbac(),
+    				m_scalingList:TLibCommon.NewTComScalingList(),
+    				m_cRateCtrl:NewTEncRateCtrl(),
+    				}
 }
 
 func (this *TEncTop) Create() {
     // initialize global variables
     TLibCommon.InitROM()
 
+	this.m_cRDGoOnSbacCoder.init( this.m_cRDGoOnBinCoderCABAC );
+	
     // create processing unit classes
     this.m_cGOPEncoder.create()
     this.m_cSliceEncoder.create(this.GetEncCfg().GetSourceWidth(), this.GetEncCfg().GetSourceHeight(), TLibCommon.G_uiMaxCUWidth, TLibCommon.G_uiMaxCUHeight, byte(TLibCommon.G_uiMaxCUDepth))
@@ -644,8 +671,14 @@ func (this *TEncTop) xInitRPS() { ///< initialize PPS from encoder options
         //#if AUTO_INTER_RPS
         rps.SetInterRPSPrediction(ge.m_interRPSPrediction > 0) // not very clean, converting anything > 0 to true.
         rps.SetDeltaRIdxMinus1(0)                              // index to the Reference RPS is always the previous one.
-        RPSRef := rpsList.GetReferencePictureSet(i - 1)        // get the reference RPS
-
+        var RPSRef *TLibCommon.TComReferencePictureSet; 
+        if (i-1 < 0){
+      		fmt.Printf("Warning: getReferencePictureSet(i-1):i-1<0\n");
+      		RPSRef = nil;
+   		}else{
+        	RPSRef = rpsList.GetReferencePictureSet(i - 1)        // get the reference RPS
+		}
+		
         if ge.m_interRPSPrediction == 2 { // Automatic generation of the inter RPS idc based on the RIdx provided.
             deltaRPS := this.GetEncCfg().GetGOPEntry(i-1).m_POC - ge.m_POC // the ref POC - current POC
             numRefDeltaPOC := RPSRef.GetNumberOfPictures()

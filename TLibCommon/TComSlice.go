@@ -1293,7 +1293,7 @@ type TComSPS struct {
     m_uiMaxCUDepth         uint
     m_uiMinTrDepth         uint
     m_uiMaxTrDepth         uint
-    m_RPSList              TComRPSList
+    m_RPSList              *TComRPSList
     m_bLongTermRefsPresent bool
     m_TMVPFlagsPresent     bool
     m_numReorderPics       [MAX_TLAYER]int
@@ -1366,6 +1366,7 @@ func NewTComSPS() *TComSPS {
         m_uiMaxCUDepth:              3,
         m_uiMinTrDepth:              0,
         m_uiMaxTrDepth:              1,
+        m_RPSList:					 NewTComRPSList(),
         m_bLongTermRefsPresent:      false,
         m_uiQuadtreeTULog2MaxSize:   0,
         m_uiQuadtreeTULog2MinSize:   0,
@@ -1580,7 +1581,7 @@ func (this *TComSPS) CreateRPSList(numRPS int) {
     this.m_RPSList.Create(numRPS)
 }
 func (this *TComSPS) GetRPSList() *TComRPSList {
-    return &this.m_RPSList
+    return this.m_RPSList
 }
 func (this *TComSPS) GetLongTermRefsPresent() bool {
     return this.m_bLongTermRefsPresent

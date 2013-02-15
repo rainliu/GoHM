@@ -219,7 +219,7 @@ func (this *TEncSlice) init(pcEncTop *TEncTop) {
 }
 
 /// preparation of slice encoding (reference marking, QP and lambda)
-func (this *TEncSlice) initEncSlice(pcPic *TLibCommon.TComPic, pocLast, pocCurr, iNumPicRcvd, iGOPid int, rpcSlice *TLibCommon.TComSlice, pSPS *TLibCommon.TComSPS, pPPS *TLibCommon.TComPPS) {
+func (this *TEncSlice) initEncSlice(pcPic *TLibCommon.TComPic, pocLast, pocCurr, iNumPicRcvd, iGOPid int, pSPS *TLibCommon.TComSPS, pPPS *TLibCommon.TComPPS) (rpcSlice *TLibCommon.TComSlice) {
     var dQP, dLambda float64
 
     rpcSlice = pcPic.GetSlice(0)
@@ -322,11 +322,13 @@ func (this *TEncSlice) initEncSlice(pcPic *TLibCommon.TComPic, pocLast, pocCurr,
         bitdepth_luma_qp_scale := 0
         //#endif
         qp_temp := dQP + float64(bitdepth_luma_qp_scale-SHIFT_QP)
+
         //#if FULL_NBIT
         //    Double qp_temp_orig = (Double) dQP - SHIFT_QP;
         //#endif
         // Case #1: I or P-slices (key-frame)
         dQPFactor := this.m_pcCfg.GetGOPEntry(iGOPid).m_QPFactor
+
         if eSliceType == TLibCommon.I_SLICE {
             dQPFactor = 0.57 * dLambda_scale
         }
@@ -345,8 +347,8 @@ func (this *TEncSlice) initEncSlice(pcPic *TLibCommon.TComPic, pocLast, pocCurr,
             dLambda *= 0.95
         }
 
-        iQP = TLibCommon.MAX(-pSPS.GetQpBDOffsetY(), TLibCommon.MIN(TLibCommon.MAX_QP, int(math.Floor(dQP+0.5)))).(int)
-
+        iQP = TLibCommon.MAX(int(-pSPS.GetQpBDOffsetY()), TLibCommon.MIN(int(TLibCommon.MAX_QP), int(math.Floor(dQP+0.5))).(int)).(int)
+		
         this.m_pdRdPicLambda[iDQpIdx] = dLambda
         this.m_pdRdPicQp[iDQpIdx] = dQP
         this.m_piRdPicQp[iDQpIdx] = iQP
@@ -407,7 +409,7 @@ func (this *TEncSlice) initEncSlice(pcPic *TLibCommon.TComPic, pocLast, pocCurr,
 
     if this.m_pcCfg.GetUseRecalculateQPAccordingToLambda() {
         dQP = this.xGetQPValueAccordingToLambda(dLambda)
-        iQP = TLibCommon.MAX(-pSPS.GetQpBDOffsetY(), TLibCommon.MIN(TLibCommon.MAX_QP, int(math.Floor(dQP+0.5)))).(int)
+        iQP = TLibCommon.MAX(int(-pSPS.GetQpBDOffsetY()), TLibCommon.MIN(int(TLibCommon.MAX_QP), int(math.Floor(dQP+0.5))).(int)).(int)
     }
 
     rpcSlice.SetSliceQp(iQP)
@@ -464,6 +466,8 @@ func (this *TEncSlice) initEncSlice(pcPic *TLibCommon.TComPic, pocLast, pocCurr,
     rpcSlice.SetSliceSegmentArgument(uint(this.m_pcCfg.GetSliceSegmentArgument()))
     rpcSlice.SetMaxNumMergeCand(this.m_pcCfg.GetMaxNumMergeCand())
     this.xStoreWPparam(pPPS.GetUseWP(), pPPS.GetWPBiPred())
+    
+    return
 }
 
 //#if RATE_CONTROL_LAMBDA_DOMAIN

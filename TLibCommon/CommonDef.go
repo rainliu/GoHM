@@ -206,8 +206,12 @@ func MAX(a, b interface{}) interface{} {
         if a.(uint) < b.(uint) {
             return b
         }
+    case float64:
+    	if a.(float64) < b.(float64) {
+            return b
+        }
     default:
-        fmt.Printf("unsupport data type\n")
+        fmt.Printf("unsupport data type in MAX\n")
     }
 
     return a
@@ -244,7 +248,7 @@ func MIN(a, b interface{}) interface{} {
             return b
         }
     default:
-        fmt.Printf("unsupport data type\n")
+        fmt.Printf("unsupport data type in MIN\n")
     }
 
     return a
@@ -273,7 +277,7 @@ func ABS(a interface{}) interface{} {
             return -a.(float64)
         }
     default:
-        fmt.Printf("unsupport data type\n")
+        fmt.Printf("unsupport data type in ABS\n")
     }
 
     return a

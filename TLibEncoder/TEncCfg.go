@@ -412,7 +412,8 @@ type TEncCfg struct {
 
 //public:
 func NewTEncCfg() *TEncCfg {
-    return &TEncCfg{}
+    return &TEncCfg{m_conformanceWindow:TLibCommon.NewWindow(),
+    				m_defaultDisplayWindow:TLibCommon.NewWindow()}
 }
 
 func (this *TEncCfg) SetProfile(profile TLibCommon.PROFILE) { this.m_profile = profile }

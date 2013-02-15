@@ -101,10 +101,10 @@ func main() {
     fmt.Printf("GoHM Software Version [%s]\n", TLibCommon.NV_VERSION)
     if len(os.Args) <= 2 {
         fmt.Printf("Usage: \n")
-        fmt.Printf("	HM Encoder: gohm.exe -e encoder.cfg [trace.txt]\n")
+        fmt.Printf("	HM Encoder: gohm.exe -c encoder.cfg [trace.txt]\n")
         fmt.Printf("	HM Decoder: gohm.exe -d test.bin test.yuv [n trace.txt]\n")
     } else {
-        if os.Args[1] == "-e" {
+        if os.Args[1] == "-c" {
             Encoder()
         } else if os.Args[1] == "-d" {
             Decoder()
