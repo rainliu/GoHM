@@ -447,6 +447,7 @@ type TAppEncCfg struct {
     m_pchInputFile     string                         ///< source file name
     m_pchBitstreamFile string                         ///< output bitstream file
     m_pchReconFile     string                         ///< output reconstruction file
+    m_pchTraceFile     string     					  ///< trace file name
     m_adLambdaModifier [TLibCommon.MAX_TLAYER]float64 ///< Lambda modifier array for each temporal layer
     // source specification
     m_iFrameRate        int  ///< source frame-rates (Hz)
@@ -923,6 +924,10 @@ func (this *TAppEncCfg) ParseCfg(argc int, argv []string) error { ///< parse con
 
     // parse cfg file
     opts.ParseConfigFile(argv[2])
+    
+    if argc >= 4 {
+        this.m_pchTraceFile = argv[3]
+    }
 
     /*
      * Set any derived parameters

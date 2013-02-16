@@ -34,6 +34,7 @@
 package TLibEncoder
 
 import (
+	"io"
     "gohm/TLibCommon"
 )
 
@@ -54,6 +55,7 @@ type TEncEntropyIf interface {
     resetEntropy()
     determineCabacInitIdx()
     setBitstream(p TLibCommon.TComBitIf)
+    setTraceFile(traceFile io.Writer)
     setSlice(p *TLibCommon.TComSlice)
     resetBits()
     resetCoeffCost()
@@ -116,12 +118,17 @@ func NewTEncEntropy() *TEncEntropy{
 }
 
 //public:
-func (this *TEncEntropy) setEntropyCoder(e TEncEntropyIf, pcSlice *TLibCommon.TComSlice) {
+func (this *TEncEntropy) setEntropyCoder(e TEncEntropyIf, pcSlice *TLibCommon.TComSlice, traceFile io.Writer) {
     this.m_pcEntropyCoderIf = e
     this.m_pcEntropyCoderIf.setSlice(pcSlice)
+    this.m_pcEntropyCoderIf.setTraceFile(traceFile)
 }
 func (this *TEncEntropy) setBitstream(p TLibCommon.TComBitIf) {
     this.m_pcEntropyCoderIf.setBitstream(p)
+}
+
+func (this *TEncEntropy) setTraceFile(traceFile io.Writer) {
+    this.m_pcEntropyCoderIf.setTraceFile(traceFile)
 }
 func (this *TEncEntropy) resetBits()      { this.m_pcEntropyCoderIf.resetBits() }
 func (this *TEncEntropy) resetCoeffCost() { this.m_pcEntropyCoderIf.resetCoeffCost() }
@@ -318,7 +325,7 @@ func (this *TEncEntropy) encodeTransformSubdivFlag(uiSymbol, uiCtx uint) {
     this.m_pcEntropyCoderIf.codeTransformSubdivFlag(uiSymbol, uiCtx)
 }
 func (this *TEncEntropy) encodeQtCbf(pcCU *TLibCommon.TComDataCU, uiAbsPartIdx uint, eType TLibCommon.TextType, uiTrDepth uint) {
-    this.m_pcEntropyCoderIf.codeQtRootCbf(pcCU, uiAbsPartIdx)
+    this.m_pcEntropyCoderIf.codeQtCbf( pcCU, uiAbsPartIdx, eType, uiTrDepth )
 }
 func (this *TEncEntropy) encodeQtCbfZero(pcCU *TLibCommon.TComDataCU, eType TLibCommon.TextType, uiTrDepth uint) {
     this.m_pcEntropyCoderIf.codeQtCbfZero(pcCU, eType, uiTrDepth)

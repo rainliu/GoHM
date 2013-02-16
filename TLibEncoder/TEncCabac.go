@@ -582,6 +582,9 @@ func (this *TEncSbac) setBitstream(p TLibCommon.TComBitIf) {
     this.m_pcBitIf = p
     this.m_pcBinIf.init(p)
 }
+func (this *TEncSbac) setTraceFile(traceFile io.Writer) {
+    this.m_pTraceFile = traceFile
+}
 func (this *TEncSbac) setSlice(p *TLibCommon.TComSlice) { this.m_pcSlice = p }
 
 // SBAC RD

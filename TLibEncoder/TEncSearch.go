@@ -34,6 +34,7 @@
 package TLibEncoder
 
 import (
+	//"fmt"
     "gohm/TLibCommon"
     "math"
 )
@@ -843,8 +844,8 @@ func (this *TEncSearch) estIntraPredQT(pcCU *TLibCommon.TComDataCU,
 
         //===== check modes (using r-d costs) =====
         //#if HHI_RQT_INTRA_SPEEDUP_MOD
-        uiSecondBestMode := TLibCommon.MAX_UINT
-        dSecondBestPUCost := TLibCommon.MAX_DOUBLE
+        //uiSecondBestMode := TLibCommon.MAX_UINT
+        //dSecondBestPUCost := TLibCommon.MAX_DOUBLE
         //#endif
 
         uiBestPUMode := uint(0)
@@ -875,8 +876,8 @@ func (this *TEncSearch) estIntraPredQT(pcCU *TLibCommon.TComDataCU,
             // check r-d cost
             if dPUCost < dBestPUCost {
                 //#if HHI_RQT_INTRA_SPEEDUP_MOD
-                uiSecondBestMode = uiBestPUMode
-                dSecondBestPUCost = dBestPUCost
+                //uiSecondBestMode = uiBestPUMode
+                //dSecondBestPUCost = dBestPUCost
                 //#endif
                 uiBestPUMode = uiOrgMode
                 uiBestPUDistY = uiPUDistY
@@ -896,20 +897,21 @@ func (this *TEncSearch) estIntraPredQT(pcCU *TLibCommon.TComDataCU,
                     this.m_puhQTTempTransformSkipFlag[1][i] = pcCU.GetTransformSkip1(TLibCommon.TEXT_CHROMA_U)[i+uiPartOffset] //, uiQPartNum * sizeof( byte ) );
                     this.m_puhQTTempTransformSkipFlag[2][i] = pcCU.GetTransformSkip1(TLibCommon.TEXT_CHROMA_V)[i+uiPartOffset] //, uiQPartNum * sizeof( byte ) );
                 }
-                //#if HHI_RQT_INTRA_SPEEDUP_MOD
-            } else if dPUCost < dSecondBestPUCost {
-                uiSecondBestMode = uiOrgMode
-                dSecondBestPUCost = dPUCost
+            //#if HHI_RQT_INTRA_SPEEDUP_MOD
+            //} else if dPUCost < dSecondBestPUCost {
+            //    uiSecondBestMode = uiOrgMode
+            //    dSecondBestPUCost = dPUCost
             }
             //#endif
         }   // Mode loop
 
         //#if HHI_RQT_INTRA_SPEEDUP
         //#if HHI_RQT_INTRA_SPEEDUP_MOD
-        for ui := 0; ui < 2; ui++ {
-            //#endif
+        //for ui := 0; ui < 2; ui++ {
+        //#endif
+        for ui := 0; ui < 1; ui++ {
             //#if HHI_RQT_INTRA_SPEEDUP_MOD
-            var uiOrgMode uint
+            /*var uiOrgMode uint
             if ui != 0 {
                 uiOrgMode = uiSecondBestMode
             } else {
@@ -918,10 +920,9 @@ func (this *TEncSearch) estIntraPredQT(pcCU *TLibCommon.TComDataCU,
             if uiOrgMode == TLibCommon.MAX_UINT {
                 break
             }
-            //#else
-            //      UInt uiOrgMode = uiBestPUMode;
+            #else*/
+            uiOrgMode := uiBestPUMode
             //#endif
-
             pcCU.SetLumaIntraDirSubParts(uiOrgMode, uiPartOffset, uiDepth+uiInitTrDepth)
 
             // set context models
@@ -1082,8 +1083,6 @@ func (this *TEncSearch) estIntraPredChromaQT(pcCU *TLibCommon.TComDataCU,
     pcCU.GetAllowedChromaDir(0, uiModeList[:])
     uiMaxMode := uint(TLibCommon.NUM_CHROMA_MODE)
 	
-	print("Enter estIntraPredChromaQT\n")
-	
     //----- check chroma modes -----
     for uiMode := uiMinMode; uiMode < uiMaxMode; uiMode++ {
         //----- restore context models -----
@@ -1133,8 +1132,6 @@ func (this *TEncSearch) estIntraPredChromaQT(pcCU *TLibCommon.TComDataCU,
     if this.m_bUseSBACRD {
         this.m_pcRDGoOnSbacCoder.load(this.m_pppcRDSbacCoder[uiDepth][TLibCommon.CI_CURR_BEST])
     }
-    
-    print("Exit estIntraPredChromaQT\n")
 }
 
 /// encoder estimation - inter prediction (non-skip)
@@ -1736,7 +1733,7 @@ func (this *TEncSearch) predInterSearch(pcCU *TLibCommon.TComDataCU,
     }   //  end of for ( int iPartIdx = 0; iPartIdx < iNumPart; iPartIdx++ )
 
     this.setWpScalingDistParam(pcCU, -1, TLibCommon.REF_PIC_LIST_X)
-
+	
     return
 }
 
@@ -2137,6 +2134,7 @@ func (this *TEncSearch) xEncSubdivCbfQT(pcCU *TLibCommon.TComDataCU,
     uiAbsPartIdx uint,
     bLuma bool,
     bChroma bool) {
+    print("Enter xEncSubdivCbfQT\n")
     uiFullDepth := uint(pcCU.GetDepth1(0)) + uiTrDepth
     uiTrMode := uint(pcCU.GetTransformIdx1(uiAbsPartIdx))
     uiSubdiv := uint(TLibCommon.B2U(uiTrMode > uiTrDepth))
@@ -2181,9 +2179,11 @@ func (this *TEncSearch) xEncSubdivCbfQT(pcCU *TLibCommon.TComDataCU,
     {
         //===== Cbfs =====
         if bLuma {
+        	//fmt.Printf("%v\n", this.m_pcEntropyCoder.m_pcEntropyCoderIf)
             this.m_pcEntropyCoder.encodeQtCbf(pcCU, uiAbsPartIdx, TLibCommon.TEXT_LUMA, uiTrMode)
         }
     }
+    print("Exit xEncSubdivCbfQT\n");
 }
 
 func (this *TEncSearch) xEncCoeffQT(pcCU *TLibCommon.TComDataCU,
@@ -2304,6 +2304,7 @@ func (this *TEncSearch) xGetIntraBitsQT(pcCU *TLibCommon.TComDataCU,
     bLuma bool,
     bChroma bool,
     bRealCoeff bool) uint {
+    print("Enter xGetIntraBitsQT\n");
     this.m_pcEntropyCoder.resetBits()
     this.xEncIntraHeader(pcCU, uiTrDepth, uiAbsPartIdx, bLuma, bChroma)
     this.xEncSubdivCbfQT(pcCU, uiTrDepth, uiAbsPartIdx, bLuma, bChroma)
@@ -2316,6 +2317,8 @@ func (this *TEncSearch) xGetIntraBitsQT(pcCU *TLibCommon.TComDataCU,
         this.xEncCoeffQT(pcCU, uiTrDepth, uiAbsPartIdx, TLibCommon.TEXT_CHROMA_V, bRealCoeff)
     }
     uiBits := this.m_pcEntropyCoder.getNumberOfWrittenBits()
+    print("Exit xGetIntraBitsQT\n");
+    
     return uiBits
 }
 
@@ -2719,7 +2722,7 @@ func (this *TEncSearch) xRecurIntraCodingQT(pcCU *TLibCommon.TComDataCU,
     uiLog2TrSize := uint(TLibCommon.G_aucConvertToBit[pcCU.GetSlice().GetSPS().GetMaxCUWidth()>>uiFullDepth]) + 2
     bCheckFull := (uiLog2TrSize <= pcCU.GetSlice().GetSPS().GetQuadtreeTULog2MaxSize())
     bCheckSplit := (uiLog2TrSize > pcCU.GetQuadtreeTULog2MinSizeInCU(uiAbsPartIdx))
-
+	
 	print("Enter xRecurIntraCodingQT\n");
 	
     //#if HHI_RQT_INTRA_SPEEDUP
@@ -2892,6 +2895,11 @@ func (this *TEncSearch) xRecurIntraCodingQT(pcCU *TLibCommon.TComDataCU,
             }
             //----- determine rate and r-d cost -----
             uiSingleBits := this.xGetIntraBitsQT(pcCU, uiTrDepth, uiAbsPartIdx, true, !bLumaOnly, false)
+//#if L0232_RD_PENALTY
+		    if this.m_pcEncCfg.GetRDpenalty()!=0 && (uiLog2TrSize==5) && !isIntraSlice {
+		        uiSingleBits=uiSingleBits*4; 
+		    }
+//#endif
             dSingleCost = this.m_pcRdCost.calcRdCost(uiSingleBits, uiSingleDistY+uiSingleDistC, false, TLibCommon.DF_DEFAULT)
         }
     }
@@ -2956,6 +2964,7 @@ func (this *TEncSearch) xRecurIntraCodingQT(pcCU *TLibCommon.TComDataCU,
             *ruiDistY += uiSplitDistY
             *ruiDistC += uiSplitDistC
             *dRDCost += dSplitCost
+            print("Exit xRecurIntraCodingQT\n");
             return
         }
         //----- set entropy coding status -----

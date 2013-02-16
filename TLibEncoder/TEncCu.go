@@ -1087,7 +1087,7 @@ func (this *TEncCu) xCheckRDCostIntra(rpcBestCU *TLibCommon.TComDataCU, rpcTempC
     this.m_pcPredSearch.estIntraPredQT(rpcTempCU, this.m_ppcOrigYuv[uiDepth], this.m_ppcPredYuvTemp[uiDepth], this.m_ppcResiYuvTemp[uiDepth], this.m_ppcRecoYuvTemp[uiDepth], &uiPreCalcDistC, bSeparateLumaChroma)
 
     this.m_ppcRecoYuvTemp[uiDepth].CopyToPicLuma(rpcTempCU.GetPic().GetPicYuvRec(), rpcTempCU.GetAddr(), rpcTempCU.GetZorderIdxInCU(), 0, 0)
-
+	print("enter estIntraPredChromaQT\n")
     this.m_pcPredSearch.estIntraPredChromaQT(rpcTempCU, this.m_ppcOrigYuv[uiDepth], this.m_ppcPredYuvTemp[uiDepth], this.m_ppcResiYuvTemp[uiDepth], this.m_ppcRecoYuvTemp[uiDepth], uiPreCalcDistC)
 	print("outof estIntraPredChromaQT\n")
     this.m_pcEntropyCoder.resetBits()
@@ -1100,6 +1100,7 @@ func (this *TEncCu) xCheckRDCostIntra(rpcBestCU *TLibCommon.TComDataCU, rpcTempC
     this.m_pcEntropyCoder.encodePredInfo(rpcTempCU, 0, true)
     this.m_pcEntropyCoder.encodeIPCMInfo(rpcTempCU, 0, true)
 	print("outof encodeIPCMInfo\n")
+	
     // Encode Coefficients
     bCodeDQP := this.getdQPFlag()
     this.m_pcEntropyCoder.encodeCoeff(rpcTempCU, 0, uiDepth, uint(rpcTempCU.GetWidth1(0)), uint(rpcTempCU.GetHeight1(0)), &bCodeDQP)

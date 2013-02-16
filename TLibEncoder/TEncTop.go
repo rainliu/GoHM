@@ -34,6 +34,8 @@
 package TLibEncoder
 
 import (
+	"io"
+	"os"
     "container/list"
     "fmt"
     "gohm/TLibCommon"
@@ -107,6 +109,8 @@ type TEncTop struct {
 
     m_scalingList *TLibCommon.TComScalingList ///< quantization matrix information
     m_cRateCtrl   *TEncRateCtrl               ///< Rate control class
+    
+    m_pTraceFile   *os.File
 }
 
 func NewTEncTop() *TEncTop {
@@ -134,7 +138,13 @@ func NewTEncTop() *TEncTop {
     				}
 }
 
-func (this *TEncTop) Create() {
+func (this *TEncTop) Create(pchTraceFile string) {
+	if pchTraceFile != "" {
+        this.m_pTraceFile, _ = os.Create(pchTraceFile)
+    } else {
+        this.m_pTraceFile = nil
+    }
+    
     // initialize global variables
     TLibCommon.InitROM()
 
@@ -202,6 +212,10 @@ func (this *TEncTop) Create() {
 }
 
 func (this *TEncTop) Destroy() {
+	if this.m_pTraceFile != nil {
+        this.m_pTraceFile.Close()
+    }
+    
     // destroy processing unit classes
     this.m_cGOPEncoder.destroy()
     this.m_cSliceEncoder.destroy()
@@ -895,6 +909,7 @@ func (this *TEncTop) getGOPEncoder() *TEncGOP                   { return this.m_
 func (this *TEncTop) getSliceEncoder() *TEncSlice               { return this.m_cSliceEncoder }
 func (this *TEncTop) getCuEncoder() *TEncCu                     { return this.m_cCuEncoder }
 func (this *TEncTop) getEntropyCoder() *TEncEntropy             { return this.m_cEntropyCoder }
+func (this *TEncTop) getTraceFile()   io.Writer			    	{ return this.m_pTraceFile }
 func (this *TEncTop) getCavlcCoder() *TEncCavlc                 { return this.m_cCavlcCoder }
 func (this *TEncTop) getSbacCoder() *TEncSbac                   { return this.m_cSbacCoder }
 func (this *TEncTop) getBinCABAC() *TEncBinCABAC                { return this.m_cBinCoderCABAC }

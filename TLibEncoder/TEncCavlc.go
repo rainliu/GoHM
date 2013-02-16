@@ -66,7 +66,7 @@ func NewSyntaxElementWriter() *SyntaxElementWriter {
 
 func (this *SyntaxElementWriter) setBitstream(p TLibCommon.TComBitIf) { this.m_pcBitIf = p }
 
-func (this *SyntaxElementWriter) SetTraceFile(traceFile io.Writer) {
+func (this *SyntaxElementWriter) setTraceFile(traceFile io.Writer) {
     this.m_pTraceFile = traceFile
 }
 

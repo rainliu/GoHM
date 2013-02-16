@@ -34,6 +34,7 @@
 package TLibEncoder
 
 import (
+	"io"
     "container/list"
     "fmt"
     "gohm/TLibCommon"
@@ -82,6 +83,7 @@ type TEncGOP struct {
     m_pcSliceEncoder *TEncSlice
     m_pcListPic      *list.List
 
+	m_pTraceFile	  io.Writer
     m_pcEntropyCoder *TEncEntropy
     m_pcCavlcCoder   *TEncCavlc
     m_pcSbacCoder    *TEncSbac
@@ -135,6 +137,7 @@ func (this *TEncGOP) init(pcTEncTop *TEncTop) {
     this.m_pcSliceEncoder = pcTEncTop.getSliceEncoder()
     this.m_pcListPic = pcTEncTop.getListPic()
 
+	this.m_pTraceFile = pcTEncTop.getTraceFile()
     this.m_pcEntropyCoder = pcTEncTop.getEntropyCoder()
     this.m_pcCavlcCoder = pcTEncTop.getCavlcCoder()
     this.m_pcSbacCoder = pcTEncTop.getSbacCoder()
@@ -691,8 +694,8 @@ func (this *TEncGOP) compressGOP(iPOCLast, iNumPicRcvd int, rcListPic, rcListPic
 
         /////////////////////////////////////////////////////////////////////////////////////////////////// File writing
         // Set entropy coder
-        this.m_pcEntropyCoder.setEntropyCoder(this.m_pcCavlcCoder, pcSlice)
-
+        this.m_pcEntropyCoder.setEntropyCoder(this.m_pcCavlcCoder, pcSlice, this.m_pTraceFile)
+        
         // write various header sets.
         if this.m_bSeqFirst {
             nalu := NewOutputNALUnit(TLibCommon.NAL_UNIT_VPS, 0, 0)
@@ -786,6 +789,7 @@ func (this *TEncGOP) compressGOP(iPOCLast, iNumPicRcvd int, rcListPic, rcListPic
             /*
                    nalu = NewOutputNALUnit(TLibCommon.NAL_UNIT_SEI);
                   this.m_pcEntropyCoder.setEntropyCoder(this.m_pcCavlcCoder, pcSlice);
+                  this.m_pcEntropyCoder.setTraceFile(this.m_pTraceFile)
                   this.m_pcEntropyCoder.setBitstream(&nalu.m_Bitstream);
 
                   var sei_buffering_period SEIBufferingPeriod;
@@ -827,6 +831,7 @@ func (this *TEncGOP) compressGOP(iPOCLast, iNumPicRcvd int, rcListPic, rcListPic
             /*
                 nalu := NewOutputNALUnit(TLibCommon.NAL_UNIT_SEI);
                this.m_pcEntropyCoder.setEntropyCoder(this.m_pcCavlcCoder, pcSlice);
+               this.m_pcEntropyCoder.setTraceFile(this.m_pTraceFile)
                this.m_pcEntropyCoder.setBitstream(&nalu.m_Bitstream);
 
                var sei_recovery_point SEIRecoveryPoint;
@@ -934,7 +939,7 @@ func (this *TEncGOP) compressGOP(iPOCLast, iNumPicRcvd int, rcListPic, rcListPic
                     pcSubstreamsOut[ui].Clear()
                 }
 
-                this.m_pcEntropyCoder.setEntropyCoder(this.m_pcCavlcCoder, pcSlice)
+                this.m_pcEntropyCoder.setEntropyCoder(this.m_pcCavlcCoder, pcSlice, this.m_pTraceFile)
                 this.m_pcEntropyCoder.resetEntropy()
                 // start slice NALunit
                 nalu := NewOutputNALUnit(pcSlice.GetNalUnitType(), pcSlice.GetTLayer(), 0)
@@ -959,10 +964,10 @@ func (this *TEncGOP) compressGOP(iPOCLast, iNumPicRcvd int, rcListPic, rcListPic
                         // We've not completed our slice header info yet, do the alignment later.
                     }
                     this.m_pcSbacCoder.init(this.m_pcBinCABAC)
-                    this.m_pcEntropyCoder.setEntropyCoder(this.m_pcSbacCoder, pcSlice)
+                    this.m_pcEntropyCoder.setEntropyCoder(this.m_pcSbacCoder, pcSlice, this.m_pTraceFile)
                     this.m_pcEntropyCoder.resetEntropy()
                     for ui := 0; ui < pcSlice.GetPPS().GetNumSubstreams(); ui++ {
-                        this.m_pcEntropyCoder.setEntropyCoder(pcSbacCoders[ui], pcSlice)
+                        this.m_pcEntropyCoder.setEntropyCoder(pcSbacCoders[ui], pcSlice, this.m_pTraceFile)
                         this.m_pcEntropyCoder.resetEntropy()
                     }
                 }
@@ -972,11 +977,11 @@ func (this *TEncGOP) compressGOP(iPOCLast, iNumPicRcvd int, rcListPic, rcListPic
                     this.m_pcSbacCoder.init(this.m_pcBinCABAC)
                     {
                         for ui := 0; ui < pcSlice.GetPPS().GetNumSubstreams(); ui++ {
-                            this.m_pcEntropyCoder.setEntropyCoder(pcSbacCoders[ui], pcSlice)
+                            this.m_pcEntropyCoder.setEntropyCoder(pcSbacCoders[ui], pcSlice, this.m_pTraceFile)
                             this.m_pcEntropyCoder.resetEntropy()
                         }
                         pcSbacCoders[0].load(this.m_pcSbacCoder)
-                        this.m_pcEntropyCoder.setEntropyCoder(pcSbacCoders[0], pcSlice) //ALF is written in substream #0 with CABAC coder #0 (see ALF param encoding below)
+                        this.m_pcEntropyCoder.setEntropyCoder(pcSbacCoders[0], pcSlice, this.m_pTraceFile) //ALF is written in substream #0 with CABAC coder #0 (see ALF param encoding below)
                     }
                     this.m_pcEntropyCoder.resetEntropy()
                     // File writing
@@ -1013,7 +1018,7 @@ func (this *TEncGOP) compressGOP(iPOCLast, iNumPicRcvd int, rcListPic, rcListPic
                     for ui := 0; ui < iNumSubstreams; ui++ {
                         // Flush all substreams -- this includes empty ones.
                         // Terminating bit and flush.
-                        this.m_pcEntropyCoder.setEntropyCoder(pcSbacCoders[ui], pcSlice)
+                        this.m_pcEntropyCoder.setEntropyCoder(pcSbacCoders[ui], pcSlice, this.m_pTraceFile)
                         this.m_pcEntropyCoder.setBitstream(pcSubstreamsOut[ui])
                         this.m_pcEntropyCoder.encodeTerminatingBit(1)
                         this.m_pcEntropyCoder.encodeSliceFinish()
@@ -1032,7 +1037,7 @@ func (this *TEncGOP) compressGOP(iPOCLast, iNumPicRcvd int, rcListPic, rcListPic
                     }
 
                     // Complete the slice header info.
-                    this.m_pcEntropyCoder.setEntropyCoder(this.m_pcCavlcCoder, pcSlice)
+                    this.m_pcEntropyCoder.setEntropyCoder(this.m_pcCavlcCoder, pcSlice, this.m_pTraceFile)
                     this.m_pcEntropyCoder.setBitstream(nalu.m_Bitstream)
                     this.m_pcEntropyCoder.encodeTilesWPPEntryPoint(pcSlice)
 
@@ -1100,7 +1105,7 @@ func (this *TEncGOP) compressGOP(iPOCLast, iNumPicRcvd int, rcListPic, rcListPic
 
             case EXECUTE_INLOOPFILTER:
                 // set entropy coder for RD
-                this.m_pcEntropyCoder.setEntropyCoder(this.m_pcSbacCoder, pcSlice)
+                this.m_pcEntropyCoder.setEntropyCoder(this.m_pcSbacCoder, pcSlice, this.m_pTraceFile)
                 if pcSlice.GetSPS().GetUseSAO() {
                     fmt.Printf("sao not enabled\n")
                     /*
@@ -1123,7 +1128,7 @@ func (this *TEncGOP) compressGOP(iPOCLast, iNumPicRcvd int, rcListPic, rcListPic
                     */
                 }
                 //#if SAO_RDO
-                this.m_pcEntropyCoder.setEntropyCoder(this.m_pcCavlcCoder, pcSlice)
+                this.m_pcEntropyCoder.setEntropyCoder(this.m_pcCavlcCoder, pcSlice, this.m_pTraceFile)
                 //#endif
                 processingState = ENCODE_SLICE
 
@@ -1179,6 +1184,7 @@ func (this *TEncGOP) compressGOP(iPOCLast, iNumPicRcvd int, rcListPic, rcListPic
 
                     //write the SEI messages
                     this.m_pcEntropyCoder.setEntropyCoder(this.m_pcCavlcCoder, pcSlice);
+                    this.m_pcEntropyCoder.setTraceFile(this.m_pTraceFile)
                     this.m_seiWriter.writeSEImessage(nalu.m_Bitstream, sei_recon_picture_digest);
                     writeRBSPTrailingBits(nalu.m_Bitstream);
 
@@ -1212,6 +1218,7 @@ func (this *TEncGOP) compressGOP(iPOCLast, iNumPicRcvd int, rcListPic, rcListPic
 
                // write the SEI messages
                this.m_pcEntropyCoder.setEntropyCoder(this.m_pcCavlcCoder, pcSlice);
+               this.m_pcEntropyCoder.setTraceFile(this.m_pTraceFile)
                this.m_seiWriter.writeSEImessage(nalu.m_Bitstream, sei_temporal_level0_index);
                writeRBSPTrailingBits(nalu.m_Bitstream);
 
@@ -1299,6 +1306,7 @@ func (this *TEncGOP) compressGOP(iPOCLast, iNumPicRcvd int, rcListPic, rcListPic
                       }
                     }
                     this.m_pcEntropyCoder.setEntropyCoder(m_pcCavlcCoder, pcSlice);
+                    this.m_pcEntropyCoder.setTraceFile(this.m_pTraceFile)
                     pictureTimingSEI.m_sps = pcSlice.GetSPS();
                     this.m_seiWriter.writeSEImessage(nalu.m_Bitstream, pictureTimingSEI);
                     writeRBSPTrailingBits();
@@ -1414,7 +1422,7 @@ func (this *TEncGOP) preLoopFilterPicAll(pcPic *TLibCommon.TComPic, ruiDist *uin
 
     this.m_pcLoopFilter.LoopFilterPic(pcPic)
 
-    this.m_pcEntropyCoder.setEntropyCoder(this.m_pcEncTop.getRDGoOnSbacCoder(), pcSlice)
+    this.m_pcEntropyCoder.setEntropyCoder(this.m_pcEncTop.getRDGoOnSbacCoder(), pcSlice, this.m_pTraceFile)
     this.m_pcEntropyCoder.resetEntropy()
     this.m_pcEntropyCoder.setBitstream(this.m_pcBitCounter)
     pcSlice = pcPic.GetSlice(0)

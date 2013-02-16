@@ -166,7 +166,7 @@ func (this *TAppEncTop) xCreateLib() { ///< create files & encoder class
         this.m_cTVideoIOYuvReconFile.Open(this.m_pchReconFile, true, this.m_outputBitDepthY, this.m_outputBitDepthC, this.m_internalBitDepthY, this.m_internalBitDepthC) // write mode
     }
     // Neo Decoder
-    this.m_cTEncTop.Create()
+    this.m_cTEncTop.Create(this.m_pchTraceFile)
 }
 
 func (this *TAppEncTop) xInitLibCfg() { ///< initialize internal variables

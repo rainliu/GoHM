@@ -34,6 +34,7 @@
 package TLibEncoder
 
 import (
+	"io"
     "container/list"
     "fmt"
     "gohm/TLibCommon"
@@ -103,6 +104,7 @@ type TEncSlice struct {
     m_pcPredSearch *TEncSearch ///< encoder search class
 
     // coding tools
+    m_pTraceFile	  io.Writer
     m_pcEntropyCoder *TEncEntropy            ///< entropy encoder
     m_pcCavlcCoder   *TEncCavlc              ///< CAVLC encoder
     m_pcSbacCoder    *TEncSbac               ///< SBAC encoder
@@ -200,6 +202,7 @@ func (this *TEncSlice) init(pcEncTop *TEncTop) {
     this.m_pcCuEncoder = pcEncTop.getCuEncoder()
     this.m_pcPredSearch = pcEncTop.getPredSearch()
 
+	this.m_pTraceFile = pcEncTop.getTraceFile()
     this.m_pcEntropyCoder = pcEncTop.getEntropyCoder()
     this.m_pcCavlcCoder = pcEncTop.getCavlcCoder()
     this.m_pcSbacCoder = pcEncTop.getSbacCoder()
@@ -658,14 +661,14 @@ func (this *TEncSlice) compressSlice(rpcPic *TLibCommon.TComPic) { ///< analysis
     // set entropy coder
     if this.m_pcCfg.GetUseSBACRD() {
         this.m_pcSbacCoder.init(this.m_pcBinCABAC)
-        this.m_pcEntropyCoder.setEntropyCoder(this.m_pcSbacCoder, pcSlice)
+        this.m_pcEntropyCoder.setEntropyCoder(this.m_pcSbacCoder, pcSlice, this.m_pTraceFile)
         this.m_pcEntropyCoder.resetEntropy()
         this.m_pppcRDSbacCoder[0][TLibCommon.CI_CURR_BEST].load(this.m_pcSbacCoder)
         pppcRDSbacCoder = this.m_pppcRDSbacCoder[0][TLibCommon.CI_CURR_BEST].getEncBinIf().getTEncBinCABAC()
         pppcRDSbacCoder.setBinCountingEnableFlag(false)
         pppcRDSbacCoder.setBinsCoded(0)
     } else {
-        this.m_pcEntropyCoder.setEntropyCoder(this.m_pcCavlcCoder, pcSlice)
+        this.m_pcEntropyCoder.setEntropyCoder(this.m_pcCavlcCoder, pcSlice, this.m_pTraceFile)
         this.m_pcEntropyCoder.resetEntropy()
         this.m_pcEntropyCoder.setBitstream(this.m_pcBitCounter)
     }
@@ -847,14 +850,14 @@ func (this *TEncSlice) compressSlice(rpcPic *TLibCommon.TComPic) { ///< analysis
                 sliceType = TLibCommon.SliceType(pcSlice.GetPPS().GetEncCABACTableIdx())
             }
             this.m_pcEntropyCoder.updateContextTables3(sliceType, pcSlice.GetSliceQp(), false)
-            this.m_pcEntropyCoder.setEntropyCoder(this.m_pppcRDSbacCoder[0][TLibCommon.CI_CURR_BEST], pcSlice)
+            this.m_pcEntropyCoder.setEntropyCoder(this.m_pppcRDSbacCoder[0][TLibCommon.CI_CURR_BEST], pcSlice, this.m_pTraceFile)
             this.m_pcEntropyCoder.updateContextTables2(sliceType, pcSlice.GetSliceQp())
-            this.m_pcEntropyCoder.setEntropyCoder(this.m_pcSbacCoder, pcSlice)
+            this.m_pcEntropyCoder.setEntropyCoder(this.m_pcSbacCoder, pcSlice, this.m_pTraceFile)
         }
         // if RD based on SBAC is used
         if this.m_pcCfg.GetUseSBACRD() {
             // set go-on entropy coder
-            this.m_pcEntropyCoder.setEntropyCoder(this.m_pcRDGoOnSbacCoder, pcSlice)
+            this.m_pcEntropyCoder.setEntropyCoder(this.m_pcRDGoOnSbacCoder, pcSlice, this.m_pTraceFile)
             this.m_pcEntropyCoder.setBitstream(pcBitCounters[uiSubStrm])
 
             this.m_pcRDGoOnSbacCoder.getEncBinIf().getTEncBinCABAC().setBinCountingEnableFlag(true)
@@ -919,7 +922,7 @@ func (this *TEncSlice) compressSlice(rpcPic *TLibCommon.TComPic) { ///< analysis
             //#endif
 
             // restore entropy coder to an initial stage
-            this.m_pcEntropyCoder.setEntropyCoder(this.m_pppcRDSbacCoder[0][TLibCommon.CI_CURR_BEST], pcSlice)
+            this.m_pcEntropyCoder.setEntropyCoder(this.m_pppcRDSbacCoder[0][TLibCommon.CI_CURR_BEST], pcSlice, this.m_pTraceFile)
             this.m_pcEntropyCoder.setBitstream(pcBitCounters[uiSubStrm])
             this.m_pcCuEncoder.setBitCounter(pcBitCounters[uiSubStrm])
             this.m_pcBitCounter = pcBitCounters[uiSubStrm]
@@ -999,7 +1002,7 @@ func (this *TEncSlice) encodeSlice(rpcPic *TLibCommon.TComPic, rpcBitstream *TLi
     // choose entropy coder
     {
         this.m_pcSbacCoder.init(this.m_pcBinCABAC)
-        this.m_pcEntropyCoder.setEntropyCoder(this.m_pcSbacCoder, pcSlice)
+        this.m_pcEntropyCoder.setEntropyCoder(this.m_pcSbacCoder, pcSlice, this.m_pTraceFile)
     }
 
     this.m_pcCuEncoder.setBitCounter(nil)
