@@ -105,6 +105,33 @@ func (this *SyntaxElementWriter) xTraceSliceHeader(pSlice *TLibCommon.TComSlice)
 }
 
 
+func (this *SyntaxElementWriter) XTraceLCUHeader(traceLevel uint) {
+}
+func (this *SyntaxElementWriter) XTraceCUHeader(traceLevel uint) {
+}
+func (this *SyntaxElementWriter) XTracePUHeader(traceLevel uint) {
+}
+func (this *SyntaxElementWriter) XTraceTUHeader(traceLevel uint) {
+}
+func (this *SyntaxElementWriter) XTraceCoefHeader(traceLevel uint) {
+}
+func (this *SyntaxElementWriter) XTraceResiHeader(traceLevel uint) {
+}
+func (this *SyntaxElementWriter) XTracePredHeader(traceLevel uint) {
+}
+func (this *SyntaxElementWriter) XTraceRecoHeader(traceLevel uint) {
+}
+func (this *SyntaxElementWriter) XReadAeTr(Value int, pSymbolName string, traceLevel uint) {
+}
+func (this *SyntaxElementWriter) XReadCeofTr(pCoeff []TLibCommon.TCoeff, uiWidth, traceLevel uint) {
+}
+func (this *SyntaxElementWriter) XReadResiTr(pPel []TLibCommon.Pel, uiWidth, traceLevel uint) {
+}
+func (this *SyntaxElementWriter) XReadPredTr(pPel []TLibCommon.Pel, uiWidth, traceLevel uint) {
+}
+func (this *SyntaxElementWriter) XReadRecoTr(pPel []TLibCommon.Pel, uiWidth, traceLevel uint) {
+}
+
 func (this *SyntaxElementWriter) DTRACE_CABAC_F(x float32) {
     if this.GetTraceFile() != nil {
         io.WriteString(this.m_pTraceFile, fmt.Sprintf("%f", x))

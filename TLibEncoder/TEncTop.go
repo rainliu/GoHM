@@ -149,7 +149,10 @@ func (this *TEncTop) Create(pchTraceFile string) {
     TLibCommon.InitROM()
 
 	this.m_cRDGoOnSbacCoder.init( this.m_cRDGoOnBinCoderCABAC );
-	
+	this.m_cRDGoOnBinCoderCABAC.SetSbac(this.m_cRDGoOnSbacCoder);
+//#if FAST_BIT_EST
+  	TLibCommon.ContextModel_BuildNextStateTable();
+//#endif
     // create processing unit classes
     this.m_cGOPEncoder.create()
     this.m_cSliceEncoder.create(this.GetEncCfg().GetSourceWidth(), this.GetEncCfg().GetSourceHeight(), TLibCommon.G_uiMaxCUWidth, TLibCommon.G_uiMaxCUHeight, byte(TLibCommon.G_uiMaxCUDepth))
@@ -206,6 +209,7 @@ func (this *TEncTop) Create(pchTraceFile string) {
                 //        this.m_pppcBinCoderCABAC [iDepth][iCIIdx] = new TEncBinCABAC;
                 //#endif
                 this.m_pppcRDSbacCoder[iDepth][iCIIdx].init(this.m_pppcBinCoderCABAC[iDepth][iCIIdx])
+                this.m_pppcBinCoderCABAC[iDepth][iCIIdx].SetSbac(this.m_pppcRDSbacCoder[iDepth][iCIIdx])
             }
         }
     }

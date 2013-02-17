@@ -34,6 +34,7 @@
 package TLibEncoder
 
 import (
+	"fmt"
 	"io"
     "gohm/TLibCommon"
 )
@@ -44,7 +45,20 @@ import (
 
 /// entropy encoder pure class
 type TEncEntropyIf interface {
-	
+	XTraceLCUHeader(traceLevel uint)
+    XTraceCUHeader(traceLevel uint)
+    XTracePUHeader(traceLevel uint)
+    XTraceTUHeader(traceLevel uint)
+    XTraceCoefHeader(traceLevel uint)
+    XTraceResiHeader(traceLevel uint)
+    XTracePredHeader(traceLevel uint)
+    XTraceRecoHeader(traceLevel uint)
+    XReadAeTr(Value int, pSymbolName string, traceLevel uint)
+    XReadCeofTr(pCoeff []TLibCommon.TCoeff, uiWidth, traceLevel uint)
+    XReadResiTr(pPel []TLibCommon.Pel, uiWidth, traceLevel uint)
+    XReadPredTr(pPel []TLibCommon.Pel, uiWidth, traceLevel uint)
+    XReadRecoTr(pPel []TLibCommon.Pel, uiWidth, traceLevel uint)
+    
 	DTRACE_CABAC_F(x float32)
     DTRACE_CABAC_V(x uint)
     DTRACE_CABAC_VL(x uint)
@@ -355,12 +369,14 @@ func (this *TEncEntropy) encodeScalingList(scalingList *TLibCommon.TComScalingLi
     this.m_pcEntropyCoderIf.codeScalingList(scalingList)
 }
 func (this *TEncEntropy) xEncodeTransform(pcCU *TLibCommon.TComDataCU, offsetLuma, offsetChroma, uiAbsPartIdx, uiDepth, width, height, uiTrIdx uint, bCodeDQP *bool) {
-    uiSubdiv := uint(pcCU.GetTransformIdx1(uiAbsPartIdx)) + uint(TLibCommon.B2U(uint(pcCU.GetDepth1(uiAbsPartIdx)) > uiDepth))
+    uiSubdiv := uint(TLibCommon.B2U(uint(pcCU.GetTransformIdx1(uiAbsPartIdx) + pcCU.GetDepth1(uiAbsPartIdx)) > uiDepth))
     uiLog2TrafoSize := uint(TLibCommon.G_aucConvertToBit[pcCU.GetSlice().GetSPS().GetMaxCUWidth()]) + 2 - uiDepth
     cbfY := pcCU.GetCbf3(uiAbsPartIdx, TLibCommon.TEXT_LUMA, uiTrIdx)
     cbfU := pcCU.GetCbf3(uiAbsPartIdx, TLibCommon.TEXT_CHROMA_U, uiTrIdx)
     cbfV := pcCU.GetCbf3(uiAbsPartIdx, TLibCommon.TEXT_CHROMA_V, uiTrIdx)
-
+	
+	fmt.Print("Enter xEncodeTransform\n");// with uiSubdiv=%d, uiAbsPartIdx=%d, uiDepth=%d\n", uiSubdiv, uiAbsPartIdx, uiDepth);
+  
     if uiTrIdx == 0 {
         this.m_bakAbsPartIdxCU = uiAbsPartIdx
     }
@@ -487,6 +503,7 @@ func (this *TEncEntropy) xEncodeTransform(pcCU *TLibCommon.TComDataCU, offsetLum
             }
         }
     }
+    fmt.Print("Exit xEncodeTransform\n");
 }
 func (this *TEncEntropy) encodeCoeff(pcCU *TLibCommon.TComDataCU, uiAbsPartIdx, uiDepth, uiWidth, uiHeight uint, bCodeDQP *bool) {
     uiMinCoeffSize := pcCU.GetPic().GetMinCUWidth() * pcCU.GetPic().GetMinCUHeight()

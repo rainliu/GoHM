@@ -34,7 +34,7 @@
 package TLibEncoder
 
 import (
-	//"fmt"
+	"fmt"
     "gohm/TLibCommon"
     "math"
 )
@@ -847,29 +847,31 @@ func (this *TEncRdCost) calcHAD(bitDepth int, pi0 []TLibCommon.Pel, iStride0 int
     if ((iWidth % 8) == 0) && ((iHeight % 8) == 0) {
         for y = 0; y < iHeight; y += 8 {
             for x = 0; x < iWidth; x += 8 {
-                uiSum += this.xCalcHADs8x8(pi0[x:], pi1[x:], iStride0, iStride1, 1)
+                uiSum += this.xCalcHADs8x8(pi0[y*iStride0+x:], pi1[y*iStride1+x:], iStride0, iStride1, 1)
             }
-            pi0 = pi0[iStride0*8:]
-            pi1 = pi1[iStride1*8:]
+            //pi0 = pi0[iStride0*8:]
+            //pi1 = pi1[iStride1*8:]
         }
     } else if ((iWidth % 4) == 0) && ((iHeight % 4) == 0) {
         for y = 0; y < iHeight; y += 4 {
             for x = 0; x < iWidth; x += 4 {
-                uiSum += this.xCalcHADs4x4(pi0[x:], pi1[x:], iStride0, iStride1, 1)
+                uiSum += this.xCalcHADs4x4(pi0[y*iStride0+x:], pi1[y*iStride1+x:], iStride0, iStride1, 1)
             }
-            pi0 = pi0[iStride0*4:]
-            pi1 = pi1[iStride1*4:]
+            //pi0 = pi0[iStride0*4:]
+            //pi1 = pi1[iStride1*4:]
         }
     } else {
         for y = 0; y < iHeight; y += 2 {
             for x = 0; x < iWidth; x += 2 {
-                uiSum += this.xCalcHADs8x8(pi0[x:], pi1[x:], iStride0, iStride1, 1)
+                uiSum += this.xCalcHADs8x8(pi0[y*iStride0+x:], pi1[y*iStride1+x:], iStride0, iStride1, 1)
             }
-            pi0 = pi0[iStride0*2:]
-            pi1 = pi1[iStride1*2:]
+            //pi0 = pi0[iStride0*2:]
+            //pi1 = pi1[iStride1*2:]
         }
     }
-
+    
+	fmt.Printf("uiSum=%d, iWidth=%d, iHeight=%d\n", uiSum, iWidth, iHeight);
+	
     return uiSum >> TLibCommon.DISTORTION_PRECISION_ADJUSTMENT(uint(bitDepth-8)).(uint)
 }
 
@@ -2164,18 +2166,18 @@ func (this *TEncRdCost) xCalcHADs8x8(piOrg []TLibCommon.Pel, piCur []TLibCommon.
     var diff [64]int
     var m1, m2, m3 [8][8]int
     //    assert( iStep == 1 );
-    //fmt.Printf("iStrideOrg=%d, iStrideCur=%d\n", iStrideOrg, iStrideCur);
+    fmt.Printf("piOrg=%d, piCur=%d\n", piOrg[0], piCur[0]);
     
     for k = 0; k < 64; k += 8 {
     	j = k>>3;
-        diff[k+0] = int(piOrg[j*iStrideOrg+0] - piCur[j*iStrideCur+0])
-        diff[k+1] = int(piOrg[j*iStrideOrg+1] - piCur[j*iStrideCur+1])
-        diff[k+2] = int(piOrg[j*iStrideOrg+2] - piCur[j*iStrideCur+2])
-        diff[k+3] = int(piOrg[j*iStrideOrg+3] - piCur[j*iStrideCur+3])
-        diff[k+4] = int(piOrg[j*iStrideOrg+4] - piCur[j*iStrideCur+4])
-        diff[k+5] = int(piOrg[j*iStrideOrg+5] - piCur[j*iStrideCur+5])
-        diff[k+6] = int(piOrg[j*iStrideOrg+6] - piCur[j*iStrideCur+6])
-        diff[k+7] = int(piOrg[j*iStrideOrg+7] - piCur[j*iStrideCur+7])
+        diff[k+0] = int(piOrg[j*iStrideOrg+0]) - int(piCur[j*iStrideCur+0])
+        diff[k+1] = int(piOrg[j*iStrideOrg+1]) - int(piCur[j*iStrideCur+1])
+        diff[k+2] = int(piOrg[j*iStrideOrg+2]) - int(piCur[j*iStrideCur+2])
+        diff[k+3] = int(piOrg[j*iStrideOrg+3]) - int(piCur[j*iStrideCur+3])
+        diff[k+4] = int(piOrg[j*iStrideOrg+4]) - int(piCur[j*iStrideCur+4])
+        diff[k+5] = int(piOrg[j*iStrideOrg+5]) - int(piCur[j*iStrideCur+5])
+        diff[k+6] = int(piOrg[j*iStrideOrg+6]) - int(piCur[j*iStrideCur+6])
+        diff[k+7] = int(piOrg[j*iStrideOrg+7]) - int(piCur[j*iStrideCur+7])
 
         //piCur = piCur[iStrideCur:]
         //piOrg = piOrg[iStrideOrg:]

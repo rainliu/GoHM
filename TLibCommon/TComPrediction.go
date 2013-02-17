@@ -34,7 +34,7 @@
 package TLibCommon
 
 import (
-//"fmt"
+	"fmt"
 )
 
 // ====================================================================================================================
@@ -892,10 +892,12 @@ func (this *TComPrediction) PredIntraLumaAng(pcTComPattern *TComPattern, uiDirMo
     //assert( iWidth == iHeight  );
 
     ptrSrc = pcTComPattern.GetPredictorPtr(uiDirMode, uint(G_aucConvertToBit[iWidth])+2, this.m_piYuvExt)
-
+	
     // get starting pixel in block
     sw := 2*iWidth + 1
 
+	fmt.Printf("ptrSrc[sw+1]=%d, ptrSrc[sw+1+1]=%d, ptrSrc[sw+1+sw]=%d\n",ptrSrc[sw+1],ptrSrc[sw+1+1],ptrSrc[sw+1+sw]);
+	
     // Create the prediction
     if uiDirMode == PLANAR_IDX {
         //this.xPredIntraPlanar( ptrSrc[sw+1:], sw, pDst, int(uiStride), uint(iWidth), uint(iHeight) );

@@ -83,6 +83,8 @@ var m_entropyBits = [128]int{
 #endif
 };*/
 
+var m_nextState [128][2]byte
+
 /// context model class
 type ContextModel struct {
     //private:
@@ -95,7 +97,7 @@ type ContextModel struct {
     */
 
     //#if FAST_BIT_EST
-    m_nextState [128][2]byte
+    //m_nextState [128][2]byte
     //#endif
 
 }
@@ -154,15 +156,15 @@ func (this *ContextModel) GetEntropyBits(val int16) int {
 
 //#if FAST_BIT_EST
 func (this *ContextModel) Update(binVal int) {
-    this.m_ucState = this.m_nextState[this.m_ucState][binVal]
+    this.m_ucState = m_nextState[this.m_ucState][binVal]
 }
-func (this *ContextModel) BuildNextStateTable() {
+func ContextModel_BuildNextStateTable() {
     for i := 0; i < 128; i++ {
         for j := 0; j < 2; j++ {
             if (i & 1) == j {
-                this.m_nextState[i][j] = m_aucNextStateMPS[i]
+                m_nextState[i][j] = m_aucNextStateMPS[i]
             } else {
-                this.m_nextState[i][j] = m_aucNextStateLPS[i]
+                m_nextState[i][j] = m_aucNextStateLPS[i]
             }
         }
     }

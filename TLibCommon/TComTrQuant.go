@@ -34,7 +34,7 @@
 package TLibCommon
 
 import (
-    //"fmt"
+    "fmt"
     "math"
 )
 
@@ -125,7 +125,7 @@ type TComTrQuant struct {
     //#endif
     m_plTempCoeff []int
 
-    m_cQP QpParam
+    m_cQP *QpParam
     //#if RDOQ_CHROMA_LAMBDA
     m_dLambdaLuma   float64
     m_dLambdaChroma float64
@@ -148,7 +148,7 @@ type TComTrQuant struct {
 }
 
 func NewTComTrQuant() *TComTrQuant {
-    pTrQuant := &TComTrQuant{}
+    pTrQuant := &TComTrQuant{m_cQP:NewQpParam()}
     pTrQuant.m_cQP.Clear()
 
     // allocate temporary buffers
@@ -707,7 +707,9 @@ func (this *TComTrQuant) xT(bitDepth int, uiMode uint, piBlkResi []Pel, uiStride
         this.xTrMxN(bitDepth, block[:], coeff[:], iWidth, iHeight, uiMode)
         for j = 0; j < iHeight*iWidth; j++ {
             psCoeff[j] = int(coeff[j])
+            fmt.Printf("%d ",coeff[ j ]);
         }
+        fmt.Printf("\n");
         return
     }
     //#endif
@@ -1013,11 +1015,14 @@ func (this *TComTrQuant) xRateDistOptQuant(pcCU *TComDataCU,
     uiAbsSum *uint,
     eTType TextType,
     uiAbsPartIdx uint) {
+    
     iQBits := this.m_cQP.m_iBits
     dTemp := float64(0)
     uiLog2TrSize := uint(G_aucConvertToBit[uiWidth]) + 2
     uiQ := uint(G_quantScales[this.m_cQP.m_iRem])
 
+	//fmt.Printf("m_iBits=%d, m_iRem=%d, uiQ=%d\n", this.m_cQP.m_iBits, this.m_cQP.m_iRem, uiQ);
+    
     var uiBitDepth uint
     if eTType == TEXT_LUMA {
         uiBitDepth = uint(G_bitDepthY)
@@ -1129,7 +1134,9 @@ func (this *TComTrQuant) xRateDistOptQuant(pcCU *TComDataCU,
             }
             //#endif
             uiMaxAbsLevel := (lLevelDouble + (1 << uint(iQBits-1))) >> uint(iQBits)
-
+			
+			fmt.Printf("%d ", uiMaxAbsLevel);
+			
             dErr := float64(lLevelDouble)
             pdCostCoeff0[iScanPos] = dErr * dErr * dTemp
             d64BlockUncodedCost += pdCostCoeff0[iScanPos]
@@ -1169,9 +1176,13 @@ func (this *TComTrQuant) xRateDistOptQuant(pcCU *TComDataCU,
                     rateNow := this.xGetICRate(uiLevel, uint16(uiOneCtx), uint16(uiAbsCtx), uint16(uiGoRiceParam), c1Idx, c2Idx)
                     rateIncUp[uiBlkPos] = this.xGetICRate(uiLevel+1, uint16(uiOneCtx), uint16(uiAbsCtx), uint16(uiGoRiceParam), c1Idx, c2Idx) - rateNow
                     rateIncDown[uiBlkPos] = this.xGetICRate(uiLevel-1, uint16(uiOneCtx), uint16(uiAbsCtx), uint16(uiGoRiceParam), c1Idx, c2Idx) - rateNow
+                	fmt.Printf("%d:[%d,%d,%d] ", uiLevel, this.xGetICRate(uiLevel+1, uint16(uiOneCtx), uint16(uiAbsCtx), uint16(uiGoRiceParam), c1Idx, c2Idx), 
+                		rateNow, this.xGetICRate(uiLevel-1, uint16(uiOneCtx), uint16(uiAbsCtx), uint16(uiGoRiceParam), c1Idx, c2Idx));
                 } else { // uiLevel == 0
                     rateIncUp[uiBlkPos] = this.m_pcEstBitsSbac.GreaterOneBits[uiOneCtx][0]
+                    fmt.Printf("[%d] ", rateIncUp   [ uiBlkPos ]);
                 }
+                
                 piDstCoeff[uiBlkPos] = TCoeff(uiLevel)
                 d64BaseCost += pdCostCoeff[iScanPos]
 
@@ -1289,7 +1300,7 @@ func (this *TComTrQuant) xRateDistOptQuant(pcCU *TComDataCU,
             }
         }
     }   //end for (iCGScanPos)
-
+	fmt.Printf("\n");
     //===== estimate last position =====
     if iLastScanPos < 0 {
         return
@@ -1367,7 +1378,9 @@ func (this *TComTrQuant) xRateDistOptQuant(pcCU *TComDataCU,
         } else {
             piDstCoeff[blkPos] = level
         }
+        fmt.Printf("%d ", piDstCoeff[blkPos]);
     }
+    fmt.Printf("\n");
 
     //===== clean uncoded coefficients =====
     for scanPos := iBestLastIdxP1; scanPos <= iLastScanPos; scanPos++ {
@@ -1377,11 +1390,13 @@ func (this *TComTrQuant) xRateDistOptQuant(pcCU *TComDataCU,
     if pcCU.GetSlice().GetPPS().GetSignHideFlag() && *uiAbsSum >= 2 {
         a := G_invQuantScales[this.m_cQP.m_iRem] * G_invQuantScales[this.m_cQP.m_iRem] * (1 << uint(2*this.m_cQP.m_iPer))
         b := 1 << DISTORTION_PRECISION_ADJUSTMENT(2*(uiBitDepth-8)).(uint)
-        rdFactor := int64(float64(a) / this.m_dLambda / 16.0 / (float64(b) + 0.5))
+        rdFactor := int64(float64(a) / this.m_dLambda / 16.0 / float64(b) + 0.5)
         lastCG := -1
         absSum := 0
         var n int
-
+        
+		fmt.Printf("rdFactor %d = a %d/%f/%d\n", rdFactor, G_invQuantScales[this.m_cQP.m_iRem] * G_invQuantScales[this.m_cQP.m_iRem] * (1<<uint(2*this.m_cQP.m_iPer)), this.m_dLambda, (1<<DISTORTION_PRECISION_ADJUSTMENT(2*(uiBitDepth-8)).(uint)));
+		
         for subSet := int(uiWidth*uiHeight-1) >> LOG2_SCAN_SET_SIZE; subSet >= 0; subSet-- {
             subPos := subSet << LOG2_SCAN_SET_SIZE
             firstNZPosInCG := SCAN_SET_SIZE
@@ -1432,16 +1447,21 @@ func (this *TComTrQuant) xRateDistOptQuant(pcCU *TComDataCU,
                     }
                     for ; n >= 0; n-- {
                         uiBlkPos := scan[n+subPos]
+                        
+                        fmt.Printf("uiBlkPos=%d, piDstCoeff[ uiBlkPos ]=%d ",uiBlkPos, piDstCoeff[ uiBlkPos ]);
+            
                         if piDstCoeff[uiBlkPos] != 0 {
                             costUp := rdFactor*int64(-deltaU[uiBlkPos]) + int64(rateIncUp[uiBlkPos])
                             var costDown int64
-                            if ABS(piDstCoeff[uiBlkPos]) == 1 {
-                                costDown = rdFactor*int64(deltaU[uiBlkPos]) + int64(rateIncDown[uiBlkPos]-((1<<15)+sigRateDelta[uiBlkPos]))
+                            if ABS(piDstCoeff[uiBlkPos]).(TCoeff) == 1 {
+                                costDown = rdFactor*int64(deltaU[uiBlkPos]) + int64(rateIncDown[uiBlkPos])-((1<<15)+int64(sigRateDelta[uiBlkPos]))
                             } else {
-                                costDown = rdFactor*int64(deltaU[uiBlkPos]) + int64(rateIncDown[uiBlkPos]-0)
+                                costDown = rdFactor*int64(deltaU[uiBlkPos]) + int64(rateIncDown[uiBlkPos])
                             }
-
-                            if lastCG == 1 && lastNZPosInCG == n && ABS(piDstCoeff[uiBlkPos]) == 1 {
+							
+							fmt.Printf("(%d,%d,%d, %d,%d,%d,%d) ", costUp, costDown, rdFactor, piDstCoeff[uiBlkPos], deltaU[uiBlkPos], rateIncDown[uiBlkPos], sigRateDelta[uiBlkPos]);
+							
+                            if lastCG == 1 && lastNZPosInCG == n && ABS(piDstCoeff[uiBlkPos]).(TCoeff) == 1 {
                                 costDown -= (4 << 15)
                             }
 
@@ -1450,12 +1470,13 @@ func (this *TComTrQuant) xRateDistOptQuant(pcCU *TComDataCU,
                                 curChange = 1
                             } else {
                                 curChange = -1
-                                if n == firstNZPosInCG && ABS(piDstCoeff[uiBlkPos]) == 1 {
+                                if n == firstNZPosInCG && ABS(piDstCoeff[uiBlkPos]).(TCoeff) == 1 {
                                     curCost = int64(MAX_INT64)
                                 } else {
                                     curCost = costDown
                                 }
                             }
+                            fmt.Printf("curCost1=%d \n", curCost);
                         } else {
                             curCost = rdFactor*int64(-(ABS(deltaU[uiBlkPos]).(int))) + int64(1<<15) + int64(rateIncUp[uiBlkPos]+sigRateDelta[uiBlkPos])
                             curChange = 1
@@ -1471,9 +1492,12 @@ func (this *TComTrQuant) xRateDistOptQuant(pcCU *TComDataCU,
                                     curCost = int64(MAX_INT64)
                                 }
                             }
+                            
+                            fmt.Printf("curCost0=%d \n", curCost);
                         }
 
                         if curCost < minCostInc {
+                        	fmt.Printf("curCost=%d minCostInc=%d finalChange=%d minPos=%d",curCost, minCostInc, finalChange, minPos);
                             minCostInc = curCost
                             finalChange = curChange
                             minPos = int(uiBlkPos)
@@ -1483,7 +1507,7 @@ func (this *TComTrQuant) xRateDistOptQuant(pcCU *TComDataCU,
                     if piQCoef[minPos] == 32767 || piQCoef[minPos] == -32768 {
                         finalChange = -1
                     }
-
+					fmt.Printf("(%d,%d,%d) ",plSrcCoeff[minPos],piDstCoeff[minPos],finalChange);
                     if plSrcCoeff[minPos] >= 0 {
                         piDstCoeff[minPos] += TCoeff(finalChange)
                     } else {
@@ -1497,6 +1521,7 @@ func (this *TComTrQuant) xRateDistOptQuant(pcCU *TComDataCU,
             }
         }
     }
+    fmt.Printf("\n");
 }
 
 func (this *TComTrQuant) xGetCodedLevel(rd64CodedCost *float64,
@@ -1612,10 +1637,13 @@ func (this *TComTrQuant) xGetICRate(uiAbsLevel uint,
     } else {
         baseLevel = 1
     }
-
+	
+	fmt.Printf("xGetICRate=%d,%d,%d,%d,%d,%d\n",uiAbsLevel,ui16CtxNumOne,ui16CtxNumAbs,ui16AbsGoRice,c1Idx,c2Idx);
+	
+	
     if uiAbsLevel >= baseLevel {
-        uiSymbol := uiAbsLevel - baseLevel
-        uiMaxVlc := G_auiGoRiceRange[ui16AbsGoRice]
+        uiSymbol := uint(uiAbsLevel - baseLevel)
+        uiMaxVlc := uint(G_auiGoRiceRange[ui16AbsGoRice])
         bExpGolomb := (uiSymbol > uiMaxVlc)
 
         if bExpGolomb {
@@ -1624,15 +1652,16 @@ func (this *TComTrQuant) xGetICRate(uiAbsLevel uint,
             for uiMax := uint(2); uiAbsLevel >= uiMax; uiMax <<= 1 {
                 iEGS += 2
             }
-            iRate += iEGS << 15
+            iRate += (iEGS << 15)
             uiSymbol = MIN(uiSymbol, (uiMaxVlc + 1)).(uint)
         }
 
         ui16PrefLen := uint16(uiSymbol>>ui16AbsGoRice) + 1
         ui16NumBins := uint16(MIN(ui16PrefLen, uint16(G_auiGoRicePrefixLen[ui16AbsGoRice])).(uint16)) + ui16AbsGoRice
-
-        iRate += int(ui16NumBins << 15)
-
+		
+        iRate += (int(ui16NumBins) << 15)
+		fmt.Printf("ui16NumBins=%d, iRate=%d ",ui16NumBins,iRate);
+		
         if c1Idx < C1FLAG_NUMBER {
             iRate += this.m_pcEstBitsSbac.GreaterOneBits[ui16CtxNumOne][1]
 
@@ -1644,8 +1673,15 @@ func (this *TComTrQuant) xGetICRate(uiAbsLevel uint,
         if uiAbsLevel == 0 {
             return 0
         } else if uiAbsLevel == 1 {
+        	fmt.Printf("ui16CtxNumOne=%d, iRate=%d, sbac=%d ",ui16CtxNumOne,iRate,
+           				this.m_pcEstBitsSbac.GreaterOneBits[ ui16CtxNumOne ][ 0 ]);
+        
             iRate += this.m_pcEstBitsSbac.GreaterOneBits[ui16CtxNumOne][0]
         } else if uiAbsLevel == 2 {
+	        fmt.Printf("ui16CtxNumOne=(%d,%d), iRate=%d, sbac=(%d,%d)",ui16CtxNumOne,ui16CtxNumAbs,iRate,
+	           this.m_pcEstBitsSbac.GreaterOneBits[ui16CtxNumOne][1],
+	           this.m_pcEstBitsSbac.LevelAbsBits[ui16CtxNumAbs][0]);
+           
             iRate += this.m_pcEstBitsSbac.GreaterOneBits[ui16CtxNumOne][1]
             iRate += this.m_pcEstBitsSbac.LevelAbsBits[ui16CtxNumAbs][0]
         } else {

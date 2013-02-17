@@ -34,7 +34,7 @@
 package TLibEncoder
 
 import (
-    //"fmt"
+    "fmt"
     "gohm/TLibCommon"
     "math"
 )
@@ -1069,7 +1069,7 @@ func (this *TEncCu) xCheckRDCostInter(rpcBestCU *TLibCommon.TComDataCU, rpcTempC
 //func (this *TEncCu)  xCheckRDCostInter   ( TLibCommon.TComDataCU*& rpcBestCU, TLibCommon.TComDataCU*& rpcTempCU, PartSize ePartSize  );
 //#endif
 func (this *TEncCu) xCheckRDCostIntra(rpcBestCU *TLibCommon.TComDataCU, rpcTempCU *TLibCommon.TComDataCU, eSize TLibCommon.PartSize) {
-    print("Enter xCheckRDCostIntra\n");
+    fmt.Printf("Enter xCheckRDCostIntra\n");
     
     uiDepth := uint(rpcTempCU.GetDepth1(0))
 
@@ -1087,9 +1087,9 @@ func (this *TEncCu) xCheckRDCostIntra(rpcBestCU *TLibCommon.TComDataCU, rpcTempC
     this.m_pcPredSearch.estIntraPredQT(rpcTempCU, this.m_ppcOrigYuv[uiDepth], this.m_ppcPredYuvTemp[uiDepth], this.m_ppcResiYuvTemp[uiDepth], this.m_ppcRecoYuvTemp[uiDepth], &uiPreCalcDistC, bSeparateLumaChroma)
 
     this.m_ppcRecoYuvTemp[uiDepth].CopyToPicLuma(rpcTempCU.GetPic().GetPicYuvRec(), rpcTempCU.GetAddr(), rpcTempCU.GetZorderIdxInCU(), 0, 0)
-	print("enter estIntraPredChromaQT\n")
+	fmt.Printf("enter estIntraPredChromaQT\n")
     this.m_pcPredSearch.estIntraPredChromaQT(rpcTempCU, this.m_ppcOrigYuv[uiDepth], this.m_ppcPredYuvTemp[uiDepth], this.m_ppcResiYuvTemp[uiDepth], this.m_ppcRecoYuvTemp[uiDepth], uiPreCalcDistC)
-	print("outof estIntraPredChromaQT\n")
+	fmt.Printf("outof estIntraPredChromaQT\n")
     this.m_pcEntropyCoder.resetBits()
     if rpcTempCU.GetSlice().GetPPS().GetTransquantBypassEnableFlag() {
         this.m_pcEntropyCoder.encodeCUTransquantBypassFlag(rpcTempCU, 0, true)
@@ -1099,13 +1099,13 @@ func (this *TEncCu) xCheckRDCostIntra(rpcBestCU *TLibCommon.TComDataCU, rpcTempC
     this.m_pcEntropyCoder.encodePartSize(rpcTempCU, 0, uiDepth, true)
     this.m_pcEntropyCoder.encodePredInfo(rpcTempCU, 0, true)
     this.m_pcEntropyCoder.encodeIPCMInfo(rpcTempCU, 0, true)
-	print("outof encodeIPCMInfo\n")
+	fmt.Printf("outof encodeIPCMInfo\n")
 	
     // Encode Coefficients
     bCodeDQP := this.getdQPFlag()
     this.m_pcEntropyCoder.encodeCoeff(rpcTempCU, 0, uiDepth, uint(rpcTempCU.GetWidth1(0)), uint(rpcTempCU.GetHeight1(0)), &bCodeDQP)
     this.setdQPFlag(bCodeDQP)
-	print("outof setdQPFlag\n")
+	
     if this.m_bUseSBACRD {
         this.m_pcRDGoOnSbacCoder.store(this.m_pppcRDSbacCoder[uiDepth][TLibCommon.CI_TEMP_BEST])
     }
@@ -1118,7 +1118,7 @@ func (this *TEncCu) xCheckRDCostIntra(rpcBestCU *TLibCommon.TComDataCU, rpcTempC
     this.xCheckDQP(rpcTempCU)
     this.xCheckBestMode3(rpcBestCU, rpcTempCU, uiDepth)
     
-    print("Exit xCheckRDCostIntra\n");
+    fmt.Printf("Exit xCheckRDCostIntra\n");
 }
 
 func (this *TEncCu) xCheckDQP(pcCU *TLibCommon.TComDataCU) {
