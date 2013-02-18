@@ -219,6 +219,7 @@ func (this *TEncEntropy) encodePUWise(pcCU *TLibCommon.TComDataCU, uiAbsPartIdx 
         uiNumPU = 2
     }
     uiDepth := uint(pcCU.GetDepth1(uiAbsPartIdx))
+    fmt.Printf("ePartSize=%d\n",ePartSize);
     uiPUOffset := (TLibCommon.G_auiPUOffset[uint(ePartSize)] << ((pcCU.GetSlice().GetSPS().GetMaxCUDepth() - uiDepth) << 1)) >> 4
 
     uiSubPartIdx := uiAbsPartIdx
@@ -318,6 +319,7 @@ func (this *TEncEntropy) encodePredInfo(pcCU *TLibCommon.TComDataCU, uiAbsPartId
     if bRD {
         uiAbsPartIdx = 0
     }
+    fmt.Printf("uiAbsPartIdx=%d\n", uiAbsPartIdx);
     if pcCU.IsIntra(uiAbsPartIdx) { // If it is Intra mode, encode intra prediction mode.
         this.encodeIntraDirModeLuma(pcCU, uiAbsPartIdx, true)
         this.encodeIntraDirModeChroma(pcCU, uiAbsPartIdx, bRD)

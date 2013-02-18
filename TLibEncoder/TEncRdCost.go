@@ -34,7 +34,7 @@
 package TLibEncoder
 
 import (
-	"fmt"
+	//"fmt"
     "gohm/TLibCommon"
     "math"
 )
@@ -870,7 +870,7 @@ func (this *TEncRdCost) calcHAD(bitDepth int, pi0 []TLibCommon.Pel, iStride0 int
         }
     }
     
-	fmt.Printf("uiSum=%d, iWidth=%d, iHeight=%d\n", uiSum, iWidth, iHeight);
+	//fmt.Printf("uiSum=%d, iWidth=%d, iHeight=%d\n", uiSum, iWidth, iHeight);
 	
     return uiSum >> TLibCommon.DISTORTION_PRECISION_ADJUSTMENT(uint(bitDepth-8)).(uint)
 }
@@ -2166,7 +2166,7 @@ func (this *TEncRdCost) xCalcHADs8x8(piOrg []TLibCommon.Pel, piCur []TLibCommon.
     var diff [64]int
     var m1, m2, m3 [8][8]int
     //    assert( iStep == 1 );
-    fmt.Printf("piOrg=%d, piCur=%d\n", piOrg[0], piCur[0]);
+    //fmt.Printf("piOrg=%d, piCur=%d\n", piOrg[0], piCur[0]);
     
     for k = 0; k < 64; k += 8 {
     	j = k>>3;

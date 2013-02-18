@@ -188,7 +188,7 @@ func (this *TEncCu) compressCU(rpcCU *TLibCommon.TComDataCU) {
     //#endif
 
     // analysis of CU
-    this.xCompressCU(this.m_ppcBestCU[0], this.m_ppcTempCU[0], 0, TLibCommon.SIZE_NONE)
+    this.xCompressCU(&(this.m_ppcBestCU[0]), &(this.m_ppcTempCU[0]), 0, TLibCommon.SIZE_NONE)
 
     //#if ADAPTIVE_QP_SELECTION
     if this.m_pcEncCfg.GetUseAdaptQpSelect() {
@@ -270,7 +270,7 @@ func (this *TEncCu) finishCU(pcCU *TLibCommon.TComDataCU, uiAbsPartIdx, uiDepth 
     iGranularitySize := int(pcCU.GetPic().GetNumPartInCU())
     iGranularityEnd := (int(pcCU.GetSCUAddr()+uiAbsPartIdx) / iGranularitySize) * iGranularitySize
     if iGranularityEnd <= int(pcSlice.GetSliceSegmentCurStartCUAddr()) {
-        iGranularityEnd += TLibCommon.MAX(iGranularitySize, (pcCU.GetPic().GetNumPartInCU() >> (uiDepth << 1))).(int)
+        iGranularityEnd += TLibCommon.MAX(int(iGranularitySize), int(pcCU.GetPic().GetNumPartInCU() >> (uiDepth << 1))).(int)
     }
     // Set slice end parameter
     if pcSlice.GetSliceMode() == TLibCommon.FIXED_NUMBER_OF_BYTES && !pcSlice.GetFinalized() && int(pcSlice.GetSliceBits())+numberOfWrittenBits > int(pcSlice.GetSliceArgument())<<3 {
@@ -293,7 +293,7 @@ func (this *TEncCu) finishCU(pcCU *TLibCommon.TComDataCU, uiAbsPartIdx, uiDepth 
 }
 
 //#if AMP_ENC_SPEEDUP
-func (this *TEncCu) xCompressCU(rpcBestCU *TLibCommon.TComDataCU, rpcTempCU *TLibCommon.TComDataCU, uiDepth uint, eParentPartSize TLibCommon.PartSize) {
+func (this *TEncCu) xCompressCU(rpcBestCU **TLibCommon.TComDataCU, rpcTempCU **TLibCommon.TComDataCU, uiDepth uint, eParentPartSize TLibCommon.PartSize) {
     pcPic := rpcBestCU.GetPic()
 
     // get Original YUV data from picture
@@ -329,7 +329,7 @@ func (this *TEncCu) xCompressCU(rpcBestCU *TLibCommon.TComDataCU, rpcTempCU *TLi
     uiTPelY := rpcBestCU.GetCUPelY()
     uiBPelY := uiTPelY + uint(rpcBestCU.GetHeight1(0)) - 1
 
-    iBaseQP := this.xComputeQP(rpcBestCU, uiDepth)
+    iBaseQP := this.xComputeQP(*rpcBestCU, uiDepth)
     var iMinQP, iMaxQP int
     isAddLowestQP := false
     lowestQP := -rpcTempCU.GetSlice().GetSPS().GetQpBDOffsetY()
@@ -474,7 +474,7 @@ func (this *TEncCu) xCompressCU(rpcBestCU *TLibCommon.TComDataCU, rpcTempCU *TLi
                         bTestMergeAMP_Hor := false
                         bTestMergeAMP_Ver := false
 
-                        this.deriveTestModeAMP(rpcBestCU, eParentPartSize, &bTestAMP_Hor, &bTestAMP_Ver, &bTestMergeAMP_Hor, &bTestMergeAMP_Ver)
+                        this.deriveTestModeAMP(*rpcBestCU, eParentPartSize, &bTestAMP_Hor, &bTestAMP_Ver, &bTestMergeAMP_Hor, &bTestMergeAMP_Ver)
                         //#else
                         //          deriveTestModeAMP (rpcBestCU, eParentPartSize, bTestAMP_Hor, bTestAMP_Ver);
                         //#endif
@@ -602,7 +602,7 @@ func (this *TEncCu) xCompressCU(rpcBestCU *TLibCommon.TComDataCU, rpcTempCU *TLi
         }
 
         this.m_pcEntropyCoder.resetBits()
-        this.m_pcEntropyCoder.encodeSplitFlag(rpcBestCU, 0, uiDepth, true)
+        this.m_pcEntropyCoder.encodeSplitFlag(*rpcBestCU, 0, uiDepth, true)
         rpcBestCU.SetTotalBits(rpcBestCU.GetTotalBits() + this.m_pcEntropyCoder.getNumberOfWrittenBits()) // split bits
         if this.m_pcEncCfg.GetUseSBACRD() {
             rpcBestCU.SetTotalBins(rpcBestCU.GetTotalBins() + this.m_pcEntropyCoder.m_pcEntropyCoderIf.getEncBinIf().getTEncBinCABAC().getBinsCoded())
@@ -633,7 +633,7 @@ func (this *TEncCu) xCompressCU(rpcBestCU *TLibCommon.TComDataCU, rpcTempCU *TLi
 
     // copy orginal YUV samples to PCM buffer
     if rpcBestCU.IsLosslessCoded(0) && (rpcBestCU.GetIPCMFlag1(0) == false) {
-        this.xFillPCMBuffer(rpcBestCU, this.m_ppcOrigYuv[uiDepth])
+        this.xFillPCMBuffer(*rpcBestCU, this.m_ppcOrigYuv[uiDepth])
     }
     if (TLibCommon.G_uiMaxCUWidth >> uiDepth) == rpcTempCU.GetSlice().GetPPS().GetMinCuDQPSize() {
         idQP := this.m_pcEncCfg.GetMaxDeltaQP()
@@ -683,8 +683,8 @@ func (this *TEncCu) xCompressCU(rpcBestCU *TLibCommon.TComDataCU, rpcTempCU *TLi
             pcSubTempPartCU := this.m_ppcTempCU[uhNextDepth]
 
             for uiPartUnitIdx := uint(0); uiPartUnitIdx < 4; uiPartUnitIdx++ {
-                pcSubBestPartCU.InitSubCU(rpcTempCU, uiPartUnitIdx, uhNextDepth, iQP) // clear sub partition datas or init.
-                pcSubTempPartCU.InitSubCU(rpcTempCU, uiPartUnitIdx, uhNextDepth, iQP) // clear sub partition datas or init.
+                pcSubBestPartCU.InitSubCU(*rpcTempCU, uiPartUnitIdx, uhNextDepth, iQP) // clear sub partition datas or init.
+                pcSubTempPartCU.InitSubCU(*rpcTempCU, uiPartUnitIdx, uhNextDepth, iQP) // clear sub partition datas or init.
 
                 bInSlice := pcSubBestPartCU.GetSCUAddr()+pcSubBestPartCU.GetTotalNumPart() > pcSlice.GetSliceSegmentCurStartCUAddr() && pcSubBestPartCU.GetSCUAddr() < pcSlice.GetSliceSegmentCurEndCUAddr()
                 if bInSlice && (pcSubBestPartCU.GetCUPelX() < pcSlice.GetSPS().GetPicWidthInLumaSamples()) && (pcSubBestPartCU.GetCUPelY() < pcSlice.GetSPS().GetPicHeightInLumaSamples()) {
@@ -698,9 +698,9 @@ func (this *TEncCu) xCompressCU(rpcBestCU *TLibCommon.TComDataCU, rpcTempCU *TLi
 
                     //#if AMP_ENC_SPEEDUP
                     if rpcBestCU.IsIntra(0) {
-                        this.xCompressCU(pcSubBestPartCU, pcSubTempPartCU, uhNextDepth, TLibCommon.SIZE_NONE)
+                        this.xCompressCU(&pcSubBestPartCU, &pcSubTempPartCU, uhNextDepth, TLibCommon.SIZE_NONE)
                     } else {
-                        this.xCompressCU(pcSubBestPartCU, pcSubTempPartCU, uhNextDepth, rpcBestCU.GetPartitionSize1(0))
+                        this.xCompressCU(&pcSubBestPartCU, &pcSubTempPartCU, uhNextDepth, rpcBestCU.GetPartitionSize1(0))
                     }
                     //#else
                     //          xCompressCU( pcSubBestPartCU, pcSubTempPartCU, uhNextDepth );
@@ -716,7 +716,7 @@ func (this *TEncCu) xCompressCU(rpcBestCU *TLibCommon.TComDataCU, rpcTempCU *TLi
 
             if !bBoundary {
                 this.m_pcEntropyCoder.resetBits()
-                this.m_pcEntropyCoder.encodeSplitFlag(rpcTempCU, 0, uiDepth, true)
+                this.m_pcEntropyCoder.encodeSplitFlag(*rpcTempCU, 0, uiDepth, true)
 
                 rpcTempCU.SetTotalBits(rpcTempCU.GetTotalBits() + this.m_pcEntropyCoder.getNumberOfWrittenBits()) // split bits
                 if this.m_pcEncCfg.GetUseSBACRD() {
@@ -744,7 +744,7 @@ func (this *TEncCu) xCompressCU(rpcBestCU *TLibCommon.TComDataCU, rpcTempCU *TLi
                 if hasResidual {
                     //#if !RDO_WITHOUT_DQP_BITS
                     this.m_pcEntropyCoder.resetBits()
-                    this.m_pcEntropyCoder.encodeQP(rpcTempCU, uiTargetPartIdx, false)
+                    this.m_pcEntropyCoder.encodeQP(*rpcTempCU, uiTargetPartIdx, false)
                     rpcTempCU.SetTotalBits(rpcTempCU.GetTotalBits() + this.m_pcEntropyCoder.getNumberOfWrittenBits()) // dQP bits
                     if this.m_pcEncCfg.GetUseSBACRD() {
                         rpcTempCU.SetTotalBins(rpcTempCU.GetTotalBins() + this.m_pcEntropyCoder.m_pcEntropyCoderIf.getEncBinIf().getTEncBinCABAC().getBinsCoded())
@@ -753,10 +753,10 @@ func (this *TEncCu) xCompressCU(rpcBestCU *TLibCommon.TComDataCU, rpcTempCU *TLi
                     //#endif
 
                     foundNonZeroCbf := false
-                    rpcTempCU.SetQPSubCUs(int(rpcTempCU.GetRefQP(uiTargetPartIdx)), rpcTempCU, 0, uiDepth, &foundNonZeroCbf)
+                    rpcTempCU.SetQPSubCUs(int((*rpcTempCU).GetRefQP(uiTargetPartIdx)), *rpcTempCU, 0, uiDepth, &foundNonZeroCbf)
                     //assert( foundNonZeroCbf );
                 } else {
-                    rpcTempCU.SetQPSubParts(int(rpcTempCU.GetRefQP(uiTargetPartIdx)), 0, uiDepth) // set QP to default QP
+                    rpcTempCU.SetQPSubParts(int((*rpcTempCU).GetRefQP(uiTargetPartIdx)), 0, uiDepth) // set QP to default QP
                 }
             }
 
@@ -779,7 +779,7 @@ func (this *TEncCu) xCompressCU(rpcBestCU *TLibCommon.TComDataCU, rpcTempCU *TLi
 
     rpcBestCU.CopyToPic1(uiDepth) // Copy Best data to Picture for next partition prediction.
 
-    this.xCopyYuv2Pic(rpcBestCU.GetPic(), rpcBestCU.GetAddr(), rpcBestCU.GetZorderIdxInCU(), uiDepth, uiDepth, rpcBestCU, uiLPelX, uiTPelY) // Copy Yuv data to picture Yuv
+    this.xCopyYuv2Pic((*rpcBestCU).GetPic(), (*rpcBestCU).GetAddr(), (*rpcBestCU).GetZorderIdxInCU(), uiDepth, uiDepth, *rpcBestCU, uiLPelX, uiTPelY) // Copy Yuv data to picture Yuv
     if bBoundary || (bSliceEnd && bInsidePicture) {
         return
     }
@@ -795,6 +795,8 @@ func (this *TEncCu) xCompressCU(rpcBestCU *TLibCommon.TComDataCU, rpcTempCU *TLi
 //func (this *TEncCu)  xCompressCU         ( TLibCommon.TComDataCU*& rpcBestCU, TLibCommon.TComDataCU*& rpcTempCU, UInt uiDepth        );
 //#endif
 func (this *TEncCu) xEncodeCU(pcCU *TLibCommon.TComDataCU, uiAbsPartIdx, uiDepth uint) {
+    fmt.Printf("Enter xEncodeCU\n");
+    
     pcPic := pcCU.GetPic()
 
     bBoundary := false
@@ -830,6 +832,7 @@ func (this *TEncCu) xEncodeCU(pcCU *TLibCommon.TComDataCU, uiAbsPartIdx, uiDepth
 
             uiAbsPartIdx += uiQNumParts
         }
+        fmt.Printf("Exit xEncodeCU\n");
         return
     }
 
@@ -846,6 +849,9 @@ func (this *TEncCu) xEncodeCU(pcCU *TLibCommon.TComDataCU, uiAbsPartIdx, uiDepth
     if pcCU.IsSkipped(uiAbsPartIdx) {
         this.m_pcEntropyCoder.encodeMergeIndex(pcCU, uiAbsPartIdx, false)
         this.finishCU(pcCU, uiAbsPartIdx, uiDepth)
+        
+        fmt.Printf("Exit xEncodeCU\n");
+        
         return
     }
     this.m_pcEntropyCoder.encodePredMode(pcCU, uiAbsPartIdx, false)
@@ -858,6 +864,9 @@ func (this *TEncCu) xEncodeCU(pcCU *TLibCommon.TComDataCU, uiAbsPartIdx, uiDepth
         if pcCU.GetIPCMFlag1(uiAbsPartIdx) {
             // Encode slice finish
             this.finishCU(pcCU, uiAbsPartIdx, uiDepth)
+            
+            fmt.Printf("Exit xEncodeCU\n");
+            
             return
         }
     }
@@ -872,6 +881,8 @@ func (this *TEncCu) xEncodeCU(pcCU *TLibCommon.TComDataCU, uiAbsPartIdx, uiDepth
 
     // --- write terminating bit ---
     this.finishCU(pcCU, uiAbsPartIdx, uiDepth)
+    
+    fmt.Printf("Exit xEncodeCU\n");
 }
 
 func (this *TEncCu) xComputeQP(pcCU *TLibCommon.TComDataCU, uiDepth uint) int {
@@ -896,13 +907,13 @@ func (this *TEncCu) xComputeQP(pcCU *TLibCommon.TComDataCU, uiDepth uint) int {
     return TLibCommon.CLIP3(-pcCU.GetSlice().GetSPS().GetQpBDOffsetY(), TLibCommon.MAX_QP, iBaseQp+iQpOffset).(int)
 }
 
-func (this *TEncCu) xCheckBestMode3(rpcBestCU *TLibCommon.TComDataCU, rpcTempCU *TLibCommon.TComDataCU, uiDepth uint) {
+func (this *TEncCu) xCheckBestMode3(rpcBestCU **TLibCommon.TComDataCU, rpcTempCU **TLibCommon.TComDataCU, uiDepth uint) {
     if rpcTempCU.GetTotalCost() < rpcBestCU.GetTotalCost() {
         var pcYuv *TLibCommon.TComYuv
         // Change Information data
-        pcCU := rpcBestCU
-        rpcBestCU = rpcTempCU
-        rpcTempCU = pcCU
+        pcCU := *rpcBestCU
+        *rpcBestCU = *rpcTempCU
+        *rpcTempCU = pcCU
 
         // Change Prediction data
         pcYuv = this.m_ppcPredYuvBest[uiDepth]
@@ -923,7 +934,7 @@ func (this *TEncCu) xCheckBestMode3(rpcBestCU *TLibCommon.TComDataCU, rpcTempCU 
     }
 }
 
-func (this *TEncCu) xCheckRDCostMerge2Nx2N(rpcBestCU *TLibCommon.TComDataCU, rpcTempCU *TLibCommon.TComDataCU, earlyDetectionSkipMode *bool) {
+func (this *TEncCu) xCheckRDCostMerge2Nx2N(rpcBestCU **TLibCommon.TComDataCU, rpcTempCU **TLibCommon.TComDataCU, earlyDetectionSkipMode *bool) {
     //assert( rpcTempCU.GetSlice().GetSliceType() != TLibCommon.I_SLICE );
     var cMvFieldNeighbours [TLibCommon.MRG_MAX_NUM_CANDS << 1]TLibCommon.TComMvField // double length for mv of both lists
     var uhInterDirNeighbours [TLibCommon.MRG_MAX_NUM_CANDS]byte
@@ -968,9 +979,9 @@ func (this *TEncCu) xCheckRDCostMerge2Nx2N(rpcBestCU *TLibCommon.TComDataCU, rpc
                         rpcTempCU.GetCUMvField(TLibCommon.REF_PIC_LIST_1).SetAllMvField(&cMvFieldNeighbours[1+2*uiMergeCand], TLibCommon.SIZE_2Nx2N, 0, 0, 0) // interprets depth relative to rpcTempCU level
 
                         // do MC
-                        this.m_pcPredSearch.MotionCompensation(rpcTempCU, this.m_ppcPredYuvTemp[uhDepth], TLibCommon.REF_PIC_LIST_X, -1)
+                        this.m_pcPredSearch.MotionCompensation(*rpcTempCU, this.m_ppcPredYuvTemp[uhDepth], TLibCommon.REF_PIC_LIST_X, -1)
                         // estimate residual and encode everything
-                        this.m_pcPredSearch.encodeResAndCalcRdInterCU(rpcTempCU,
+                        this.m_pcPredSearch.encodeResAndCalcRdInterCU(*rpcTempCU,
                             this.m_ppcOrigYuv[uhDepth],
                             this.m_ppcPredYuvTemp[uhDepth],
                             this.m_ppcResiYuvTemp[uhDepth],
@@ -986,7 +997,7 @@ func (this *TEncCu) xCheckRDCostMerge2Nx2N(rpcBestCU *TLibCommon.TComDataCU, rpc
 
                         rpcTempCU.SetSkipFlagSubParts(rpcTempCU.GetQtRootCbf(0) == false, 0, uhDepth)
                         orgQP := int(rpcTempCU.GetQP1(0))
-                        this.xCheckDQP(rpcTempCU)
+                        this.xCheckDQP(*rpcTempCU)
                         this.xCheckBestMode3(rpcBestCU, rpcTempCU, uhDepth)
                         rpcTempCU.InitEstData(uhDepth, orgQP)
 
@@ -1025,7 +1036,7 @@ func (this *TEncCu) xCheckRDCostMerge2Nx2N(rpcBestCU *TLibCommon.TComDataCU, rpc
 }
 
 //#if AMP_MRG
-func (this *TEncCu) xCheckRDCostInter(rpcBestCU *TLibCommon.TComDataCU, rpcTempCU *TLibCommon.TComDataCU, ePartSize TLibCommon.PartSize, bUseMRG bool) {
+func (this *TEncCu) xCheckRDCostInter(rpcBestCU **TLibCommon.TComDataCU, rpcTempCU **TLibCommon.TComDataCU, ePartSize TLibCommon.PartSize, bUseMRG bool) {
     uhDepth := uint(rpcTempCU.GetDepth1(0))
 
     rpcTempCU.SetDepthSubParts(uhDepth, 0)
@@ -1038,7 +1049,7 @@ func (this *TEncCu) xCheckRDCostInter(rpcBestCU *TLibCommon.TComDataCU, rpcTempC
 
     //#if AMP_MRG
     rpcTempCU.SetMergeAMP(true)
-    this.m_pcPredSearch.predInterSearch(rpcTempCU, this.m_ppcOrigYuv[uhDepth], this.m_ppcPredYuvTemp[uhDepth], this.m_ppcResiYuvTemp[uhDepth], this.m_ppcRecoYuvTemp[uhDepth], false, bUseMRG)
+    this.m_pcPredSearch.predInterSearch(*rpcTempCU, this.m_ppcOrigYuv[uhDepth], this.m_ppcPredYuvTemp[uhDepth], this.m_ppcResiYuvTemp[uhDepth], this.m_ppcRecoYuvTemp[uhDepth], false, bUseMRG)
     //#else
     //  this.m_pcPredSearch.predInterSearch ( rpcTempCU, this.m_ppcOrigYuv[uhDepth], this.m_ppcPredYuvTemp[uhDepth], this.m_ppcResiYuvTemp[uhDepth], this.m_ppcRecoYuvTemp[uhDepth] );
     //#endif
@@ -1058,17 +1069,17 @@ func (this *TEncCu) xCheckRDCostInter(rpcBestCU *TLibCommon.TComDataCU, rpcTempC
     }
     //#endif
 
-    this.m_pcPredSearch.encodeResAndCalcRdInterCU(rpcTempCU, this.m_ppcOrigYuv[uhDepth], this.m_ppcPredYuvTemp[uhDepth], this.m_ppcResiYuvTemp[uhDepth], this.m_ppcResiYuvBest[uhDepth], this.m_ppcRecoYuvTemp[uhDepth], false)
+    this.m_pcPredSearch.encodeResAndCalcRdInterCU(*rpcTempCU, this.m_ppcOrigYuv[uhDepth], this.m_ppcPredYuvTemp[uhDepth], this.m_ppcResiYuvTemp[uhDepth], this.m_ppcResiYuvBest[uhDepth], this.m_ppcRecoYuvTemp[uhDepth], false)
     rpcTempCU.SetTotalCost(this.m_pcRdCost.calcRdCost(rpcTempCU.GetTotalBits(), rpcTempCU.GetTotalDistortion(), false, TLibCommon.DF_DEFAULT))
 
-    this.xCheckDQP(rpcTempCU)
+    this.xCheckDQP(*rpcTempCU)
     this.xCheckBestMode3(rpcBestCU, rpcTempCU, uhDepth)
 }
 
 //#else
 //func (this *TEncCu)  xCheckRDCostInter   ( TLibCommon.TComDataCU*& rpcBestCU, TLibCommon.TComDataCU*& rpcTempCU, PartSize ePartSize  );
 //#endif
-func (this *TEncCu) xCheckRDCostIntra(rpcBestCU *TLibCommon.TComDataCU, rpcTempCU *TLibCommon.TComDataCU, eSize TLibCommon.PartSize) {
+func (this *TEncCu) xCheckRDCostIntra(rpcBestCU **TLibCommon.TComDataCU, rpcTempCU **TLibCommon.TComDataCU, eSize TLibCommon.PartSize) {
     fmt.Printf("Enter xCheckRDCostIntra\n");
     
     uiDepth := uint(rpcTempCU.GetDepth1(0))
@@ -1082,28 +1093,28 @@ func (this *TEncCu) xCheckRDCostIntra(rpcBestCU *TLibCommon.TComDataCU, rpcTempC
     bSeparateLumaChroma := true // choose estimation mode
     uiPreCalcDistC := uint(0)
     if !bSeparateLumaChroma {
-        this.m_pcPredSearch.preestChromaPredMode(rpcTempCU, this.m_ppcOrigYuv[uiDepth], this.m_ppcPredYuvTemp[uiDepth], 0)
+        this.m_pcPredSearch.preestChromaPredMode(*rpcTempCU, this.m_ppcOrigYuv[uiDepth], this.m_ppcPredYuvTemp[uiDepth], 0)
     }
-    this.m_pcPredSearch.estIntraPredQT(rpcTempCU, this.m_ppcOrigYuv[uiDepth], this.m_ppcPredYuvTemp[uiDepth], this.m_ppcResiYuvTemp[uiDepth], this.m_ppcRecoYuvTemp[uiDepth], &uiPreCalcDistC, bSeparateLumaChroma)
+    this.m_pcPredSearch.estIntraPredQT(*rpcTempCU, this.m_ppcOrigYuv[uiDepth], this.m_ppcPredYuvTemp[uiDepth], this.m_ppcResiYuvTemp[uiDepth], this.m_ppcRecoYuvTemp[uiDepth], &uiPreCalcDistC, bSeparateLumaChroma)
 
     this.m_ppcRecoYuvTemp[uiDepth].CopyToPicLuma(rpcTempCU.GetPic().GetPicYuvRec(), rpcTempCU.GetAddr(), rpcTempCU.GetZorderIdxInCU(), 0, 0)
-	fmt.Printf("enter estIntraPredChromaQT\n")
-    this.m_pcPredSearch.estIntraPredChromaQT(rpcTempCU, this.m_ppcOrigYuv[uiDepth], this.m_ppcPredYuvTemp[uiDepth], this.m_ppcResiYuvTemp[uiDepth], this.m_ppcRecoYuvTemp[uiDepth], uiPreCalcDistC)
-	fmt.Printf("outof estIntraPredChromaQT\n")
+	//fmt.Printf("enter estIntraPredChromaQT\n")
+    this.m_pcPredSearch.estIntraPredChromaQT(*rpcTempCU, this.m_ppcOrigYuv[uiDepth], this.m_ppcPredYuvTemp[uiDepth], this.m_ppcResiYuvTemp[uiDepth], this.m_ppcRecoYuvTemp[uiDepth], uiPreCalcDistC)
+	//fmt.Printf("outof estIntraPredChromaQT\n")
     this.m_pcEntropyCoder.resetBits()
     if rpcTempCU.GetSlice().GetPPS().GetTransquantBypassEnableFlag() {
-        this.m_pcEntropyCoder.encodeCUTransquantBypassFlag(rpcTempCU, 0, true)
+        this.m_pcEntropyCoder.encodeCUTransquantBypassFlag(*rpcTempCU, 0, true)
     }
-    this.m_pcEntropyCoder.encodeSkipFlag(rpcTempCU, 0, true)
-    this.m_pcEntropyCoder.encodePredMode(rpcTempCU, 0, true)
-    this.m_pcEntropyCoder.encodePartSize(rpcTempCU, 0, uiDepth, true)
-    this.m_pcEntropyCoder.encodePredInfo(rpcTempCU, 0, true)
-    this.m_pcEntropyCoder.encodeIPCMInfo(rpcTempCU, 0, true)
-	fmt.Printf("outof encodeIPCMInfo\n")
+    this.m_pcEntropyCoder.encodeSkipFlag(*rpcTempCU, 0, true)
+    this.m_pcEntropyCoder.encodePredMode(*rpcTempCU, 0, true)
+    this.m_pcEntropyCoder.encodePartSize(*rpcTempCU, 0, uiDepth, true)
+    this.m_pcEntropyCoder.encodePredInfo(*rpcTempCU, 0, true)
+    this.m_pcEntropyCoder.encodeIPCMInfo(*rpcTempCU, 0, true)
+	//fmt.Printf("outof encodeIPCMInfo\n")
 	
     // Encode Coefficients
     bCodeDQP := this.getdQPFlag()
-    this.m_pcEntropyCoder.encodeCoeff(rpcTempCU, 0, uiDepth, uint(rpcTempCU.GetWidth1(0)), uint(rpcTempCU.GetHeight1(0)), &bCodeDQP)
+    this.m_pcEntropyCoder.encodeCoeff(*rpcTempCU, 0, uiDepth, uint((*rpcTempCU).GetWidth1(0)), uint(rpcTempCU.GetHeight1(0)), &bCodeDQP)
     this.setdQPFlag(bCodeDQP)
 	
     if this.m_bUseSBACRD {
@@ -1115,7 +1126,7 @@ func (this *TEncCu) xCheckRDCostIntra(rpcBestCU *TLibCommon.TComDataCU, rpcTempC
     }
     rpcTempCU.SetTotalCost(this.m_pcRdCost.calcRdCost(rpcTempCU.GetTotalBits(), rpcTempCU.GetTotalDistortion(), false, TLibCommon.DF_DEFAULT))
 
-    this.xCheckDQP(rpcTempCU)
+    this.xCheckDQP(*rpcTempCU)
     this.xCheckBestMode3(rpcBestCU, rpcTempCU, uiDepth)
     
     fmt.Printf("Exit xCheckRDCostIntra\n");
@@ -1141,7 +1152,7 @@ func (this *TEncCu) xCheckDQP(pcCU *TLibCommon.TComDataCU) {
     }
 }
 
-func (this *TEncCu) xCheckIntraPCM(rpcBestCU *TLibCommon.TComDataCU, rpcTempCU *TLibCommon.TComDataCU) {
+func (this *TEncCu) xCheckIntraPCM(rpcBestCU **TLibCommon.TComDataCU, rpcTempCU **TLibCommon.TComDataCU) {
     uiDepth := uint(rpcTempCU.GetDepth1(0))
 
     rpcTempCU.SetSkipFlagSubParts(false, 0, uiDepth)
@@ -1152,7 +1163,7 @@ func (this *TEncCu) xCheckIntraPCM(rpcBestCU *TLibCommon.TComDataCU, rpcTempCU *
     rpcTempCU.SetTrIdxSubParts(0, 0, uiDepth)
     rpcTempCU.SetCUTransquantBypassSubParts(this.m_pcEncCfg.GetCUTransquantBypassFlagValue(), 0, uiDepth)
 
-    this.m_pcPredSearch.IPCMSearch(rpcTempCU, this.m_ppcOrigYuv[uiDepth], this.m_ppcPredYuvTemp[uiDepth], this.m_ppcResiYuvTemp[uiDepth], this.m_ppcRecoYuvTemp[uiDepth])
+    this.m_pcPredSearch.IPCMSearch(*rpcTempCU, this.m_ppcOrigYuv[uiDepth], this.m_ppcPredYuvTemp[uiDepth], this.m_ppcResiYuvTemp[uiDepth], this.m_ppcRecoYuvTemp[uiDepth])
 
     if this.m_bUseSBACRD {
         this.m_pcRDGoOnSbacCoder.load(this.m_pppcRDSbacCoder[uiDepth][TLibCommon.CI_CURR_BEST])
@@ -1160,12 +1171,12 @@ func (this *TEncCu) xCheckIntraPCM(rpcBestCU *TLibCommon.TComDataCU, rpcTempCU *
 
     this.m_pcEntropyCoder.resetBits()
     if rpcTempCU.GetSlice().GetPPS().GetTransquantBypassEnableFlag() {
-        this.m_pcEntropyCoder.encodeCUTransquantBypassFlag(rpcTempCU, 0, true)
+        this.m_pcEntropyCoder.encodeCUTransquantBypassFlag(*rpcTempCU, 0, true)
     }
-    this.m_pcEntropyCoder.encodeSkipFlag(rpcTempCU, 0, true)
-    this.m_pcEntropyCoder.encodePredMode(rpcTempCU, 0, true)
-    this.m_pcEntropyCoder.encodePartSize(rpcTempCU, 0, uiDepth, true)
-    this.m_pcEntropyCoder.encodeIPCMInfo(rpcTempCU, 0, true)
+    this.m_pcEntropyCoder.encodeSkipFlag(*rpcTempCU, 0, true)
+    this.m_pcEntropyCoder.encodePredMode(*rpcTempCU, 0, true)
+    this.m_pcEntropyCoder.encodePartSize(*rpcTempCU, 0, uiDepth, true)
+    this.m_pcEntropyCoder.encodeIPCMInfo(*rpcTempCU, 0, true)
 
     if this.m_bUseSBACRD {
         this.m_pcRDGoOnSbacCoder.store(this.m_pppcRDSbacCoder[uiDepth][TLibCommon.CI_TEMP_BEST])
@@ -1177,7 +1188,7 @@ func (this *TEncCu) xCheckIntraPCM(rpcBestCU *TLibCommon.TComDataCU, rpcTempCU *
     }
     rpcTempCU.SetTotalCost(this.m_pcRdCost.calcRdCost(rpcTempCU.GetTotalBits(), rpcTempCU.GetTotalDistortion(), false, TLibCommon.DF_DEFAULT))
 
-    this.xCheckDQP(rpcTempCU)
+    this.xCheckDQP(*rpcTempCU)
     this.xCheckBestMode3(rpcBestCU, rpcTempCU, uiDepth)
 }
 

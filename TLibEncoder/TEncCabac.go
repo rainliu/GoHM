@@ -1616,10 +1616,10 @@ func (this *TEncSbac) codeCoeffNxN(pcCU *TLibCommon.TComDataCU, pcCoef []TLibCom
     // Code position of last coefficient
     posLastY := posLast >> uiLog2BlockSize
     posLastX := posLast - (posLastY << uiLog2BlockSize)
-    fmt.Printf("posLastX%d, posLastY%d, uiWidth%d, uiHeight%d, eTType%d, uiScanIdx%d\n",posLastX, posLastY, uiWidth, uiHeight, eTType, uiScanIdx)
-    fmt.Printf("before uiBits=%d\n", this.getNumberOfWrittenBits());
+    //fmt.Printf("posLastX%d, posLastY%d, uiWidth%d, uiHeight%d, eTType%d, uiScanIdx%d\n",posLastX, posLastY, uiWidth, uiHeight, eTType, uiScanIdx)
+    //fmt.Printf("before uiBits=%d\n", this.getNumberOfWrittenBits());
     this.codeLastSignificantXY(uint(posLastX), uint(posLastY), int(uiWidth), int(uiHeight), eTType, uiScanIdx)
-	fmt.Printf("after uiBits=%d\n", this.getNumberOfWrittenBits());
+	//fmt.Printf("after uiBits=%d\n", this.getNumberOfWrittenBits());
 	
     //===== code significance flag =====
     baseCoeffGroupCtx := this.m_cCUSigCoeffGroupSCModel.Get2(0, uint(eTType))
