@@ -99,7 +99,7 @@ func (this *TEncAnalyze)  printOut ( cDelim string){
     
     fmt.Printf( "\tTotal Frames |     Bitrate      Y-PSNR      U-PSNR      V-PSNR \n" );
     //printf( "\t------------ "  " ----------"   " -------- "  " -------- "  " --------\n" );
-    fmt.Printf( "\t %8d    %s          %12.4lf      %8.4lf     %8.4lf      %8.4lf\n",
+    fmt.Printf( "\t %8d    %s          %12.4f      %8.4f     %8.4f      %8.4f\n",
            this.getNumPic(), cDelim,
            this.getBits() * dScale,
            this.getPsnrY() / float64(this.getNumPic()),

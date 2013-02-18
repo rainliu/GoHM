@@ -459,11 +459,11 @@ func (this *TAppEncTop) xWriteOutput(bitstreamFile io.Writer, iNumEncoded int, a
     iterPicYuvRec := this.m_cListPicYuvRec.Back() //TComList<TComPicYuv*>::iterator
     iterBitstream := accessUnits.Front()          //list<AccessUnit>::const_iterator
 
-    for i = 0; i < iNumEncoded; i++ {
+    for i = 0; i < iNumEncoded-1; i++ {
         iterPicYuvRec = iterPicYuvRec.Prev()
     }
 
-    for i = 0; i < iNumEncoded; i++ {
+    for i = 0; i < iNumEncoded-1; i++ {
         pcPicYuvRec := iterPicYuvRec.Value.(*TLibCommon.TComPicYuv)
         if this.m_pchReconFile != "" {
             this.m_cTVideoIOYuvReconFile.Write(pcPicYuvRec, this.m_confLeft, this.m_confRight, this.m_confTop, this.m_confBottom)

@@ -27,8 +27,7 @@ func NewOutputNALUnit(nalUnitType TLibCommon.NalUnitType, temporalID, reserved_z
     out.NALUnit.SetNalUnitType(nalUnitType)
     out.NALUnit.SetTemporalId(temporalID)
     out.NALUnit.SetReservedZero6Bits(reserved_zero_6bits)
-    out.m_Bitstream = nil
-
+    out.m_Bitstream = TLibCommon.NewTComOutputBitstream();//nil
 
     return out
 }

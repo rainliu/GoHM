@@ -151,6 +151,8 @@ func (this *TEncGOP) init(pcTEncTop *TEncTop) {
 
     this.m_lastBPSEI = 0
     this.m_totalCoded = 0
+    
+    this.m_vRVM_RP = make(map[int]int)
 }
 
 func (this *TEncGOP) compressGOP(iPOCLast, iNumPicRcvd int, rcListPic, rcListPicYuvRecOut *list.List, accessUnitsInGOP *AccessUnits) {
@@ -1765,7 +1767,7 @@ func (this *TEncGOP) xCalculateAddPSNR(pcPic *TLibCommon.TComPic, pcPicD *TLibCo
         }
     }
     //#if ADAPTIVE_QP_SELECTION
-    fmt.Printf("POC %4d TId: %1d ( %c-SLICE, nQP %d QP %d ) %10d bits",
+    fmt.Printf("POC %4d TId: %1d ( %s-SLICE, nQP %d QP %d ) %10d bits",
         pcSlice.GetPOC(),
         pcSlice.GetTLayer(),
         c,
@@ -1781,8 +1783,8 @@ func (this *TEncGOP) xCalculateAddPSNR(pcPic *TLibCommon.TComPic, pcPicD *TLibCo
              uibits );
     #endif*/
 
-    fmt.Printf(" [Y %6.4lf dB    U %6.4lf dB    V %6.4lf dB]", dYPSNR, dUPSNR, dVPSNR)
-    fmt.Printf(" [ET %5.0v ]", dEncTime)
+    fmt.Printf(" [Y %6.4f dB    U %6.4f dB    V %6.4f dB]", dYPSNR, dUPSNR, dVPSNR)
+    fmt.Printf(" [ET %v ]", dEncTime)
 
     for iRefList := 0; iRefList < 2; iRefList++ {
         fmt.Printf(" [L%d ", iRefList)
