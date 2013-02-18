@@ -68,7 +68,7 @@ func WriteAnnexB(out io.Writer, au *AccessUnit) *list.List {
     annexBsizes := list.New()
 
     for it := au.Front(); it != nil; it = it.Next() {
-        nalu := it.Value.(*OutputNALUnit)
+        nalu := it.Value.(*NALUnitEBSP)
         size := uint(0) /* size of annexB unit in bytes */
 
         if it == au.Front() || nalu.GetNalUnitType() == TLibCommon.NAL_UNIT_SPS || nalu.GetNalUnitType() == TLibCommon.NAL_UNIT_PPS {

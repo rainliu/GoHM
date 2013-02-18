@@ -1152,16 +1152,17 @@ func (this *TEncSlice) encodeSlice(rpcPic *TLibCommon.TComPic, rpcBitstream *TLi
                         //found = search_n(found, rbsp.end()-1, 2, 0);
                         for found != rbsp.Back() {
                             v0 = found.Value.(byte)
-                            if found.Next() != rbsp.Back() {
+                            if found.Next() != nil {
                                 v1 = found.Next().Value.(byte)
                             } else {
                                 v1 = 0xFF
                             }
-                            found = found.Next()
 
                             if v0 == 0 && v1 == 0 {
                                 break
                             }
+                            
+                            found = found.Next()
                         }
 
                         found = found.Next()
@@ -1181,6 +1182,8 @@ func (this *TEncSlice) encodeSlice(rpcPic *TLibCommon.TComPic, rpcBitstream *TLi
                     it = found
                     if found != nil {
                         it = rbsp.InsertBefore(emulation_prevention_three_byte[0], found)
+                    }else{
+                    	break;
                     }
                 }
 

@@ -387,16 +387,26 @@ func (this *TEncCavlc) getNumberOfWrittenBits() uint        { return this.m_pcBi
 func (this *TEncCavlc) getCoeffCost() uint                  { return this.m_uiCoeffCost }
 
 func (this *TEncCavlc) codeVPS(pcVPS *TLibCommon.TComVPS) {
+    //#if ENC_DEC_TRACE
+    this.xTraceVPSHeader(pcVPS)
+    //#endif
+    //fmt.Printf("uiBits=%d\n", this.getNumberOfWrittenBits());
+    
     this.WRITE_CODE(uint(pcVPS.GetVPSId()), 4, "vps_video_parameter_set_id")
     this.WRITE_CODE(3, 2, "vps_reserved_three_2bits")
     this.WRITE_CODE(0, 6, "vps_reserved_zero_6bits")
     this.WRITE_CODE(pcVPS.GetMaxTLayers()-1, 3, "vps_max_sub_layers_minus1")
     this.WRITE_FLAG(uint(TLibCommon.B2U(pcVPS.GetTemporalNestingFlag())), "vps_temporal_id_nesting_flag")
+    //fmt.Printf("uiBits=%d\n", this.getNumberOfWrittenBits());
     this.WRITE_CODE(0xffff, 16, "vps_reserved_ffff_16bits")
+    
+    //fmt.Printf("uiBits=%d\n", this.getNumberOfWrittenBits());
+    
     this.codePTL(pcVPS.GetPTL(), true, int(pcVPS.GetMaxTLayers())-1)
 
     subLayerOrderingInfoPresentFlag := uint(1)
     this.WRITE_FLAG(subLayerOrderingInfoPresentFlag, "vps_sub_layer_ordering_info_present_flag")
+    //fmt.Printf("uiBits=%d\n", this.getNumberOfWrittenBits());
     for i := uint(0); i <= pcVPS.GetMaxTLayers()-1; i++ {
         this.WRITE_UVLC(pcVPS.GetMaxDecPicBuffering(i), "vps_max_dec_pic_buffering[i]")
         this.WRITE_UVLC(pcVPS.GetNumReorderPics(i), "vps_num_reorder_pics[i]")
@@ -405,7 +415,7 @@ func (this *TEncCavlc) codeVPS(pcVPS *TLibCommon.TComVPS) {
             break
         }
     }
-
+	//fmt.Printf("uiBits=%d\n", this.getNumberOfWrittenBits());
     //assert( pcVPS.GetNumHrdParameters() <= MAX_VPS_NUM_HRD_PARAMETERS );
     //assert( pcVPS.GetMaxNuhReservedZeroLayerId() < MAX_VPS_NUH_RESERVED_ZERO_LAYER_ID_PLUS1 );
     this.WRITE_CODE(pcVPS.GetMaxNuhReservedZeroLayerId(), 6, "vps_max_nuh_reserved_zero_layer_id")
@@ -449,7 +459,7 @@ func (this *TEncCavlc) codeVPS(pcVPS *TLibCommon.TComVPS) {
     }
     //#endif
     this.WRITE_FLAG(0, "vps_extension_flag")
-
+	//fmt.Printf("uiBits=%d\n", this.getNumberOfWrittenBits());
     //future extensions here..
 
     return

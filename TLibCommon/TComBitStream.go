@@ -125,16 +125,19 @@ func (this *TComOutputBitstream) Write(uiBits, uiNumberOfBits uint) {
     }
 
     /* topword serves to justify held_bits to align with the msb of uiBits */
-    topword := (uiNumberOfBits - uint(next_num_held_bits)) & 7 //^((1 << 3) -1);
+    topword := (uiNumberOfBits - uint(next_num_held_bits)) & (^(uint(1 << 3) -1));
     write_bits := (uint(this.m_held_bits) << topword) | (uiBits >> uint(next_num_held_bits))
 
     switch num_total_bits >> 3 {
     case 4:
         this.m_fifo.PushBack(byte(write_bits >> 24))
+        fallthrough
     case 3:
         this.m_fifo.PushBack(byte(write_bits >> 16))
+        fallthrough
     case 2:
         this.m_fifo.PushBack(byte(write_bits >> 8))
+        fallthrough
     case 1:
         this.m_fifo.PushBack(byte(write_bits))
     }

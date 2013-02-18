@@ -463,7 +463,7 @@ func (this *TAppEncTop) xWriteOutput(bitstreamFile io.Writer, iNumEncoded int, a
         iterPicYuvRec = iterPicYuvRec.Prev()
     }
 
-    for i = 0; i < iNumEncoded-1; i++ {
+    for i = 0; i < iNumEncoded; i++ {
         pcPicYuvRec := iterPicYuvRec.Value.(*TLibCommon.TComPicYuv)
         if this.m_pchReconFile != "" {
             this.m_cTVideoIOYuvReconFile.Write(pcPicYuvRec, this.m_confLeft, this.m_confRight, this.m_confTop, this.m_confBottom)
@@ -481,7 +481,7 @@ func (this *TAppEncTop) xWriteOutput(bitstreamFile io.Writer, iNumEncoded int, a
 func (this *TAppEncTop) rateStatsAccum(au *TLibEncoder.AccessUnit, annexBsizes *list.List) { //const std::vector<UInt>
     it_stats := annexBsizes.Front()
     for it_au := au.Front(); it_au != nil; it_au = it_au.Next() {
-        nalu := it_au.Value.(*TLibEncoder.OutputNALUnit)
+        nalu := it_au.Value.(*TLibEncoder.NALUnitEBSP)
         stats := it_stats.Value.(uint)
         switch nalu.GetNalUnitType() {
         case TLibCommon.NAL_UNIT_CODED_SLICE_TRAIL_R:
@@ -533,8 +533,8 @@ func (this *TAppEncTop) rateStatsAccum(au *TLibEncoder.AccessUnit, annexBsizes *
 
 func (this *TAppEncTop) printRateSummary() {
     time := float64(this.m_iFrameRcvd) / float64(this.m_iFrameRate)
-    fmt.Printf("Bytes written to file: %u (%.3f kbps)\n", this.m_totalBytes, 0.008*float64(this.m_totalBytes)/time)
+    fmt.Printf("Bytes written to file: %d (%.3f kbps)\n", this.m_totalBytes, 0.008*float64(this.m_totalBytes)/time)
     //#if VERBOSE_RATE
-    fmt.Printf("Bytes for SPS/PPS/Slice (Incl. Annex B): %u (%.3f kbps)\n", this.m_essentialBytes, 0.008*float64(this.m_essentialBytes)/time)
+    fmt.Printf("Bytes for SPS/PPS/Slice (Incl. Annex B): %d (%.3f kbps)\n", this.m_essentialBytes, 0.008*float64(this.m_essentialBytes)/time)
     //#endif
 }

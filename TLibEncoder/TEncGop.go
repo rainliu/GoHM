@@ -702,13 +702,20 @@ func (this *TEncGOP) compressGOP(iPOCLast, iNumPicRcvd int, rcListPic, rcListPic
         if this.m_bSeqFirst {
             nalu := NewOutputNALUnit(TLibCommon.NAL_UNIT_VPS, 0, 0)
             this.m_pcEntropyCoder.setBitstream(nalu.m_Bitstream)
+            
+            //fmt.Printf("vps=%d\n",nalu.m_Bitstream.GetNumberOfWrittenBits());
+            
             this.m_pcEntropyCoder.encodeVPS(this.m_pcCfg.GetVPS())
             nalu.m_Bitstream.WriteRBSPTrailingBits()
-            accessUnit.PushBack(nalu)
+            
+            //fmt.Printf("vps=%d\n",nalu.m_Bitstream.GetNumberOfWrittenBits());
+      		naluEbsp := NewNALUnitEBSP(nalu);
+            accessUnit.PushBack(naluEbsp);
             //#if RATE_CONTROL_LAMBDA_DOMAIN
-            actualTotalBits += int(nalu.m_Bitstream.GetByteStreamLength() * 8)
+            actualTotalBits += int(naluEbsp.m_Bitstream.GetByteStreamLength() * 8)
             //#endif
-
+			//fmt.Printf("vps=%d\n",naluEbsp.m_Bitstream.GetByteStreamLength()*8);
+			
             nalu = NewOutputNALUnit(TLibCommon.NAL_UNIT_SPS, 0, 0)
             this.m_pcEntropyCoder.setBitstream(nalu.m_Bitstream)
             if this.m_bSeqFirst {
@@ -738,18 +745,20 @@ func (this *TEncGOP) compressGOP(iPOCLast, iNumPicRcvd int, rcListPic, rcListPic
             }
             this.m_pcEntropyCoder.encodeSPS(pcSlice.GetSPS())
             nalu.m_Bitstream.WriteRBSPTrailingBits()
-            accessUnit.PushBack(nalu)
+            naluEbsp = NewNALUnitEBSP(nalu);
+            accessUnit.PushBack(naluEbsp);
             //#if RATE_CONTROL_LAMBDA_DOMAIN
-            actualTotalBits += int(nalu.m_Bitstream.GetByteStreamLength() * 8)
+            actualTotalBits += int(naluEbsp.m_Bitstream.GetByteStreamLength() * 8)
             //#endif
 
             nalu = NewOutputNALUnit(TLibCommon.NAL_UNIT_PPS, 0, 0)
             this.m_pcEntropyCoder.setBitstream(nalu.m_Bitstream)
             this.m_pcEntropyCoder.encodePPS(pcSlice.GetPPS())
             nalu.m_Bitstream.WriteRBSPTrailingBits()
-            accessUnit.PushBack(nalu)
+            naluEbsp = NewNALUnitEBSP(nalu);
+            accessUnit.PushBack(naluEbsp);
             //#if RATE_CONTROL_LAMBDA_DOMAIN
-            actualTotalBits += int(nalu.m_Bitstream.GetByteStreamLength() * 8)
+            actualTotalBits += int(naluEbsp.m_Bitstream.GetByteStreamLength() * 8)
             //#endif
 
             this.xCreateLeadingSEIMessages(accessUnit, pcSlice.GetSPS())
@@ -1065,17 +1074,19 @@ func (this *TEncGOP) compressGOP(iPOCLast, iNumPicRcvd int, rcListPic, rcListPic
                 // If current NALU is the last NALU of slice and a NALU was buffered, then (a) Write current NALU (b) Update an write buffered NALU at approproate location in NALU list.
                 bNALUAlignedWrittenToList := false // used to ensure current NALU is not written more than once to the NALU list.
                 this.xWriteTileLocationToSliceHeader(nalu, pcBitstreamRedirect, pcSlice)
-                accessUnit.PushBack(nalu)
+                naluEbsp := NewNALUnitEBSP(nalu);
+            	accessUnit.PushBack(naluEbsp);
                 //#if RATE_CONTROL_LAMBDA_DOMAIN
-                actualTotalBits += int(nalu.m_Bitstream.GetByteStreamLength() * 8)
+                actualTotalBits += int(naluEbsp.m_Bitstream.GetByteStreamLength() * 8)
                 //#endif
                 bNALUAlignedWrittenToList = true
                 uiOneBitstreamPerSliceLength += nalu.m_Bitstream.GetNumberOfWrittenBits() // length of bitstream after byte-alignment
 
                 if !bNALUAlignedWrittenToList {
                     nalu.m_Bitstream.WriteAlignZero()
-
-                    accessUnit.PushBack(nalu)
+					
+					naluEbsp = NewNALUnitEBSP(nalu);
+            		accessUnit.PushBack(naluEbsp);
                     uiOneBitstreamPerSliceLength += nalu.m_Bitstream.GetNumberOfWrittenBits() + 24 // length of bitstream after byte-alignment + 3 byte startcode 0x000001
                 }
 
@@ -1413,7 +1424,7 @@ func (this *TEncGOP) printOutSummary(uiNumAllPicCoded uint) {
       this.m_gcAnalyzeB.printSummary("B");
     #endif
     */
-    fmt.Printf("\nRVM: %.3lf\n", this.xCalculateRVM())
+    fmt.Printf("\nRVM: %.3f\n", this.xCalculateRVM())
 }
 
 func (this *TEncGOP) preLoopFilterPicAll(pcPic *TLibCommon.TComPic, ruiDist *uint64, ruiBits *uint64) {
@@ -1716,21 +1727,21 @@ func (this *TEncGOP) xCalculateAddPSNR(pcPic *TLibCommon.TComPic, pcPicD *TLibCo
      *  - any AnnexB contributions (start_code_prefix, zero_byte, etc.,)
      *  - SEI NAL units
      */
-    fmt.Printf("not implement yet xCalculateAddPSNR\n")
+    //fmt.Printf("not implement yet xCalculateAddPSNR\n")
 
     numRBSPBytes := uint(0)
-    /*
+    
       for it := accessUnit.Front(); it != nil; it=it.Next() {
-        //v := it.Value.()
-        numRBSPBytes_nal := uint((*it).m_nalUnitData.str().size());
+        nalu := it.Value.(*NALUnitEBSP)
+        numRBSPBytes_nal := uint(nalu.m_Bitstream.GetByteStreamLength());
     //#if VERBOSE_RATE
-        printf("*** %6s numBytesInNALunit: %u\n", nalUnitTypeToString((*it).m_nalUnitType), numRBSPBytes_nal);
+        fmt.Printf("*** %d numBytesInNALunit: %d\n", nalu.GetNalUnitType(), numRBSPBytes_nal);
     //#endif
-        if (*it).m_nalUnitType != TLibCommon.NAL_UNIT_SEI && (*it).m_nalUnitType != TLibCommon.NAL_UNIT_SEI_SUFFIX {
+        if nalu.GetNalUnitType() != TLibCommon.NAL_UNIT_SEI && nalu.GetNalUnitType() != TLibCommon.NAL_UNIT_SEI_SUFFIX {
           numRBSPBytes += numRBSPBytes_nal;
         }
       }
-    */
+    
 
     uibits := numRBSPBytes * 8
     this.m_vRVM_RP[len(this.m_vRVM_RP)] = int(uibits)
@@ -1851,45 +1862,49 @@ func (this *TEncGOP) xFindDistortionFrame(pcPic0 *TLibCommon.TComPicYuv, pcPic1 
 
 func (this *TEncGOP) xCalculateRVM() float64 {
     dRVM := float64(0)
-    fmt.Printf("not implement yet xCalculateRVM\n")
-    /*
+    //fmt.Printf("not implement yet xCalculateRVM\n")
+    
       if this.m_pcCfg.GetGOPSize() == 1 && this.m_pcCfg.GetIntraPeriod() != 1 && this.m_pcCfg.GetFramesToBeEncoded() > TLibCommon.RVM_VCEGAM10_M * 2 {
         // calculate RVM only for lowdelay configurations
-        std::vector<Double> vRL , vB;
-        size_t N = this.m_vRVM_RP.size();
-        vRL.resize( N );
-        vB.resize( N );
+        //std::vector<Double> 
+        var vRL map[int]float64;
+        var vB	map[int]float64;
+        N := len(this.m_vRVM_RP);
+        vRL = make(map[int]float64, N );
+        vB  = make(map[int]float64, N );
 
-        Int i;
-        Double dRavg = 0 , dBavg = 0;
-        vB[RVM_VCEGAM10_M] = 0;
-        for( i = RVM_VCEGAM10_M + 1 ; i < N - RVM_VCEGAM10_M + 1 ; i++ )
-        {
+        var i, j int;
+        var dRavg, dBavg float64;
+        vB[TLibCommon.RVM_VCEGAM10_M] = 0;
+        dRavg = 0;
+        dBavg = 0;
+        for i = TLibCommon.RVM_VCEGAM10_M + 1 ; i < N - TLibCommon.RVM_VCEGAM10_M + 1 ; i++ {
           vRL[i] = 0;
-          for( Int j = i - RVM_VCEGAM10_M ; j <= i + RVM_VCEGAM10_M - 1 ; j++ )
-            vRL[i] += this.m_vRVM_RP[j];
-          vRL[i] /= ( 2 * RVM_VCEGAM10_M );
-          vB[i] = vB[i-1] + this.m_vRVM_RP[i] - vRL[i];
-          dRavg += this.m_vRVM_RP[i];
+          for j = i - TLibCommon.RVM_VCEGAM10_M ; j <= i + TLibCommon.RVM_VCEGAM10_M - 1 ; j++ {
+            vRL[i] += float64(this.m_vRVM_RP[j]);
+          }
+          vRL[i] /= ( 2 * TLibCommon.RVM_VCEGAM10_M );
+          vB[i] = vB[i-1] + float64(this.m_vRVM_RP[i]) - vRL[i];
+          dRavg += float64(this.m_vRVM_RP[i]);
           dBavg += vB[i];
         }
 
-        dRavg /= ( N - 2 * RVM_VCEGAM10_M );
-        dBavg /= ( N - 2 * RVM_VCEGAM10_M );
+        dRavg /= float64( N - 2 * TLibCommon.RVM_VCEGAM10_M );
+        dBavg /= float64( N - 2 * TLibCommon.RVM_VCEGAM10_M );
 
-        Double dSigamB = 0;
-        for( i = RVM_VCEGAM10_M + 1 ; i < N - RVM_VCEGAM10_M + 1 ; i++ )
-        {
-          Double tmp = vB[i] - dBavg;
+        var dSigamB float64;
+        dSigamB = 0;
+        for i = TLibCommon.RVM_VCEGAM10_M + 1 ; i < N - TLibCommon.RVM_VCEGAM10_M + 1 ; i++  {
+          tmp := vB[i] - dBavg;
           dSigamB += tmp * tmp;
         }
-        dSigamB = sqrt( dSigamB / ( N - 2 * RVM_VCEGAM10_M ) );
+        dSigamB = math.Sqrt( dSigamB / float64( N - 2 * TLibCommon.RVM_VCEGAM10_M ) );
 
-        Double f = sqrt( 12.0 * ( RVM_VCEGAM10_M - 1 ) / ( RVM_VCEGAM10_M + 1 ) );
+        f := math.Sqrt( 12.0 * ( TLibCommon.RVM_VCEGAM10_M - 1 ) / ( TLibCommon.RVM_VCEGAM10_M + 1 ) );
 
         dRVM = dSigamB / dRavg * f;
       }
-    */
+    
     return (dRVM)
 }
 

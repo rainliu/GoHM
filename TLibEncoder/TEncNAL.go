@@ -1,6 +1,7 @@
 package TLibEncoder
 
 import (
+	//"fmt"
     //"io"
     "gohm/TLibCommon"
 )
@@ -41,24 +42,55 @@ func (this *OutputNALUnit) Copy(src *TLibCommon.NALUnit) {
     //static_cast<NALUnit*>(this)->operator=(src);
 }
 
-func (this *OutputNALUnit) WriteNalUnitHeader() { // nal_unit_header()
+
+/**
+ * Copy NALU from naluSrc to naluDest
+ */
+func (this *OutputNALUnit) CopyNaluData(naluSrc *OutputNALUnit) {
+    this.SetNalUnitType(naluSrc.GetNalUnitType())
+    this.SetReservedZero6Bits(naluSrc.GetReservedZero6Bits())
+    this.SetTemporalId(naluSrc.GetTemporalId())
+    this.m_Bitstream = naluSrc.m_Bitstream
+}
+
+/**
+ * A single NALunit, with complete payload in EBSP format.
+ */
+type NALUnitEBSP struct{
+  TLibCommon.NALUnit
+  m_Bitstream *TLibCommon.TComOutputBitstream
+}
+/**
+ * convert the OutputNALUnit #nalu# into EBSP format by writing out
+ * the NALUnit header, then the rbsp_bytes including any
+ * emulation_prevention_three_byte symbols.
+ */
+
+func NewNALUnitEBSP(nalu *OutputNALUnit) *NALUnitEBSP{
+  naluEbsp := &NALUnitEBSP{};
+  naluEbsp.NALUnit.SetNalUnitType(nalu.GetNalUnitType())
+  naluEbsp.NALUnit.SetTemporalId(nalu.GetTemporalId())
+  naluEbsp.NALUnit.SetReservedZero6Bits(nalu.GetReservedZero6Bits())
+  naluEbsp.m_Bitstream = TLibCommon.NewTComOutputBitstream();
+  naluEbsp.Write(nalu);
+  
+  return naluEbsp;
+}
+
+
+func (this *NALUnitEBSP) WriteNalUnitHeader(nalu *OutputNALUnit) { // nal_unit_header()
     //bsNALUHeader := TLibCommon.NewTComOutputBitstream();//*TLibCommon.TComOutputBitstream;
 
     this.m_Bitstream.Write(0, 1)                           // forbidden_zero_bit
-    this.m_Bitstream.Write(uint(this.GetNalUnitType()), 6) // nal_unit_type
-    this.m_Bitstream.Write(this.GetReservedZero6Bits(), 6) // nuh_reserved_zero_6bits
-    this.m_Bitstream.Write(this.GetTemporalId()+1, 3)      // nuh_temporal_id_plus1
+    this.m_Bitstream.Write(uint(nalu.GetNalUnitType()), 6) // nal_unit_type
+    this.m_Bitstream.Write(nalu.GetReservedZero6Bits(), 6) // nuh_reserved_zero_6bits
+    this.m_Bitstream.Write(nalu.GetTemporalId()+1, 3)      // nuh_temporal_id_plus1
 
-    /*var buf [1]byte;
-      for e:= bsNALUHeader.GetFIFO().Front(); e!=nil; e=e.Next() {
-      	buf[0] = e.Value.(byte);
-      	out.Write(buf[:]);
-      }	*/
     //out.write(bsNALUHeader.getByteStream(), bsNALUHeader.getByteStreamLength());
 }
 
-func (this *OutputNALUnit) Write() {
-    this.WriteNalUnitHeader()
+func (this *NALUnitEBSP) Write(nalu *OutputNALUnit) {
+    this.WriteNalUnitHeader(nalu)
     /* write out rsbp_byte's, inserting any required
      * emulation_prevention_three_byte's */
     /* 7.4.1 ...
@@ -79,7 +111,7 @@ func (this *OutputNALUnit) Write() {
      *  - 0x00000302
      *  - 0x00000303
      */
-    rbsp := this.m_Bitstream.GetFIFO()
+    rbsp := nalu.m_Bitstream.GetFIFO()
     var v0, v1 byte
     for it := rbsp.Front(); it != nil; it = it.Next() {
         /* 1) find the next emulated 00 00 {00,01,02,03}
@@ -93,16 +125,17 @@ func (this *OutputNALUnit) Write() {
             //found = search_n(found, rbsp.end()-1, 2, 0);
             for found != rbsp.Back() {
                 v0 = found.Value.(byte)
-                if found.Next() != rbsp.Back() {
+                if found.Next() != nil {
                     v1 = found.Next().Value.(byte)
                 } else {
                     v1 = 0xFF
                 }
-                found = found.Next()
-
+                
                 if v0 == 0 && v1 == 0 {
                     break
                 }
+                
+                found = found.Next()
             }
 
             found = found.Next()
@@ -122,15 +155,11 @@ func (this *OutputNALUnit) Write() {
         it = found
         if found != nil {
             it = rbsp.InsertBefore(emulation_prevention_three_byte[0], found)
+        }else{
+        	break;
         }
     }
 
-    /*
-      var buf [1]byte;
-      for e:= rbsp.Front(); e!=nil; e=e.Next() {
-      	buf[0] = e.Value.(byte);
-      	out.Write(buf[:]);
-      }	*/
     //out.write((Char*)&(*rbsp.begin()), rbsp.end() - rbsp.begin());
 
     /* 7.4.1.1
@@ -142,32 +171,10 @@ func (this *OutputNALUnit) Write() {
         rbsp.PushBack(emulation_prevention_three_byte[0])
         //out.Write(emulation_prevention_three_byte[:]);
     }
+    
+    src := nalu.m_Bitstream.GetFIFO()
+    dst := this.m_Bitstream.GetFIFO()
+    for it := src.Front(); it != nil; it = it.Next() {
+    	dst.PushBack(it.Value.(byte))
+    }
 }
-
-/**
- * Copy NALU from naluSrc to naluDest
- */
-func (this *OutputNALUnit) CopyNaluData(naluSrc *OutputNALUnit) {
-    this.SetNalUnitType(naluSrc.GetNalUnitType())
-    this.SetReservedZero6Bits(naluSrc.GetReservedZero6Bits())
-    this.SetTemporalId(naluSrc.GetTemporalId())
-    this.m_Bitstream = naluSrc.m_Bitstream
-}
-
-/**
- * A single NALunit, with complete payload in EBSP format.
- */
-/* 
-type NALUnitEBSP struct{
-  TLibCommon.NALUnit
-  //m_nalUnitData io.Writer;
-}*/
-/**
- * convert the OutputNALUnit #nalu# into EBSP format by writing out
- * the NALUnit header, then the rbsp_bytes including any
- * emulation_prevention_three_byte symbols.
- */
-/*
-func NewNALUnitEBSP(nalu *OutputNALUnit) *NALUnitEBSP{
-  nalu.Write();
-}*/
