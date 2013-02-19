@@ -34,7 +34,7 @@
 package TLibCommon
 
 import (
-    //"fmt"
+    "fmt"
     "math"
 )
 
@@ -296,6 +296,8 @@ func (this *TComTrQuant) SetRDOQOffset(uiRDOQOffset uint) {
 }
 
 func CalcPatternSigCtx(sigCoeffGroupFlag []uint, posXCG, posYCG uint, width, height int) int {
+    //fmt.Printf("Enter calcPatternSigCtx: %d,%d,%d,%d ",posXCG,posYCG,width,height);
+    
     if width == 4 && height == 4 {
         return -1
     }
@@ -306,10 +308,13 @@ func CalcPatternSigCtx(sigCoeffGroupFlag []uint, posXCG, posYCG uint, width, hei
     height >>= 2
     if int(posXCG) < width-1 {
         sigRight = B2U(sigCoeffGroupFlag[posYCG*uint(width)+posXCG+1] != 0)
+    	//fmt.Printf("%d:%d ",posYCG * uint(width) + posXCG + 1, sigCoeffGroupFlag[ posYCG * uint(width) + posXCG + 1 ]);
     }
     if int(posYCG) < height-1 {
         sigLower = B2U(sigCoeffGroupFlag[(posYCG+1)*uint(width)+posXCG] != 0)
+    	//fmt.Printf("%d:%d ",(posYCG  + 1 ) * uint(width) + posXCG, sigCoeffGroupFlag[ (posYCG  + 1 ) * uint(width) + posXCG ]);
     }
+    //fmt.Printf("Exit calcPatternSigCtx: %d\n",sigRight + (sigLower<<1));
     return int(sigRight + (sigLower << 1))
 }
 
@@ -319,6 +324,10 @@ func GetSigCtxInc(patternSigCtx int,
     posY int,
     log2BlockSize int,
     textureType TextType) int {
+    
+    //fmt.Printf("Enter getSigCtxInc: %d,%d,%d,%d,%d,%d",patternSigCtx,scanIdx,posX,posY,log2BlockSize,textureType);
+  
+  
     var ctxIndMap = [16]int{0, 1, 4, 5,
         2, 3, 4, 5,
         6, 6, 8, 8,
@@ -1021,7 +1030,7 @@ func (this *TComTrQuant) xRateDistOptQuant(pcCU *TComDataCU,
     uiLog2TrSize := uint(G_aucConvertToBit[uiWidth]) + 2
     uiQ := uint(G_quantScales[this.m_cQP.m_iRem])
 
-	//fmt.Printf("m_iBits=%d, m_iRem=%d, uiQ=%d\n", this.m_cQP.m_iBits, this.m_cQP.m_iRem, uiQ);
+	fmt.Printf("Enter xRateDistOptQuant\n");
     
     var uiBitDepth uint
     if eTType == TEXT_LUMA {
@@ -1110,12 +1119,13 @@ func (this *TComTrQuant) xRateDistOptQuant(pcCU *TComDataCU,
 
     uiCGNum := uiWidth * uiHeight >> MLS_CG_SIZE
     var iScanPos int
-    var rdStats coeffGroupRDStats
+    
 
     for iCGScanPos := int(uiCGNum) - 1; iCGScanPos >= 0; iCGScanPos-- {
         uiCGBlkPos := scanCG[iCGScanPos]
         uiCGPosY := uiCGBlkPos / uiNumBlkSide
         uiCGPosX := uiCGBlkPos - (uiCGPosY * uiNumBlkSide)
+        var rdStats coeffGroupRDStats
         //::memset( &rdStats, 0, sizeof (coeffGroupRDStats));
 
         patternSigCtx := CalcPatternSigCtx(uiSigCoeffGroupFlag[:], uiCGPosX, uiCGPosY, int(uiWidth), int(uiHeight))
@@ -1162,16 +1172,26 @@ func (this *TComTrQuant) xRateDistOptQuant(pcCU *TComDataCU,
                     uiLevel = this.xGetCodedLevel(&pdCostCoeff[iScanPos], &pdCostCoeff0[iScanPos], &pdCostSig[iScanPos],
                         lLevelDouble, uint(uiMaxAbsLevel), 0, uint16(uiOneCtx), uint16(uiAbsCtx), uint16(uiGoRiceParam),
                         c1Idx, c2Idx, iQBits, dTemp, true)
+                    
+                    //fmt.Printf("==%d ", uiLevel);
                 } else {
                     uiPosY := uint(uiBlkPos) >> uint(uiLog2BlkSize)
                     uiPosX := uiBlkPos - (uiPosY << uint(uiLog2BlkSize))
                     uiCtxSig := GetSigCtxInc(patternSigCtx, uiScanIdx, int(uiPosX), int(uiPosY), int(uiLog2BlkSize), eTType)
+                    
+                    //fmt.Printf("uiPosX=%d, uiPosY=%d, uiCtxSig=%d\n", uiPosX, uiPosY, uiCtxSig);
+                    
                     uiLevel = this.xGetCodedLevel(&pdCostCoeff[iScanPos], &pdCostCoeff0[iScanPos], &pdCostSig[iScanPos],
                         lLevelDouble, uint(uiMaxAbsLevel), uint16(uiCtxSig), uint16(uiOneCtx), uint16(uiAbsCtx), uint16(uiGoRiceParam),
                         c1Idx, c2Idx, iQBits, dTemp, false)
                     sigRateDelta[uiBlkPos] = this.m_pcEstBitsSbac.SignificantBits[uiCtxSig][1] - this.m_pcEstBitsSbac.SignificantBits[uiCtxSig][0]
+                
+                	//fmt.Printf("!=%d ", uiLevel);
                 }
                 deltaU[uiBlkPos] = (lLevelDouble - (int(uiLevel) << uint(iQBits))) >> uint(iQBits-8)
+                
+                //fmt.Printf("%d,%d,%d ",iScanPos, iLastScanPos, uiLevel);
+                
                 if uiLevel > 0 {
                     rateNow := this.xGetICRate(uiLevel, uint16(uiOneCtx), uint16(uiAbsCtx), uint16(uiGoRiceParam), c1Idx, c2Idx)
                     rateIncUp[uiBlkPos] = this.xGetICRate(uiLevel+1, uint16(uiOneCtx), uint16(uiAbsCtx), uint16(uiGoRiceParam), c1Idx, c2Idx) - rateNow
@@ -1236,6 +1256,8 @@ func (this *TComTrQuant) xRateDistOptQuant(pcCU *TComDataCU,
                 rdStats.d64SigCost_0 = pdCostSig[iScanPos]
             }
             if piDstCoeff[uiBlkPos] != 0 {
+            	//fmt.Printf("uiBlkPos=%d, piDstCoeff[ uiBlkPos ]=%d\n",uiBlkPos, piDstCoeff[ uiBlkPos ] );
+        
                 uiSigCoeffGroupFlag[uiCGBlkPos] = 1
                 rdStats.d64CodedLevelandDist += pdCostCoeff[iScanPos] - pdCostSig[iScanPos]
                 rdStats.d64UncodedDist += pdCostCoeff0[iScanPos]
@@ -1268,7 +1290,7 @@ func (this *TComTrQuant) xRateDistOptQuant(pcCU *TComDataCU,
                             d64CostZeroCG += this.xGetRateSigCoeffGroup(0, uint16(uiCtxSig))
                             pdCostCoeffGroupSig[iCGScanPos] = this.xGetRateSigCoeffGroup(1, uint16(uiCtxSig))
                         }
-
+						//fmt.Printf("d64CostZeroCG%f =%f %f %f\n",d64CostZeroCG, rdStats.d64UncodedDist, rdStats.d64CodedLevelandDist, rdStats.d64SigCost);
                         // try to convert the current coeff group from non-zero to all-zero
                         d64CostZeroCG += rdStats.d64UncodedDist       // distortion for resetting non-zero levels to zero levels
                         d64CostZeroCG -= rdStats.d64CodedLevelandDist // distortion and level cost for keeping all non-zero levels
@@ -1276,6 +1298,7 @@ func (this *TComTrQuant) xRateDistOptQuant(pcCU *TComDataCU,
 
                         // if we can save cost, change this block to all-zero block
                         if d64CostZeroCG < d64BaseCost {
+                        	//fmt.Printf("d64CostZeroCG%f<d64BaseCost%f,[ uiCGBlkPos =%d]\n",d64CostZeroCG, d64BaseCost, uiCGBlkPos);
                             uiSigCoeffGroupFlag[uiCGBlkPos] = 0
                             d64BaseCost = d64CostZeroCG
                             if iCGScanPos < iCGLastScanPos {
@@ -1296,6 +1319,7 @@ func (this *TComTrQuant) xRateDistOptQuant(pcCU *TComDataCU,
                     }
                 }   // end if if (uiSigCoeffGroupFlag[ uiCGBlkPos ] == 0)
             } else {
+            	//fmt.Printf("uiCGBlkPos=%d\n",uiCGBlkPos);
                 uiSigCoeffGroupFlag[uiCGBlkPos] = 1
             }
         }
@@ -1522,6 +1546,7 @@ func (this *TComTrQuant) xRateDistOptQuant(pcCU *TComDataCU,
         }
     }
     //fmt.Printf("\n");
+    fmt.Printf("Exit xRateDistOptQuant\n");
 }
 
 func (this *TComTrQuant) xGetCodedLevel(rd64CodedCost *float64,

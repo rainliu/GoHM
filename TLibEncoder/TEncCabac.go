@@ -1665,13 +1665,13 @@ func (this *TEncSbac) codeCoeffNxN(pcCU *TLibCommon.TComDataCU, pcCoef []TLibCom
             uiCtxSig := TLibCommon.GetSigCoeffGroupCtxInc(uiSigCoeffGroupFlag[:], iCGPosX, iCGPosY, int(uiWidth), int(uiHeight))
             this.m_pcBinIf.encodeBin(uiSigCoeffGroup, &baseCoeffGroupCtx[uiCtxSig])
             //this.DTRACE_CABAC_VL( g_nSymbolCounter++ );
-            this.DTRACE_CABAC_T("\tuiSigCoeffGroup")
+            /*this.DTRACE_CABAC_T("\tuiSigCoeffGroup")
             this.DTRACE_CABAC_V(uiSigCoeffGroup)
             this.DTRACE_CABAC_T("\tuiCtxSig: ")
             this.DTRACE_CABAC_V(uiCtxSig)
             this.DTRACE_CABAC_T("\tuiBits: ")
             this.DTRACE_CABAC_V(this.getNumberOfWrittenBits())
-            this.DTRACE_CABAC_T("\n")
+            this.DTRACE_CABAC_T("\n")*/
         }
 
         // encode significant_coeff_flag
@@ -1688,13 +1688,13 @@ func (this *TEncSbac) codeCoeffNxN(pcCU *TLibCommon.TComDataCU, pcCoef []TLibCom
                     this.m_pcBinIf.encodeBin(uiSig, &baseCtx[uiCtxSig])
                     
                     //this.DTRACE_CABAC_VL( g_nSymbolCounter++ );
-                    this.DTRACE_CABAC_T("\tuiSig")
+                    /*this.DTRACE_CABAC_T("\tuiSig")
                     this.DTRACE_CABAC_V(uiSig)
                     this.DTRACE_CABAC_T("\tuiCtxSig: ")
                     this.DTRACE_CABAC_V(uiCtxSig)
                     this.DTRACE_CABAC_T("\tuiBits: ")
             		this.DTRACE_CABAC_V(this.getNumberOfWrittenBits())
-                    this.DTRACE_CABAC_T("\n")
+                    this.DTRACE_CABAC_T("\n")*/
                 }
                 if uiSig != 0 {
                     absCoeff[numNonZero] = int(TLibCommon.ABS(pcCoef[uiBlkPos]).(TLibCommon.TCoeff))
@@ -1737,13 +1737,13 @@ func (this *TEncSbac) codeCoeffNxN(pcCU *TLibCommon.TComDataCU, pcCoef []TLibCom
                 this.m_pcBinIf.encodeBin(uiSymbol, &baseCtxMod[c1])
                 
                 //this.DTRACE_CABAC_VL( g_nSymbolCounter++ );
-                this.DTRACE_CABAC_T("\tuiBin")
+                /*this.DTRACE_CABAC_T("\tuiBin")
                 this.DTRACE_CABAC_V(uiSymbol)
                 this.DTRACE_CABAC_T("\tc1: ")
                 this.DTRACE_CABAC_V(uint(c1))
                 this.DTRACE_CABAC_T("\tuiBits: ")
             	this.DTRACE_CABAC_V(this.getNumberOfWrittenBits())
-                this.DTRACE_CABAC_T("\n")
+                this.DTRACE_CABAC_T("\n")*/
                 
                 if uiSymbol != 0 {
                     c1 = 0
@@ -1767,13 +1767,13 @@ func (this *TEncSbac) codeCoeffNxN(pcCU *TLibCommon.TComDataCU, pcCoef []TLibCom
                     this.m_pcBinIf.encodeBin(symbol, &baseCtxMod[0])
                     
                     //this.DTRACE_CABAC_VL( g_nSymbolCounter++ );
-                    this.DTRACE_CABAC_T("\tuiBin")
+                    /*this.DTRACE_CABAC_T("\tuiBin")
                     this.DTRACE_CABAC_V(symbol)
                     this.DTRACE_CABAC_T("\tc1: ")
                     this.DTRACE_CABAC_V(0)
                     this.DTRACE_CABAC_T("\tuiBits: ")
             		this.DTRACE_CABAC_V(this.getNumberOfWrittenBits())
-                    this.DTRACE_CABAC_T("\n")
+                    this.DTRACE_CABAC_T("\n")*/
                 }
             }
 
@@ -1781,24 +1781,24 @@ func (this *TEncSbac) codeCoeffNxN(pcCU *TLibCommon.TComDataCU, pcCoef []TLibCom
                 this.m_pcBinIf.encodeBinsEP((coeffSigns >> 1), numNonZero-1)
                 
                 //this.DTRACE_CABAC_VL( g_nSymbolCounter++ );
-                this.DTRACE_CABAC_T("\tcoeffSigns")
+                /*this.DTRACE_CABAC_T("\tcoeffSigns")
                 this.DTRACE_CABAC_V((coeffSigns >> 1))
                 this.DTRACE_CABAC_T("\tnumNonZero-1: ")
                 this.DTRACE_CABAC_V(uint(numNonZero - 1))
                 this.DTRACE_CABAC_T("\tuiBits: ")
             	this.DTRACE_CABAC_V(this.getNumberOfWrittenBits())
-                this.DTRACE_CABAC_T("\n")
+                this.DTRACE_CABAC_T("\n")*/
             } else {
                 this.m_pcBinIf.encodeBinsEP(coeffSigns, numNonZero)
                 
                 //this.DTRACE_CABAC_VL( g_nSymbolCounter++ );
-                this.DTRACE_CABAC_T("\tcoeffSigns")
+                /*this.DTRACE_CABAC_T("\tcoeffSigns")
                 this.DTRACE_CABAC_V(coeffSigns)
                 this.DTRACE_CABAC_T("\tnumNonZero: ")
                 this.DTRACE_CABAC_V(uint(numNonZero))
                 this.DTRACE_CABAC_T("\tuiBits: ")
             	this.DTRACE_CABAC_V(this.getNumberOfWrittenBits())
-                this.DTRACE_CABAC_T("\n")
+                this.DTRACE_CABAC_T("\n")*/
             }
 
             iFirstCoeff2 := int(1)
@@ -1814,13 +1814,13 @@ func (this *TEncSbac) codeCoeffNxN(pcCU *TLibCommon.TComDataCU, pcCoef []TLibCom
                     if absCoeff[idx] >= int(baseLevel) {
                         this.xWriteCoefRemainExGolomb(uint(absCoeff[idx])-baseLevel, uiGoRiceParam)
                         //this.DTRACE_CABAC_VL( g_nSymbolCounter++ );
-                        this.DTRACE_CABAC_T("\tuiLevel")
+                        /*this.DTRACE_CABAC_T("\tuiLevel")
                         this.DTRACE_CABAC_V(uint(absCoeff[idx])-baseLevel)
                         this.DTRACE_CABAC_T("\tuiGoRiceParam: ")
                         this.DTRACE_CABAC_V(uint(uiGoRiceParam))
                         this.DTRACE_CABAC_T("\tuiBits: ")
             			this.DTRACE_CABAC_V(this.getNumberOfWrittenBits())
-                        this.DTRACE_CABAC_T("\n")
+                        this.DTRACE_CABAC_T("\n")*/
                         
                         if absCoeff[idx] > 3*(1<<uiGoRiceParam) {
                             uiGoRiceParam = uint(TLibCommon.MIN(int(uiGoRiceParam+1), int(4)).(int))

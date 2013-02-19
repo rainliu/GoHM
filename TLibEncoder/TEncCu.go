@@ -795,7 +795,7 @@ func (this *TEncCu) xCompressCU(rpcBestCU **TLibCommon.TComDataCU, rpcTempCU **T
 //func (this *TEncCu)  xCompressCU         ( TLibCommon.TComDataCU*& rpcBestCU, TLibCommon.TComDataCU*& rpcTempCU, UInt uiDepth        );
 //#endif
 func (this *TEncCu) xEncodeCU(pcCU *TLibCommon.TComDataCU, uiAbsPartIdx, uiDepth uint) {
-    fmt.Printf("Enter xEncodeCU\n");
+    fmt.Printf("Enter xEncodeCU with %d\n", pcCU.GetAddr());
     
     pcPic := pcCU.GetPic()
 

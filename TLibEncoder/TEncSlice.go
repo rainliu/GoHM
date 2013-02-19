@@ -789,9 +789,12 @@ func (this *TEncSlice) compressSlice(rpcPic *TLibCommon.TComPic) { ///< analysis
 
     for uiEncCUOrder = uiStartCUAddr / rpcPic.GetNumPartInCU(); uiEncCUOrder < (uiBoundingCUAddr+(rpcPic.GetNumPartInCU()-1))/rpcPic.GetNumPartInCU(); uiCUAddr = rpcPic.GetPicSym().GetCUOrderMap(int(uiEncCUOrder)) {
         uiEncCUOrder++
+        
         // initialize CU encoder
         pcCU := rpcPic.GetCU(uiCUAddr)
         pcCU.InitCU(rpcPic, uiCUAddr)
+        
+        fmt.Printf("uiCUAddr=%d\n", pcCU.GetAddr());
 
         /*#if !RATE_CONTROL_LAMBDA_DOMAIN
             if(this.m_pcCfg.GetUseRateCtrl())
@@ -1074,8 +1077,14 @@ func (this *TEncSlice) encodeSlice(rpcPic *TLibCommon.TComPic, rpcBitstream *TLi
     }
 
     var uiEncCUOrder uint
-    for uiEncCUOrder = uiStartCUAddr / rpcPic.GetNumPartInCU(); uiEncCUOrder < (uiBoundingCUAddr+rpcPic.GetNumPartInCU()-1)/rpcPic.GetNumPartInCU(); uiEncCUOrder++ {
-        //uiCUAddr = rpcPic.GetPicSym().GetCUOrderMap(uiEncCUOrder++)  {
+    for uiEncCUOrder = uiStartCUAddr / rpcPic.GetNumPartInCU(); 
+    	uiEncCUOrder < (uiBoundingCUAddr+rpcPic.GetNumPartInCU()-1)/rpcPic.GetNumPartInCU(); 
+    	uiCUAddr = rpcPic.GetPicSym().GetCUOrderMap(int(uiEncCUOrder)) {
+        uiEncCUOrder++ 
+        
+        fmt.Printf("encodeSlice with uiCUAddr=%d\n", uiCUAddr);
+        
+        
         if this.m_pcCfg.GetUseSBACRD() {
             uiTileCol = rpcPic.GetPicSym().GetTileIdxMap(int(uiCUAddr)) % uint(rpcPic.GetPicSym().GetNumColumnsMinus1()+1) // what column of tiles are we in?
             uiTileStartLCU = rpcPic.GetPicSym().GetTComTile(rpcPic.GetPicSym().GetTileIdxMap(int(uiCUAddr))).GetFirstCUAddr()
@@ -1279,9 +1288,7 @@ func (this *TEncSlice) encodeSlice(rpcPic *TLibCommon.TComPic, rpcBitstream *TLi
             if (depSliceSegmentsEnabled || (pcSlice.GetPPS().GetNumSubstreams() > 1)) && (uiCol == uiTileLCUX+1) && this.m_pcCfg.GetWaveFrontsynchro() != 0 {
                 this.m_pcBufferSbacCoders[uiTileCol].loadContexts(pcSbacCoders[uiSubStrm])
             }
-        }
-
-        uiCUAddr = rpcPic.GetPicSym().GetCUOrderMap(int(uiEncCUOrder))
+        }        
     }
 
     if depSliceSegmentsEnabled {
