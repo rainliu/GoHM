@@ -34,7 +34,7 @@
 package TLibEncoder
 
 import (
-	//"fmt"
+	"fmt"
     "gohm/TLibCommon"
     "math"
 )
@@ -2363,6 +2363,8 @@ func (this *TEncSearch) xIntraCodingLumaBlk(pcCU *TLibCommon.TComDataCU,
     pcResiYuv *TLibCommon.TComYuv,
     ruiDist *uint,
     default0Save1Load2 int) {
+    fmt.Printf("Enter xIntraCodingLumaBlk\n");
+    
     uiLumaPredMode := uint(pcCU.GetLumaIntraDir1(uiAbsPartIdx))
     uiFullDepth := uint(pcCU.GetDepth1(0)) + uiTrDepth
     uiWidth := uint(uint(pcCU.GetWidth1(0))) >> uiTrDepth
@@ -2530,6 +2532,8 @@ func (this *TEncSearch) xIntraCodingLumaBlk(pcCU *TLibCommon.TComDataCU,
 
     //===== update distortion =====
     *ruiDist += this.m_pcRdCost.getDistPart(TLibCommon.G_bitDepthY, piReco, int(uiStride), piOrg, int(uiStride), uiWidth, uiHeight, TLibCommon.TEXT_LUMA, TLibCommon.DF_SSE)
+	
+	fmt.Printf("Exit xIntraCodingLumaBlk\n");
 }
 
 func (this *TEncSearch) xIntraCodingChromaBlk(pcCU *TLibCommon.TComDataCU,
@@ -2541,6 +2545,8 @@ func (this *TEncSearch) xIntraCodingChromaBlk(pcCU *TLibCommon.TComDataCU,
     ruiDist *uint,
     uiChromaId uint,
     default0Save1Load2 int) {
+    fmt.Printf("Enter xIntraCodingChromaBlk with (%d,%d,%d)\n", uiTrDepth, uiAbsPartIdx, uiChromaId);
+    
     uiOrgTrDepth := uiTrDepth
     uiFullDepth := uint(pcCU.GetDepth1(0)) + uiTrDepth
     uiLog2TrSize := uint(TLibCommon.G_aucConvertToBit[pcCU.GetSlice().GetSPS().GetMaxCUWidth()>>uiFullDepth]) + 2
@@ -2549,7 +2555,9 @@ func (this *TEncSearch) xIntraCodingChromaBlk(pcCU *TLibCommon.TComDataCU,
         uiTrDepth--
         uiQPDiv := pcCU.GetPic().GetNumPartInCU() >> ((uint(pcCU.GetDepth1(0)) + uiTrDepth) << 1)
         bFirstQ := ((uiAbsPartIdx % uiQPDiv) == 0)
+        //fmt.Printf("bFirstQ%d=%d %d\n", bFirstQ, uiAbsPartIdx, uiQPDiv);
         if !bFirstQ {
+        	fmt.Printf("Exit xIntraCodingChromaBlk\n");
             return
         }
     }
@@ -2759,6 +2767,8 @@ func (this *TEncSearch) xIntraCodingChromaBlk(pcCU *TLibCommon.TComDataCU,
     //#else
     //  ruiDist += m_pcRdCost->getDistPart(g_bitDepthC, piReco, uiStride, piOrg, uiStride, uiWidth, uiHeight );
     //#endif
+    
+    fmt.Printf("Exit xIntraCodingChromaBlk\n");
 }
 
 func (this *TEncSearch) xRecurIntraCodingQT(pcCU *TLibCommon.TComDataCU,
@@ -2774,12 +2784,13 @@ func (this *TEncSearch) xRecurIntraCodingQT(pcCU *TLibCommon.TComDataCU,
     bCheckFirst bool,
     //#endif
     dRDCost *float64) {
+    
+    //fmt.Printf("Enter xRecurIntraCodingQT with uiTrDepth=%d uiAbsPartIdx=%d\n", uiTrDepth, uiAbsPartIdx);
+    
     uiFullDepth := uint(pcCU.GetDepth1(0)) + uiTrDepth
     uiLog2TrSize := uint(TLibCommon.G_aucConvertToBit[pcCU.GetSlice().GetSPS().GetMaxCUWidth()>>uiFullDepth]) + 2
     bCheckFull := (uiLog2TrSize <= pcCU.GetSlice().GetSPS().GetQuadtreeTULog2MaxSize())
     bCheckSplit := (uiLog2TrSize > pcCU.GetQuadtreeTULog2MinSizeInCU(uiAbsPartIdx))
-	
-	//fmt.Printf("Enter xRecurIntraCodingQT\n");
 	
     //#if HHI_RQT_INTRA_SPEEDUP
     //#if L0232_RD_PENALTY
@@ -3016,14 +3027,14 @@ func (this *TEncSearch) xRecurIntraCodingQT(pcCU *TLibCommon.TComDataCU,
         //----- determine rate and r-d cost -----
         uiSplitBits := this.xGetIntraBitsQT(pcCU, uiTrDepth, uiAbsPartIdx, true, !bLumaOnly, false)
         dSplitCost = this.m_pcRdCost.calcRdCost(uiSplitBits, uiSplitDistY+uiSplitDistC, false, TLibCommon.DF_DEFAULT)
-		//fmt.Printf("dSplitCost %f = uiSplitBits %d, uiSplitDistY %d + uiSplitDistC %d\n",dSplitCost, uiSplitBits, uiSplitDistY, uiSplitDistC);
+		//fmt.Printf("dSplitCost %f dSingleCost %f = uiSplitBits %d, uiSplitDistY %d + uiSplitDistC %d\n",dSplitCost, dSingleCost, uiSplitBits, uiSplitDistY, uiSplitDistC);
         //===== compare and set best =====
         if dSplitCost < dSingleCost {
             //--- update cost ---
             *ruiDistY += uiSplitDistY
             *ruiDistC += uiSplitDistC
             *dRDCost += dSplitCost
-            //fmt.Printf("Exit xRecurIntraCodingQT\n");
+            //fmt.Printf("Exit xRecurIntraCodingQT with uiTrDepth=%d uiAbsPartIdx=%d in dSplitCost %f< dSingleCost %f\n", uiTrDepth, uiAbsPartIdx, dSplitCost, dSingleCost);
             return
         }
         //----- set entropy coding status -----
@@ -3048,38 +3059,44 @@ func (this *TEncSearch) xRecurIntraCodingQT(pcCU *TLibCommon.TComDataCU,
         uiQTLayer := pcCU.GetSlice().GetSPS().GetQuadtreeTULog2MaxSize() - uiLog2TrSize
         uiZOrder := pcCU.GetZorderIdxInCU() + uiAbsPartIdx
         piSrc := this.m_pcQTTempTComYuv[uiQTLayer].GetLumaAddr1(uiAbsPartIdx)
-        uiSrcStride := this.m_pcQTTempTComYuv[uiQTLayer].GetStride()
+        uiSrcStride := uint(this.m_pcQTTempTComYuv[uiQTLayer].GetStride())
         piDes := pcCU.GetPic().GetPicYuvRec().GetLumaAddr2(int(pcCU.GetAddr()), int(uiZOrder))
-        uiDesStride := pcCU.GetPic().GetPicYuvRec().GetStride()
+        uiDesStride := uint(pcCU.GetPic().GetPicYuvRec().GetStride())
         for uiY := uint(0); uiY < uiHeight; uiY++ {
+        	uiYSrc := uiY*uiSrcStride;
+            uiYDes := uiY*uiDesStride;
             for uiX := uint(0); uiX < uiWidth; uiX++ {
-                piDes[uiX] = piSrc[uiX]
+                piDes[uiYDes+uiX] = piSrc[uiYSrc+uiX]
             }
-            piSrc = piSrc[uiSrcStride:]
-            piDes = piDes[uiDesStride:]
+            //piSrc = piSrc[uiSrcStride:]
+            //piDes = piDes[uiDesStride:]
         }
         if !bLumaOnly {
             uiWidth >>= 1
             uiHeight >>= 1
             piSrc = this.m_pcQTTempTComYuv[uiQTLayer].GetCbAddr1(uiAbsPartIdx)
-            uiSrcStride = this.m_pcQTTempTComYuv[uiQTLayer].GetCStride()
+            uiSrcStride = uint(this.m_pcQTTempTComYuv[uiQTLayer].GetCStride())
             piDes = pcCU.GetPic().GetPicYuvRec().GetCbAddr2(int(pcCU.GetAddr()), int(uiZOrder))
-            uiDesStride = pcCU.GetPic().GetPicYuvRec().GetCStride()
+            uiDesStride = uint(pcCU.GetPic().GetPicYuvRec().GetCStride())
             for uiY := uint(0); uiY < uiHeight; uiY++ {
+            	uiYSrc := uiY*uiSrcStride;
+            	uiYDes := uiY*uiDesStride;
                 for uiX := uint(0); uiX < uiWidth; uiX++ {
-                    piDes[uiX] = piSrc[uiX]
+                    piDes[uiYDes+uiX] = piSrc[uiYSrc+uiX]
                 }
-                piSrc = piSrc[uiSrcStride:]
-                piDes = piDes[uiDesStride:]
+                //piSrc = piSrc[uiSrcStride:]
+                //piDes = piDes[uiDesStride:]
             }
             piSrc = this.m_pcQTTempTComYuv[uiQTLayer].GetCrAddr1(uiAbsPartIdx)
             piDes = pcCU.GetPic().GetPicYuvRec().GetCrAddr2(int(pcCU.GetAddr()), int(uiZOrder))
             for uiY := uint(0); uiY < uiHeight; uiY++ {
+            	uiYSrc := uiY*uiSrcStride;
+            	uiYDes := uiY*uiDesStride;
                 for uiX := uint(0); uiX < uiWidth; uiX++ {
-                    piDes[uiX] = piSrc[uiX]
+                    piDes[uiYDes+uiX] = piSrc[uiYSrc+uiX]
                 }
-                piSrc = piSrc[uiSrcStride:]
-                piDes = piDes[uiDesStride:]
+                //piSrc = piSrc[uiSrcStride:]
+                //piDes = piDes[uiDesStride:]
             }
         }
     }
@@ -3087,7 +3104,7 @@ func (this *TEncSearch) xRecurIntraCodingQT(pcCU *TLibCommon.TComDataCU,
     *ruiDistC += uiSingleDistC
     *dRDCost += dSingleCost
     
-    //fmt.Printf("Exit xRecurIntraCodingQT\n");
+    //fmt.Printf("Exit xRecurIntraCodingQT with uiTrDepth=%d uiAbsPartIdx=%d ruiDistY=%d\n", uiTrDepth, uiAbsPartIdx, *ruiDistY);
 }
 
 func (this *TEncSearch) xSetIntraResultQT(pcCU *TLibCommon.TComDataCU,

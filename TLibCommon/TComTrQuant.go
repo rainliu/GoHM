@@ -34,7 +34,7 @@
 package TLibCommon
 
 import (
-    "fmt"
+    //"fmt"
     "math"
 )
 
@@ -196,6 +196,9 @@ func (this *TComTrQuant) TransformNxN(pcCU *TComDataCU,
     eTType TextType,
     uiAbsPartIdx uint,
     useTransformSkip bool) {
+    
+    //fmt.Printf("Enter transformNxN with (%d,%d,%d,%d,%d)\n",uiWidth,uiHeight,eTType,uiAbsPartIdx,B2U(useTransformSkip));
+    
     if pcCU.GetCUTransquantBypass1(uiAbsPartIdx) {
         *uiAbsSum = 0
         for k := uint(0); k < uiHeight; k++ {
@@ -204,6 +207,7 @@ func (this *TComTrQuant) TransformNxN(pcCU *TComDataCU,
                 *uiAbsSum += uint(ABS(pcResidual[k*uiStride+j]).(Pel))
             }
         }
+        //fmt.Printf("Exit transformNxN\n");
         return
     }
     var uiMode uint //luma intra pred
@@ -232,6 +236,8 @@ func (this *TComTrQuant) TransformNxN(pcCU *TComDataCU,
         rpcArlCoeff,
         //#endif
         int(uiWidth), int(uiHeight), uiAbsSum, eTType, uiAbsPartIdx)
+       
+    //fmt.Printf("Exit transformNxN\n");    
 }
 
 func (this *TComTrQuant) InvtransformNxN(transQuantBypass bool, eText TextType, uiMode uint, rpcResidual []Pel, uiStride uint, pcCoeff []TCoeff, uiWidth, uiHeight uint, scalingListType int, useTransformSkip bool) {
@@ -709,9 +715,12 @@ func (this *TComTrQuant) xT(bitDepth int, uiMode uint, piBlkResi []Pel, uiStride
             for j = 0; j < iHeight; j++ {
                 for i = 0; i < iWidth; i++ {
                     block[j*iWidth+i] = int16(piBlkResi[j*int(uiStride)+i])
+                    //fmt.Printf("%d ", block[j*iWidth+i]);
                 }
+                //fmt.Printf("\n");
                 //memcpy( block + j * iWidth, piBlkResi + j * uiStride, iWidth * sizeof( Short ) );
             }
+            //fmt.Printf("\n");
         }
         this.xTrMxN(bitDepth, block[:], coeff[:], iWidth, iHeight, uiMode)
         for j = 0; j < iHeight*iWidth; j++ {
@@ -1030,7 +1039,7 @@ func (this *TComTrQuant) xRateDistOptQuant(pcCU *TComDataCU,
     uiLog2TrSize := uint(G_aucConvertToBit[uiWidth]) + 2
     uiQ := uint(G_quantScales[this.m_cQP.m_iRem])
 
-	fmt.Printf("Enter xRateDistOptQuant\n");
+	//fmt.Printf("Enter xRateDistOptQuant with (%d,%d,%d,%d)\n", uiWidth,uiHeight,eTType,uiAbsPartIdx);
     
     var uiBitDepth uint
     if eTType == TEXT_LUMA {
@@ -1546,7 +1555,7 @@ func (this *TComTrQuant) xRateDistOptQuant(pcCU *TComDataCU,
         }
     }
     //fmt.Printf("\n");
-    fmt.Printf("Exit xRateDistOptQuant\n");
+    //fmt.Printf("Exit xRateDistOptQuant\n");
 }
 
 func (this *TComTrQuant) xGetCodedLevel(rd64CodedCost *float64,
@@ -2043,13 +2052,13 @@ func (this *TComTrQuant) partialButterfly32(src []int16, dst []int16, shift uint
     var EEO [4]int
     var EEEE [2]int
     var EEEO [2]int
-    add := 1 << (shift - 1)
+    add := int(1) << (shift - 1)
 
     for j = 0; j < line; j++ {
         /* E and O*/
         for k = 0; k < 16; k++ {
-            E[k] = int(src[k]) + int(src[31-k+j*32])
-            O[k] = int(src[k]) - int(src[31-k+j*32])
+            E[k] = int(src[k+j*32]) + int(src[31-k+j*32])
+            O[k] = int(src[k+j*32]) - int(src[31-k+j*32])
         }
         /* EE and EO */
         for k = 0; k < 8; k++ {
