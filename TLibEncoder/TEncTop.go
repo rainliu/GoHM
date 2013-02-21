@@ -665,12 +665,15 @@ func (this *TEncTop) xInitRPS() { ///< initialize PPS from encoder options
 
     this.m_cSPS.CreateRPSList(this.GetEncCfg().GetGOPSize() + this.GetEncCfg().m_extraRPSs)
     rpsList := this.m_cSPS.GetRPSList()
-
+    
+	//fmt.Printf("getGOPSize()%d+m_extraRPSs%d\n", this.GetEncCfg().GetGOPSize(), this.GetEncCfg().m_extraRPSs);
     for i := 0; i < this.GetEncCfg().GetGOPSize()+this.GetEncCfg().m_extraRPSs; i++ {
         ge := this.GetEncCfg().GetGOPEntry(i)
         rps = rpsList.GetReferencePictureSet(i)
         rps.SetNumberOfPictures(ge.m_numRefPics)
         rps.SetNumRefIdc(ge.m_numRefIdc)
+        //fmt.Printf("(%d %d) ", ge.m_numRefPics, ge.m_numRefIdc);
+        
         numNeg := 0
         numPos := 0
         for j := 0; j < ge.m_numRefPics; j++ {
@@ -691,7 +694,7 @@ func (this *TEncTop) xInitRPS() { ///< initialize PPS from encoder options
         rps.SetDeltaRIdxMinus1(0)                              // index to the Reference RPS is always the previous one.
         var RPSRef *TLibCommon.TComReferencePictureSet; 
         if (i-1 < 0){
-      		fmt.Printf("Warning: getReferencePictureSet(i-1):i-1<0\n");
+      		//fmt.Printf("Warning: getReferencePictureSet(i-1):i-1<0\n");
       		RPSRef = nil;
    		}else{
         	RPSRef = rpsList.GetReferencePictureSet(i - 1)        // get the reference RPS

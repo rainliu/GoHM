@@ -34,7 +34,7 @@
 package TLibEncoder
 
 import (
-	"fmt"
+	//"fmt"
 	"io"
     "gohm/TLibCommon"
 )
@@ -219,7 +219,7 @@ func (this *TEncEntropy) encodePUWise(pcCU *TLibCommon.TComDataCU, uiAbsPartIdx 
         uiNumPU = 2
     }
     uiDepth := uint(pcCU.GetDepth1(uiAbsPartIdx))
-    fmt.Printf("ePartSize=%d\n",ePartSize);
+    //fmt.Printf("ePartSize=%d\n",ePartSize);
     uiPUOffset := (TLibCommon.G_auiPUOffset[uint(ePartSize)] << ((pcCU.GetSlice().GetSPS().GetMaxCUDepth() - uiDepth) << 1)) >> 4
 
     uiSubPartIdx := uiAbsPartIdx
@@ -377,7 +377,7 @@ func (this *TEncEntropy) xEncodeTransform(pcCU *TLibCommon.TComDataCU, offsetLum
     cbfU := pcCU.GetCbf3(uiAbsPartIdx, TLibCommon.TEXT_CHROMA_U, uiTrIdx)
     cbfV := pcCU.GetCbf3(uiAbsPartIdx, TLibCommon.TEXT_CHROMA_V, uiTrIdx)
 	
-	fmt.Print("Enter xEncodeTransform\n");// with uiSubdiv=%d, uiAbsPartIdx=%d, uiDepth=%d\n", uiSubdiv, uiAbsPartIdx, uiDepth);
+	//fmt.Print("Enter xEncodeTransform\n");// with uiSubdiv=%d, uiAbsPartIdx=%d, uiDepth=%d\n", uiSubdiv, uiAbsPartIdx, uiDepth);
   
     if uiTrIdx == 0 {
         this.m_bakAbsPartIdxCU = uiAbsPartIdx
@@ -505,7 +505,7 @@ func (this *TEncEntropy) xEncodeTransform(pcCU *TLibCommon.TComDataCU, offsetLum
             }
         }
     }
-    fmt.Print("Exit xEncodeTransform\n");
+    //fmt.Print("Exit xEncodeTransform\n");
 }
 func (this *TEncEntropy) encodeCoeff(pcCU *TLibCommon.TComDataCU, uiAbsPartIdx, uiDepth, uiWidth, uiHeight uint, bCodeDQP *bool) {
     uiMinCoeffSize := pcCU.GetPic().GetMinCUWidth() * pcCU.GetPic().GetMinCUHeight()

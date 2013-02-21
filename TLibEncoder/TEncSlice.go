@@ -794,7 +794,7 @@ func (this *TEncSlice) compressSlice(rpcPic *TLibCommon.TComPic) { ///< analysis
         pcCU := rpcPic.GetCU(uiCUAddr)
         pcCU.InitCU(rpcPic, uiCUAddr)
         
-        fmt.Printf("uiCUAddr=%d\n", pcCU.GetAddr());
+        fmt.Printf("Compress uiCUAddr=%d\n", pcCU.GetAddr());
 
         /*#if !RATE_CONTROL_LAMBDA_DOMAIN
             if(this.m_pcCfg.GetUseRateCtrl())
@@ -1082,7 +1082,7 @@ func (this *TEncSlice) encodeSlice(rpcPic *TLibCommon.TComPic, rpcBitstream *TLi
     	uiCUAddr = rpcPic.GetPicSym().GetCUOrderMap(int(uiEncCUOrder)) {
         uiEncCUOrder++ 
         
-        fmt.Printf("encodeSlice with uiCUAddr=%d\n", uiCUAddr);
+        fmt.Printf("Encoding uiCUAddr=%d\n", uiCUAddr);
         
         
         if this.m_pcCfg.GetUseSBACRD() {

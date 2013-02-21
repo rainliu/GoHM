@@ -34,7 +34,7 @@
 package TLibEncoder
 
 import (
-	"fmt"
+	//"fmt"
     "gohm/TLibCommon"
     "math"
 )
@@ -2363,7 +2363,7 @@ func (this *TEncSearch) xIntraCodingLumaBlk(pcCU *TLibCommon.TComDataCU,
     pcResiYuv *TLibCommon.TComYuv,
     ruiDist *uint,
     default0Save1Load2 int) {
-    fmt.Printf("Enter xIntraCodingLumaBlk\n");
+    //fmt.Printf("Enter xIntraCodingLumaBlk\n");
     
     uiLumaPredMode := uint(pcCU.GetLumaIntraDir1(uiAbsPartIdx))
     uiFullDepth := uint(pcCU.GetDepth1(0)) + uiTrDepth
@@ -2533,7 +2533,7 @@ func (this *TEncSearch) xIntraCodingLumaBlk(pcCU *TLibCommon.TComDataCU,
     //===== update distortion =====
     *ruiDist += this.m_pcRdCost.getDistPart(TLibCommon.G_bitDepthY, piReco, int(uiStride), piOrg, int(uiStride), uiWidth, uiHeight, TLibCommon.TEXT_LUMA, TLibCommon.DF_SSE)
 	
-	fmt.Printf("Exit xIntraCodingLumaBlk\n");
+	//fmt.Printf("Exit xIntraCodingLumaBlk\n");
 }
 
 func (this *TEncSearch) xIntraCodingChromaBlk(pcCU *TLibCommon.TComDataCU,
@@ -2545,7 +2545,7 @@ func (this *TEncSearch) xIntraCodingChromaBlk(pcCU *TLibCommon.TComDataCU,
     ruiDist *uint,
     uiChromaId uint,
     default0Save1Load2 int) {
-    fmt.Printf("Enter xIntraCodingChromaBlk with (%d,%d,%d)\n", uiTrDepth, uiAbsPartIdx, uiChromaId);
+    //fmt.Printf("Enter xIntraCodingChromaBlk with (%d,%d,%d)\n", uiTrDepth, uiAbsPartIdx, uiChromaId);
     
     uiOrgTrDepth := uiTrDepth
     uiFullDepth := uint(pcCU.GetDepth1(0)) + uiTrDepth
@@ -2557,7 +2557,7 @@ func (this *TEncSearch) xIntraCodingChromaBlk(pcCU *TLibCommon.TComDataCU,
         bFirstQ := ((uiAbsPartIdx % uiQPDiv) == 0)
         //fmt.Printf("bFirstQ%d=%d %d\n", bFirstQ, uiAbsPartIdx, uiQPDiv);
         if !bFirstQ {
-        	fmt.Printf("Exit xIntraCodingChromaBlk\n");
+        	//fmt.Printf("Exit xIntraCodingChromaBlk\n");
             return
         }
     }
@@ -2768,7 +2768,7 @@ func (this *TEncSearch) xIntraCodingChromaBlk(pcCU *TLibCommon.TComDataCU,
     //  ruiDist += m_pcRdCost->getDistPart(g_bitDepthC, piReco, uiStride, piOrg, uiStride, uiWidth, uiHeight );
     //#endif
     
-    fmt.Printf("Exit xIntraCodingChromaBlk\n");
+    //fmt.Printf("Exit xIntraCodingChromaBlk\n");
 }
 
 func (this *TEncSearch) xRecurIntraCodingQT(pcCU *TLibCommon.TComDataCU,

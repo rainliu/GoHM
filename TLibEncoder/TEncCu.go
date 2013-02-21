@@ -34,7 +34,7 @@
 package TLibEncoder
 
 import (
-    "fmt"
+    //"fmt"
     "gohm/TLibCommon"
     "math"
 )
@@ -795,7 +795,7 @@ func (this *TEncCu) xCompressCU(rpcBestCU **TLibCommon.TComDataCU, rpcTempCU **T
 //func (this *TEncCu)  xCompressCU         ( TLibCommon.TComDataCU*& rpcBestCU, TLibCommon.TComDataCU*& rpcTempCU, UInt uiDepth        );
 //#endif
 func (this *TEncCu) xEncodeCU(pcCU *TLibCommon.TComDataCU, uiAbsPartIdx, uiDepth uint) {
-    fmt.Printf("Enter xEncodeCU with %d\n", pcCU.GetAddr());
+    //fmt.Printf("Enter xEncodeCU with %d\n", pcCU.GetAddr());
     
     pcPic := pcCU.GetPic()
 
@@ -832,7 +832,7 @@ func (this *TEncCu) xEncodeCU(pcCU *TLibCommon.TComDataCU, uiAbsPartIdx, uiDepth
 
             uiAbsPartIdx += uiQNumParts
         }
-        fmt.Printf("Exit xEncodeCU\n");
+        //fmt.Printf("Exit xEncodeCU\n");
         return
     }
 
@@ -850,7 +850,7 @@ func (this *TEncCu) xEncodeCU(pcCU *TLibCommon.TComDataCU, uiAbsPartIdx, uiDepth
         this.m_pcEntropyCoder.encodeMergeIndex(pcCU, uiAbsPartIdx, false)
         this.finishCU(pcCU, uiAbsPartIdx, uiDepth)
         
-        fmt.Printf("Exit xEncodeCU\n");
+        //fmt.Printf("Exit xEncodeCU\n");
         
         return
     }
@@ -865,7 +865,7 @@ func (this *TEncCu) xEncodeCU(pcCU *TLibCommon.TComDataCU, uiAbsPartIdx, uiDepth
             // Encode slice finish
             this.finishCU(pcCU, uiAbsPartIdx, uiDepth)
             
-            fmt.Printf("Exit xEncodeCU\n");
+            //fmt.Printf("Exit xEncodeCU\n");
             
             return
         }
@@ -882,7 +882,7 @@ func (this *TEncCu) xEncodeCU(pcCU *TLibCommon.TComDataCU, uiAbsPartIdx, uiDepth
     // --- write terminating bit ---
     this.finishCU(pcCU, uiAbsPartIdx, uiDepth)
     
-    fmt.Printf("Exit xEncodeCU\n");
+    //fmt.Printf("Exit xEncodeCU\n");
 }
 
 func (this *TEncCu) xComputeQP(pcCU *TLibCommon.TComDataCU, uiDepth uint) int {
@@ -1080,7 +1080,7 @@ func (this *TEncCu) xCheckRDCostInter(rpcBestCU **TLibCommon.TComDataCU, rpcTemp
 //func (this *TEncCu)  xCheckRDCostInter   ( TLibCommon.TComDataCU*& rpcBestCU, TLibCommon.TComDataCU*& rpcTempCU, PartSize ePartSize  );
 //#endif
 func (this *TEncCu) xCheckRDCostIntra(rpcBestCU **TLibCommon.TComDataCU, rpcTempCU **TLibCommon.TComDataCU, eSize TLibCommon.PartSize) {
-    fmt.Printf("Enter xCheckRDCostIntra\n");
+    //fmt.Printf("Enter xCheckRDCostIntra\n");
     
     uiDepth := uint(rpcTempCU.GetDepth1(0))
 
@@ -1129,7 +1129,7 @@ func (this *TEncCu) xCheckRDCostIntra(rpcBestCU **TLibCommon.TComDataCU, rpcTemp
     this.xCheckDQP(*rpcTempCU)
     this.xCheckBestMode3(rpcBestCU, rpcTempCU, uiDepth)
     
-    fmt.Printf("Exit xCheckRDCostIntra\n");
+    //fmt.Printf("Exit xCheckRDCostIntra\n");
 }
 
 func (this *TEncCu) xCheckDQP(pcCU *TLibCommon.TComDataCU) {

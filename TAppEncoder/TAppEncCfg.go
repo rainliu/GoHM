@@ -1138,7 +1138,9 @@ func (this *TAppEncCfg) ParseCfg(argc int, argv []string) error { ///< parse con
     }
 
     // check validity of input parameters
-    this.xCheckParameter()
+    if (this.xCheckParameter()==false) {
+    	return errors.New("Error: invalidity of input parameters\n") 
+    }
 
     // set global varibles
     this.xSetGlobal()
@@ -1215,7 +1217,7 @@ func (this *TAppEncCfg) xCheckParameter() bool { ///< check validity of configur
     check_failed += this.xConfirmPara(this.m_bipredSearchRange < 0, "Search Range must be more than 0")
     check_failed += this.xConfirmPara(this.m_iMaxDeltaQP > 7, "Absolute Delta QP exceeds supported range (0 to 7)")
     check_failed += this.xConfirmPara(this.m_iMaxCuDQPDepth > int(this.m_uiMaxCUDepth)-1, "Absolute depth for a minimum CuDQP exceeds maximum coding unit depth")
-
+	check_failed += this.xConfirmPara(this.m_bUseSAO == true, "Current GoHM 10.0 don't support SAO")
     check_failed += this.xConfirmPara(this.m_cbQpOffset < -12, "Min. Chroma Cb QP Offset is -12")
     check_failed += this.xConfirmPara(this.m_cbQpOffset > 12, "Max. Chroma Cb QP Offset is  12")
     check_failed += this.xConfirmPara(this.m_crQpOffset < -12, "Min. Chroma Cr QP Offset is -12")
@@ -1327,11 +1329,16 @@ func (this *TAppEncCfg) xCheckParameter() bool { ///< check validity of configur
     }
     numOK := 0
     check_failed += this.xConfirmPara(this.m_iIntraPeriod >= 0 && (this.m_iIntraPeriod%this.m_iGOPSize != 0), "Intra period must be a multiple of GOPSize, or -1")
-
+	
+	//fmt.Printf("#        Type POC QPoffset QPfactor tcOffsetDiv2 betaOffsetDiv2  temporal_id #ref_pics_active #ref_pics reference pictures predict deltaRPS #ref_idcs reference idcs\n");
     for i := 0; i < this.m_iGOPSize; i++ {
         if this.m_GOPList[i].GetPOC() == this.m_iGOPSize {
             check_failed += this.xConfirmPara(this.m_GOPList[i].GetTemporalId() != 0, "The last frame in each GOP must have temporal ID = 0 ")
         }
+        
+        //fmt.Printf("%s %d %d %f %d %d %d %d %d %d \n",this.m_GOPList[i].GetSliceType(), this.m_GOPList[i].GetPOC(), this.m_GOPList[i].GetQPOffset(),
+        //   this.m_GOPList[i].GetQPFactor(), this.m_GOPList[i].GetTcOffsetDiv2(), this.m_GOPList[i].GetBetaOffsetDiv2(), this.m_GOPList[i].GetTemporalId(),
+        //   this.m_GOPList[i].GetNumRefPicsActive(), this.m_GOPList[i].GetNumRefPics(), this.m_GOPList[i].GetInterRPSPrediction());
     }
 
     if (this.m_iIntraPeriod != 1) && !this.m_loopFilterOffsetInPPS && this.m_DeblockingFilterControlPresent && (!this.m_bLoopFilterDisable) {
@@ -1346,6 +1353,7 @@ func (this *TAppEncCfg) xCheckParameter() bool { ///< check validity of configur
     for !verifiedGOP && !errorGOP {
         curGOP := (checkGOP - 1) % this.m_iGOPSize
         curPOC := ((checkGOP-1)/this.m_iGOPSize)*this.m_iGOPSize + this.m_GOPList[curGOP].GetPOC()
+        //fmt.Printf("curPOC%d=checkGOP%d/m_iGOPSize%d +m_GOPList[%d].m_POC%d/m_numRefPics%d\n", curPOC,checkGOP,this.m_iGOPSize,curGOP,this.m_GOPList[curGOP].GetPOC(),this.m_GOPList[curGOP].GetNumRefPics());
         if this.m_GOPList[curGOP].GetPOC() < 0 {
             fmt.Printf("\nError: found fewer Reference Picture Sets than GOPSize\n")
             errorGOP = true
@@ -1354,6 +1362,7 @@ func (this *TAppEncCfg) xCheckParameter() bool { ///< check validity of configur
             beforeI := false
             for i := 0; i < this.m_GOPList[curGOP].GetNumRefPics(); i++ {
                 absPOC := curPOC + this.m_GOPList[curGOP].GetReferencePics(i)
+                //fmt.Printf("absPOC %d = curPOC %d + m_referencePics %d\n", absPOC, curGOP, this.m_GOPList[curGOP].GetReferencePics(i));
                 if absPOC < 0 {
                     beforeI = true
                 } else {
@@ -1388,7 +1397,8 @@ func (this *TAppEncCfg) xCheckParameter() bool { ///< check validity of configur
                 }
             } else {
                 //create a new GOPEntry for this frame containing all the reference pictures that were available (POC > 0)
-                this.m_GOPList[this.m_iGOPSize+this.m_extraRPSs] = this.m_GOPList[curGOP]
+                this.m_GOPList[this.m_iGOPSize+this.m_extraRPSs] = TLibEncoder.NewGOPEntry();
+                *(this.m_GOPList[this.m_iGOPSize+this.m_extraRPSs]) = *(this.m_GOPList[curGOP])
                 newRefs := 0
                 for i := 0; i < this.m_GOPList[curGOP].GetNumRefPics(); i++ {
                     absPOC := curPOC + this.m_GOPList[curGOP].GetReferencePics(i)
@@ -1447,6 +1457,7 @@ func (this *TAppEncCfg) xCheckParameter() bool { ///< check validity of configur
                 }
                 this.m_GOPList[this.m_iGOPSize+this.m_extraRPSs].SetNumRefPics(newRefs)
                 this.m_GOPList[this.m_iGOPSize+this.m_extraRPSs].SetPOC(curPOC)
+                //fmt.Printf("m_GOPList[m_iGOPSize%d+m_extraRPSs%d].m_numRefPics%d VS %d\n", this.m_iGOPSize, this.m_extraRPSs, newRefs, this.m_GOPList[curGOP].GetNumRefPics());
                 if this.m_extraRPSs == 0 {
                     this.m_GOPList[this.m_iGOPSize+this.m_extraRPSs].SetInterRPSPrediction(0)
                     this.m_GOPList[this.m_iGOPSize+this.m_extraRPSs].SetNumRefIdc(0)
@@ -1496,6 +1507,8 @@ func (this *TAppEncCfg) xCheckParameter() bool { ///< check validity of configur
         }
         checkGOP++
     }
+    //fmt.Printf("m_extraRPSs=%d\n", this.m_extraRPSs);
+    
     check_failed += this.xConfirmPara(errorGOP, "Invalid GOP structure given")
     this.m_maxTempLayer = 1
     for i := 0; i < this.m_iGOPSize; i++ {
