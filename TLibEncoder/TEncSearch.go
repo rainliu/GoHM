@@ -34,7 +34,7 @@
 package TLibEncoder
 
 import (
-	//"fmt"
+	"fmt"
     "gohm/TLibCommon"
     "math"
 )
@@ -93,6 +93,7 @@ var s_auiDFilter = [9]uint{0, 1, 0,
 
 type IntTZSearchStruct struct {
     piRefY         []TLibCommon.Pel
+    iOffset		   int
     iYStride       int
     iBestX         int
     iBestY         int
@@ -323,12 +324,12 @@ func (this *TEncSearch) init(pcEncCfg *TEncCfg,
 }
 
 // sub-functions for ME
-func (this *TEncSearch) xTZSearchHelp(pcPatternKey *TLibCommon.TComPattern, rcStruct *IntTZSearchStruct, iSearchX, iSearchY int, ucPointNr byte, uiDistance uint) {
+func (this *TEncSearch) xTZSearchHelp(pcPatternKey *TLibCommon.TComPattern, rcStruct *IntTZSearchStruct, iSearchX, iSearchY int, ucPointNr byte, uiDistance uint ) {
     var uiSad uint
 
     var piRefSrch []TLibCommon.Pel
 
-    piRefSrch = rcStruct.piRefY[iSearchY*rcStruct.iYStride+iSearchX:]
+    piRefSrch = rcStruct.piRefY[rcStruct.iOffset + iSearchY*rcStruct.iYStride+iSearchX:]
 
     //-- jclee for using the SAD function pointer
     this.m_pcRdCost.setDistParam2(pcPatternKey, piRefSrch, rcStruct.iYStride, &this.m_cDistParam)
@@ -4132,8 +4133,11 @@ func (this *TEncSearch) xMotionEstimation(pcCU *TLibCommon.TComDataCU,
         int(pcYuv.GetStride()),
         0, 0)
 
-    piRefY := pcCU.GetSlice().GetRefPic(eRefPicList, iRefIdxPred).GetPicYuvRec().GetLumaAddr2(int(pcCU.GetAddr()), int(pcCU.GetZorderIdxInCU()+uiPartAddr))
-    iRefStride := pcCU.GetSlice().GetRefPic(eRefPicList, iRefIdxPred).GetPicYuvRec().GetStride()
+    pPicYuvRec := pcCU.GetSlice().GetRefPic(eRefPicList, iRefIdxPred).GetPicYuvRec()
+    piRefY := pPicYuvRec.GetBufY();//pcCU.GetSlice().GetRefPic(eRefPicList, iRefIdxPred).GetPicYuvRec().GetLumaAddr2(int(pcCU.GetAddr()), int(pcCU.GetZorderIdxInCU()+uiPartAddr))
+    iOffset := pPicYuvRec.GetLumaMarginY()*pPicYuvRec.GetStride()+pPicYuvRec.GetLumaMarginX() + 
+    		   pPicYuvRec.GetCuOffsetY()[pcCU.GetAddr()] + pPicYuvRec.GetBuOffsetY()[TLibCommon.G_auiZscanToRaster[pcCU.GetZorderIdxInCU()+uiPartAddr]]
+    iRefStride := pPicYuvRec.GetStride()
 
     cMvPred := *pcMvPred
 
@@ -4151,16 +4155,17 @@ func (this *TEncSearch) xMotionEstimation(pcCU *TLibCommon.TComDataCU,
     this.setWpScalingDistParam(pcCU, iRefIdxPred, eRefPicList)
     //  Do integer search
     if this.m_iFastSearch == 0 || bBi {
-        this.xPatternSearch(pcPatternKey, piRefY, iRefStride, &cMvSrchRngLT, &cMvSrchRngRB, rcMv, ruiCost)
+        this.xPatternSearch(pcPatternKey, piRefY, iOffset, iRefStride, &cMvSrchRngLT, &cMvSrchRngRB, rcMv, ruiCost)
     } else {
         *rcMv = *pcMvPred
-        this.xPatternSearchFast(pcCU, pcPatternKey, piRefY, iRefStride, &cMvSrchRngLT, &cMvSrchRngRB, rcMv, ruiCost)
+        this.xPatternSearchFast(pcCU, pcPatternKey, piRefY, iOffset, iRefStride, &cMvSrchRngLT, &cMvSrchRngRB, rcMv, ruiCost)
     }
 
     this.m_pcRdCost.getMotionCost(true, 0)
     this.m_pcRdCost.setCostScale(1)
 
-    this.xPatternSearchFracDIF(pcCU, pcPatternKey, piRefY, iRefStride, rcMv, &cMvHalf, &cMvQter, *ruiCost, bBi)
+	fmt.Printf("disable xPatternSearchFracDIF temporally\n");
+    //this.xPatternSearchFracDIF(pcCU, pcPatternKey, piRefY, iOffset, iRefStride, rcMv, &cMvHalf, &cMvQter, *ruiCost, bBi)
 
     this.m_pcRdCost.setCostScale(0)
     rcMv.ScaleMv(4) // <<= 2
@@ -4177,6 +4182,7 @@ func (this *TEncSearch) xMotionEstimation(pcCU *TLibCommon.TComDataCU,
 func (this *TEncSearch) xTZSearch(pcCU *TLibCommon.TComDataCU,
     pcPatternKey *TLibCommon.TComPattern,
     piRefY []TLibCommon.Pel,
+    iOffset int,
     iRefStride int,
     pcMvSrchRngLT *TLibCommon.TComMv,
     pcMvSrchRngRB *TLibCommon.TComMv,
@@ -4196,6 +4202,7 @@ func (this *TEncSearch) xTZSearch(pcCU *TLibCommon.TComDataCU,
     var cStruct IntTZSearchStruct
     cStruct.iYStride = iRefStride
     cStruct.piRefY = piRefY
+    cStruct.iOffset = iOffset
     cStruct.uiBestSad = uint(TLibCommon.MAX_UINT)
 
     // set rcMv (Median predictor) as start point and as best point
@@ -4348,6 +4355,7 @@ func (this *TEncSearch) xSetSearchRange(pcCU *TLibCommon.TComDataCU,
 func (this *TEncSearch) xPatternSearchFast(pcCU *TLibCommon.TComDataCU,
     pcPatternKey *TLibCommon.TComPattern,
     piRefY []TLibCommon.Pel,
+    iOffset int,
     iRefStride int,
     pcMvSrchRngLT *TLibCommon.TComMv,
     pcMvSrchRngRB *TLibCommon.TComMv,
@@ -4360,13 +4368,14 @@ func (this *TEncSearch) xPatternSearchFast(pcCU *TLibCommon.TComDataCU,
 
     switch this.m_iFastSearch {
     case 1:
-        this.xTZSearch(pcCU, pcPatternKey, piRefY, iRefStride, pcMvSrchRngLT, pcMvSrchRngRB, rcMv, *ruiSAD)
+        this.xTZSearch(pcCU, pcPatternKey, piRefY, iOffset, iRefStride, pcMvSrchRngLT, pcMvSrchRngRB, rcMv, *ruiSAD)
     default:
     }
 }
 
 func (this *TEncSearch) xPatternSearch(pcPatternKey *TLibCommon.TComPattern,
     piRefY []TLibCommon.Pel,
+    iOffset int,
     iRefStride int,
     pcMvSrchRngLT *TLibCommon.TComMv,
     pcMvSrchRngRB *TLibCommon.TComMv,
@@ -4394,11 +4403,11 @@ func (this *TEncSearch) xPatternSearch(pcPatternKey *TLibCommon.TComPattern,
         }
     }
 
-    piRefY = piRefY[(iSrchRngVerTop * iRefStride):]
+    //piRefY = piRefY[(iSrchRngVerTop * iRefStride):]
     for y := iSrchRngVerTop; y <= iSrchRngVerBottom; y++ {
         for x := iSrchRngHorLeft; x <= iSrchRngHorRight; x++ {
             //  find min. distortion position
-            piRefSrch = piRefY[x:]
+            piRefSrch = piRefY[(iOffset + iSrchRngVerTop * iRefStride) + y*iRefStride + x:]
             this.m_cDistParam.pCur = piRefSrch
 
             this.setDistParamComp(0)
@@ -4415,7 +4424,7 @@ func (this *TEncSearch) xPatternSearch(pcPatternKey *TLibCommon.TComPattern,
                 iBestY = y
             }
         }
-        piRefY = piRefY[iRefStride:]
+        //piRefY = piRefY[iRefStride:]
     }
 
     rcMv.Set(int16(iBestX), int16(iBestY))
@@ -4427,6 +4436,7 @@ func (this *TEncSearch) xPatternSearch(pcPatternKey *TLibCommon.TComPattern,
 func (this *TEncSearch) xPatternSearchFracDIF(pcCU *TLibCommon.TComDataCU,
     pcPatternKey *TLibCommon.TComPattern,
     piRefY []TLibCommon.Pel,
+    iOffset int,
     iRefStride int,
     pcMvInt *TLibCommon.TComMv,
     rcMvHalf *TLibCommon.TComMv,
@@ -4435,8 +4445,9 @@ func (this *TEncSearch) xPatternSearchFracDIF(pcCU *TLibCommon.TComDataCU,
     biPred bool) {
     //  Reference pattern initialization (integer scale)
     var cPatternRoi TLibCommon.TComPattern
-    iOffset := int(pcMvInt.GetHor()) + int(pcMvInt.GetVer())*iRefStride
-    cPatternRoi.InitPattern(piRefY[iOffset:],
+    //iOffset := int(pcMvInt.GetHor()) + int(pcMvInt.GetVer())*iRefStride
+    iOffset += int(pcMvInt.GetHor()) + int(pcMvInt.GetVer())*iRefStride
+    cPatternRoi.InitPattern(piRefY,//[iOffset:],
         nil,
         nil,
         pcPatternKey.GetROIYWidth(),

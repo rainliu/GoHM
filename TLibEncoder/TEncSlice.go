@@ -260,12 +260,13 @@ func (this *TEncSlice) initEncSlice(pcPic *TLibCommon.TComPic, pocLast, pocCurr,
     var eSliceType TLibCommon.SliceType
 
     eSliceType = TLibCommon.B_SLICE
-    if pocLast == 0 || pocCurr%int(this.m_pcCfg.GetIntraPeriod()) == 0 || this.m_pcGOPEncoder.getGOPSize() == 0 {
+    if pocLast == 0 || int64(pocCurr)%int64(this.m_pcCfg.GetIntraPeriod()) == 0 || this.m_pcGOPEncoder.getGOPSize() == 0 {
         eSliceType = TLibCommon.I_SLICE
     }
 
     rpcSlice.SetSliceType(eSliceType)
-
+    //fmt.Printf("getSliceType=%d, %d, %d mod %d=%d, %d\n", rpcSlice.GetSliceType(), pocLast, int64(pocCurr), int64(this.m_pcCfg.GetIntraPeriod()), int64(pocCurr)%int64(this.m_pcCfg.GetIntraPeriod()), this.m_pcGOPEncoder.getGOPSize());
+	
     // ------------------------------------------------------------------------------------------------------------------
     // Non-referenced frame marking
     // ------------------------------------------------------------------------------------------------------------------
@@ -401,7 +402,7 @@ func (this *TEncSlice) initEncSlice(pcPic *TLibCommon.TComPic, pocLast, pocCurr,
 
     //#if HB_LAMBDA_FOR_LDC
     // restore original slice type
-    if pocLast == 0 || pocCurr%int(this.m_pcCfg.GetIntraPeriod()) == 0 || this.m_pcGOPEncoder.getGOPSize() == 0 {
+    if pocLast == 0 || int64(pocCurr)%int64(this.m_pcCfg.GetIntraPeriod()) == 0 || this.m_pcGOPEncoder.getGOPSize() == 0 {
         eSliceType = TLibCommon.I_SLICE
     } else {
         eSliceType = eSliceType

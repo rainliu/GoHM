@@ -138,6 +138,13 @@ func (this *TComPicYuv) Destroy() {
     //do nothing due to Garbage Collection of GO
 }
 
+func (this *TComPicYuv) GetCuOffsetY() []int{
+	return this.m_cuOffsetY;
+}
+func (this *TComPicYuv) GetBuOffsetY() []int{
+    return this.m_buOffsetY;
+}
+
 func (this *TComPicYuv) CreateLuma(iPicWidth, iPicHeight int, uiMaxCUWidth, uiMaxCUHeight, uiMaxCUDepth uint) {
     this.m_iPicWidth = iPicWidth
     this.m_iPicHeight = iPicHeight
@@ -201,12 +208,20 @@ func (this *TComPicYuv) GetCStride() int {
     return (this.m_iPicWidth >> 1) + (this.m_iChromaMarginX << 1)
 }
 
-func (this *TComPicYuv) GetLumaMargin() int {
+func (this *TComPicYuv) GetLumaMarginX() int {
     return this.m_iLumaMarginX
 }
 
-func (this *TComPicYuv) GetChromaMargin() int {
+func (this *TComPicYuv) GetChromaMarginX() int {
     return this.m_iChromaMarginX
+}
+
+func (this *TComPicYuv) GetLumaMarginY() int {
+    return this.m_iLumaMarginY
+}
+
+func (this *TComPicYuv) GetChromaMarginY() int {
+    return this.m_iChromaMarginY
 }
 
 // ------------------------------------------------------------------------------------------------

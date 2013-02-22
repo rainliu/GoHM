@@ -240,7 +240,8 @@ func (this *TEncGOP) compressGOP(iPOCLast, iNumPicRcvd int, rcListPic, rcListPic
         pcPic.SetCurrSliceIdx(0)
 		
         pcSlice = this.m_pcSliceEncoder.initEncSlice(pcPic, iPOCLast, pocCurr, iNumPicRcvd, iGOPid, this.m_pcEncTop.getSPS(), this.m_pcEncTop.getPPS())
-
+		//fmt.Printf("getSliceType1=%d\n", pcSlice.GetSliceType());
+		
         pcSlice.SetLastIDR(this.m_iLastIDR)
         pcSlice.SetSliceIdx(0)
 
@@ -276,6 +277,8 @@ func (this *TEncGOP) compressGOP(iPOCLast, iNumPicRcvd int, rcListPic, rcListPic
         if pcSlice.GetSliceType() == TLibCommon.B_SLICE && this.m_pcCfg.GetGOPEntry(iGOPid).m_sliceType == "P" {
             pcSlice.SetSliceType(TLibCommon.P_SLICE)
         }
+        //fmt.Printf("getSliceType2=%d\n", pcSlice.GetSliceType());
+        
         // Set the nal unit type
         pcSlice.SetNalUnitType(this.getNalUnitType(pocCurr))
         if pcSlice.GetNalUnitType() == TLibCommon.NAL_UNIT_CODED_SLICE_TRAIL_R {
