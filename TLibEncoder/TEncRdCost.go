@@ -1415,44 +1415,48 @@ func (this *TEncRdCost) xGetSSE16N(pcDtParam *DistParam) uint {
     uiShift := TLibCommon.DISTORTION_PRECISION_ADJUSTMENT(uint(pcDtParam.bitDepth-8) << 1).(uint)
     var iTemp int
 
-    for ; iRows != 0; iRows-- {
+    //for ; iRows != 0; iRows-- {
+    for j:=0; j<iRows; j++ {
+    	jOrg := j*iStrideOrg;
+    	jCur := j*iStrideCur;
+    	
         for n := 0; n < iCols; n += 16 {
-            iTemp = int(piOrg[n+0] - piCur[n+0])
+            iTemp = int(piOrg[jOrg+n+0] - piCur[jCur+n+0])
             uiSum += uint(iTemp*iTemp) >> uiShift
-            iTemp = int(piOrg[n+1] - piCur[n+1])
+            iTemp = int(piOrg[jOrg+n+1] - piCur[jCur+n+1])
             uiSum += uint(iTemp*iTemp) >> uiShift
-            iTemp = int(piOrg[n+2] - piCur[n+2])
+            iTemp = int(piOrg[jOrg+n+2] - piCur[jCur+n+2])
             uiSum += uint(iTemp*iTemp) >> uiShift
-            iTemp = int(piOrg[n+3] - piCur[n+3])
+            iTemp = int(piOrg[jOrg+n+3] - piCur[jCur+n+3])
             uiSum += uint(iTemp*iTemp) >> uiShift
-            iTemp = int(piOrg[n+4] - piCur[n+4])
+            iTemp = int(piOrg[jOrg+n+4] - piCur[jCur+n+4])
             uiSum += uint(iTemp*iTemp) >> uiShift
-            iTemp = int(piOrg[n+5] - piCur[n+5])
+            iTemp = int(piOrg[jOrg+n+5] - piCur[jCur+n+5])
             uiSum += uint(iTemp*iTemp) >> uiShift
-            iTemp = int(piOrg[n+6] - piCur[n+6])
+            iTemp = int(piOrg[jOrg+n+6] - piCur[jCur+n+6])
             uiSum += uint(iTemp*iTemp) >> uiShift
-            iTemp = int(piOrg[n+7] - piCur[n+7])
+            iTemp = int(piOrg[jOrg+n+7] - piCur[jCur+n+7])
             uiSum += uint(iTemp*iTemp) >> uiShift
-            iTemp = int(piOrg[n+8] - piCur[n+8])
+            iTemp = int(piOrg[jOrg+n+8] - piCur[jCur+n+8])
             uiSum += uint(iTemp*iTemp) >> uiShift
-            iTemp = int(piOrg[n+9] - piCur[n+9])
+            iTemp = int(piOrg[jOrg+n+9] - piCur[jCur+n+9])
             uiSum += uint(iTemp*iTemp) >> uiShift
-            iTemp = int(piOrg[n+10] - piCur[n+10])
+            iTemp = int(piOrg[jOrg+n+10] - piCur[jCur+n+10])
             uiSum += uint(iTemp*iTemp) >> uiShift
-            iTemp = int(piOrg[n+11] - piCur[n+11])
+            iTemp = int(piOrg[jOrg+n+11] - piCur[jCur+n+11])
             uiSum += uint(iTemp*iTemp) >> uiShift
-            iTemp = int(piOrg[n+12] - piCur[n+12])
+            iTemp = int(piOrg[jOrg+n+12] - piCur[jCur+n+12])
             uiSum += uint(iTemp*iTemp) >> uiShift
-            iTemp = int(piOrg[n+13] - piCur[n+13])
+            iTemp = int(piOrg[jOrg+n+13] - piCur[jCur+n+13])
             uiSum += uint(iTemp*iTemp) >> uiShift
-            iTemp = int(piOrg[n+14] - piCur[n+14])
+            iTemp = int(piOrg[jOrg+n+14] - piCur[jCur+n+14])
             uiSum += uint(iTemp*iTemp) >> uiShift
-            iTemp = int(piOrg[n+15] - piCur[n+15])
+            iTemp = int(piOrg[jOrg+n+15] - piCur[jCur+n+15])
             uiSum += uint(iTemp*iTemp) >> uiShift
 
         }
-        piOrg = piOrg[iStrideOrg:]
-        piCur = piCur[iStrideCur:]
+        //piOrg = piCur[jCur+iStrideOrg:]
+        //piCur = piCur[iStrideCur:]
     }
 
     return (uiSum)
@@ -1471,12 +1475,15 @@ func (this *TEncRdCost) xGetSAD(pcDtParam *DistParam) uint {
 
     uiSum := uint(0)
 
-    for ; iRows != 0; iRows-- {
+    //for ; iRows != 0; iRows-- {
+    for j:=0; j<iRows; j++ {
+    	jOrg := j*iStrideOrg;
+    	jCur := j*iStrideCur;
         for n := 0; n < iCols; n++ {
-            uiSum += uint(TLibCommon.ABS(int(piOrg[n] - piCur[n])).(int))
+            uiSum += uint(TLibCommon.ABS(int(piOrg[jOrg+n] - piCur[jCur+n])).(int))
         }
-        piOrg = piOrg[iStrideOrg:]
-        piCur = piCur[iStrideCur:]
+        //piOrg = piOrg[iStrideOrg:]
+        //piCur = piCur[iStrideCur:]
     }
 
     return uiSum >> TLibCommon.DISTORTION_PRECISION_ADJUSTMENT(uint(pcDtParam.bitDepth-8)).(uint)
@@ -1491,19 +1498,22 @@ func (this *TEncRdCost) xGetSAD4(pcDtParam *DistParam) uint {
     iRows := pcDtParam.iRows
     iSubShift := pcDtParam.iSubShift
     iSubStep := (1 << uint(iSubShift))
-    iStrideCur := pcDtParam.iStrideCur * iSubStep
-    iStrideOrg := pcDtParam.iStrideOrg * iSubStep
+    iStrideCur := pcDtParam.iStrideCur;// * iSubStep
+    iStrideOrg := pcDtParam.iStrideOrg;// * iSubStep
 
     uiSum := uint(0)
 
-    for ; iRows != 0; iRows -= iSubStep {
-        uiSum += uint(TLibCommon.ABS(int(piOrg[0] - piCur[0])).(int))
-        uiSum += uint(TLibCommon.ABS(int(piOrg[1] - piCur[1])).(int))
-        uiSum += uint(TLibCommon.ABS(int(piOrg[2] - piCur[2])).(int))
-        uiSum += uint(TLibCommon.ABS(int(piOrg[3] - piCur[3])).(int))
+    //for ; iRows != 0; iRows -= iSubStep {
+    for j:=0; j<iRows; j+=iSubStep {
+    	jOrg := j*iStrideOrg;
+    	jCur := j*iStrideCur;
+        uiSum += uint(TLibCommon.ABS(int(piOrg[jOrg+0] - piCur[jCur+0])).(int))
+        uiSum += uint(TLibCommon.ABS(int(piOrg[jOrg+1] - piCur[jCur+1])).(int))
+        uiSum += uint(TLibCommon.ABS(int(piOrg[jOrg+2] - piCur[jCur+2])).(int))
+        uiSum += uint(TLibCommon.ABS(int(piOrg[jOrg+3] - piCur[jCur+3])).(int))
 
-        piOrg = piOrg[iStrideOrg:]
-        piCur = piCur[iStrideCur:]
+        //piOrg = piOrg[iStrideOrg:]
+        //piCur = piCur[iStrideCur:]
     }
 
     uiSum <<= uint(iSubShift)
@@ -1519,23 +1529,26 @@ func (this *TEncRdCost) xGetSAD8(pcDtParam *DistParam) uint {
     iRows := pcDtParam.iRows
     iSubShift := pcDtParam.iSubShift
     iSubStep := (1 << uint(iSubShift))
-    iStrideCur := pcDtParam.iStrideCur * iSubStep
-    iStrideOrg := pcDtParam.iStrideOrg * iSubStep
+    iStrideCur := pcDtParam.iStrideCur;// * iSubStep
+    iStrideOrg := pcDtParam.iStrideOrg;// * iSubStep
 
     uiSum := uint(0)
 
-    for ; iRows != 0; iRows -= iSubStep {
-        uiSum += uint(TLibCommon.ABS(int(piOrg[0] - piCur[0])).(int))
-        uiSum += uint(TLibCommon.ABS(int(piOrg[1] - piCur[1])).(int))
-        uiSum += uint(TLibCommon.ABS(int(piOrg[2] - piCur[2])).(int))
-        uiSum += uint(TLibCommon.ABS(int(piOrg[3] - piCur[3])).(int))
-        uiSum += uint(TLibCommon.ABS(int(piOrg[4] - piCur[4])).(int))
-        uiSum += uint(TLibCommon.ABS(int(piOrg[5] - piCur[5])).(int))
-        uiSum += uint(TLibCommon.ABS(int(piOrg[6] - piCur[6])).(int))
-        uiSum += uint(TLibCommon.ABS(int(piOrg[7] - piCur[7])).(int))
+    //for ; iRows != 0; iRows -= iSubStep {
+    for j:=0; j<iRows; j+=iSubStep {
+    	jOrg := j*iStrideOrg;
+    	jCur := j*iStrideCur;
+        uiSum += uint(TLibCommon.ABS(int(piOrg[jOrg+0] - piCur[jCur+0])).(int))
+        uiSum += uint(TLibCommon.ABS(int(piOrg[jOrg+1] - piCur[jCur+1])).(int))
+        uiSum += uint(TLibCommon.ABS(int(piOrg[jOrg+2] - piCur[jCur+2])).(int))
+        uiSum += uint(TLibCommon.ABS(int(piOrg[jOrg+3] - piCur[jCur+3])).(int))
+        uiSum += uint(TLibCommon.ABS(int(piOrg[jOrg+4] - piCur[jCur+4])).(int))
+        uiSum += uint(TLibCommon.ABS(int(piOrg[jOrg+5] - piCur[jCur+5])).(int))
+        uiSum += uint(TLibCommon.ABS(int(piOrg[jOrg+6] - piCur[jCur+6])).(int))
+        uiSum += uint(TLibCommon.ABS(int(piOrg[jOrg+7] - piCur[jCur+7])).(int))
 
-        piOrg = piOrg[iStrideOrg:]
-        piCur = piCur[iStrideCur:]
+        //piOrg = piOrg[iStrideOrg:]
+        //piCur = piCur[iStrideCur:]
     }
 
     uiSum <<= uint(iSubShift)
@@ -1551,31 +1564,34 @@ func (this *TEncRdCost) xGetSAD16(pcDtParam *DistParam) uint {
     iRows := pcDtParam.iRows
     iSubShift := pcDtParam.iSubShift
     iSubStep := (1 << uint(iSubShift))
-    iStrideCur := pcDtParam.iStrideCur * iSubStep
-    iStrideOrg := pcDtParam.iStrideOrg * iSubStep
+    iStrideCur := pcDtParam.iStrideCur;// * iSubStep
+    iStrideOrg := pcDtParam.iStrideOrg;// * iSubStep
 
     uiSum := uint(0)
 
-    for ; iRows != 0; iRows -= iSubStep {
-        uiSum += uint(TLibCommon.ABS(int(piOrg[0] - piCur[0])).(int))
-        uiSum += uint(TLibCommon.ABS(int(piOrg[1] - piCur[1])).(int))
-        uiSum += uint(TLibCommon.ABS(int(piOrg[2] - piCur[2])).(int))
-        uiSum += uint(TLibCommon.ABS(int(piOrg[3] - piCur[3])).(int))
-        uiSum += uint(TLibCommon.ABS(int(piOrg[4] - piCur[4])).(int))
-        uiSum += uint(TLibCommon.ABS(int(piOrg[5] - piCur[5])).(int))
-        uiSum += uint(TLibCommon.ABS(int(piOrg[6] - piCur[6])).(int))
-        uiSum += uint(TLibCommon.ABS(int(piOrg[7] - piCur[7])).(int))
-        uiSum += uint(TLibCommon.ABS(int(piOrg[8] - piCur[8])).(int))
-        uiSum += uint(TLibCommon.ABS(int(piOrg[9] - piCur[9])).(int))
-        uiSum += uint(TLibCommon.ABS(int(piOrg[10] - piCur[10])).(int))
-        uiSum += uint(TLibCommon.ABS(int(piOrg[11] - piCur[11])).(int))
-        uiSum += uint(TLibCommon.ABS(int(piOrg[12] - piCur[12])).(int))
-        uiSum += uint(TLibCommon.ABS(int(piOrg[13] - piCur[13])).(int))
-        uiSum += uint(TLibCommon.ABS(int(piOrg[14] - piCur[14])).(int))
-        uiSum += uint(TLibCommon.ABS(int(piOrg[15] - piCur[15])).(int))
+    //for ; iRows != 0; iRows -= iSubStep {
+    for j:=0; j<iRows; j+=iSubStep {
+    	jOrg := j*iStrideOrg;
+    	jCur := j*iStrideCur;
+        uiSum += uint(TLibCommon.ABS(int(piOrg[jOrg+0] - piCur[jCur+0])).(int))
+        uiSum += uint(TLibCommon.ABS(int(piOrg[jOrg+1] - piCur[jCur+1])).(int))
+        uiSum += uint(TLibCommon.ABS(int(piOrg[jOrg+2] - piCur[jCur+2])).(int))
+        uiSum += uint(TLibCommon.ABS(int(piOrg[jOrg+3] - piCur[jCur+3])).(int))
+        uiSum += uint(TLibCommon.ABS(int(piOrg[jOrg+4] - piCur[jCur+4])).(int))
+        uiSum += uint(TLibCommon.ABS(int(piOrg[jOrg+5] - piCur[jCur+5])).(int))
+        uiSum += uint(TLibCommon.ABS(int(piOrg[jOrg+6] - piCur[jCur+6])).(int))
+        uiSum += uint(TLibCommon.ABS(int(piOrg[jOrg+7] - piCur[jCur+7])).(int))
+        uiSum += uint(TLibCommon.ABS(int(piOrg[jOrg+8] - piCur[jCur+8])).(int))
+        uiSum += uint(TLibCommon.ABS(int(piOrg[jOrg+9] - piCur[jCur+9])).(int))
+        uiSum += uint(TLibCommon.ABS(int(piOrg[jOrg+10] - piCur[jCur+10])).(int))
+        uiSum += uint(TLibCommon.ABS(int(piOrg[jOrg+11] - piCur[jCur+11])).(int))
+        uiSum += uint(TLibCommon.ABS(int(piOrg[jOrg+12] - piCur[jCur+12])).(int))
+        uiSum += uint(TLibCommon.ABS(int(piOrg[jOrg+13] - piCur[jCur+13])).(int))
+        uiSum += uint(TLibCommon.ABS(int(piOrg[jOrg+14] - piCur[jCur+14])).(int))
+        uiSum += uint(TLibCommon.ABS(int(piOrg[jOrg+15] - piCur[jCur+15])).(int))
 
-        piOrg = piOrg[iStrideOrg:]
-        piCur = piCur[iStrideCur:]
+        //piOrg = piOrg[iStrideOrg:]
+        //piCur = piCur[iStrideCur:]
     }
 
     uiSum <<= uint(iSubShift)
@@ -1591,47 +1607,50 @@ func (this *TEncRdCost) xGetSAD32(pcDtParam *DistParam) uint {
     iRows := pcDtParam.iRows
     iSubShift := pcDtParam.iSubShift
     iSubStep := (1 << uint(iSubShift))
-    iStrideCur := pcDtParam.iStrideCur * iSubStep
-    iStrideOrg := pcDtParam.iStrideOrg * iSubStep
+    iStrideCur := pcDtParam.iStrideCur;// * iSubStep
+    iStrideOrg := pcDtParam.iStrideOrg;// * iSubStep
 
     uiSum := uint(0)
 
-    for ; iRows != 0; iRows -= iSubStep {
-        uiSum += uint(TLibCommon.ABS(int(piOrg[0] - piCur[0])).(int))
-        uiSum += uint(TLibCommon.ABS(int(piOrg[1] - piCur[1])).(int))
-        uiSum += uint(TLibCommon.ABS(int(piOrg[2] - piCur[2])).(int))
-        uiSum += uint(TLibCommon.ABS(int(piOrg[3] - piCur[3])).(int))
-        uiSum += uint(TLibCommon.ABS(int(piOrg[4] - piCur[4])).(int))
-        uiSum += uint(TLibCommon.ABS(int(piOrg[5] - piCur[5])).(int))
-        uiSum += uint(TLibCommon.ABS(int(piOrg[6] - piCur[6])).(int))
-        uiSum += uint(TLibCommon.ABS(int(piOrg[7] - piCur[7])).(int))
-        uiSum += uint(TLibCommon.ABS(int(piOrg[8] - piCur[8])).(int))
-        uiSum += uint(TLibCommon.ABS(int(piOrg[9] - piCur[9])).(int))
-        uiSum += uint(TLibCommon.ABS(int(piOrg[10] - piCur[10])).(int))
-        uiSum += uint(TLibCommon.ABS(int(piOrg[11] - piCur[11])).(int))
-        uiSum += uint(TLibCommon.ABS(int(piOrg[12] - piCur[12])).(int))
-        uiSum += uint(TLibCommon.ABS(int(piOrg[13] - piCur[13])).(int))
-        uiSum += uint(TLibCommon.ABS(int(piOrg[14] - piCur[14])).(int))
-        uiSum += uint(TLibCommon.ABS(int(piOrg[15] - piCur[15])).(int))
-        uiSum += uint(TLibCommon.ABS(int(piOrg[16] - piCur[16])).(int))
-        uiSum += uint(TLibCommon.ABS(int(piOrg[17] - piCur[17])).(int))
-        uiSum += uint(TLibCommon.ABS(int(piOrg[18] - piCur[18])).(int))
-        uiSum += uint(TLibCommon.ABS(int(piOrg[19] - piCur[19])).(int))
-        uiSum += uint(TLibCommon.ABS(int(piOrg[20] - piCur[20])).(int))
-        uiSum += uint(TLibCommon.ABS(int(piOrg[21] - piCur[21])).(int))
-        uiSum += uint(TLibCommon.ABS(int(piOrg[22] - piCur[22])).(int))
-        uiSum += uint(TLibCommon.ABS(int(piOrg[23] - piCur[23])).(int))
-        uiSum += uint(TLibCommon.ABS(int(piOrg[24] - piCur[24])).(int))
-        uiSum += uint(TLibCommon.ABS(int(piOrg[25] - piCur[25])).(int))
-        uiSum += uint(TLibCommon.ABS(int(piOrg[26] - piCur[26])).(int))
-        uiSum += uint(TLibCommon.ABS(int(piOrg[27] - piCur[27])).(int))
-        uiSum += uint(TLibCommon.ABS(int(piOrg[28] - piCur[28])).(int))
-        uiSum += uint(TLibCommon.ABS(int(piOrg[29] - piCur[29])).(int))
-        uiSum += uint(TLibCommon.ABS(int(piOrg[30] - piCur[30])).(int))
-        uiSum += uint(TLibCommon.ABS(int(piOrg[31] - piCur[31])).(int))
+    //for ; iRows != 0; iRows -= iSubStep {
+    for j:=0; j<iRows; j+=iSubStep {
+    	jOrg := j*iStrideOrg;
+    	jCur := j*iStrideCur;
+        uiSum += uint(TLibCommon.ABS(int(piOrg[jOrg+0] - piCur[jCur+0])).(int))
+        uiSum += uint(TLibCommon.ABS(int(piOrg[jOrg+1] - piCur[jCur+1])).(int))
+        uiSum += uint(TLibCommon.ABS(int(piOrg[jOrg+2] - piCur[jCur+2])).(int))
+        uiSum += uint(TLibCommon.ABS(int(piOrg[jOrg+3] - piCur[jCur+3])).(int))
+        uiSum += uint(TLibCommon.ABS(int(piOrg[jOrg+4] - piCur[jCur+4])).(int))
+        uiSum += uint(TLibCommon.ABS(int(piOrg[jOrg+5] - piCur[jCur+5])).(int))
+        uiSum += uint(TLibCommon.ABS(int(piOrg[jOrg+6] - piCur[jCur+6])).(int))
+        uiSum += uint(TLibCommon.ABS(int(piOrg[jOrg+7] - piCur[jCur+7])).(int))
+        uiSum += uint(TLibCommon.ABS(int(piOrg[jOrg+8] - piCur[jCur+8])).(int))
+        uiSum += uint(TLibCommon.ABS(int(piOrg[jOrg+9] - piCur[jCur+9])).(int))
+        uiSum += uint(TLibCommon.ABS(int(piOrg[jOrg+10] - piCur[jCur+10])).(int))
+        uiSum += uint(TLibCommon.ABS(int(piOrg[jOrg+11] - piCur[jCur+11])).(int))
+        uiSum += uint(TLibCommon.ABS(int(piOrg[jOrg+12] - piCur[jCur+12])).(int))
+        uiSum += uint(TLibCommon.ABS(int(piOrg[jOrg+13] - piCur[jCur+13])).(int))
+        uiSum += uint(TLibCommon.ABS(int(piOrg[jOrg+14] - piCur[jCur+14])).(int))
+        uiSum += uint(TLibCommon.ABS(int(piOrg[jOrg+15] - piCur[jCur+15])).(int))
+        uiSum += uint(TLibCommon.ABS(int(piOrg[jOrg+16] - piCur[jCur+16])).(int))
+        uiSum += uint(TLibCommon.ABS(int(piOrg[jOrg+17] - piCur[jCur+17])).(int))
+        uiSum += uint(TLibCommon.ABS(int(piOrg[jOrg+18] - piCur[jCur+18])).(int))
+        uiSum += uint(TLibCommon.ABS(int(piOrg[jOrg+19] - piCur[jCur+19])).(int))
+        uiSum += uint(TLibCommon.ABS(int(piOrg[jOrg+20] - piCur[jCur+20])).(int))
+        uiSum += uint(TLibCommon.ABS(int(piOrg[jOrg+21] - piCur[jCur+21])).(int))
+        uiSum += uint(TLibCommon.ABS(int(piOrg[jOrg+22] - piCur[jCur+22])).(int))
+        uiSum += uint(TLibCommon.ABS(int(piOrg[jOrg+23] - piCur[jCur+23])).(int))
+        uiSum += uint(TLibCommon.ABS(int(piOrg[jOrg+24] - piCur[jCur+24])).(int))
+        uiSum += uint(TLibCommon.ABS(int(piOrg[jOrg+25] - piCur[jCur+25])).(int))
+        uiSum += uint(TLibCommon.ABS(int(piOrg[jOrg+26] - piCur[jCur+26])).(int))
+        uiSum += uint(TLibCommon.ABS(int(piOrg[jOrg+27] - piCur[jCur+27])).(int))
+        uiSum += uint(TLibCommon.ABS(int(piOrg[jOrg+28] - piCur[jCur+28])).(int))
+        uiSum += uint(TLibCommon.ABS(int(piOrg[jOrg+29] - piCur[jCur+29])).(int))
+        uiSum += uint(TLibCommon.ABS(int(piOrg[jOrg+30] - piCur[jCur+30])).(int))
+        uiSum += uint(TLibCommon.ABS(int(piOrg[jOrg+31] - piCur[jCur+31])).(int))
 
-        piOrg = piOrg[iStrideOrg:]
-        piCur = piCur[iStrideCur:]
+        //piOrg = piOrg[iStrideOrg:]
+        //piCur = piCur[iStrideCur:]
     }
 
     uiSum <<= uint(iSubShift)
@@ -1647,79 +1666,82 @@ func (this *TEncRdCost) xGetSAD64(pcDtParam *DistParam) uint {
     iRows := pcDtParam.iRows
     iSubShift := pcDtParam.iSubShift
     iSubStep := (1 << uint(iSubShift))
-    iStrideCur := pcDtParam.iStrideCur * iSubStep
-    iStrideOrg := pcDtParam.iStrideOrg * iSubStep
+    iStrideCur := pcDtParam.iStrideCur;// * iSubStep
+    iStrideOrg := pcDtParam.iStrideOrg;// * iSubStep
 
     uiSum := uint(0)
 
-    for ; iRows != 0; iRows -= iSubStep {
-        uiSum += uint(TLibCommon.ABS(int(piOrg[0] - piCur[0])).(int))
-        uiSum += uint(TLibCommon.ABS(int(piOrg[1] - piCur[1])).(int))
-        uiSum += uint(TLibCommon.ABS(int(piOrg[2] - piCur[2])).(int))
-        uiSum += uint(TLibCommon.ABS(int(piOrg[3] - piCur[3])).(int))
-        uiSum += uint(TLibCommon.ABS(int(piOrg[4] - piCur[4])).(int))
-        uiSum += uint(TLibCommon.ABS(int(piOrg[5] - piCur[5])).(int))
-        uiSum += uint(TLibCommon.ABS(int(piOrg[6] - piCur[6])).(int))
-        uiSum += uint(TLibCommon.ABS(int(piOrg[7] - piCur[7])).(int))
-        uiSum += uint(TLibCommon.ABS(int(piOrg[8] - piCur[8])).(int))
-        uiSum += uint(TLibCommon.ABS(int(piOrg[9] - piCur[9])).(int))
-        uiSum += uint(TLibCommon.ABS(int(piOrg[10] - piCur[10])).(int))
-        uiSum += uint(TLibCommon.ABS(int(piOrg[11] - piCur[11])).(int))
-        uiSum += uint(TLibCommon.ABS(int(piOrg[12] - piCur[12])).(int))
-        uiSum += uint(TLibCommon.ABS(int(piOrg[13] - piCur[13])).(int))
-        uiSum += uint(TLibCommon.ABS(int(piOrg[14] - piCur[14])).(int))
-        uiSum += uint(TLibCommon.ABS(int(piOrg[15] - piCur[15])).(int))
-        uiSum += uint(TLibCommon.ABS(int(piOrg[16] - piCur[16])).(int))
-        uiSum += uint(TLibCommon.ABS(int(piOrg[17] - piCur[17])).(int))
-        uiSum += uint(TLibCommon.ABS(int(piOrg[18] - piCur[18])).(int))
-        uiSum += uint(TLibCommon.ABS(int(piOrg[19] - piCur[19])).(int))
-        uiSum += uint(TLibCommon.ABS(int(piOrg[20] - piCur[20])).(int))
-        uiSum += uint(TLibCommon.ABS(int(piOrg[21] - piCur[21])).(int))
-        uiSum += uint(TLibCommon.ABS(int(piOrg[22] - piCur[22])).(int))
-        uiSum += uint(TLibCommon.ABS(int(piOrg[23] - piCur[23])).(int))
-        uiSum += uint(TLibCommon.ABS(int(piOrg[24] - piCur[24])).(int))
-        uiSum += uint(TLibCommon.ABS(int(piOrg[25] - piCur[25])).(int))
-        uiSum += uint(TLibCommon.ABS(int(piOrg[26] - piCur[26])).(int))
-        uiSum += uint(TLibCommon.ABS(int(piOrg[27] - piCur[27])).(int))
-        uiSum += uint(TLibCommon.ABS(int(piOrg[28] - piCur[28])).(int))
-        uiSum += uint(TLibCommon.ABS(int(piOrg[29] - piCur[29])).(int))
-        uiSum += uint(TLibCommon.ABS(int(piOrg[30] - piCur[30])).(int))
-        uiSum += uint(TLibCommon.ABS(int(piOrg[31] - piCur[31])).(int))
-        uiSum += uint(TLibCommon.ABS(int(piOrg[32] - piCur[32])).(int))
-        uiSum += uint(TLibCommon.ABS(int(piOrg[33] - piCur[33])).(int))
-        uiSum += uint(TLibCommon.ABS(int(piOrg[34] - piCur[34])).(int))
-        uiSum += uint(TLibCommon.ABS(int(piOrg[35] - piCur[35])).(int))
-        uiSum += uint(TLibCommon.ABS(int(piOrg[36] - piCur[36])).(int))
-        uiSum += uint(TLibCommon.ABS(int(piOrg[37] - piCur[37])).(int))
-        uiSum += uint(TLibCommon.ABS(int(piOrg[38] - piCur[38])).(int))
-        uiSum += uint(TLibCommon.ABS(int(piOrg[39] - piCur[39])).(int))
-        uiSum += uint(TLibCommon.ABS(int(piOrg[40] - piCur[40])).(int))
-        uiSum += uint(TLibCommon.ABS(int(piOrg[41] - piCur[41])).(int))
-        uiSum += uint(TLibCommon.ABS(int(piOrg[42] - piCur[42])).(int))
-        uiSum += uint(TLibCommon.ABS(int(piOrg[43] - piCur[43])).(int))
-        uiSum += uint(TLibCommon.ABS(int(piOrg[44] - piCur[44])).(int))
-        uiSum += uint(TLibCommon.ABS(int(piOrg[45] - piCur[45])).(int))
-        uiSum += uint(TLibCommon.ABS(int(piOrg[46] - piCur[46])).(int))
-        uiSum += uint(TLibCommon.ABS(int(piOrg[47] - piCur[47])).(int))
-        uiSum += uint(TLibCommon.ABS(int(piOrg[48] - piCur[48])).(int))
-        uiSum += uint(TLibCommon.ABS(int(piOrg[49] - piCur[49])).(int))
-        uiSum += uint(TLibCommon.ABS(int(piOrg[50] - piCur[50])).(int))
-        uiSum += uint(TLibCommon.ABS(int(piOrg[51] - piCur[51])).(int))
-        uiSum += uint(TLibCommon.ABS(int(piOrg[52] - piCur[52])).(int))
-        uiSum += uint(TLibCommon.ABS(int(piOrg[53] - piCur[53])).(int))
-        uiSum += uint(TLibCommon.ABS(int(piOrg[54] - piCur[54])).(int))
-        uiSum += uint(TLibCommon.ABS(int(piOrg[55] - piCur[55])).(int))
-        uiSum += uint(TLibCommon.ABS(int(piOrg[56] - piCur[56])).(int))
-        uiSum += uint(TLibCommon.ABS(int(piOrg[57] - piCur[57])).(int))
-        uiSum += uint(TLibCommon.ABS(int(piOrg[58] - piCur[58])).(int))
-        uiSum += uint(TLibCommon.ABS(int(piOrg[59] - piCur[59])).(int))
-        uiSum += uint(TLibCommon.ABS(int(piOrg[60] - piCur[60])).(int))
-        uiSum += uint(TLibCommon.ABS(int(piOrg[61] - piCur[61])).(int))
-        uiSum += uint(TLibCommon.ABS(int(piOrg[62] - piCur[62])).(int))
-        uiSum += uint(TLibCommon.ABS(int(piOrg[63] - piCur[63])).(int))
+    //for ; iRows != 0; iRows -= iSubStep {
+    for j:=0; j<iRows; j+=iSubStep {
+    	jOrg := j*iStrideOrg;
+    	jCur := j*iStrideCur;
+        uiSum += uint(TLibCommon.ABS(int(piOrg[jOrg+0] - piCur[jCur+0])).(int))
+        uiSum += uint(TLibCommon.ABS(int(piOrg[jOrg+1] - piCur[jCur+1])).(int))
+        uiSum += uint(TLibCommon.ABS(int(piOrg[jOrg+2] - piCur[jCur+2])).(int))
+        uiSum += uint(TLibCommon.ABS(int(piOrg[jOrg+3] - piCur[jCur+3])).(int))
+        uiSum += uint(TLibCommon.ABS(int(piOrg[jOrg+4] - piCur[jCur+4])).(int))
+        uiSum += uint(TLibCommon.ABS(int(piOrg[jOrg+5] - piCur[jCur+5])).(int))
+        uiSum += uint(TLibCommon.ABS(int(piOrg[jOrg+6] - piCur[jCur+6])).(int))
+        uiSum += uint(TLibCommon.ABS(int(piOrg[jOrg+7] - piCur[jCur+7])).(int))
+        uiSum += uint(TLibCommon.ABS(int(piOrg[jOrg+8] - piCur[jCur+8])).(int))
+        uiSum += uint(TLibCommon.ABS(int(piOrg[jOrg+9] - piCur[jCur+9])).(int))
+        uiSum += uint(TLibCommon.ABS(int(piOrg[jOrg+10] - piCur[jCur+10])).(int))
+        uiSum += uint(TLibCommon.ABS(int(piOrg[jOrg+11] - piCur[jCur+11])).(int))
+        uiSum += uint(TLibCommon.ABS(int(piOrg[jOrg+12] - piCur[jCur+12])).(int))
+        uiSum += uint(TLibCommon.ABS(int(piOrg[jOrg+13] - piCur[jCur+13])).(int))
+        uiSum += uint(TLibCommon.ABS(int(piOrg[jOrg+14] - piCur[jCur+14])).(int))
+        uiSum += uint(TLibCommon.ABS(int(piOrg[jOrg+15] - piCur[jCur+15])).(int))
+        uiSum += uint(TLibCommon.ABS(int(piOrg[jOrg+16] - piCur[jCur+16])).(int))
+        uiSum += uint(TLibCommon.ABS(int(piOrg[jOrg+17] - piCur[jCur+17])).(int))
+        uiSum += uint(TLibCommon.ABS(int(piOrg[jOrg+18] - piCur[jCur+18])).(int))
+        uiSum += uint(TLibCommon.ABS(int(piOrg[jOrg+19] - piCur[jCur+19])).(int))
+        uiSum += uint(TLibCommon.ABS(int(piOrg[jOrg+20] - piCur[jCur+20])).(int))
+        uiSum += uint(TLibCommon.ABS(int(piOrg[jOrg+21] - piCur[jCur+21])).(int))
+        uiSum += uint(TLibCommon.ABS(int(piOrg[jOrg+22] - piCur[jCur+22])).(int))
+        uiSum += uint(TLibCommon.ABS(int(piOrg[jOrg+23] - piCur[jCur+23])).(int))
+        uiSum += uint(TLibCommon.ABS(int(piOrg[jOrg+24] - piCur[jCur+24])).(int))
+        uiSum += uint(TLibCommon.ABS(int(piOrg[jOrg+25] - piCur[jCur+25])).(int))
+        uiSum += uint(TLibCommon.ABS(int(piOrg[jOrg+26] - piCur[jCur+26])).(int))
+        uiSum += uint(TLibCommon.ABS(int(piOrg[jOrg+27] - piCur[jCur+27])).(int))
+        uiSum += uint(TLibCommon.ABS(int(piOrg[jOrg+28] - piCur[jCur+28])).(int))
+        uiSum += uint(TLibCommon.ABS(int(piOrg[jOrg+29] - piCur[jCur+29])).(int))
+        uiSum += uint(TLibCommon.ABS(int(piOrg[jOrg+30] - piCur[jCur+30])).(int))
+        uiSum += uint(TLibCommon.ABS(int(piOrg[jOrg+31] - piCur[jCur+31])).(int))
+        uiSum += uint(TLibCommon.ABS(int(piOrg[jOrg+32] - piCur[jCur+32])).(int))
+        uiSum += uint(TLibCommon.ABS(int(piOrg[jOrg+33] - piCur[jCur+33])).(int))
+        uiSum += uint(TLibCommon.ABS(int(piOrg[jOrg+34] - piCur[jCur+34])).(int))
+        uiSum += uint(TLibCommon.ABS(int(piOrg[jOrg+35] - piCur[jCur+35])).(int))
+        uiSum += uint(TLibCommon.ABS(int(piOrg[jOrg+36] - piCur[jCur+36])).(int))
+        uiSum += uint(TLibCommon.ABS(int(piOrg[jOrg+37] - piCur[jCur+37])).(int))
+        uiSum += uint(TLibCommon.ABS(int(piOrg[jOrg+38] - piCur[jCur+38])).(int))
+        uiSum += uint(TLibCommon.ABS(int(piOrg[jOrg+39] - piCur[jCur+39])).(int))
+        uiSum += uint(TLibCommon.ABS(int(piOrg[jOrg+40] - piCur[jCur+40])).(int))
+        uiSum += uint(TLibCommon.ABS(int(piOrg[jOrg+41] - piCur[jCur+41])).(int))
+        uiSum += uint(TLibCommon.ABS(int(piOrg[jOrg+42] - piCur[jCur+42])).(int))
+        uiSum += uint(TLibCommon.ABS(int(piOrg[jOrg+43] - piCur[jCur+43])).(int))
+        uiSum += uint(TLibCommon.ABS(int(piOrg[jOrg+44] - piCur[jCur+44])).(int))
+        uiSum += uint(TLibCommon.ABS(int(piOrg[jOrg+45] - piCur[jCur+45])).(int))
+        uiSum += uint(TLibCommon.ABS(int(piOrg[jOrg+46] - piCur[jCur+46])).(int))
+        uiSum += uint(TLibCommon.ABS(int(piOrg[jOrg+47] - piCur[jCur+47])).(int))
+        uiSum += uint(TLibCommon.ABS(int(piOrg[jOrg+48] - piCur[jCur+48])).(int))
+        uiSum += uint(TLibCommon.ABS(int(piOrg[jOrg+49] - piCur[jCur+49])).(int))
+        uiSum += uint(TLibCommon.ABS(int(piOrg[jOrg+50] - piCur[jCur+50])).(int))
+        uiSum += uint(TLibCommon.ABS(int(piOrg[jOrg+51] - piCur[jCur+51])).(int))
+        uiSum += uint(TLibCommon.ABS(int(piOrg[jOrg+52] - piCur[jCur+52])).(int))
+        uiSum += uint(TLibCommon.ABS(int(piOrg[jOrg+53] - piCur[jCur+53])).(int))
+        uiSum += uint(TLibCommon.ABS(int(piOrg[jOrg+54] - piCur[jCur+54])).(int))
+        uiSum += uint(TLibCommon.ABS(int(piOrg[jOrg+55] - piCur[jCur+55])).(int))
+        uiSum += uint(TLibCommon.ABS(int(piOrg[jOrg+56] - piCur[jCur+56])).(int))
+        uiSum += uint(TLibCommon.ABS(int(piOrg[jOrg+57] - piCur[jCur+57])).(int))
+        uiSum += uint(TLibCommon.ABS(int(piOrg[jOrg+58] - piCur[jCur+58])).(int))
+        uiSum += uint(TLibCommon.ABS(int(piOrg[jOrg+59] - piCur[jCur+59])).(int))
+        uiSum += uint(TLibCommon.ABS(int(piOrg[jOrg+60] - piCur[jCur+60])).(int))
+        uiSum += uint(TLibCommon.ABS(int(piOrg[jOrg+61] - piCur[jCur+61])).(int))
+        uiSum += uint(TLibCommon.ABS(int(piOrg[jOrg+62] - piCur[jCur+62])).(int))
+        uiSum += uint(TLibCommon.ABS(int(piOrg[jOrg+63] - piCur[jCur+63])).(int))
 
-        piOrg = piOrg[iStrideOrg:]
-        piCur = piCur[iStrideCur:]
+        //piOrg = piOrg[iStrideOrg:]
+        //piCur = piCur[iStrideCur:]
     }
 
     uiSum <<= uint(iSubShift)
@@ -1733,32 +1755,35 @@ func (this *TEncRdCost) xGetSAD16N(pcDtParam *DistParam) uint {
     iCols := pcDtParam.iCols
     iSubShift := pcDtParam.iSubShift
     iSubStep := (1 << uint(iSubShift))
-    iStrideCur := pcDtParam.iStrideCur * iSubStep
-    iStrideOrg := pcDtParam.iStrideOrg * iSubStep
+    iStrideCur := pcDtParam.iStrideCur;// * iSubStep
+    iStrideOrg := pcDtParam.iStrideOrg;// * iSubStep
 
     uiSum := uint(0)
 
-    for ; iRows != 0; iRows -= iSubStep {
+    //for ; iRows != 0; iRows -= iSubStep {
+    for j:=0; j<iRows; j+=iSubStep {
+    	jOrg := j*iStrideOrg;
+    	jCur := j*iStrideCur;
         for n := 0; n < iCols; n += 16 {
-            uiSum += uint(TLibCommon.ABS(int(piOrg[n+0] - piCur[n+0])).(int))
-            uiSum += uint(TLibCommon.ABS(int(piOrg[n+1] - piCur[n+1])).(int))
-            uiSum += uint(TLibCommon.ABS(int(piOrg[n+2] - piCur[n+2])).(int))
-            uiSum += uint(TLibCommon.ABS(int(piOrg[n+3] - piCur[n+3])).(int))
-            uiSum += uint(TLibCommon.ABS(int(piOrg[n+4] - piCur[n+4])).(int))
-            uiSum += uint(TLibCommon.ABS(int(piOrg[n+5] - piCur[n+5])).(int))
-            uiSum += uint(TLibCommon.ABS(int(piOrg[n+6] - piCur[n+6])).(int))
-            uiSum += uint(TLibCommon.ABS(int(piOrg[n+7] - piCur[n+7])).(int))
-            uiSum += uint(TLibCommon.ABS(int(piOrg[n+8] - piCur[n+8])).(int))
-            uiSum += uint(TLibCommon.ABS(int(piOrg[n+9] - piCur[n+9])).(int))
-            uiSum += uint(TLibCommon.ABS(int(piOrg[n+10] - piCur[n+10])).(int))
-            uiSum += uint(TLibCommon.ABS(int(piOrg[n+11] - piCur[n+11])).(int))
-            uiSum += uint(TLibCommon.ABS(int(piOrg[n+12] - piCur[n+12])).(int))
-            uiSum += uint(TLibCommon.ABS(int(piOrg[n+13] - piCur[n+13])).(int))
-            uiSum += uint(TLibCommon.ABS(int(piOrg[n+14] - piCur[n+14])).(int))
-            uiSum += uint(TLibCommon.ABS(int(piOrg[n+15] - piCur[n+15])).(int))
+            uiSum += uint(TLibCommon.ABS(int(piOrg[jOrg+n+0] - piCur[jCur+n+0])).(int))
+            uiSum += uint(TLibCommon.ABS(int(piOrg[jOrg+n+1] - piCur[jCur+n+1])).(int))
+            uiSum += uint(TLibCommon.ABS(int(piOrg[jOrg+n+2] - piCur[jCur+n+2])).(int))
+            uiSum += uint(TLibCommon.ABS(int(piOrg[jOrg+n+3] - piCur[jCur+n+3])).(int))
+            uiSum += uint(TLibCommon.ABS(int(piOrg[jOrg+n+4] - piCur[jCur+n+4])).(int))
+            uiSum += uint(TLibCommon.ABS(int(piOrg[jOrg+n+5] - piCur[jCur+n+5])).(int))
+            uiSum += uint(TLibCommon.ABS(int(piOrg[jOrg+n+6] - piCur[jCur+n+6])).(int))
+            uiSum += uint(TLibCommon.ABS(int(piOrg[jOrg+n+7] - piCur[jCur+n+7])).(int))
+            uiSum += uint(TLibCommon.ABS(int(piOrg[jOrg+n+8] - piCur[jCur+n+8])).(int))
+            uiSum += uint(TLibCommon.ABS(int(piOrg[jOrg+n+9] - piCur[jCur+n+9])).(int))
+            uiSum += uint(TLibCommon.ABS(int(piOrg[jOrg+n+10] - piCur[jCur+n+10])).(int))
+            uiSum += uint(TLibCommon.ABS(int(piOrg[jOrg+n+11] - piCur[jCur+n+11])).(int))
+            uiSum += uint(TLibCommon.ABS(int(piOrg[jOrg+n+12] - piCur[jCur+n+12])).(int))
+            uiSum += uint(TLibCommon.ABS(int(piOrg[jOrg+n+13] - piCur[jCur+n+13])).(int))
+            uiSum += uint(TLibCommon.ABS(int(piOrg[jOrg+n+14] - piCur[jCur+n+14])).(int))
+            uiSum += uint(TLibCommon.ABS(int(piOrg[jOrg+n+15] - piCur[jCur+n+15])).(int))
         }
-        piOrg = piOrg[iStrideOrg:]
-        piCur = piCur[iStrideCur:]
+        //piOrg = piOrg[iStrideOrg:]
+        //piCur = piCur[iStrideCur:]
     }
 
     uiSum <<= uint(iSubShift)
@@ -1775,27 +1800,30 @@ func (this *TEncRdCost) xGetSAD12(pcDtParam *DistParam) uint {
     iRows := pcDtParam.iRows
     iSubShift := pcDtParam.iSubShift
     iSubStep := (1 << uint(iSubShift))
-    iStrideCur := pcDtParam.iStrideCur * iSubStep
-    iStrideOrg := pcDtParam.iStrideOrg * iSubStep
+    iStrideCur := pcDtParam.iStrideCur;// * iSubStep
+    iStrideOrg := pcDtParam.iStrideOrg;// * iSubStep
 
     uiSum := uint(0)
 
-    for ; iRows != 0; iRows -= iSubStep {
-        uiSum += uint(TLibCommon.ABS(int(piOrg[0] - piCur[0])).(int))
-        uiSum += uint(TLibCommon.ABS(int(piOrg[1] - piCur[1])).(int))
-        uiSum += uint(TLibCommon.ABS(int(piOrg[2] - piCur[2])).(int))
-        uiSum += uint(TLibCommon.ABS(int(piOrg[3] - piCur[3])).(int))
-        uiSum += uint(TLibCommon.ABS(int(piOrg[4] - piCur[4])).(int))
-        uiSum += uint(TLibCommon.ABS(int(piOrg[5] - piCur[5])).(int))
-        uiSum += uint(TLibCommon.ABS(int(piOrg[6] - piCur[6])).(int))
-        uiSum += uint(TLibCommon.ABS(int(piOrg[7] - piCur[7])).(int))
-        uiSum += uint(TLibCommon.ABS(int(piOrg[8] - piCur[8])).(int))
-        uiSum += uint(TLibCommon.ABS(int(piOrg[9] - piCur[9])).(int))
-        uiSum += uint(TLibCommon.ABS(int(piOrg[10] - piCur[10])).(int))
-        uiSum += uint(TLibCommon.ABS(int(piOrg[11] - piCur[11])).(int))
+    //for ; iRows != 0; iRows -= iSubStep {
+    for j:=0; j<iRows; j+=iSubStep {
+    	jOrg := j*iStrideOrg;
+    	jCur := j*iStrideCur;
+        uiSum += uint(TLibCommon.ABS(int(piOrg[jOrg+0] - piCur[jCur+0])).(int))
+        uiSum += uint(TLibCommon.ABS(int(piOrg[jOrg+1] - piCur[jCur+1])).(int))
+        uiSum += uint(TLibCommon.ABS(int(piOrg[jOrg+2] - piCur[jCur+2])).(int))
+        uiSum += uint(TLibCommon.ABS(int(piOrg[jOrg+3] - piCur[jCur+3])).(int))
+        uiSum += uint(TLibCommon.ABS(int(piOrg[jOrg+4] - piCur[jCur+4])).(int))
+        uiSum += uint(TLibCommon.ABS(int(piOrg[jOrg+5] - piCur[jCur+5])).(int))
+        uiSum += uint(TLibCommon.ABS(int(piOrg[jOrg+6] - piCur[jCur+6])).(int))
+        uiSum += uint(TLibCommon.ABS(int(piOrg[jOrg+7] - piCur[jCur+7])).(int))
+        uiSum += uint(TLibCommon.ABS(int(piOrg[jOrg+8] - piCur[jCur+8])).(int))
+        uiSum += uint(TLibCommon.ABS(int(piOrg[jOrg+9] - piCur[jCur+9])).(int))
+        uiSum += uint(TLibCommon.ABS(int(piOrg[jOrg+10] - piCur[jCur+10])).(int))
+        uiSum += uint(TLibCommon.ABS(int(piOrg[jOrg+11] - piCur[jCur+11])).(int))
 
-        piOrg = piOrg[iStrideOrg:]
-        piCur = piCur[iStrideCur:]
+        //piOrg = piOrg[iStrideOrg:]
+        //piCur = piCur[iStrideCur:]
     }
 
     uiSum <<= uint(iSubShift)
@@ -1811,39 +1839,42 @@ func (this *TEncRdCost) xGetSAD24(pcDtParam *DistParam) uint {
     iRows := pcDtParam.iRows
     iSubShift := pcDtParam.iSubShift
     iSubStep := (1 << uint(iSubShift))
-    iStrideCur := pcDtParam.iStrideCur * iSubStep
-    iStrideOrg := pcDtParam.iStrideOrg * iSubStep
+    iStrideCur := pcDtParam.iStrideCur;// * iSubStep
+    iStrideOrg := pcDtParam.iStrideOrg;// * iSubStep
 
     uiSum := uint(0)
 
-    for ; iRows != 0; iRows -= iSubStep {
-        uiSum += uint(TLibCommon.ABS(int(piOrg[0] - piCur[0])).(int))
-        uiSum += uint(TLibCommon.ABS(int(piOrg[1] - piCur[1])).(int))
-        uiSum += uint(TLibCommon.ABS(int(piOrg[2] - piCur[2])).(int))
-        uiSum += uint(TLibCommon.ABS(int(piOrg[3] - piCur[3])).(int))
-        uiSum += uint(TLibCommon.ABS(int(piOrg[4] - piCur[4])).(int))
-        uiSum += uint(TLibCommon.ABS(int(piOrg[5] - piCur[5])).(int))
-        uiSum += uint(TLibCommon.ABS(int(piOrg[6] - piCur[6])).(int))
-        uiSum += uint(TLibCommon.ABS(int(piOrg[7] - piCur[7])).(int))
-        uiSum += uint(TLibCommon.ABS(int(piOrg[8] - piCur[8])).(int))
-        uiSum += uint(TLibCommon.ABS(int(piOrg[9] - piCur[9])).(int))
-        uiSum += uint(TLibCommon.ABS(int(piOrg[10] - piCur[10])).(int))
-        uiSum += uint(TLibCommon.ABS(int(piOrg[11] - piCur[11])).(int))
-        uiSum += uint(TLibCommon.ABS(int(piOrg[12] - piCur[12])).(int))
-        uiSum += uint(TLibCommon.ABS(int(piOrg[13] - piCur[13])).(int))
-        uiSum += uint(TLibCommon.ABS(int(piOrg[14] - piCur[14])).(int))
-        uiSum += uint(TLibCommon.ABS(int(piOrg[15] - piCur[15])).(int))
-        uiSum += uint(TLibCommon.ABS(int(piOrg[16] - piCur[16])).(int))
-        uiSum += uint(TLibCommon.ABS(int(piOrg[17] - piCur[17])).(int))
-        uiSum += uint(TLibCommon.ABS(int(piOrg[18] - piCur[18])).(int))
-        uiSum += uint(TLibCommon.ABS(int(piOrg[19] - piCur[19])).(int))
-        uiSum += uint(TLibCommon.ABS(int(piOrg[20] - piCur[20])).(int))
-        uiSum += uint(TLibCommon.ABS(int(piOrg[21] - piCur[21])).(int))
-        uiSum += uint(TLibCommon.ABS(int(piOrg[22] - piCur[22])).(int))
-        uiSum += uint(TLibCommon.ABS(int(piOrg[23] - piCur[23])).(int))
+    //for ; iRows != 0; iRows -= iSubStep {
+    for j:=0; j<iRows; j+=iSubStep {
+    	jOrg := j*iStrideOrg;
+    	jCur := j*iStrideCur;
+        uiSum += uint(TLibCommon.ABS(int(piOrg[jOrg+0] - piCur[jCur+0])).(int))
+        uiSum += uint(TLibCommon.ABS(int(piOrg[jOrg+1] - piCur[jCur+1])).(int))
+        uiSum += uint(TLibCommon.ABS(int(piOrg[jOrg+2] - piCur[jCur+2])).(int))
+        uiSum += uint(TLibCommon.ABS(int(piOrg[jOrg+3] - piCur[jCur+3])).(int))
+        uiSum += uint(TLibCommon.ABS(int(piOrg[jOrg+4] - piCur[jCur+4])).(int))
+        uiSum += uint(TLibCommon.ABS(int(piOrg[jOrg+5] - piCur[jCur+5])).(int))
+        uiSum += uint(TLibCommon.ABS(int(piOrg[jOrg+6] - piCur[jCur+6])).(int))
+        uiSum += uint(TLibCommon.ABS(int(piOrg[jOrg+7] - piCur[jCur+7])).(int))
+        uiSum += uint(TLibCommon.ABS(int(piOrg[jOrg+8] - piCur[jCur+8])).(int))
+        uiSum += uint(TLibCommon.ABS(int(piOrg[jOrg+9] - piCur[jCur+9])).(int))
+        uiSum += uint(TLibCommon.ABS(int(piOrg[jOrg+10] - piCur[jCur+10])).(int))
+        uiSum += uint(TLibCommon.ABS(int(piOrg[jOrg+11] - piCur[jCur+11])).(int))
+        uiSum += uint(TLibCommon.ABS(int(piOrg[jOrg+12] - piCur[jCur+12])).(int))
+        uiSum += uint(TLibCommon.ABS(int(piOrg[jOrg+13] - piCur[jCur+13])).(int))
+        uiSum += uint(TLibCommon.ABS(int(piOrg[jOrg+14] - piCur[jCur+14])).(int))
+        uiSum += uint(TLibCommon.ABS(int(piOrg[jOrg+15] - piCur[jCur+15])).(int))
+        uiSum += uint(TLibCommon.ABS(int(piOrg[jOrg+16] - piCur[jCur+16])).(int))
+        uiSum += uint(TLibCommon.ABS(int(piOrg[jOrg+17] - piCur[jCur+17])).(int))
+        uiSum += uint(TLibCommon.ABS(int(piOrg[jOrg+18] - piCur[jCur+18])).(int))
+        uiSum += uint(TLibCommon.ABS(int(piOrg[jOrg+19] - piCur[jCur+19])).(int))
+        uiSum += uint(TLibCommon.ABS(int(piOrg[jOrg+20] - piCur[jCur+20])).(int))
+        uiSum += uint(TLibCommon.ABS(int(piOrg[jOrg+21] - piCur[jCur+21])).(int))
+        uiSum += uint(TLibCommon.ABS(int(piOrg[jOrg+22] - piCur[jCur+22])).(int))
+        uiSum += uint(TLibCommon.ABS(int(piOrg[jOrg+23] - piCur[jCur+23])).(int))
 
-        piOrg = piOrg[iStrideOrg:]
-        piCur = piCur[iStrideCur:]
+        //piOrg = piOrg[iStrideOrg:]
+        //piCur = piCur[iStrideCur:]
     }
 
     uiSum <<= uint(iSubShift)
@@ -1859,63 +1890,66 @@ func (this *TEncRdCost) xGetSAD48(pcDtParam *DistParam) uint {
     iRows := pcDtParam.iRows
     iSubShift := pcDtParam.iSubShift
     iSubStep := (1 << uint(iSubShift))
-    iStrideCur := pcDtParam.iStrideCur * iSubStep
-    iStrideOrg := pcDtParam.iStrideOrg * iSubStep
+    iStrideCur := pcDtParam.iStrideCur;// * iSubStep
+    iStrideOrg := pcDtParam.iStrideOrg;// * iSubStep
 
     uiSum := uint(0)
 
-    for ; iRows != 0; iRows -= iSubStep {
-        uiSum += uint(TLibCommon.ABS(int(piOrg[0] - piCur[0])).(int))
-        uiSum += uint(TLibCommon.ABS(int(piOrg[1] - piCur[1])).(int))
-        uiSum += uint(TLibCommon.ABS(int(piOrg[2] - piCur[2])).(int))
-        uiSum += uint(TLibCommon.ABS(int(piOrg[3] - piCur[3])).(int))
-        uiSum += uint(TLibCommon.ABS(int(piOrg[4] - piCur[4])).(int))
-        uiSum += uint(TLibCommon.ABS(int(piOrg[5] - piCur[5])).(int))
-        uiSum += uint(TLibCommon.ABS(int(piOrg[6] - piCur[6])).(int))
-        uiSum += uint(TLibCommon.ABS(int(piOrg[7] - piCur[7])).(int))
-        uiSum += uint(TLibCommon.ABS(int(piOrg[8] - piCur[8])).(int))
-        uiSum += uint(TLibCommon.ABS(int(piOrg[9] - piCur[9])).(int))
-        uiSum += uint(TLibCommon.ABS(int(piOrg[10] - piCur[10])).(int))
-        uiSum += uint(TLibCommon.ABS(int(piOrg[11] - piCur[11])).(int))
-        uiSum += uint(TLibCommon.ABS(int(piOrg[12] - piCur[12])).(int))
-        uiSum += uint(TLibCommon.ABS(int(piOrg[13] - piCur[13])).(int))
-        uiSum += uint(TLibCommon.ABS(int(piOrg[14] - piCur[14])).(int))
-        uiSum += uint(TLibCommon.ABS(int(piOrg[15] - piCur[15])).(int))
-        uiSum += uint(TLibCommon.ABS(int(piOrg[16] - piCur[16])).(int))
-        uiSum += uint(TLibCommon.ABS(int(piOrg[17] - piCur[17])).(int))
-        uiSum += uint(TLibCommon.ABS(int(piOrg[18] - piCur[18])).(int))
-        uiSum += uint(TLibCommon.ABS(int(piOrg[19] - piCur[19])).(int))
-        uiSum += uint(TLibCommon.ABS(int(piOrg[20] - piCur[20])).(int))
-        uiSum += uint(TLibCommon.ABS(int(piOrg[21] - piCur[21])).(int))
-        uiSum += uint(TLibCommon.ABS(int(piOrg[22] - piCur[22])).(int))
-        uiSum += uint(TLibCommon.ABS(int(piOrg[23] - piCur[23])).(int))
-        uiSum += uint(TLibCommon.ABS(int(piOrg[24] - piCur[24])).(int))
-        uiSum += uint(TLibCommon.ABS(int(piOrg[25] - piCur[25])).(int))
-        uiSum += uint(TLibCommon.ABS(int(piOrg[26] - piCur[26])).(int))
-        uiSum += uint(TLibCommon.ABS(int(piOrg[27] - piCur[27])).(int))
-        uiSum += uint(TLibCommon.ABS(int(piOrg[28] - piCur[28])).(int))
-        uiSum += uint(TLibCommon.ABS(int(piOrg[29] - piCur[29])).(int))
-        uiSum += uint(TLibCommon.ABS(int(piOrg[30] - piCur[30])).(int))
-        uiSum += uint(TLibCommon.ABS(int(piOrg[31] - piCur[31])).(int))
-        uiSum += uint(TLibCommon.ABS(int(piOrg[32] - piCur[32])).(int))
-        uiSum += uint(TLibCommon.ABS(int(piOrg[33] - piCur[33])).(int))
-        uiSum += uint(TLibCommon.ABS(int(piOrg[34] - piCur[34])).(int))
-        uiSum += uint(TLibCommon.ABS(int(piOrg[35] - piCur[35])).(int))
-        uiSum += uint(TLibCommon.ABS(int(piOrg[36] - piCur[36])).(int))
-        uiSum += uint(TLibCommon.ABS(int(piOrg[37] - piCur[37])).(int))
-        uiSum += uint(TLibCommon.ABS(int(piOrg[38] - piCur[38])).(int))
-        uiSum += uint(TLibCommon.ABS(int(piOrg[39] - piCur[39])).(int))
-        uiSum += uint(TLibCommon.ABS(int(piOrg[40] - piCur[40])).(int))
-        uiSum += uint(TLibCommon.ABS(int(piOrg[41] - piCur[41])).(int))
-        uiSum += uint(TLibCommon.ABS(int(piOrg[42] - piCur[42])).(int))
-        uiSum += uint(TLibCommon.ABS(int(piOrg[43] - piCur[43])).(int))
-        uiSum += uint(TLibCommon.ABS(int(piOrg[44] - piCur[44])).(int))
-        uiSum += uint(TLibCommon.ABS(int(piOrg[45] - piCur[45])).(int))
-        uiSum += uint(TLibCommon.ABS(int(piOrg[46] - piCur[46])).(int))
-        uiSum += uint(TLibCommon.ABS(int(piOrg[47] - piCur[47])).(int))
+    //for ; iRows != 0; iRows -= iSubStep {
+    for j:=0; j<iRows; j+=iSubStep {
+    	jOrg := j*iStrideOrg;
+    	jCur := j*iStrideCur;
+        uiSum += uint(TLibCommon.ABS(int(piOrg[jOrg+0] - piCur[jCur+0])).(int))
+        uiSum += uint(TLibCommon.ABS(int(piOrg[jOrg+1] - piCur[jCur+1])).(int))
+        uiSum += uint(TLibCommon.ABS(int(piOrg[jOrg+2] - piCur[jCur+2])).(int))
+        uiSum += uint(TLibCommon.ABS(int(piOrg[jOrg+3] - piCur[jCur+3])).(int))
+        uiSum += uint(TLibCommon.ABS(int(piOrg[jOrg+4] - piCur[jCur+4])).(int))
+        uiSum += uint(TLibCommon.ABS(int(piOrg[jOrg+5] - piCur[jCur+5])).(int))
+        uiSum += uint(TLibCommon.ABS(int(piOrg[jOrg+6] - piCur[jCur+6])).(int))
+        uiSum += uint(TLibCommon.ABS(int(piOrg[jOrg+7] - piCur[jCur+7])).(int))
+        uiSum += uint(TLibCommon.ABS(int(piOrg[jOrg+8] - piCur[jCur+8])).(int))
+        uiSum += uint(TLibCommon.ABS(int(piOrg[jOrg+9] - piCur[jCur+9])).(int))
+        uiSum += uint(TLibCommon.ABS(int(piOrg[jOrg+10] - piCur[jCur+10])).(int))
+        uiSum += uint(TLibCommon.ABS(int(piOrg[jOrg+11] - piCur[jCur+11])).(int))
+        uiSum += uint(TLibCommon.ABS(int(piOrg[jOrg+12] - piCur[jCur+12])).(int))
+        uiSum += uint(TLibCommon.ABS(int(piOrg[jOrg+13] - piCur[jCur+13])).(int))
+        uiSum += uint(TLibCommon.ABS(int(piOrg[jOrg+14] - piCur[jCur+14])).(int))
+        uiSum += uint(TLibCommon.ABS(int(piOrg[jOrg+15] - piCur[jCur+15])).(int))
+        uiSum += uint(TLibCommon.ABS(int(piOrg[jOrg+16] - piCur[jCur+16])).(int))
+        uiSum += uint(TLibCommon.ABS(int(piOrg[jOrg+17] - piCur[jCur+17])).(int))
+        uiSum += uint(TLibCommon.ABS(int(piOrg[jOrg+18] - piCur[jCur+18])).(int))
+        uiSum += uint(TLibCommon.ABS(int(piOrg[jOrg+19] - piCur[jCur+19])).(int))
+        uiSum += uint(TLibCommon.ABS(int(piOrg[jOrg+20] - piCur[jCur+20])).(int))
+        uiSum += uint(TLibCommon.ABS(int(piOrg[jOrg+21] - piCur[jCur+21])).(int))
+        uiSum += uint(TLibCommon.ABS(int(piOrg[jOrg+22] - piCur[jCur+22])).(int))
+        uiSum += uint(TLibCommon.ABS(int(piOrg[jOrg+23] - piCur[jCur+23])).(int))
+        uiSum += uint(TLibCommon.ABS(int(piOrg[jOrg+24] - piCur[jCur+24])).(int))
+        uiSum += uint(TLibCommon.ABS(int(piOrg[jOrg+25] - piCur[jCur+25])).(int))
+        uiSum += uint(TLibCommon.ABS(int(piOrg[jOrg+26] - piCur[jCur+26])).(int))
+        uiSum += uint(TLibCommon.ABS(int(piOrg[jOrg+27] - piCur[jCur+27])).(int))
+        uiSum += uint(TLibCommon.ABS(int(piOrg[jOrg+28] - piCur[jCur+28])).(int))
+        uiSum += uint(TLibCommon.ABS(int(piOrg[jOrg+29] - piCur[jCur+29])).(int))
+        uiSum += uint(TLibCommon.ABS(int(piOrg[jOrg+30] - piCur[jCur+30])).(int))
+        uiSum += uint(TLibCommon.ABS(int(piOrg[jOrg+31] - piCur[jCur+31])).(int))
+        uiSum += uint(TLibCommon.ABS(int(piOrg[jOrg+32] - piCur[jCur+32])).(int))
+        uiSum += uint(TLibCommon.ABS(int(piOrg[jOrg+33] - piCur[jCur+33])).(int))
+        uiSum += uint(TLibCommon.ABS(int(piOrg[jOrg+34] - piCur[jCur+34])).(int))
+        uiSum += uint(TLibCommon.ABS(int(piOrg[jOrg+35] - piCur[jCur+35])).(int))
+        uiSum += uint(TLibCommon.ABS(int(piOrg[jOrg+36] - piCur[jCur+36])).(int))
+        uiSum += uint(TLibCommon.ABS(int(piOrg[jOrg+37] - piCur[jCur+37])).(int))
+        uiSum += uint(TLibCommon.ABS(int(piOrg[jOrg+38] - piCur[jCur+38])).(int))
+        uiSum += uint(TLibCommon.ABS(int(piOrg[jOrg+39] - piCur[jCur+39])).(int))
+        uiSum += uint(TLibCommon.ABS(int(piOrg[jOrg+40] - piCur[jCur+40])).(int))
+        uiSum += uint(TLibCommon.ABS(int(piOrg[jOrg+41] - piCur[jCur+41])).(int))
+        uiSum += uint(TLibCommon.ABS(int(piOrg[jOrg+42] - piCur[jCur+42])).(int))
+        uiSum += uint(TLibCommon.ABS(int(piOrg[jOrg+43] - piCur[jCur+43])).(int))
+        uiSum += uint(TLibCommon.ABS(int(piOrg[jOrg+44] - piCur[jCur+44])).(int))
+        uiSum += uint(TLibCommon.ABS(int(piOrg[jOrg+45] - piCur[jCur+45])).(int))
+        uiSum += uint(TLibCommon.ABS(int(piOrg[jOrg+46] - piCur[jCur+46])).(int))
+        uiSum += uint(TLibCommon.ABS(int(piOrg[jOrg+47] - piCur[jCur+47])).(int))
 
-        piOrg = piOrg[iStrideOrg:]
-        piCur = piCur[iStrideCur:]
+        //piOrg = piOrg[iStrideOrg:]
+        //piCur = piCur[iStrideCur:]
     }
 
     uiSum <<= uint(iSubShift)
@@ -1934,16 +1968,16 @@ func (this *TEncRdCost) xGetHADs4(pcDtParam *DistParam) uint {
     iStrideCur := pcDtParam.iStrideCur
     iStrideOrg := pcDtParam.iStrideOrg
     iStep := pcDtParam.iStep
-    var y int
-    iOffsetOrg := iStrideOrg << 2
-    iOffsetCur := iStrideCur << 2
+    //var y int
+    //iOffsetOrg := iStrideOrg << 2
+    //iOffsetCur := iStrideCur << 2
 
     uiSum := uint(0)
 
-    for y = 0; y < iRows; y += 4 {
-        uiSum += this.xCalcHADs4x4(piOrg, piCur, iStrideOrg, iStrideCur, iStep)
-        piOrg = piOrg[iOffsetOrg:]
-        piCur = piCur[iOffsetCur:]
+    for y := 0; y < iRows; y += 4 {
+        uiSum += this.xCalcHADs4x4(piOrg[y*iStrideOrg:], piCur[y*iStrideCur:], iStrideOrg, iStrideCur, iStep)
+        //piOrg = piOrg[iOffsetOrg:]
+        //piCur = piCur[iOffsetCur:]
     }
 
     return uiSum >> TLibCommon.DISTORTION_PRECISION_ADJUSTMENT(uint(pcDtParam.bitDepth-8)).(uint)
@@ -1959,7 +1993,7 @@ func (this *TEncRdCost) xGetHADs8(pcDtParam *DistParam) uint {
     iStrideCur := pcDtParam.iStrideCur
     iStrideOrg := pcDtParam.iStrideOrg
     iStep := pcDtParam.iStep
-    var y int
+    //var y int
 
     uiSum := uint(0)
 
@@ -1967,12 +2001,12 @@ func (this *TEncRdCost) xGetHADs8(pcDtParam *DistParam) uint {
         uiSum += this.xCalcHADs4x4(piOrg[0:], piCur, iStrideOrg, iStrideCur, iStep)
         uiSum += this.xCalcHADs4x4(piOrg[4:], piCur[4*iStep:], iStrideOrg, iStrideCur, iStep)
     } else {
-        iOffsetOrg := iStrideOrg << 3
-        iOffsetCur := iStrideCur << 3
-        for y = 0; y < iRows; y += 8 {
-            uiSum += this.xCalcHADs8x8(piOrg, piCur, iStrideOrg, iStrideCur, iStep)
-            piOrg = piOrg[iOffsetOrg:]
-            piCur = piCur[iOffsetCur:]
+        //iOffsetOrg := iStrideOrg << 3
+        //iOffsetCur := iStrideCur << 3
+        for y := 0; y < iRows; y += 8 {
+            uiSum += this.xCalcHADs8x8(piOrg[y*iStrideOrg:], piCur[y*iStrideCur:], iStrideOrg, iStrideCur, iStep)
+            //piOrg = piOrg[iOffsetOrg:]
+            //piCur = piCur[iOffsetCur:]
         }
     }
 
@@ -1991,7 +2025,7 @@ func (this *TEncRdCost) xGetHADs(pcDtParam *DistParam) uint {
     iStrideOrg := pcDtParam.iStrideOrg
     iStep := pcDtParam.iStep
 
-    var x, y int
+    //var x, y int
 
     uiSum := uint(0)
 
@@ -2000,14 +2034,14 @@ func (this *TEncRdCost) xGetHADs(pcDtParam *DistParam) uint {
     //#else
     if (iRows%8 == 0) && (iCols%8 == 0) {
         //#endif
-        iOffsetOrg := iStrideOrg << 3
-        iOffsetCur := iStrideCur << 3
-        for y = 0; y < iRows; y += 8 {
-            for x = 0; x < iCols; x += 8 {
-                uiSum += this.xCalcHADs8x8(piOrg[x:], piCur[x*iStep:], iStrideOrg, iStrideCur, iStep)
+        //iOffsetOrg := iStrideOrg << 3
+        //iOffsetCur := iStrideCur << 3
+        for y := 0; y < iRows; y += 8 {
+            for x := 0; x < iCols; x += 8 {
+                uiSum += this.xCalcHADs8x8(piOrg[y*iStrideOrg+x:], piCur[y*iStrideCur+x*iStep:], iStrideOrg, iStrideCur, iStep)
             }
-            piOrg = piOrg[iOffsetOrg:]
-            piCur = piCur[iOffsetCur:]
+            //piOrg = piOrg[iOffsetOrg:]
+            //piCur = piCur[iOffsetCur:]
         }
         /*#if NS_HAD
           else if ( ( iCols > 8 ) && ( iCols > iRows ) && pcDtParam.bUseNSHAD )
@@ -2040,25 +2074,25 @@ func (this *TEncRdCost) xGetHADs(pcDtParam *DistParam) uint {
           }
         #endif*/
     } else if (iRows%4 == 0) && (iCols%4 == 0) {
-        iOffsetOrg := iStrideOrg << 2
-        iOffsetCur := iStrideCur << 2
+        //iOffsetOrg := iStrideOrg << 2
+        //iOffsetCur := iStrideCur << 2
 
-        for y = 0; y < iRows; y += 4 {
-            for x = 0; x < iCols; x += 4 {
-                uiSum += this.xCalcHADs4x4(piOrg[x:], piCur[x*iStep:], iStrideOrg, iStrideCur, iStep)
+        for y := 0; y < iRows; y += 4 {
+            for x := 0; x < iCols; x += 4 {
+                uiSum += this.xCalcHADs4x4(piOrg[y*iStrideOrg+x:], piCur[y*iStrideCur+x*iStep:], iStrideOrg, iStrideCur, iStep)
             }
-            piOrg = piOrg[iOffsetOrg:]
-            piCur = piCur[iOffsetCur:]
+            //piOrg = piOrg[iOffsetOrg:]
+            //piCur = piCur[iOffsetCur:]
         }
     } else if (iRows%2 == 0) && (iCols%2 == 0) {
-        iOffsetOrg := iStrideOrg << 1
-        iOffsetCur := iStrideCur << 1
-        for y = 0; y < iRows; y += 2 {
-            for x = 0; x < iCols; x += 2 {
-                uiSum += this.xCalcHADs2x2(piOrg[x:], piCur[x*iStep:], iStrideOrg, iStrideCur, iStep)
+        //iOffsetOrg := iStrideOrg << 1
+        //iOffsetCur := iStrideCur << 1
+        for y := 0; y < iRows; y += 2 {
+            for x := 0; x < iCols; x += 2 {
+                uiSum += this.xCalcHADs2x2(piOrg[y*iStrideOrg+x:], piCur[y*iStrideCur+x*iStep:], iStrideOrg, iStrideCur, iStep)
             }
-            piOrg = piOrg[iOffsetOrg:]
-            piCur = piCur[iOffsetCur:]
+            //piOrg = piOrg[iOffsetOrg:]
+            //piCur = piCur[iOffsetCur:]
         }
     } else {
         //    assert(false);

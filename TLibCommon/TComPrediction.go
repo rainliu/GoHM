@@ -649,6 +649,11 @@ func (this *TComPrediction) xPredInterUni(pcCU *TComDataCU, uiPartAddr uint, iWi
     iRefIdx := pcCU.GetCUMvField(eRefPicList).GetRefIdx(int(uiPartAddr)) //assert (iRefIdx >= 0);
     cMv := pcCU.GetCUMvField(eRefPicList).GetMv(int(uiPartAddr))
     pcCU.ClipMv(&cMv)
+    /*if pcCU.GetSlice()==nil{
+    	fmt.Printf("pcCU.GetSlice() is nil\n");
+    }else if pcCU.GetSlice().GetRefPic(eRefPicList, int(iRefIdx))==nil { 
+    	fmt.Printf("pcCU.GetSlice().GetRefPic(eRefPicList%d, int(iRefIdx)%d) is nil\n",eRefPicList,iRefIdx);
+    }*/
     this.XPredInterLumaBlk(pcCU, pcCU.GetSlice().GetRefPic(eRefPicList, int(iRefIdx)).GetPicYuvRec(), uiPartAddr, &cMv, iWidth, iHeight, rpcYuvPred, bi)
     this.XPredInterChromaBlk(pcCU, pcCU.GetSlice().GetRefPic(eRefPicList, int(iRefIdx)).GetPicYuvRec(), uiPartAddr, &cMv, iWidth, iHeight, rpcYuvPred, bi)
 }
@@ -665,7 +670,9 @@ func (this *TComPrediction) xPredInterBi(pcCU *TComDataCU, uiPartAddr uint, iWid
         }
 
         iRefIdx[iRefList] = int(pcCU.GetCUMvField(eRefPicList).GetRefIdx(int(uiPartAddr)))
-
+		
+		//fmt.Printf("iRefIdx[iRefList%d]=%d\n",iRefList, iRefIdx[iRefList]);
+		
         if iRefIdx[iRefList] < 0 {
             continue
         }

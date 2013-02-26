@@ -1558,8 +1558,8 @@ func (this *TEncSearch) predInterSearch(pcCU *TLibCommon.TComDataCU,
         }   //end if bTestNormalMC
         //#endif
         //  Clear Motion Field
-        pcCU.GetCUMvField(TLibCommon.REF_PIC_LIST_0).SetAllMvField(&TLibCommon.TComMvField{}, ePartSize, int(uiPartAddr), 0, iPartIdx)
-        pcCU.GetCUMvField(TLibCommon.REF_PIC_LIST_1).SetAllMvField(&TLibCommon.TComMvField{}, ePartSize, int(uiPartAddr), 0, iPartIdx)
+        pcCU.GetCUMvField(TLibCommon.REF_PIC_LIST_0).SetAllMvField(TLibCommon.NewTComMvField(), ePartSize, int(uiPartAddr), 0, iPartIdx)
+        pcCU.GetCUMvField(TLibCommon.REF_PIC_LIST_1).SetAllMvField(TLibCommon.NewTComMvField(), ePartSize, int(uiPartAddr), 0, iPartIdx)
         pcCU.GetCUMvField(TLibCommon.REF_PIC_LIST_0).SetAllMvd(cMvZero, ePartSize, int(uiPartAddr), 0, iPartIdx)
         pcCU.GetCUMvField(TLibCommon.REF_PIC_LIST_1).SetAllMvd(cMvZero, ePartSize, int(uiPartAddr), 0, iPartIdx)
 
