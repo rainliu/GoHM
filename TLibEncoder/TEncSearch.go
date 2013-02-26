@@ -34,7 +34,7 @@
 package TLibEncoder
 
 import (
-	"fmt"
+	//"fmt"
     "gohm/TLibCommon"
     "math"
 )
@@ -1193,7 +1193,7 @@ func (this *TEncSearch) predInterSearch(pcCU *TLibCommon.TComDataCU,
     var uiPartAddr uint
     var iRoiWidth, iRoiHeight int
 
-    var uiMbBits = [3]uint{1, 1, 0}
+    var uiMbBits = []uint{1, 1, 0}
 
     uiLastMode := uint(0)
     var iRefStart, iRefEnd int
@@ -1235,7 +1235,7 @@ func (this *TEncSearch) predInterSearch(pcCU *TLibCommon.TComDataCU,
         }
         var uiBitsTempL0 [TLibCommon.MAX_NUM_REF]uint
 
-        this.xGetBlkBits(ePartSize, pcCU.GetSlice().IsInterP(), iPartIdx, uiLastMode, uiMbBits)
+        this.xGetBlkBits(ePartSize, pcCU.GetSlice().IsInterP(), iPartIdx, uiLastMode, uiMbBits[:])
 
         pcCU.GetPartIndexAndSize(uint(iPartIdx), &uiPartAddr, &iRoiWidth, &iRoiHeight)
 
@@ -1260,12 +1260,14 @@ func (this *TEncSearch) predInterSearch(pcCU *TLibCommon.TComDataCU,
 
                 for iRefIdxTemp := 0; iRefIdxTemp < pcCU.GetSlice().GetNumRefIdx(eRefPicList); iRefIdxTemp++ {
                     uiBitsTemp = uiMbBits[iRefList]
+                    //fmt.Printf("2.0.0:uiBitsTemp=%d\n",uiBitsTemp);
                     if pcCU.GetSlice().GetNumRefIdx(eRefPicList) > 1 {
-                        uiBitsTemp += uint(iRefIdxTemp) + 1
+                        uiBitsTemp += uint(iRefIdxTemp + 1)
                         if iRefIdxTemp == pcCU.GetSlice().GetNumRefIdx(eRefPicList)-1 {
                             uiBitsTemp--
                         }
                     }
+                    //fmt.Printf("2.0.1:uiBitsTemp=%d\n",uiBitsTemp);
                     //#if ZERO_MVD_EST
                     //        this.xEstimateMvPredAMVP( pcCU, pcOrgYuv, uint(iPartIdx), eRefPicList, iRefIdxTemp, cMvPred[iRefList][iRefIdxTemp][:], false, &biPDistTemp, &uiZeroMvdDistTemp);
                     //#else
@@ -1279,8 +1281,9 @@ func (this *TEncSearch) predInterSearch(pcCU *TLibCommon.TComDataCU,
                         bestBiPMvpL1 = aaiMvpIdx[iRefList][iRefIdxTemp]
                         bestBiPRefIdxL1 = iRefIdxTemp
                     }
-
+					//fmt.Printf("2.0:uiBitsTemp=%d\n",uiBitsTemp);  
                     uiBitsTemp += this.m_auiMVPIdxCost[aaiMvpIdx[iRefList][iRefIdxTemp]][TLibCommon.AMVP_MAX_NUM_CANDS]
+                    //fmt.Printf("2.1:uiBitsTemp=%d\n",uiBitsTemp);  
                     /*#if ZERO_MVD_EST
                             if (iRefList != 1 || !pcCU.GetSlice().GetNoBackPredFlag()) &&
                                (pcCU.GetSlice().GetNumRefIdx(TLibCommon.REF_PIC_LIST_C) <= 0 || pcCU.GetSlice().GetRefIdxOfLC(eRefPicList, iRefIdxTemp)>=0) {
@@ -1327,6 +1330,7 @@ func (this *TEncSearch) predInterSearch(pcCU *TLibCommon.TComDataCU,
                             uiCostTemp = TLibCommon.MAX_UINT
                             cMvTemp[1][iRefIdxTemp] = cMvTemp[0][iRefIdxTemp]
                         } else {
+                        	//fmt.Printf("2:uiBitsTemp=%d\n",uiBitsTemp);
                             this.xMotionEstimation(pcCU, pcOrgYuv, iPartIdx, eRefPicList, &cMvPred[iRefList][iRefIdxTemp], iRefIdxTemp, &cMvTemp[iRefList][iRefIdxTemp], &uiBitsTemp, &uiCostTemp, false)
                         }
                     }
@@ -3964,7 +3968,7 @@ func (this *TEncSearch) xGetMvpIdxBits(iIdx, iNum int) uint {
     return uiLength
 }
 
-func (this *TEncSearch) xGetBlkBits(eCUMode TLibCommon.PartSize, bPSlice bool, iPartIdx int, uiLastMode uint, uiBlkBit [3]uint) {
+func (this *TEncSearch) xGetBlkBits(eCUMode TLibCommon.PartSize, bPSlice bool, iPartIdx int, uiLastMode uint, uiBlkBit []uint) {
     if eCUMode == TLibCommon.SIZE_2Nx2N {
         if !bPSlice {
             uiBlkBit[0] = 3
@@ -4093,6 +4097,9 @@ func (this *TEncSearch) xMotionEstimation(pcCU *TLibCommon.TComDataCU,
     ruiBits *uint,
     ruiCost *uint,
     bBi bool) {
+    
+    //fmt.Printf("Enter xMotionEstimation with iPartIdx%d,eRefPicList%d,iRefIdxPred%d,ruiBits%d,ruiCost%d,bBi%d\n", iPartIdx,eRefPicList,iRefIdxPred,*ruiBits,*ruiCost,TLibCommon.B2U(bBi));
+    
     var uiPartAddr uint
     var iRoiWidth int
     var iRoiHeight int
@@ -4164,19 +4171,24 @@ func (this *TEncSearch) xMotionEstimation(pcCU *TLibCommon.TComDataCU,
     this.m_pcRdCost.getMotionCost(true, 0)
     this.m_pcRdCost.setCostScale(1)
 
-	fmt.Printf("disable xPatternSearchFracDIF temporally\n");
+	//fmt.Printf("disable xPatternSearchFracDIF temporally\n");
     //this.xPatternSearchFracDIF(pcCU, pcPatternKey, piRefY, iOffset, iRefStride, rcMv, &cMvHalf, &cMvQter, *ruiCost, bBi)
-
+	
+	//fmt.Printf("rcMv=(%d,%d), cMvHalf=(%d,%d), cMvQter=(%d,%d), ruiCost=%d\n",rcMv.GetHor(),rcMv.GetVer(),cMvHalf.GetHor(),cMvHalf.GetVer(),cMvQter.GetHor(),cMvQter.GetVer(), *ruiCost);
+	  
     this.m_pcRdCost.setCostScale(0)
-    rcMv.ScaleMv(4) // <<= 2
-    cMvHalf.ScaleMv(2)
-    rcMv.AddMv(cMvHalf) //(cMvHalf <<= 1);
+    rcMv.ShiftMv(2) // <<= 2    
+    cMvHalf.ShiftMv(1)//(cMvHalf <<= 1);    
+    rcMv.AddMv(cMvHalf)     
     rcMv.AddMv(cMvQter)
-
+    
     uiMvBits := this.m_pcRdCost.getBits(int(rcMv.GetHor()), int(rcMv.GetVer()))
+	//fmt.Printf("uiMvBits=%d\n",uiMvBits);
 
     *ruiBits += uiMvBits
     *ruiCost = uint(math.Floor(fWeight*(float64(*ruiCost)-float64(this.m_pcRdCost.getCost1(uiMvBits)))) + float64(this.m_pcRdCost.getCost1(*ruiBits)))
+	
+	//fmt.Printf("Exit xMotionEstimation with mv_x%d,mv_y%d,ruiBits%d,ruiCost%d\n", rcMv.GetHor(),rcMv.GetVer(),*ruiBits,*ruiCost);
 }
 
 func (this *TEncSearch) xTZSearch(pcCU *TLibCommon.TComDataCU,
@@ -4187,7 +4199,7 @@ func (this *TEncSearch) xTZSearch(pcCU *TLibCommon.TComDataCU,
     pcMvSrchRngLT *TLibCommon.TComMv,
     pcMvSrchRngRB *TLibCommon.TComMv,
     rcMv *TLibCommon.TComMv,
-    ruiSAD uint) {
+    ruiSAD *uint) {
     iSrchRngHorLeft := int(pcMvSrchRngLT.GetHor())
     iSrchRngHorRight := int(pcMvSrchRngRB.GetHor())
     iSrchRngVerTop := int(pcMvSrchRngLT.GetVer())
@@ -4327,7 +4339,7 @@ func (this *TEncSearch) xTZSearch(pcCU *TLibCommon.TComDataCU,
 
     // write out best match
     rcMv.Set(int16(cStruct.iBestX), int16(cStruct.iBestY))
-    ruiSAD = cStruct.uiBestSad - this.m_pcRdCost.getCost2(cStruct.iBestX, cStruct.iBestY)
+    *ruiSAD = cStruct.uiBestSad - this.m_pcRdCost.getCost2(cStruct.iBestX, cStruct.iBestY)
 }
 
 func (this *TEncSearch) xSetSearchRange(pcCU *TLibCommon.TComDataCU,
@@ -4368,7 +4380,7 @@ func (this *TEncSearch) xPatternSearchFast(pcCU *TLibCommon.TComDataCU,
 
     switch this.m_iFastSearch {
     case 1:
-        this.xTZSearch(pcCU, pcPatternKey, piRefY, iOffset, iRefStride, pcMvSrchRngLT, pcMvSrchRngRB, rcMv, *ruiSAD)
+        this.xTZSearch(pcCU, pcPatternKey, piRefY, iOffset, iRefStride, pcMvSrchRngLT, pcMvSrchRngRB, rcMv, ruiSAD)
     default:
     }
 }
@@ -4459,7 +4471,7 @@ func (this *TEncSearch) xPatternSearchFracDIF(pcCU *TLibCommon.TComDataCU,
     this.xExtDIFUpSamplingH(&cPatternRoi, biPred)
 
     *rcMvHalf = *pcMvInt
-    rcMvHalf.ScaleMv(2) // <<= 1 // for mv-cost
+    rcMvHalf.ShiftMv(1) // <<= 1 // for mv-cost
     baseRefMv := TLibCommon.NewTComMv(0, 0)
     ruiCost = this.xPatternRefinement(pcPatternKey, *baseRefMv, 2, rcMvHalf)
 
@@ -4467,12 +4479,12 @@ func (this *TEncSearch) xPatternSearchFracDIF(pcCU *TLibCommon.TComDataCU,
 
     this.xExtDIFUpSamplingQ(&cPatternRoi, *rcMvHalf, biPred)
     *baseRefMv = *rcMvHalf
-    baseRefMv.ScaleMv(2) // <<= 1
+    baseRefMv.ShiftMv(1) // <<= 1
 
     *rcMvQter = *pcMvInt
-    rcMvQter.ScaleMv(2) // <<= 1 // for mv-cost
+    rcMvQter.ShiftMv(1) // <<= 1 // for mv-cost
     rcMvQter.AddMv(*rcMvHalf)
-    rcMvQter.ScaleMv(2) // <<= 1
+    rcMvQter.ShiftMv(1) // <<= 1
     ruiCost = this.xPatternRefinement(pcPatternKey, *baseRefMv, 1, rcMvQter)
 }
 

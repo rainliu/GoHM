@@ -138,7 +138,7 @@ func NotEqualMvs(lcMv, rcMv TComMv) bool {
     return (lcMv.m_iHor != rcMv.m_iHor || lcMv.m_iVer != rcMv.m_iVer)
 }
 
-func (this *TComMv) ScaleMv(iScale int) TComMv {
+func (this *TComMv) ScaleMv(iScale int) TComMv{
     mvx := (iScale*int(this.GetHor()) + 127 + int(B2U(iScale*int(this.GetHor()) < 0))) >> 8
 
     if mvx < -32768 {
@@ -156,4 +156,10 @@ func (this *TComMv) ScaleMv(iScale int) TComMv {
     }
 
     return TComMv{m_iHor: int16(mvx), m_iVer: int16(mvy)}
+}
+
+
+func (this *TComMv) ShiftMv(uiShift uint){
+    this.m_iHor <<= uiShift;
+	this.m_iVer <<= uiShift;
 }
