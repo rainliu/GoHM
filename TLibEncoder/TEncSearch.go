@@ -35,7 +35,7 @@ package TLibEncoder
 
 import (
 	//"os"
-	"fmt"
+	//"fmt"
     "gohm/TLibCommon"
     "math"
 )
@@ -4165,8 +4165,7 @@ func (this *TEncSearch) xMotionEstimation(pcCU *TLibCommon.TComDataCU,
     this.setWpScalingDistParam(pcCU, iRefIdxPred, eRefPicList)
     //  Do integer search
     if this.m_iFastSearch == 0 || bBi {
-    	fmt.Printf("do xPatternSearch\n");
-        this.xPatternSearch	   (pcCU, pcPatternKey, piRefY, iOffset, iRefStride, &cMvSrchRngLT, &cMvSrchRngRB, rcMv, ruiCost)
+    	this.xPatternSearch	   (pcCU, pcPatternKey, piRefY, iOffset, iRefStride, &cMvSrchRngLT, &cMvSrchRngRB, rcMv, ruiCost)
     } else {
         *rcMv = *pcMvPred
         this.xPatternSearchFast(pcCU, pcPatternKey, piRefY, iOffset, iRefStride, &cMvSrchRngLT, &cMvSrchRngRB, rcMv, ruiCost)
@@ -4175,10 +4174,9 @@ func (this *TEncSearch) xMotionEstimation(pcCU *TLibCommon.TComDataCU,
     this.m_pcRdCost.getMotionCost(true, 0)
     this.m_pcRdCost.setCostScale(1)
 
-	//fmt.Printf("disable xPatternSearchFracDIF temporally\n");
-    this.xPatternSearchFracDIF(pcCU, pcPatternKey, piRefY, iOffset, iRefStride, rcMv, &cMvHalf, &cMvQter, ruiCost, bBi)
+	this.xPatternSearchFracDIF(pcCU, pcPatternKey, piRefY, iOffset, iRefStride, rcMv, &cMvHalf, &cMvQter, ruiCost, bBi)
 	
-	fmt.Printf("rcMv=(%d,%d), cMvHalf=(%d,%d), cMvQter=(%d,%d), ruiCost=%d\n",rcMv.GetHor(),rcMv.GetVer(),cMvHalf.GetHor(),cMvHalf.GetVer(),cMvQter.GetHor(),cMvQter.GetVer(), *ruiCost);
+	//fmt.Printf("rcMv=(%d,%d), cMvHalf=(%d,%d), cMvQter=(%d,%d), ruiCost=%d\n",rcMv.GetHor(),rcMv.GetVer(),cMvHalf.GetHor(),cMvHalf.GetVer(),cMvQter.GetHor(),cMvQter.GetVer(), *ruiCost);
 	  
     this.m_pcRdCost.setCostScale(0)
     rcMv.ShiftMv(2) // <<= 2    

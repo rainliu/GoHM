@@ -169,7 +169,7 @@ func (this *TAppDecTop) Decode() (err error) {
                 this.xWriteOutput(pcListPic, nalu.GetTemporalId())
 
                 iDecodedFrameNum++
-                if iDecodedFrameNum >= this.m_iFrameNum {
+                if iDecodedFrameNum >= this.m_iFrameNum && this.m_iFrameNum > 0 {
                     break
                 }
             }
