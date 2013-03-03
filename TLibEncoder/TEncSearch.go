@@ -1262,7 +1262,7 @@ func (this *TEncSearch) predInterSearch(pcCU *TLibCommon.TComDataCU,
 
                 for iRefIdxTemp := 0; iRefIdxTemp < pcCU.GetSlice().GetNumRefIdx(eRefPicList); iRefIdxTemp++ {
                     uiBitsTemp = uiMbBits[iRefList]
-                    //fmt.Printf("2.0.0:uiBitsTemp=%d\n",uiBitsTemp);
+                    //fmt.Printf("2.0.0:uiBitsTemp=%d uiMbBits[%d]=[%d,%d,%d]\n",uiBitsTemp,iRefList,uiMbBits[0],uiMbBits[1],uiMbBits[2]);
                     if pcCU.GetSlice().GetNumRefIdx(eRefPicList) > 1 {
                         uiBitsTemp += uint(iRefIdxTemp + 1)
                         if iRefIdxTemp == pcCU.GetSlice().GetNumRefIdx(eRefPicList)-1 {
@@ -4002,7 +4002,7 @@ func (this *TEncSearch) xGetBlkBits(eCUMode TLibCommon.PartSize, bPSlice bool, i
             }
         }
     } else if eCUMode == TLibCommon.SIZE_NxN {
-        if bPSlice {
+        if !bPSlice {
             uiBlkBit[0] = 3
         } else {
             uiBlkBit[0] = 1

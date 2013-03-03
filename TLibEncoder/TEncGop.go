@@ -1076,7 +1076,7 @@ func (this *TEncGOP) compressGOP(iPOCLast, iNumPicRcvd int, rcListPic, rcListPic
                 // If current NALU is the first NALU of slice (containing slice header) and more NALUs exist (due to multiple dependent slices) then buffer it.
                 // If current NALU is the last NALU of slice and a NALU was buffered, then (a) Write current NALU (b) Update an write buffered NALU at approproate location in NALU list.
                 bNALUAlignedWrittenToList := false // used to ensure current NALU is not written more than once to the NALU list.
-                this.xWriteTileLocationToSliceHeader(nalu, pcBitstreamRedirect, pcSlice)
+                this.xWriteTileLocationToSliceHeader(nalu, &pcBitstreamRedirect, pcSlice)
                 naluEbsp := NewNALUnitEBSP(nalu);
             	accessUnit.PushBack(naluEbsp);
                 //#if RATE_CONTROL_LAMBDA_DOMAIN
@@ -1084,7 +1084,8 @@ func (this *TEncGOP) compressGOP(iPOCLast, iNumPicRcvd int, rcListPic, rcListPic
                 //#endif
                 bNALUAlignedWrittenToList = true
                 uiOneBitstreamPerSliceLength += nalu.m_Bitstream.GetNumberOfWrittenBits() // length of bitstream after byte-alignment
-
+				fmt.Printf("nalu.m_Bitstream.GetNumberOfWrittenBits()=%d\n", nalu.m_Bitstream.GetNumberOfWrittenBits());
+				
                 if !bNALUAlignedWrittenToList {
                     nalu.m_Bitstream.WriteAlignZero()
 					
@@ -1362,15 +1363,15 @@ func (this *TEncGOP) compressGOP(iPOCLast, iNumPicRcvd int, rcListPic, rcListPic
     */
 }
 
-func (this *TEncGOP) xWriteTileLocationToSliceHeader(rNalu *OutputNALUnit, rpcBitstreamRedirect *TLibCommon.TComOutputBitstream, rpcSlice *TLibCommon.TComSlice) {
+func (this *TEncGOP) xWriteTileLocationToSliceHeader(rNalu *OutputNALUnit, rpcBitstreamRedirect **TLibCommon.TComOutputBitstream, rpcSlice *TLibCommon.TComSlice) {
     // Byte-align
     rNalu.m_Bitstream.WriteByteAlignment() // Slice header byte-alignment
 
     // Perform bitstream concatenation
-    if rpcBitstreamRedirect.GetNumberOfWrittenBits() > 0 {
-        uiBitCount := rpcBitstreamRedirect.GetNumberOfWrittenBits()
-        if rpcBitstreamRedirect.GetByteStreamLength() > 0 {
-            pucStart := rpcBitstreamRedirect.GetFIFO().Front()
+    if (*rpcBitstreamRedirect).GetNumberOfWrittenBits() > 0 {
+        uiBitCount := (*rpcBitstreamRedirect).GetNumberOfWrittenBits()
+        if (*rpcBitstreamRedirect).GetByteStreamLength() > 0 {
+            pucStart := (*rpcBitstreamRedirect).GetFIFO().Front()
             uiWriteByteCount := uint(0)
             for uiWriteByteCount < (uiBitCount >> 3) {
                 v := pucStart.Value.(byte)
@@ -1382,14 +1383,14 @@ func (this *TEncGOP) xWriteTileLocationToSliceHeader(rNalu *OutputNALUnit, rpcBi
         }
         uiBitsHeld := uint(uiBitCount & 0x07)
         for uiIdx := uint(0); uiIdx < uiBitsHeld; uiIdx++ {
-            rNalu.m_Bitstream.Write(uint((rpcBitstreamRedirect.GetHeldBits()&(1<<(7-uiIdx)))>>(7-uiIdx)), 1)
+            rNalu.m_Bitstream.Write(uint(((*rpcBitstreamRedirect).GetHeldBits()&(1<<(7-uiIdx)))>>(7-uiIdx)), 1)
         }
     }
 
     this.m_pcEntropyCoder.setBitstream(rNalu.m_Bitstream)
 
     //delete rpcBitstreamRedirect;
-    rpcBitstreamRedirect = TLibCommon.NewTComOutputBitstream()
+    (*rpcBitstreamRedirect) = TLibCommon.NewTComOutputBitstream()
 }
 
 func (this *TEncGOP) getGOPSize() int { return this.m_iGopSize }
