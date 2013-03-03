@@ -4165,6 +4165,7 @@ func (this *TEncSearch) xMotionEstimation(pcCU *TLibCommon.TComDataCU,
     this.setWpScalingDistParam(pcCU, iRefIdxPred, eRefPicList)
     //  Do integer search
     if this.m_iFastSearch == 0 || bBi {
+    	fmt.Printf("do xPatternSearch\n");
         this.xPatternSearch(pcPatternKey, piRefY, iOffset, iRefStride, &cMvSrchRngLT, &cMvSrchRngRB, rcMv, ruiCost)
     } else {
         *rcMv = *pcMvPred
@@ -4177,7 +4178,7 @@ func (this *TEncSearch) xMotionEstimation(pcCU *TLibCommon.TComDataCU,
 	//fmt.Printf("disable xPatternSearchFracDIF temporally\n");
     this.xPatternSearchFracDIF(pcCU, pcPatternKey, piRefY, iOffset, iRefStride, rcMv, &cMvHalf, &cMvQter, ruiCost, bBi)
 	
-	fmt.Printf("rcMv=(%d,%d), cMvHalf=(%d,%d), cMvQter=(%d,%d), ruiCost=%d\n",rcMv.GetHor(),rcMv.GetVer(),cMvHalf.GetHor(),cMvHalf.GetVer(),cMvQter.GetHor(),cMvQter.GetVer(), *ruiCost);
+	//fmt.Printf("rcMv=(%d,%d), cMvHalf=(%d,%d), cMvQter=(%d,%d), ruiCost=%d\n",rcMv.GetHor(),rcMv.GetVer(),cMvHalf.GetHor(),cMvHalf.GetVer(),cMvQter.GetHor(),cMvQter.GetVer(), *ruiCost);
 	  
     this.m_pcRdCost.setCostScale(0)
     rcMv.ShiftMv(2) // <<= 2    
@@ -4214,11 +4215,11 @@ func (this *TEncSearch) xTZSearch(pcCU *TLibCommon.TComDataCU,
     //TZ_SEARCH_CONFIGURATION
 
     uiSearchRange := this.m_iSearchRange
-    fmt.Printf("xTZSearch rcMV0=(%d,%d)\n", rcMv.GetHor(), rcMv.GetVer());
+    //fmt.Printf("xTZSearch rcMV0=(%d,%d)\n", rcMv.GetHor(), rcMv.GetVer());
     pcCU.ClipMv(rcMv)
-    fmt.Printf("xTZSearch rcMV1=(%d,%d)\n", rcMv.GetHor(), rcMv.GetVer());
+    //fmt.Printf("xTZSearch rcMV1=(%d,%d)\n", rcMv.GetHor(), rcMv.GetVer());
     rcMv.Set(rcMv.GetHor()>>2, rcMv.GetVer()>>2) // >>= 2
-    fmt.Printf("xTZSearch rcMV2=(%d,%d)\n", rcMv.GetHor(), rcMv.GetVer());
+    //fmt.Printf("xTZSearch rcMV2=(%d,%d)\n", rcMv.GetHor(), rcMv.GetVer());
     // init TZSearchStruct
     var cStruct IntTZSearchStruct
     cStruct.iYStride = iRefStride
@@ -4465,7 +4466,7 @@ func (this *TEncSearch) xPatternSearchFracDIF(pcCU *TLibCommon.TComDataCU,
     ruiCost *uint,
     biPred bool) {
     
-    fmt.Printf("ruiCost=%d, pcMvInt=(%d,%d)\n", *ruiCost, pcMvInt.GetHor(), pcMvInt.GetVer());
+    //fmt.Printf("ruiCost=%d, pcMvInt=(%d,%d)\n", *ruiCost, pcMvInt.GetHor(), pcMvInt.GetVer());
     
     //  Reference pattern initialization (integer scale)
     var cPatternRoi TLibCommon.TComPattern
@@ -4491,7 +4492,7 @@ func (this *TEncSearch) xPatternSearchFracDIF(pcCU *TLibCommon.TComDataCU,
         iOffset, 0, 0,
         0, 0)
     *ruiCost = this.xPatternRefinement(pcPatternKey, *baseRefMv, 2, rcMvHalf)
-	fmt.Printf("ruiCost=%d, rcMvHalf=(%d,%d)\n", *ruiCost, rcMvHalf.GetHor(), rcMvHalf.GetVer());
+	//fmt.Printf("ruiCost=%d, rcMvHalf=(%d,%d)\n", *ruiCost, rcMvHalf.GetHor(), rcMvHalf.GetVer());
     
     this.m_pcRdCost.setCostScale(0)
 
@@ -4517,7 +4518,7 @@ func (this *TEncSearch) xPatternSearchFracDIF(pcCU *TLibCommon.TComDataCU,
         0, 0)
     *ruiCost = this.xPatternRefinement(pcPatternKey, *baseRefMv, 1, rcMvQter)
     
-    fmt.Printf("ruiCost=%d, rcMvQter=(%d,%d)\n", *ruiCost, rcMvQter.GetHor(), rcMvQter.GetVer());
+    //fmt.Printf("ruiCost=%d, rcMvQter=(%d,%d)\n", *ruiCost, rcMvQter.GetHor(), rcMvQter.GetVer());
 }
 
 func (this *TEncSearch) xExtDIFUpSamplingH(pattern *TLibCommon.TComPattern, biPred bool) {
