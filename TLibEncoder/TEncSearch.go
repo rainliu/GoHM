@@ -5123,9 +5123,9 @@ func (this *TEncSearch) xEstimateResidualQT(pcCU *TLibCommon.TComDataCU, uiQuadr
                 uiStride := this.m_pcQTTempTComYuv[uiQTTempAccessLayer].GetCStride()
                 for uiY := uint(0); uiY < trHeightC; uiY++ {
                     for uiX := uint(0); uiX < trWidthC; uiX++ {
-                        pcPtr[uiX] = 0 //, sizeof(TLibCommon.Pel) * trWidthC );
+                        pcPtr[uiY*uiStride+uiX] = 0 //, sizeof(TLibCommon.Pel) * trWidthC );
                     }
-                    pcPtr = pcPtr[uiStride:]
+                    //pcPtr = pcPtr[uiStride:]
                 }
             }
         }
