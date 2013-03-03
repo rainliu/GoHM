@@ -34,7 +34,8 @@
 package TLibEncoder
 
 import (
-	//"fmt"
+	//"os"
+	"fmt"
     "gohm/TLibCommon"
     "math"
 )
@@ -636,6 +637,7 @@ func (this *TEncSearch) xPatternRefinement(pcPatternKey *TLibCommon.TComPattern,
     //#endif
 
     var pcMvRefine []*TLibCommon.TComMv
+    var cMvTest TLibCommon.TComMv
     if iFrac == 2 {
         pcMvRefine = s_acMvRefineH[:]
     } else {
@@ -643,7 +645,7 @@ func (this *TEncSearch) xPatternRefinement(pcPatternKey *TLibCommon.TComPattern,
     }
 
     for i := uint(0); i < 9; i++ {
-        cMvTest := pcMvRefine[i]
+        cMvTest = *pcMvRefine[i]
         cMvTest.AddMv(baseRefMv)
 
         horVal := int(cMvTest.GetHor()) * iFrac
@@ -655,7 +657,7 @@ func (this *TEncSearch) xPatternRefinement(pcPatternKey *TLibCommon.TComPattern,
         if (horVal&1) == 0 && verVal == 2 {
             piRefPos = piRefPos[iRefStride:]
         }
-        cMvTest = pcMvRefine[i]
+        cMvTest = *pcMvRefine[i]
         cMvTest.AddMv(*rcMvFrac)
 
         this.setDistParamComp(0) // Y component
@@ -664,14 +666,14 @@ func (this *TEncSearch) xPatternRefinement(pcPatternKey *TLibCommon.TComPattern,
         this.m_cDistParam.bitDepth = TLibCommon.G_bitDepthY
         uiDist = this.m_cDistParam.DistFunc(&this.m_cDistParam)
         uiDist += this.m_pcRdCost.getCost2(int(cMvTest.GetHor()), int(cMvTest.GetVer()))
-
+		//fmt.Printf("pCur[0]=%d, pOrg[0]=%d\n",this.m_cDistParam.pCur[0],this.m_cDistParam.pOrg[0]);
         if uiDist < uiDistBest {
             uiDistBest = uiDist
             uiDirecBest = i
         }
     }
 
-    rcMvFrac = pcMvRefine[uiDirecBest]
+    *rcMvFrac = *pcMvRefine[uiDirecBest]
 
     return uiDistBest
 }
@@ -996,15 +998,15 @@ func (this *TEncSearch) estIntraPredQT(pcCU *TLibCommon.TComDataCU,
             uiCompHeight := uint(pcCU.GetHeight1(0)) >> uiInitTrDepth
             uiZOrder := pcCU.GetZorderIdxInCU() + uiPartOffset
             piDes := pcCU.GetPic().GetPicYuvRec().GetLumaAddr2(int(pcCU.GetAddr()), int(uiZOrder))
-            uiDesStride := pcCU.GetPic().GetPicYuvRec().GetStride()
+            uiDesStride := uint(pcCU.GetPic().GetPicYuvRec().GetStride())
             piSrc := pcRecoYuv.GetLumaAddr1(uiPartOffset)
-            uiSrcStride := pcRecoYuv.GetStride()
+            uiSrcStride := uint(pcRecoYuv.GetStride())
             for uiY := uint(0); uiY < uiCompHeight; uiY++ {
                 for uiX := uint(0); uiX < uiCompWidth; uiX++ {
-                    piDes[uiX] = piSrc[uiX]
+                    piDes[uiY*uiDesStride+uiX] = piSrc[uiY*uiSrcStride+uiX]
                 }
-                piSrc = piSrc[uiSrcStride:]
-                piDes = piDes[uiDesStride:]
+                //piSrc = piSrc[uiSrcStride:]
+                //piDes = piDes[uiDesStride:]
             }
             if !bLumaOnly && !bSkipChroma {
                 if !bChromaSame {
@@ -1012,24 +1014,24 @@ func (this *TEncSearch) estIntraPredQT(pcCU *TLibCommon.TComDataCU,
                     uiCompHeight >>= 1
                 }
                 piDes = pcCU.GetPic().GetPicYuvRec().GetCbAddr2(int(pcCU.GetAddr()), int(uiZOrder))
-                uiDesStride = pcCU.GetPic().GetPicYuvRec().GetCStride()
+                uiDesStride = uint(pcCU.GetPic().GetPicYuvRec().GetCStride())
                 piSrc = pcRecoYuv.GetCbAddr1(uiPartOffset)
-                uiSrcStride = pcRecoYuv.GetCStride()
+                uiSrcStride = uint(pcRecoYuv.GetCStride())
                 for uiY := uint(0); uiY < uiCompHeight; uiY++ {
                     for uiX := uint(0); uiX < uiCompWidth; uiX++ {
-                        piDes[uiX] = piSrc[uiX]
+                        piDes[uiY*uiDesStride+uiX] = piSrc[uiY*uiSrcStride+uiX]
                     }
-                    piSrc = piSrc[uiSrcStride:]
-                    piDes = piDes[uiDesStride:]
+                    //piSrc = piSrc[uiSrcStride:]
+                    //piDes = piDes[uiDesStride:]
                 }
                 piDes = pcCU.GetPic().GetPicYuvRec().GetCrAddr2(int(pcCU.GetAddr()), int(uiZOrder))
                 piSrc = pcRecoYuv.GetCrAddr1(uiPartOffset)
                 for uiY := uint(0); uiY < uiCompHeight; uiY++ {
                     for uiX := uint(0); uiX < uiCompWidth; uiX++ {
-                        piDes[uiX] = piSrc[uiX]
+                        piDes[uiY*uiDesStride+uiX] = piSrc[uiY*uiSrcStride+uiX]
                     }
-                    piSrc = piSrc[uiSrcStride:]
-                    piDes = piDes[uiDesStride:]
+                    //piSrc = piSrc[uiSrcStride:]
+                    //piDes = piDes[uiDesStride:]
                 }
             }
         }
@@ -2041,33 +2043,33 @@ func (this *TEncSearch) xEncPCM(pcCU *TLibCommon.TComDataCU, uiAbsPartIdx uint, 
     // Reset pred and residual
     for uiY = 0; uiY < uiHeight; uiY++ {
         for uiX = 0; uiX < uiWidth; uiX++ {
-            pPred[uiX] = 0
-            pResi[uiX] = 0
+            pPred[uiY*uiStride+uiX] = 0
+            pResi[uiY*uiStride+uiX] = 0
         }
-        pPred = pPred[uiStride:]
-        pResi = pResi[uiStride:]
+        //pPred = pPred[uiStride:]
+        //pResi = pResi[uiStride:]
     }
 
     // Encode
     for uiY = 0; uiY < uiHeight; uiY++ {
         for uiX = 0; uiX < uiWidth; uiX++ {
-            pPCM[uiX] = pOrg[uiX] >> shiftPcm
+            pPCM[uiY*uiWidth+uiX] = pOrg[uiY*uiStride+uiX] >> shiftPcm
         }
-        pPCM = pPCM[uiWidth:]
-        pOrg = pOrg[uiStride:]
+        //pPCM = pPCM[uiWidth:]
+        //pOrg = pOrg[uiStride:]
     }
 
-    pPCM = piPCM
+    //pPCM = piPCM
 
     // Reconstruction
     for uiY = 0; uiY < uiHeight; uiY++ {
         for uiX = 0; uiX < uiWidth; uiX++ {
-            pReco[uiX] = pPCM[uiX] << shiftPcm
-            pRecoPic[uiX] = pReco[uiX]
+            pReco[uiY*uiStride+uiX] = pPCM[uiY*uiWidth+uiX] << shiftPcm
+            pRecoPic[uiY*uiReconStride+uiX] = pReco[uiY*uiStride+uiX]
         }
-        pPCM = pPCM[uiWidth:]
-        pReco = pReco[uiStride:]
-        pRecoPic = pRecoPic[uiReconStride:]
+        //pPCM = pPCM[uiWidth:]
+        //pReco = pReco[uiStride:]
+        //pRecoPic = pRecoPic[uiReconStride:]
     }
 }
 
@@ -2642,10 +2644,10 @@ func (this *TEncSearch) xIntraCodingChromaBlk(pcCU *TLibCommon.TComDataCU,
             k := 0
             for uiY := uint(0); uiY < uiHeight; uiY++ {
                 for uiX := uint(0); uiX < uiWidth; uiX++ {
-                    pPredBuf[k] = pPred[uiX]
+                    pPredBuf[k] = pPred[uiY*uiStride+uiX]
                     k++
                 }
-                pPred = pPred[uiStride:]
+                //pPred = pPred[uiStride:]
             }
         }
     } else {
@@ -2655,10 +2657,10 @@ func (this *TEncSearch) xIntraCodingChromaBlk(pcCU *TLibCommon.TComDataCU,
         k := 0
         for uiY := uint(0); uiY < uiHeight; uiY++ {
             for uiX := uint(0); uiX < uiWidth; uiX++ {
-                pPred[uiX] = pPredBuf[k]
+                pPred[uiY*uiStride+uiX] = pPredBuf[k]
                 k++
             }
-            pPred = pPred[uiStride:]
+            //pPred = pPred[uiStride:]
         }
     }
     //===== get residual signal =====
@@ -3541,19 +3543,19 @@ func (this *TEncSearch) xLoadIntraResultQT(pcCU *TLibCommon.TComDataCU,
 
     uiZOrder := pcCU.GetZorderIdxInCU() + uiAbsPartIdx
     piRecIPred := pcCU.GetPic().GetPicYuvRec().GetLumaAddr2(int(pcCU.GetAddr()), int(uiZOrder))
-    uiRecIPredStride := pcCU.GetPic().GetPicYuvRec().GetStride()
+    uiRecIPredStride := uint(pcCU.GetPic().GetPicYuvRec().GetStride())
     piRecQt := this.m_pcQTTempTComYuv[uiQTLayer].GetLumaAddr1(uiAbsPartIdx)
-    uiRecQtStride := this.m_pcQTTempTComYuv[uiQTLayer].GetStride()
+    uiRecQtStride := uint(this.m_pcQTTempTComYuv[uiQTLayer].GetStride())
     uiWidth := uint(uint(pcCU.GetWidth1(0))) >> uiTrDepth
     uiHeight := uint(pcCU.GetHeight1(0)) >> uiTrDepth
     pRecQt := piRecQt
     pRecIPred := piRecIPred
     for uiY := uint(0); uiY < uiHeight; uiY++ {
         for uiX := uint(0); uiX < uiWidth; uiX++ {
-            pRecIPred[uiX] = pRecQt[uiX]
+            pRecIPred[uiY*uiRecIPredStride+uiX] = pRecQt[uiY*uiRecQtStride+uiX]
         }
-        pRecQt = pRecQt[uiRecQtStride:]
-        pRecIPred = pRecIPred[uiRecIPredStride:]
+        //pRecQt = pRecQt[uiRecQtStride:]
+        //pRecIPred = pRecIPred[uiRecIPredStride:]
     }
 
     if !bLumaOnly && !bSkipChroma {
@@ -3563,10 +3565,10 @@ func (this *TEncSearch) xLoadIntraResultQT(pcCU *TLibCommon.TComDataCU,
         pRecIPred = piRecIPred
         for uiY := uint(0); uiY < uiHeight; uiY++ {
             for uiX := uint(0); uiX < uiWidth; uiX++ {
-                pRecIPred[uiX] = pRecQt[uiX]
+                pRecIPred[uiY*uiRecIPredStride+uiX] = pRecQt[uiY*uiRecQtStride+uiX]
             }
-            pRecQt = pRecQt[uiRecQtStride:]
-            pRecIPred = pRecIPred[uiRecIPredStride:]
+            //pRecQt = pRecQt[uiRecQtStride:]
+            //pRecIPred = pRecIPred[uiRecIPredStride:]
         }
 
         piRecIPred = pcCU.GetPic().GetPicYuvRec().GetCrAddr2(int(pcCU.GetAddr()), int(uiZOrder))
@@ -3575,10 +3577,10 @@ func (this *TEncSearch) xLoadIntraResultQT(pcCU *TLibCommon.TComDataCU,
         pRecIPred = piRecIPred
         for uiY := uint(0); uiY < uiHeight; uiY++ {
             for uiX := uint(0); uiX < uiWidth; uiX++ {
-                pRecIPred[uiX] = pRecQt[uiX]
+                pRecIPred[uiY*uiRecIPredStride+uiX] = pRecQt[uiY*uiRecQtStride+uiX]
             }
-            pRecQt = pRecQt[uiRecQtStride:]
-            pRecIPred = pRecIPred[uiRecIPredStride:]
+            //pRecQt = pRecQt[uiRecQtStride:]
+            //pRecIPred = pRecIPred[uiRecIPredStride:]
         }
     }
 }
@@ -3720,8 +3722,8 @@ func (this *TEncSearch) xLoadIntraResultChromaQT(pcCU *TLibCommon.TComDataCU,
         uiZOrder := pcCU.GetZorderIdxInCU() + uiAbsPartIdx
         uiWidth := uint(uint(pcCU.GetWidth1(0))) >> (uiTrDepth + 1)
         uiHeight := uint(pcCU.GetHeight1(0)) >> (uiTrDepth + 1)
-        uiRecQtStride := this.m_pcQTTempTComYuv[uiQTLayer].GetCStride()
-        uiRecIPredStride := pcCU.GetPic().GetPicYuvRec().GetCStride()
+        uiRecQtStride := uint(this.m_pcQTTempTComYuv[uiQTLayer].GetCStride())
+        uiRecIPredStride := uint(pcCU.GetPic().GetPicYuvRec().GetCStride())
 
         if stateU0V1Both2 == 0 || stateU0V1Both2 == 2 {
             piRecIPred := pcCU.GetPic().GetPicYuvRec().GetCbAddr2(int(pcCU.GetAddr()), int(uiZOrder))
@@ -3730,10 +3732,10 @@ func (this *TEncSearch) xLoadIntraResultChromaQT(pcCU *TLibCommon.TComDataCU,
             pRecIPred := piRecIPred
             for uiY := uint(0); uiY < uiHeight; uiY++ {
                 for uiX := uint(0); uiX < uiWidth; uiX++ {
-                    pRecIPred[uiX] = pRecQt[uiX]
+                    pRecIPred[uiY*uiRecIPredStride+uiX] = pRecQt[uiY*uiRecQtStride+uiX]
                 }
-                pRecQt = pRecQt[uiRecQtStride:]
-                pRecIPred = pRecIPred[uiRecIPredStride:]
+                //pRecQt = pRecQt[uiRecQtStride:]
+                //pRecIPred = pRecIPred[uiRecIPredStride:]
             }
         }
         if stateU0V1Both2 == 1 || stateU0V1Both2 == 2 {
@@ -3743,10 +3745,10 @@ func (this *TEncSearch) xLoadIntraResultChromaQT(pcCU *TLibCommon.TComDataCU,
             pRecIPred := piRecIPred
             for uiY := uint(0); uiY < uiHeight; uiY++ {
                 for uiX := uint(0); uiX < uiWidth; uiX++ {
-                    pRecIPred[uiX] = pRecQt[uiX]
+                    pRecIPred[uiY*uiRecIPredStride+uiX] = pRecQt[uiY*uiRecQtStride+uiX]
                 }
-                pRecQt = pRecQt[uiRecQtStride:]
-                pRecIPred = pRecIPred[uiRecIPredStride:]
+                //pRecQt = pRecQt[uiRecQtStride:]
+                //pRecIPred = pRecIPred[uiRecIPredStride:]
             }
         }
     }
@@ -4137,7 +4139,8 @@ func (this *TEncSearch) xMotionEstimation(pcCU *TLibCommon.TComDataCU,
         pcYuv.GetCrAddr1(uiPartAddr),
         iRoiWidth,
         iRoiHeight,
-        int(pcYuv.GetStride()),
+        int(pcYuv.GetStride()), 
+        0, 0, 0,
         0, 0)
 
     pPicYuvRec := pcCU.GetSlice().GetRefPic(eRefPicList, iRefIdxPred).GetPicYuvRec()
@@ -4172,9 +4175,9 @@ func (this *TEncSearch) xMotionEstimation(pcCU *TLibCommon.TComDataCU,
     this.m_pcRdCost.setCostScale(1)
 
 	//fmt.Printf("disable xPatternSearchFracDIF temporally\n");
-    //this.xPatternSearchFracDIF(pcCU, pcPatternKey, piRefY, iOffset, iRefStride, rcMv, &cMvHalf, &cMvQter, *ruiCost, bBi)
+    this.xPatternSearchFracDIF(pcCU, pcPatternKey, piRefY, iOffset, iRefStride, rcMv, &cMvHalf, &cMvQter, ruiCost, bBi)
 	
-	//fmt.Printf("rcMv=(%d,%d), cMvHalf=(%d,%d), cMvQter=(%d,%d), ruiCost=%d\n",rcMv.GetHor(),rcMv.GetVer(),cMvHalf.GetHor(),cMvHalf.GetVer(),cMvQter.GetHor(),cMvQter.GetVer(), *ruiCost);
+	fmt.Printf("rcMv=(%d,%d), cMvHalf=(%d,%d), cMvQter=(%d,%d), ruiCost=%d\n",rcMv.GetHor(),rcMv.GetVer(),cMvHalf.GetHor(),cMvHalf.GetVer(),cMvQter.GetHor(),cMvQter.GetVer(), *ruiCost);
 	  
     this.m_pcRdCost.setCostScale(0)
     rcMv.ShiftMv(2) // <<= 2    
@@ -4188,6 +4191,7 @@ func (this *TEncSearch) xMotionEstimation(pcCU *TLibCommon.TComDataCU,
     *ruiBits += uiMvBits
     *ruiCost = uint(math.Floor(fWeight*(float64(*ruiCost)-float64(this.m_pcRdCost.getCost1(uiMvBits)))) + float64(this.m_pcRdCost.getCost1(*ruiBits)))
 	
+	//os.Exit(-1);
 	//fmt.Printf("Exit xMotionEstimation with mv_x%d,mv_y%d,ruiBits%d,ruiCost%d\n", rcMv.GetHor(),rcMv.GetVer(),*ruiBits,*ruiCost);
 }
 
@@ -4200,6 +4204,8 @@ func (this *TEncSearch) xTZSearch(pcCU *TLibCommon.TComDataCU,
     pcMvSrchRngRB *TLibCommon.TComMv,
     rcMv *TLibCommon.TComMv,
     ruiSAD *uint) {
+    
+    
     iSrchRngHorLeft := int(pcMvSrchRngLT.GetHor())
     iSrchRngHorRight := int(pcMvSrchRngRB.GetHor())
     iSrchRngVerTop := int(pcMvSrchRngLT.GetVer())
@@ -4208,15 +4214,18 @@ func (this *TEncSearch) xTZSearch(pcCU *TLibCommon.TComDataCU,
     //TZ_SEARCH_CONFIGURATION
 
     uiSearchRange := this.m_iSearchRange
+    fmt.Printf("xTZSearch rcMV0=(%d,%d)\n", rcMv.GetHor(), rcMv.GetVer());
     pcCU.ClipMv(rcMv)
-    rcMv.Set(rcMv.GetHor()/4, rcMv.GetVer()/4) // >>= 2
+    fmt.Printf("xTZSearch rcMV1=(%d,%d)\n", rcMv.GetHor(), rcMv.GetVer());
+    rcMv.Set(rcMv.GetHor()>>2, rcMv.GetVer()>>2) // >>= 2
+    fmt.Printf("xTZSearch rcMV2=(%d,%d)\n", rcMv.GetHor(), rcMv.GetVer());
     // init TZSearchStruct
     var cStruct IntTZSearchStruct
     cStruct.iYStride = iRefStride
     cStruct.piRefY = piRefY
     cStruct.iOffset = iOffset
     cStruct.uiBestSad = uint(TLibCommon.MAX_UINT)
-
+	
     // set rcMv (Median predictor) as start point and as best point
     this.xTZSearchHelp(pcPatternKey, &cStruct, int(rcMv.GetHor()), int(rcMv.GetVer()), 0, 0)
 
@@ -4453,18 +4462,20 @@ func (this *TEncSearch) xPatternSearchFracDIF(pcCU *TLibCommon.TComDataCU,
     pcMvInt *TLibCommon.TComMv,
     rcMvHalf *TLibCommon.TComMv,
     rcMvQter *TLibCommon.TComMv,
-    ruiCost uint,
+    ruiCost *uint,
     biPred bool) {
+    
+    fmt.Printf("ruiCost=%d, pcMvInt=(%d,%d)\n", *ruiCost, pcMvInt.GetHor(), pcMvInt.GetVer());
+    
     //  Reference pattern initialization (integer scale)
     var cPatternRoi TLibCommon.TComPattern
     //iOffset := int(pcMvInt.GetHor()) + int(pcMvInt.GetVer())*iRefStride
     iOffset += int(pcMvInt.GetHor()) + int(pcMvInt.GetVer())*iRefStride
-    cPatternRoi.InitPattern(piRefY,//[iOffset:],
-        nil,
-        nil,
+    cPatternRoi.InitPattern(piRefY, nil, nil,
         pcPatternKey.GetROIYWidth(),
         pcPatternKey.GetROIYHeight(),
         iRefStride,
+        iOffset, 0, 0,
         0, 0)
 
     //  Half-pel refinement
@@ -4473,10 +4484,23 @@ func (this *TEncSearch) xPatternSearchFracDIF(pcCU *TLibCommon.TComDataCU,
     *rcMvHalf = *pcMvInt
     rcMvHalf.ShiftMv(1) // <<= 1 // for mv-cost
     baseRefMv := TLibCommon.NewTComMv(0, 0)
-    ruiCost = this.xPatternRefinement(pcPatternKey, *baseRefMv, 2, rcMvHalf)
-
+    cPatternRoi.InitPattern(piRefY[iOffset:], nil, nil,
+        pcPatternKey.GetROIYWidth(),
+        pcPatternKey.GetROIYHeight(),
+        iRefStride,
+        iOffset, 0, 0,
+        0, 0)
+    *ruiCost = this.xPatternRefinement(pcPatternKey, *baseRefMv, 2, rcMvHalf)
+	fmt.Printf("ruiCost=%d, rcMvHalf=(%d,%d)\n", *ruiCost, rcMvHalf.GetHor(), rcMvHalf.GetVer());
+    
     this.m_pcRdCost.setCostScale(0)
 
+	cPatternRoi.InitPattern(piRefY, nil, nil,
+        pcPatternKey.GetROIYWidth(),
+        pcPatternKey.GetROIYHeight(),
+        iRefStride,
+        iOffset, 0, 0,
+        0, 0)
     this.xExtDIFUpSamplingQ(&cPatternRoi, *rcMvHalf, biPred)
     *baseRefMv = *rcMvHalf
     baseRefMv.ShiftMv(1) // <<= 1
@@ -4485,45 +4509,55 @@ func (this *TEncSearch) xPatternSearchFracDIF(pcCU *TLibCommon.TComDataCU,
     rcMvQter.ShiftMv(1) // <<= 1 // for mv-cost
     rcMvQter.AddMv(*rcMvHalf)
     rcMvQter.ShiftMv(1) // <<= 1
-    ruiCost = this.xPatternRefinement(pcPatternKey, *baseRefMv, 1, rcMvQter)
+    cPatternRoi.InitPattern(piRefY[iOffset:], nil, nil,
+        pcPatternKey.GetROIYWidth(),
+        pcPatternKey.GetROIYHeight(),
+        iRefStride,
+        iOffset, 0, 0,
+        0, 0)
+    *ruiCost = this.xPatternRefinement(pcPatternKey, *baseRefMv, 1, rcMvQter)
+    
+    fmt.Printf("ruiCost=%d, rcMvQter=(%d,%d)\n", *ruiCost, rcMvQter.GetHor(), rcMvQter.GetVer());
 }
 
 func (this *TEncSearch) xExtDIFUpSamplingH(pattern *TLibCommon.TComPattern, biPred bool) {
     width := pattern.GetROIYWidth()
     height := pattern.GetROIYHeight()
     srcStride := pattern.GetPatternLStride()
+    srcOffset := pattern.GetPatternLOffset()
 
     intStride := int(this.GetFilteredBlockTmp(0).GetStride())
     dstStride := int(this.GetFilteredBlock(0, 0).GetStride())
     var intPtr, dstPtr []TLibCommon.Pel
     filterSize := TLibCommon.NTAPS_LUMA
     halfFilterSize := (filterSize >> 1)
-    srcPtr := pattern.GetROIY()[-halfFilterSize*srcStride-1:]
+    srcPtr := pattern.GetROIY()[srcOffset-halfFilterSize*srcStride-1-(halfFilterSize-1)*1:]
 
     this.GetIf().FilterHorLuma(srcPtr, srcStride, this.GetFilteredBlockTmp(0).GetLumaAddr(), intStride, width+1, height+filterSize, 0, false)
     this.GetIf().FilterHorLuma(srcPtr, srcStride, this.GetFilteredBlockTmp(2).GetLumaAddr(), intStride, width+1, height+filterSize, 2, false)
-
-    intPtr = this.GetFilteredBlockTmp(0).GetLumaAddr()[halfFilterSize*intStride+1:]
+  
+    intPtr = this.GetFilteredBlockTmp(0).GetLumaAddr();//[halfFilterSize*intStride+1:]
     dstPtr = this.GetFilteredBlock(0, 0).GetLumaAddr()
-    this.GetIf().FilterVerLuma(intPtr, intStride, dstPtr, dstStride, width+0, height+0, 0, false, true)
+    this.GetIf().FilterVerLuma(intPtr[-(halfFilterSize-1)*intStride+halfFilterSize*intStride+1:], intStride, dstPtr, dstStride, width+0, height+0, 0, false, true)
 
-    intPtr = this.GetFilteredBlockTmp(0).GetLumaAddr()[(halfFilterSize-1)*intStride+1:]
+    intPtr = this.GetFilteredBlockTmp(0).GetLumaAddr();//[(halfFilterSize-1)*intStride+1:]
     dstPtr = this.GetFilteredBlock(2, 0).GetLumaAddr()
-    this.GetIf().FilterVerLuma(intPtr, intStride, dstPtr, dstStride, width+0, height+1, 2, false, true)
+    this.GetIf().FilterVerLuma(intPtr[-(halfFilterSize-1)*intStride+(halfFilterSize-1)*intStride+1:], intStride, dstPtr, dstStride, width+0, height+1, 2, false, true)
 
-    intPtr = this.GetFilteredBlockTmp(2).GetLumaAddr()[halfFilterSize*intStride:]
+    intPtr = this.GetFilteredBlockTmp(2).GetLumaAddr();//[halfFilterSize*intStride:]
     dstPtr = this.GetFilteredBlock(0, 2).GetLumaAddr()
-    this.GetIf().FilterVerLuma(intPtr, intStride, dstPtr, dstStride, width+1, height+0, 0, false, true)
+    this.GetIf().FilterVerLuma(intPtr[-(halfFilterSize-1)*intStride+halfFilterSize*intStride:], intStride, dstPtr, dstStride, width+1, height+0, 0, false, true)
 
-    intPtr = this.GetFilteredBlockTmp(2).GetLumaAddr()[(halfFilterSize-1)*intStride:]
+    intPtr = this.GetFilteredBlockTmp(2).GetLumaAddr();//[(halfFilterSize-1)*intStride:]
     dstPtr = this.GetFilteredBlock(2, 2).GetLumaAddr()
-    this.GetIf().FilterVerLuma(intPtr, intStride, dstPtr, dstStride, width+1, height+1, 2, false, true)
+    this.GetIf().FilterVerLuma(intPtr[-(halfFilterSize-1)*intStride+(halfFilterSize-1)*intStride:], intStride, dstPtr, dstStride, width+1, height+1, 2, false, true)
 }
 
 func (this *TEncSearch) xExtDIFUpSamplingQ(pattern *TLibCommon.TComPattern, halfPelRef TLibCommon.TComMv, biPred bool) {
     width := pattern.GetROIYWidth()
     height := pattern.GetROIYHeight()
     srcStride := pattern.GetPatternLStride()
+    srcOffset := pattern.GetPatternLOffset()
 
     var srcPtr []TLibCommon.Pel
     intStride := int(this.GetFilteredBlockTmp(0).GetStride())
@@ -4540,7 +4574,7 @@ func (this *TEncSearch) xExtDIFUpSamplingQ(pattern *TLibCommon.TComPattern, half
     }
 
     // Horizontal filter 1/4
-    srcPtr = pattern.GetROIY()[-halfFilterSize*srcStride-1:]
+    srcPtr = pattern.GetROIY()[srcOffset-halfFilterSize*srcStride-1-(halfFilterSize-1)*1:]
     intPtr = this.GetFilteredBlockTmp(1).GetLumaAddr()
     if halfPelRef.GetVer() > 0 {
         srcPtr = srcPtr[srcStride:]
@@ -4551,7 +4585,7 @@ func (this *TEncSearch) xExtDIFUpSamplingQ(pattern *TLibCommon.TComPattern, half
     this.GetIf().FilterHorLuma(srcPtr, srcStride, intPtr, int(intStride), width, extHeight, 1, false)
 
     // Horizontal filter 3/4
-    srcPtr = pattern.GetROIY()[-halfFilterSize*srcStride-1:]
+    srcPtr = pattern.GetROIY()[srcOffset-halfFilterSize*srcStride-1-(halfFilterSize-1)*1:]
     intPtr = this.GetFilteredBlockTmp(3).GetLumaAddr()
     if halfPelRef.GetVer() > 0 {
         srcPtr = srcPtr[srcStride:]
@@ -4562,49 +4596,49 @@ func (this *TEncSearch) xExtDIFUpSamplingQ(pattern *TLibCommon.TComPattern, half
     this.GetIf().FilterHorLuma(srcPtr, srcStride, intPtr, int(intStride), width, extHeight, 3, false)
 
     // Generate @ 1,1
-    intPtr = this.GetFilteredBlockTmp(1).GetLumaAddr()[(halfFilterSize-1)*int(intStride):]
+    intPtr = this.GetFilteredBlockTmp(1).GetLumaAddr();//[(halfFilterSize-1)*int(intStride):]
     dstPtr = this.GetFilteredBlock(1, 1).GetLumaAddr()
     if halfPelRef.GetVer() == 0 {
         intPtr = intPtr[intStride:]
     }
-    this.GetIf().FilterVerLuma(intPtr, int(intStride), dstPtr, int(dstStride), width, height, 1, false, true)
+    this.GetIf().FilterVerLuma(intPtr[-(halfFilterSize-1)*intStride+(halfFilterSize-1)*intStride:], int(intStride), dstPtr, int(dstStride), width, height, 1, false, true)
 
     // Generate @ 3,1
-    intPtr = this.GetFilteredBlockTmp(1).GetLumaAddr()[(halfFilterSize-1)*int(intStride):]
+    intPtr = this.GetFilteredBlockTmp(1).GetLumaAddr();//[(halfFilterSize-1)*int(intStride):]
     dstPtr = this.GetFilteredBlock(3, 1).GetLumaAddr()
-    this.GetIf().FilterVerLuma(intPtr, int(intStride), dstPtr, int(dstStride), width, height, 3, false, true)
+    this.GetIf().FilterVerLuma(intPtr[-(halfFilterSize-1)*intStride+(halfFilterSize-1)*intStride:], int(intStride), dstPtr, int(dstStride), width, height, 3, false, true)
 
     if halfPelRef.GetVer() != 0 {
         // Generate @ 2,1
-        intPtr = this.GetFilteredBlockTmp(1).GetLumaAddr()[(halfFilterSize-1)*int(intStride):]
+        intPtr = this.GetFilteredBlockTmp(1).GetLumaAddr();//[(halfFilterSize-1)*int(intStride):]
         dstPtr = this.GetFilteredBlock(2, 1).GetLumaAddr()
         if halfPelRef.GetVer() == 0 {
             intPtr = intPtr[intStride:]
         }
-        this.GetIf().FilterVerLuma(intPtr, int(intStride), dstPtr, int(dstStride), width, height, 2, false, true)
+        this.GetIf().FilterVerLuma(intPtr[-(halfFilterSize-1)*intStride+(halfFilterSize-1)*intStride:], int(intStride), dstPtr, int(dstStride), width, height, 2, false, true)
 
         // Generate @ 2,3
-        intPtr = this.GetFilteredBlockTmp(3).GetLumaAddr()[(halfFilterSize-1)*intStride:]
+        intPtr = this.GetFilteredBlockTmp(3).GetLumaAddr();//[(halfFilterSize-1)*intStride:]
         dstPtr = this.GetFilteredBlock(2, 3).GetLumaAddr()
         if halfPelRef.GetVer() == 0 {
             intPtr = intPtr[intStride:]
         }
-        this.GetIf().FilterVerLuma(intPtr, intStride, dstPtr, dstStride, width, height, 2, false, true)
+        this.GetIf().FilterVerLuma(intPtr[-(halfFilterSize-1)*intStride+(halfFilterSize-1)*intStride:], intStride, dstPtr, dstStride, width, height, 2, false, true)
     } else {
         // Generate @ 0,1
-        intPtr = this.GetFilteredBlockTmp(1).GetLumaAddr()[halfFilterSize*intStride:]
+        intPtr = this.GetFilteredBlockTmp(1).GetLumaAddr();//[halfFilterSize*intStride:]
         dstPtr = this.GetFilteredBlock(0, 1).GetLumaAddr()
-        this.GetIf().FilterVerLuma(intPtr, intStride, dstPtr, dstStride, width, height, 0, false, true)
+        this.GetIf().FilterVerLuma(intPtr[-(halfFilterSize-1)*intStride+halfFilterSize*intStride:], intStride, dstPtr, dstStride, width, height, 0, false, true)
 
         // Generate @ 0,3
-        intPtr = this.GetFilteredBlockTmp(3).GetLumaAddr()[halfFilterSize*intStride:]
+        intPtr = this.GetFilteredBlockTmp(3).GetLumaAddr();//[halfFilterSize*intStride:]
         dstPtr = this.GetFilteredBlock(0, 3).GetLumaAddr()
-        this.GetIf().FilterVerLuma(intPtr, intStride, dstPtr, dstStride, width, height, 0, false, true)
+        this.GetIf().FilterVerLuma(intPtr[-(halfFilterSize-1)*intStride+halfFilterSize*intStride:], intStride, dstPtr, dstStride, width, height, 0, false, true)
     }
 
     if halfPelRef.GetHor() != 0 {
         // Generate @ 1,2
-        intPtr = this.GetFilteredBlockTmp(2).GetLumaAddr()[(halfFilterSize-1)*intStride:]
+        intPtr = this.GetFilteredBlockTmp(2).GetLumaAddr();//[(halfFilterSize-1)*intStride:]
         dstPtr = this.GetFilteredBlock(1, 2).GetLumaAddr()
         if halfPelRef.GetHor() > 0 {
             intPtr = intPtr[1:]
@@ -4612,10 +4646,10 @@ func (this *TEncSearch) xExtDIFUpSamplingQ(pattern *TLibCommon.TComPattern, half
         if halfPelRef.GetVer() >= 0 {
             intPtr = intPtr[intStride:]
         }
-        this.GetIf().FilterVerLuma(intPtr, intStride, dstPtr, dstStride, width, height, 1, false, true)
+        this.GetIf().FilterVerLuma(intPtr[-(halfFilterSize-1)*intStride+(halfFilterSize-1)*intStride:], intStride, dstPtr, dstStride, width, height, 1, false, true)
 
         // Generate @ 3,2
-        intPtr = this.GetFilteredBlockTmp(2).GetLumaAddr()[(halfFilterSize-1)*intStride:]
+        intPtr = this.GetFilteredBlockTmp(2).GetLumaAddr();//[(halfFilterSize-1)*intStride:]
         dstPtr = this.GetFilteredBlock(3, 2).GetLumaAddr()
         if halfPelRef.GetHor() > 0 {
             intPtr = intPtr[1:]
@@ -4623,37 +4657,37 @@ func (this *TEncSearch) xExtDIFUpSamplingQ(pattern *TLibCommon.TComPattern, half
         if halfPelRef.GetVer() > 0 {
             intPtr = intPtr[intStride:]
         }
-        this.GetIf().FilterVerLuma(intPtr, intStride, dstPtr, dstStride, width, height, 3, false, true)
+        this.GetIf().FilterVerLuma(intPtr[-(halfFilterSize-1)*intStride+(halfFilterSize-1)*intStride:], intStride, dstPtr, dstStride, width, height, 3, false, true)
     } else {
         // Generate @ 1,0
-        intPtr = this.GetFilteredBlockTmp(0).GetLumaAddr()[(halfFilterSize-1)*intStride+1:]
+        intPtr = this.GetFilteredBlockTmp(0).GetLumaAddr();//[(halfFilterSize-1)*intStride+1:]
         dstPtr = this.GetFilteredBlock(1, 0).GetLumaAddr()
         if halfPelRef.GetVer() >= 0 {
             intPtr = intPtr[intStride:]
         }
-        this.GetIf().FilterVerLuma(intPtr, intStride, dstPtr, dstStride, width, height, 1, false, true)
+        this.GetIf().FilterVerLuma(intPtr[-(halfFilterSize-1)*intStride+(halfFilterSize-1)*intStride+1:], intStride, dstPtr, dstStride, width, height, 1, false, true)
 
         // Generate @ 3,0
-        intPtr = this.GetFilteredBlockTmp(0).GetLumaAddr()[(halfFilterSize-1)*intStride+1:]
+        intPtr = this.GetFilteredBlockTmp(0).GetLumaAddr();//[(halfFilterSize-1)*intStride+1:]
         dstPtr = this.GetFilteredBlock(3, 0).GetLumaAddr()
         if halfPelRef.GetVer() > 0 {
             intPtr = intPtr[intStride:]
         }
-        this.GetIf().FilterVerLuma(intPtr, intStride, dstPtr, dstStride, width, height, 3, false, true)
+        this.GetIf().FilterVerLuma(intPtr[-(halfFilterSize-1)*intStride+(halfFilterSize-1)*intStride+1:], intStride, dstPtr, dstStride, width, height, 3, false, true)
     }
 
     // Generate @ 1,3
-    intPtr = this.GetFilteredBlockTmp(3).GetLumaAddr()[(halfFilterSize-1)*intStride:]
+    intPtr = this.GetFilteredBlockTmp(3).GetLumaAddr();//[(halfFilterSize-1)*intStride:]
     dstPtr = this.GetFilteredBlock(1, 3).GetLumaAddr()
     if halfPelRef.GetVer() == 0 {
         intPtr = intPtr[intStride:]
     }
-    this.GetIf().FilterVerLuma(intPtr, intStride, dstPtr, dstStride, width, height, 1, false, true)
+    this.GetIf().FilterVerLuma(intPtr[-(halfFilterSize-1)*intStride+(halfFilterSize-1)*intStride:], intStride, dstPtr, dstStride, width, height, 1, false, true)
 
     // Generate @ 3,3
-    intPtr = this.GetFilteredBlockTmp(3).GetLumaAddr()[(halfFilterSize-1)*intStride:]
+    intPtr = this.GetFilteredBlockTmp(3).GetLumaAddr();//[(halfFilterSize-1)*intStride:]
     dstPtr = this.GetFilteredBlock(3, 3).GetLumaAddr()
-    this.GetIf().FilterVerLuma(intPtr, intStride, dstPtr, dstStride, width, height, 3, false, true)
+    this.GetIf().FilterVerLuma(intPtr[-(halfFilterSize-1)*intStride+(halfFilterSize-1)*intStride:], intStride, dstPtr, dstStride, width, height, 3, false, true)
 }
 
 // -------------------------------------------------------------------------------------------------------------------
@@ -4953,10 +4987,10 @@ func (this *TEncSearch) xEstimateResidualQT(pcCU *TLibCommon.TComDataCU, uiQuadr
             uiStride := this.m_pcQTTempTComYuv[uiQTTempAccessLayer].GetStride()
             for uiY := uint(0); uiY < trHeight; uiY++ {
                 for uiX := uint(0); uiX < trWidth; uiX++ {
-                    pcPtr[uiX] = 0 //, sizeof( TLibCommon.Pel ) * trWidth );
+                    pcPtr[uiY*uiStride+uiX] = 0 //, sizeof( TLibCommon.Pel ) * trWidth );
                 }
 
-                pcPtr = pcPtr[uiStride:]
+                //pcPtr = pcPtr[uiStride:]
             }
         }
 
@@ -5021,9 +5055,9 @@ func (this *TEncSearch) xEstimateResidualQT(pcCU *TLibCommon.TComDataCU, uiQuadr
                 uiStride := this.m_pcQTTempTComYuv[uiQTTempAccessLayer].GetCStride()
                 for uiY := uint(0); uiY < trHeightC; uiY++ {
                     for uiX := uint(0); uiX < trWidthC; uiX++ {
-                        pcPtr[uiX] = 0 //, sizeof(TLibCommon.Pel) *  );
+                        pcPtr[uiY*uiStride+uiX] = 0 //, sizeof(TLibCommon.Pel) *  );
                     }
-                    pcPtr = pcPtr[uiStride:]
+                    //pcPtr = pcPtr[uiStride:]
                 }
             }
 

@@ -54,6 +54,7 @@ type TComPatternParam struct {
     m_iROIWidth      int
     m_iROIHeight     int
     m_iPatternStride int
+    m_iOffset		 int
 }
 
 /// return starting position of buffer
@@ -67,11 +68,12 @@ func (this *TComPatternParam) GetROIOrigin() []Pel {
 }
 
 /// set parameters from Pel buffer for accessing neighbouring pixels
-func (this *TComPatternParam) SetPatternParamPel(piTexture []Pel, iRoiWidth, iRoiHeight, iStride, iOffsetLeft, iOffsetAbove int) {
+func (this *TComPatternParam) SetPatternParamPel(piTexture []Pel, iRoiWidth, iRoiHeight, iStride, iOffset, iOffsetLeft, iOffsetAbove int) {
     this.m_piPatternOrigin = piTexture
     this.m_iROIWidth = iRoiWidth
     this.m_iROIHeight = iRoiHeight
     this.m_iPatternStride = iStride
+    this.m_iOffset = iOffset
     this.m_iOffsetLeft = iOffsetLeft
     this.m_iOffsetAbove = iOffsetAbove
 }
@@ -141,7 +143,9 @@ func (this *TComPattern) GetROIYHeight() int {
 func (this *TComPattern) GetPatternLStride() int {
     return this.m_cPatternY.m_iPatternStride
 }
-
+func (this *TComPattern) GetPatternLOffset() int {
+    return this.m_cPatternY.m_iOffset
+}
 // access functions of ADI buffers
 func (this *TComPattern) GetAdiOrgBuf(iCuWidth, iCuHeight int, piAdiBuf []Pel) []Pel {
     return piAdiBuf
@@ -183,10 +187,10 @@ func (this *TComPattern) GetPredictorPtr(uiDirMode, log2BlkSize uint, piAdiBuf [
 // -------------------------------------------------------------------------------------------------------------------
 /// set parameters from Pel buffers for accessing neighbouring pixels
 func (this *TComPattern) InitPattern(piY []Pel, piCb []Pel, piCr []Pel,
-    iRoiWidth, iRoiHeight, iStride, iOffsetLeft, iOffsetAbove int) {
-    this.m_cPatternY.SetPatternParamPel(piY, iRoiWidth, iRoiHeight, iStride, iOffsetLeft, iOffsetAbove)
-    this.m_cPatternCb.SetPatternParamPel(piCb, iRoiWidth>>1, iRoiHeight>>1, iStride>>1, iOffsetLeft>>1, iOffsetAbove>>1)
-    this.m_cPatternCr.SetPatternParamPel(piCr, iRoiWidth>>1, iRoiHeight>>1, iStride>>1, iOffsetLeft>>1, iOffsetAbove>>1)
+    iRoiWidth, iRoiHeight, iStride, iOffsetY, iOffsetCb, iOffsetCr, iOffsetLeft, iOffsetAbove int) {
+    this.m_cPatternY.SetPatternParamPel (piY,  iRoiWidth,    iRoiHeight,    iStride,    iOffsetY,  iOffsetLeft,    iOffsetAbove)
+    this.m_cPatternCb.SetPatternParamPel(piCb, iRoiWidth>>1, iRoiHeight>>1, iStride>>1, iOffsetCb, iOffsetLeft>>1, iOffsetAbove>>1)
+    this.m_cPatternCr.SetPatternParamPel(piCr, iRoiWidth>>1, iRoiHeight>>1, iStride>>1, iOffsetCr, iOffsetLeft>>1, iOffsetAbove>>1)
 
     return
 }
