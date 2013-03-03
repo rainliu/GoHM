@@ -4166,7 +4166,7 @@ func (this *TEncSearch) xMotionEstimation(pcCU *TLibCommon.TComDataCU,
     //  Do integer search
     if this.m_iFastSearch == 0 || bBi {
     	fmt.Printf("do xPatternSearch\n");
-        this.xPatternSearch(pcPatternKey, piRefY, iOffset, iRefStride, &cMvSrchRngLT, &cMvSrchRngRB, rcMv, ruiCost)
+        this.xPatternSearch	   (pcCU, pcPatternKey, piRefY, iOffset, iRefStride, &cMvSrchRngLT, &cMvSrchRngRB, rcMv, ruiCost)
     } else {
         *rcMv = *pcMvPred
         this.xPatternSearchFast(pcCU, pcPatternKey, piRefY, iOffset, iRefStride, &cMvSrchRngLT, &cMvSrchRngRB, rcMv, ruiCost)
@@ -4178,7 +4178,7 @@ func (this *TEncSearch) xMotionEstimation(pcCU *TLibCommon.TComDataCU,
 	//fmt.Printf("disable xPatternSearchFracDIF temporally\n");
     this.xPatternSearchFracDIF(pcCU, pcPatternKey, piRefY, iOffset, iRefStride, rcMv, &cMvHalf, &cMvQter, ruiCost, bBi)
 	
-	//fmt.Printf("rcMv=(%d,%d), cMvHalf=(%d,%d), cMvQter=(%d,%d), ruiCost=%d\n",rcMv.GetHor(),rcMv.GetVer(),cMvHalf.GetHor(),cMvHalf.GetVer(),cMvQter.GetHor(),cMvQter.GetVer(), *ruiCost);
+	fmt.Printf("rcMv=(%d,%d), cMvHalf=(%d,%d), cMvQter=(%d,%d), ruiCost=%d\n",rcMv.GetHor(),rcMv.GetVer(),cMvHalf.GetHor(),cMvHalf.GetVer(),cMvQter.GetHor(),cMvQter.GetVer(), *ruiCost);
 	  
     this.m_pcRdCost.setCostScale(0)
     rcMv.ShiftMv(2) // <<= 2    
@@ -4395,7 +4395,8 @@ func (this *TEncSearch) xPatternSearchFast(pcCU *TLibCommon.TComDataCU,
     }
 }
 
-func (this *TEncSearch) xPatternSearch(pcPatternKey *TLibCommon.TComPattern,
+func (this *TEncSearch) xPatternSearch(pcCU *TLibCommon.TComDataCU,
+	pcPatternKey *TLibCommon.TComPattern,
     piRefY []TLibCommon.Pel,
     iOffset int,
     iRefStride int,
@@ -4403,15 +4404,15 @@ func (this *TEncSearch) xPatternSearch(pcPatternKey *TLibCommon.TComPattern,
     pcMvSrchRngRB *TLibCommon.TComMv,
     rcMv *TLibCommon.TComMv,
     ruiSAD *uint) {
-    iSrchRngHorLeft := int(pcMvSrchRngLT.GetHor())
-    iSrchRngHorRight := int(pcMvSrchRngRB.GetHor())
-    iSrchRngVerTop := int(pcMvSrchRngLT.GetVer())
-    iSrchRngVerBottom := int(pcMvSrchRngRB.GetVer())
+    iSrchRngHorLeft := int16(pcMvSrchRngLT.GetHor())
+    iSrchRngHorRight := int16(pcMvSrchRngRB.GetHor())
+    iSrchRngVerTop := int16(pcMvSrchRngLT.GetVer())
+    iSrchRngVerBottom := int16(pcMvSrchRngRB.GetVer())
 
     var uiSad uint
     uiSadBest := uint(TLibCommon.MAX_UINT)
-    iBestX := 0
-    iBestY := 0
+    iBestX := int16(0)
+    iBestY := int16(0)
 
     var piRefSrch []TLibCommon.Pel
 
@@ -4426,10 +4427,13 @@ func (this *TEncSearch) xPatternSearch(pcPatternKey *TLibCommon.TComPattern,
     }
 
     //piRefY = piRefY[(iSrchRngVerTop * iRefStride):]
-    for y := iSrchRngVerTop; y <= iSrchRngVerBottom; y++ {
-        for x := iSrchRngHorLeft; x <= iSrchRngHorRight; x++ {
+    for mv_y := iSrchRngVerTop; mv_y <= iSrchRngVerBottom; mv_y++ {
+        for mv_x := iSrchRngHorLeft; mv_x <= iSrchRngHorRight; mv_x++ {
+        	candMV := TLibCommon.NewTComMv(mv_x, mv_y)
+        	pcCU.ClipMv(candMV)
+        	
             //  find min. distortion position
-            piRefSrch = piRefY[(iOffset + iSrchRngVerTop * iRefStride) + y*iRefStride + x:]
+            piRefSrch = piRefY[iOffset + int(candMV.GetVer()) * iRefStride + int(candMV.GetHor()):]
             this.m_cDistParam.pCur = piRefSrch
 
             this.setDistParamComp(0)
@@ -4438,12 +4442,12 @@ func (this *TEncSearch) xPatternSearch(pcPatternKey *TLibCommon.TComPattern,
             uiSad = this.m_cDistParam.DistFunc(&this.m_cDistParam)
 
             // motion cost
-            uiSad += this.m_pcRdCost.getCost2(x, y)
+            uiSad += this.m_pcRdCost.getCost2(int(candMV.GetHor()), int(candMV.GetVer()))
 
             if uiSad < uiSadBest {
                 uiSadBest = uiSad
-                iBestX = x
-                iBestY = y
+                iBestX = candMV.GetHor()
+                iBestY = candMV.GetVer()
             }
         }
         //piRefY = piRefY[iRefStride:]
@@ -4451,7 +4455,7 @@ func (this *TEncSearch) xPatternSearch(pcPatternKey *TLibCommon.TComPattern,
 
     rcMv.Set(int16(iBestX), int16(iBestY))
 
-    *ruiSAD = uiSadBest - this.m_pcRdCost.getCost2(iBestX, iBestY)
+    *ruiSAD = uiSadBest - this.m_pcRdCost.getCost2(int(iBestX), int(iBestY))
     return
 }
 

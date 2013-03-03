@@ -1084,7 +1084,7 @@ func (this *TEncGOP) compressGOP(iPOCLast, iNumPicRcvd int, rcListPic, rcListPic
                 //#endif
                 bNALUAlignedWrittenToList = true
                 uiOneBitstreamPerSliceLength += nalu.m_Bitstream.GetNumberOfWrittenBits() // length of bitstream after byte-alignment
-				fmt.Printf("nalu.m_Bitstream.GetNumberOfWrittenBits()=%d\n", nalu.m_Bitstream.GetNumberOfWrittenBits());
+				//fmt.Printf("nalu.m_Bitstream.GetNumberOfWrittenBits()=%d\n", nalu.m_Bitstream.GetNumberOfWrittenBits());
 				
                 if !bNALUAlignedWrittenToList {
                     nalu.m_Bitstream.WriteAlignZero()
