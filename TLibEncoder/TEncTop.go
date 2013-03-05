@@ -458,6 +458,7 @@ func (this *TEncTop) xInitSPS() { ///< initialize SPS from encoder options
     this.m_cSPS.SetMaxCUWidth(this.GetEncCfg().GetMaxCUWidth())
     this.m_cSPS.SetMaxCUHeight(this.GetEncCfg().GetMaxCUHeight())
     this.m_cSPS.SetMaxCUDepth(this.GetEncCfg().GetMaxCUDepth())
+    this.m_cSPS.SetAddCUDepth(this.GetEncCfg().GetAddCUDepth());
     this.m_cSPS.SetMinTrDepth(0)
     this.m_cSPS.SetMaxTrDepth(1)
 
