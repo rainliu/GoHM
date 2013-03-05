@@ -365,7 +365,7 @@ func (this *TDecCavlc) ParseShortTermRefPicSet(sps *TLibCommon.TComSPS, rps *TLi
         this.READ_CODE(1, &bit, "delta_rps_sign")     // delta_RPS_sign
         this.READ_UVLC(&code, "abs_delta_rps_minus1") // absolute delta RPS minus 1
         deltaRPS := (1 - 2*bit) * (code + 1)          // delta_RPS
-        for j := 0; j <= rpsRef.GetNumberOfPictures(); j++ {
+        for j := 0; j <= (rpsRef.GetNumberOfNegativePictures()+rpsRef.GetNumberOfPositivePictures()); j++ {
             this.READ_CODE(1, &bit, "used_by_curr_pic_flag") //first bit is "1" if Idc is 1
             refIdc := bit
             if refIdc == 0 {
@@ -375,7 +375,7 @@ func (this *TDecCavlc) ParseShortTermRefPicSet(sps *TLibCommon.TComSPS, rps *TLi
 
             if refIdc == 1 || refIdc == 2 {
                 var deltaPOC int
-                if j < rpsRef.GetNumberOfPictures() {
+                if j < (rpsRef.GetNumberOfNegativePictures()+rpsRef.GetNumberOfPositivePictures()) {
                     deltaPOC = int(deltaRPS) + rpsRef.GetDeltaPOC(j)
                 } else {
                     deltaPOC = int(deltaRPS)
@@ -468,8 +468,8 @@ func (this *TDecCavlc) ParseVPS(pcVPS *TLibCommon.TComVPS) {
     this.READ_FLAG(&subLayerOrderingInfoPresentFlag, "vps_sub_layer_ordering_info_present_flag")
 
     for i := uint(0); i <= pcVPS.GetMaxTLayers()-1; i++ {
-        this.READ_UVLC(&uiCode, "vps_max_dec_pic_buffering[i]")
-        pcVPS.SetMaxDecPicBuffering(uiCode, i)
+        this.READ_UVLC(&uiCode, "vps_max_dec_pic_buffering_minus1[i]")
+        pcVPS.SetMaxDecPicBuffering(uiCode+1, i)
         this.READ_UVLC(&uiCode, "vps_num_reorder_pics[i]")
         pcVPS.SetNumReorderPics(uiCode, i)
         this.READ_UVLC(&uiCode, "vps_max_latency_increase[i]")
@@ -599,8 +599,8 @@ func (this *TDecCavlc) ParseSPS(pcSPS *TLibCommon.TComSPS) {
     this.READ_FLAG(&subLayerOrderingInfoPresentFlag, "sps_sub_layer_ordering_info_present_flag")
 
     for i := uint(0); i <= pcSPS.GetMaxTLayers()-1; i++ {
-        this.READ_UVLC(&uiCode, "sps_max_dec_pic_buffering")
-        pcSPS.SetMaxDecPicBuffering(uiCode, i)
+        this.READ_UVLC(&uiCode, "sps_max_dec_pic_buffering_minus1")
+        pcSPS.SetMaxDecPicBuffering(uiCode+1, i)
         this.READ_UVLC(&uiCode, "sps_num_reorder_pics")
         pcSPS.SetNumReorderPics(int(uiCode), i)
         this.READ_UVLC(&uiCode, "sps_max_latency_increase")
@@ -621,9 +621,9 @@ func (this *TDecCavlc) ParseSPS(pcSPS *TLibCommon.TComSPS) {
     this.READ_UVLC(&uiCode, "log2_diff_max_min_coding_block_size")
     uiMaxCUDepthCorrect := uiCode
     pcSPS.SetMaxCUWidth(1 << (log2MinCUSize + uiMaxCUDepthCorrect))
-    TLibCommon.G_uiMaxCUWidth = 1 << (log2MinCUSize + uiMaxCUDepthCorrect)
+    //TLibCommon.G_uiMaxCUWidth = 1 << (log2MinCUSize + uiMaxCUDepthCorrect)
     pcSPS.SetMaxCUHeight(1 << (log2MinCUSize + uiMaxCUDepthCorrect))
-    TLibCommon.G_uiMaxCUHeight = 1 << (log2MinCUSize + uiMaxCUDepthCorrect)
+    //TLibCommon.G_uiMaxCUHeight = 1 << (log2MinCUSize + uiMaxCUDepthCorrect)
     this.READ_UVLC(&uiCode, "log2_min_transform_block_size_minus2")
     pcSPS.SetQuadtreeTULog2MinSize(uiCode + 2)
 
@@ -635,12 +635,13 @@ func (this *TDecCavlc) ParseSPS(pcSPS *TLibCommon.TComSPS) {
     pcSPS.SetQuadtreeTUMaxDepthInter(uiCode + 1)
     this.READ_UVLC(&uiCode, "max_transform_hierarchy_depth_intra")
     pcSPS.SetQuadtreeTUMaxDepthIntra(uiCode + 1)
-    TLibCommon.G_uiAddCUDepth = 0
-    for (pcSPS.GetMaxCUWidth() >> uiMaxCUDepthCorrect) > (1 << (pcSPS.GetQuadtreeTULog2MinSize() + TLibCommon.G_uiAddCUDepth)) {
-        TLibCommon.G_uiAddCUDepth++
+    uiAddCUDepth := uint(0)
+    for (pcSPS.GetMaxCUWidth() >> uiMaxCUDepthCorrect) > (1 << (pcSPS.GetQuadtreeTULog2MinSize() + uiAddCUDepth)) {
+        uiAddCUDepth++
     }
-    pcSPS.SetMaxCUDepth(uiMaxCUDepthCorrect + TLibCommon.G_uiAddCUDepth)
-    TLibCommon.G_uiMaxCUDepth = uiMaxCUDepthCorrect + TLibCommon.G_uiAddCUDepth
+    pcSPS.SetMaxCUDepth(uiMaxCUDepthCorrect + uiAddCUDepth)
+    pcSPS.SetAddCUDepth( uiAddCUDepth );
+    //TLibCommon.G_uiMaxCUDepth = uiMaxCUDepthCorrect + TLibCommon.G_uiAddCUDepth
     // BB: these parameters may be removed completly and replaced by the fixed values
     pcSPS.SetMinTrDepth(0)
     pcSPS.SetMaxTrDepth(1)
@@ -1141,7 +1142,7 @@ func (this *TDecCavlc) ParseHrdParameters(hrd *TLibCommon.TComHRD, commonInfPres
     }
 }
 
-func (this *TDecCavlc) ParseSliceHeader(rpcSlice *TLibCommon.TComSlice, parameterSetManager *TLibCommon.ParameterSetManager) { //Decoder
+func (this *TDecCavlc) ParseSliceHeader(rpcSlice *TLibCommon.TComSlice, parameterSetManager *TLibCommon.ParameterSetManager) bool { //Decoder
     var uiCode uint
     var iCode int
 
@@ -1232,7 +1233,13 @@ func (this *TDecCavlc) ParseSliceHeader(rpcSlice *TLibCommon.TComSlice, paramete
             iPOClsb := int(uiCode)
             iPrevPOC := int(rpcSlice.GetPrevPOC())
             iMaxPOClsb := int(1 << sps.GetBitsForPOC())
-            iPrevPOClsb := int(iPrevPOC % iMaxPOClsb)
+            //iPrevPOClsb := int(iPrevPOC % iMaxPOClsb)
+            iPrevPOClsb := int(-1);
+      		multipler := int(0);
+		    for iPrevPOClsb<0 {
+		        iPrevPOClsb = (iPrevPOC+iMaxPOClsb*multipler)%iMaxPOClsb;
+		        multipler++;
+		    }
             iPrevPOCmsb := int(iPrevPOC - iPrevPOClsb)
             var iPOCmsb int
             if (iPOClsb < iPrevPOClsb) && ((iPrevPOClsb - iPOClsb) >= (iMaxPOClsb / 2)) {
@@ -1289,7 +1296,7 @@ func (this *TDecCavlc) ParseSliceHeader(rpcSlice *TLibCommon.TComSlice, paramete
                 numOfLtrp += uiCode
                 rps.SetNumberOfLongtermPictures(int(numOfLtrp))
                 maxPicOrderCntLSB := 1 << rpcSlice.GetSPS().GetBitsForPOC()
-                prevLSB := 0
+                //prevLSB := 0
                 prevDeltaMSB := 0
                 deltaPocMSBCycleLT := 0
                 j := offset + rps.GetNumberOfLongtermPictures() - 1
@@ -1317,7 +1324,7 @@ func (this *TDecCavlc) ParseSliceHeader(rpcSlice *TLibCommon.TComSlice, paramete
                         this.READ_UVLC(&uiCode, "delta_poc_msb_cycle_lt[i]")
                         deltaFlag := false
                         //            First LTRP                               || First LTRP from SH           || curr LSB    != prev LSB
-                        if (j == offset+rps.GetNumberOfLongtermPictures()-1) || (j == offset+int(numOfLtrp-numLtrpInSPS)-1) || (pocLsbLt != prevLSB) {
+                        if (j == offset+rps.GetNumberOfLongtermPictures()-1) || (j == offset+int(numOfLtrp-numLtrpInSPS)-1) {//|| (pocLsbLt != prevLSB) {
                             deltaFlag = true
                         }
                         if deltaFlag {
@@ -1335,7 +1342,7 @@ func (this *TDecCavlc) ParseSliceHeader(rpcSlice *TLibCommon.TComSlice, paramete
                         rps.SetDeltaPOC(j, -rpcSlice.GetPOC()+pocLsbLt)
                         rps.SetCheckLTMSBPresent(j, false)
                     }
-                    prevLSB = pocLsbLt
+                    //prevLSB = pocLsbLt
                     prevDeltaMSB = deltaPocMSBCycleLT
                     j--
                 }
@@ -1613,6 +1620,8 @@ func (this *TDecCavlc) ParseSliceHeader(rpcSlice *TLibCommon.TComSlice, paramete
         }
     }
     this.m_pcBitstream.ReadByteAlignment()
+    
+    return firstSliceSegmentInPic==1;
 }
 func (this *TDecCavlc) ParseTerminatingBit(ruiBit *uint) {
 }
@@ -1643,6 +1652,18 @@ func (this *TDecCavlc) ParseRefFrmIdx(pcCU *TLibCommon.TComDataCU, riRefFrmIdx *
 func (this *TDecCavlc) ParseMvd(pcCU *TLibCommon.TComDataCU, uiAbsPartAddr, uiPartIdx, uiDepth uint, eRefList TLibCommon.RefPicList) {
 }
 func (this *TDecCavlc) ParseDeltaQP(pcCU *TLibCommon.TComDataCU, uiAbsPartIdx, uiDepth uint) {
+  var qp, iDQp int;
+
+  this.xReadSvlc( &iDQp );
+
+  qpBdOffsetY := pcCU.GetSlice().GetSPS().GetQpBDOffsetY();
+  qp = (( int(pcCU.GetRefQP( uiAbsPartIdx )) + iDQp + 52 + 2*qpBdOffsetY )%(52+ qpBdOffsetY)) -  qpBdOffsetY;
+
+  uiAbsQpCUPartIdx := (uiAbsPartIdx>>((pcCU.GetSlice().GetSPS().GetMaxCUDepth() - pcCU.GetSlice().GetPPS().GetMaxCuDQPDepth())<<1))<<((pcCU.GetSlice().GetSPS().GetMaxCUDepth() - pcCU.GetSlice().GetPPS().GetMaxCuDQPDepth())<<1) ;
+
+  uiQpCUDepth := TLibCommon.MIN(uint(uiDepth), uint(pcCU.GetSlice().GetPPS().GetMaxCuDQPDepth())).(uint) ;
+
+  pcCU.SetQPSubParts( qp, uiAbsQpCUPartIdx, uiQpCUDepth );
 }
 func (this *TDecCavlc) ParseCoeffNxN(pcCU *TLibCommon.TComDataCU, pcCoef []TLibCommon.TCoeff, uiAbsPartIdx, uiWidth, uiHeight, uiDepth uint, eTType TLibCommon.TextType) {
 }

@@ -202,6 +202,12 @@ func (this *TAppEncTop) xInitLibCfg() { ///< initialize internal variables
     pcEncCfg.SetConformanceWindow(this.m_confLeft, this.m_confRight, this.m_confTop, this.m_confBottom)
     pcEncCfg.SetFramesToBeEncoded(this.m_framesToBeEncoded)
 
+	  // coding unit (CU) definition
+	pcEncCfg.SetMaxCUWidth                   ( this.m_uiMaxCUWidth);
+	pcEncCfg.SetMaxCUHeight                  ( this.m_uiMaxCUHeight);
+	pcEncCfg.SetMaxCUDepth                   ( this.m_uiMaxCUDepth);
+	pcEncCfg.SetAddCUDepth                   ( this.m_uiAddCUDepth);
+  
     //====== Coding Structure ========
     pcEncCfg.SetIntraPeriod(this.m_iIntraPeriod)
     pcEncCfg.SetDecodingRefreshType(this.m_iDecodingRefreshType)

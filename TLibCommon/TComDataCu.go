@@ -372,8 +372,8 @@ func (this *TComDataCU) InitCU(pcPic *TComPic, iCUAddr uint) {
     this.m_pcPic = pcPic
     this.m_pcSlice = pcPic.GetSlice(pcPic.GetCurrSliceIdx())
     this.m_uiCUAddr = iCUAddr
-    this.m_uiCUPelX = (iCUAddr % pcPic.GetFrameWidthInCU()) * G_uiMaxCUWidth
-    this.m_uiCUPelY = (iCUAddr / pcPic.GetFrameWidthInCU()) * G_uiMaxCUHeight
+    this.m_uiCUPelX = (iCUAddr % pcPic.GetFrameWidthInCU()) * this.GetSlice().GetSPS().GetMaxCUWidth()
+    this.m_uiCUPelY = (iCUAddr / pcPic.GetFrameWidthInCU()) * this.GetSlice().GetSPS().GetMaxCUHeight()
     this.m_uiAbsIdxInLCU = 0
     this.m_dTotalCost = MAX_DOUBLE
     this.m_uiTotalDistortion = 0
@@ -456,8 +456,8 @@ func (this *TComDataCU) InitCU(pcPic *TComPic, iCUAddr uint) {
             this.m_puhTransformSkip[0][firstElement+i] = false
             this.m_puhTransformSkip[1][firstElement+i] = false
             this.m_puhTransformSkip[2][firstElement+i] = false
-            this.m_puhWidth[firstElement+i] = byte(G_uiMaxCUWidth)
-            this.m_puhHeight[firstElement+i] = byte(G_uiMaxCUHeight)
+            this.m_puhWidth[firstElement+i] = byte(this.GetSlice().GetSPS().GetMaxCUWidth())
+            this.m_puhHeight[firstElement+i] = byte(this.GetSlice().GetSPS().GetMaxCUHeight())
             this.m_apiMVPIdx[0][firstElement+i] = -1
             this.m_apiMVPIdx[1][firstElement+i] = -1
             this.m_apiMVPNum[0][firstElement+i] = -1
@@ -475,7 +475,7 @@ func (this *TComDataCU) InitCU(pcPic *TComPic, iCUAddr uint) {
         }
     }
 
-    uiTmp := G_uiMaxCUWidth * G_uiMaxCUHeight
+    uiTmp := this.GetSlice().GetSPS().GetMaxCUWidth() * this.GetSlice().GetSPS().GetMaxCUHeight()
     if 0 >= partStartIdx {
         this.m_acCUMvField[0].ClearMvField()
         this.m_acCUMvField[1].ClearMvField()
@@ -899,8 +899,8 @@ func (this *TComDataCU) InitEstData(uiDepth uint, qp int) {
     this.m_uiTotalBits = 0
     this.m_uiTotalBins = 0
 
-    uhWidth := G_uiMaxCUWidth >> uiDepth
-    uhHeight := G_uiMaxCUHeight >> uiDepth
+    uhWidth := this.GetSlice().GetSPS().GetMaxCUWidth() >> uiDepth
+    uhHeight := this.GetSlice().GetSPS().GetMaxCUHeight() >> uiDepth
 
     for ui := uint(0); ui < this.m_uiNumPartition; ui++ {
         if this.GetPic().GetPicSym().GetInverseCUOrderMap(int(this.GetAddr()))*this.m_pcPic.GetNumPartInCU()+this.m_uiAbsIdxInLCU+ui >= this.GetSlice().GetSliceSegmentCurStartCUAddr() {
@@ -968,8 +968,8 @@ func (this *TComDataCU) InitSubCU(pcCU *TComDataCU, uiPartUnitIdx, uiDepth uint,
     this.m_uiCUAddr = pcCU.GetAddr()
     this.m_uiAbsIdxInLCU = pcCU.GetZorderIdxInCU() + uiPartOffset
 
-    this.m_uiCUPelX = pcCU.GetCUPelX() + (G_uiMaxCUWidth>>uiDepth)*(uiPartUnitIdx&1)
-    this.m_uiCUPelY = pcCU.GetCUPelY() + (G_uiMaxCUHeight>>uiDepth)*(uiPartUnitIdx>>1)
+    this.m_uiCUPelX = pcCU.GetCUPelX() + (this.GetSlice().GetSPS().GetMaxCUWidth()>>uiDepth)*(uiPartUnitIdx&1)
+    this.m_uiCUPelY = pcCU.GetCUPelY() + (this.GetSlice().GetSPS().GetMaxCUHeight()>>uiDepth)*(uiPartUnitIdx>>1)
 
     this.m_dTotalCost = MAX_DOUBLE
     this.m_uiTotalDistortion = 0
@@ -997,8 +997,8 @@ func (this *TComDataCU) InitSubCU(pcCU *TComDataCU, uiPartUnitIdx, uiDepth uint,
         this.m_puhDepth[i] = byte(uiDepth)
     }
 
-    uhWidth := G_uiMaxCUWidth >> uiDepth
-    uhHeight := G_uiMaxCUHeight >> uiDepth
+    uhWidth := this.GetSlice().GetSPS().GetMaxCUWidth() >> uiDepth
+    uhHeight := this.GetSlice().GetSPS().GetMaxCUHeight() >> uiDepth
     for i := uint(0); i < this.m_uiNumPartition; i++ {
         this.m_puhWidth[i] = byte(uhWidth)
         this.m_puhHeight[i] = byte(uhHeight)
@@ -1117,8 +1117,8 @@ func (this *TComDataCU) SetOutsideCUPart(uiAbsPartIdx, uiDepth uint) {
     uiNumPartition := this.m_uiNumPartition >> (uiDepth << 1)
     //uiSizeInUchar  := sizeof( UChar  ) * uiNumPartition;
 
-    uhWidth := G_uiMaxCUWidth >> uiDepth
-    uhHeight := G_uiMaxCUHeight >> uiDepth
+    uhWidth := this.GetSlice().GetSPS().GetMaxCUWidth() >> uiDepth
+    uhHeight := this.GetSlice().GetSPS().GetMaxCUHeight() >> uiDepth
     for i := uint(0); i < uiNumPartition; i++ {
         this.m_puhDepth[i+uiAbsPartIdx] = byte(uiDepth)
         this.m_puhWidth[i+uiAbsPartIdx] = byte(uhWidth)
@@ -1137,8 +1137,8 @@ func (this *TComDataCU) CopySubCU(pcCU *TComDataCU, uiAbsPartIdx, uiDepth uint) 
     this.m_uiCUPelX = pcCU.GetCUPelX() + G_auiRasterToPelX[G_auiZscanToRaster[uiAbsPartIdx]]
     this.m_uiCUPelY = pcCU.GetCUPelY() + G_auiRasterToPelY[G_auiZscanToRaster[uiAbsPartIdx]]
 
-    uiWidth := G_uiMaxCUWidth >> uiDepth
-    uiHeight := G_uiMaxCUHeight >> uiDepth
+    uiWidth := this.GetSlice().GetSPS().GetMaxCUWidth() >> uiDepth
+    uiHeight := this.GetSlice().GetSPS().GetMaxCUHeight() >> uiDepth
 
     this.m_skipFlag = pcCU.GetSkipFlag()[uiPart:]
 
@@ -1311,7 +1311,7 @@ func (this *TComDataCU) CopyPartFrom(pcCU *TComDataCU, uiPartUnitIdx, uiDepth ui
     this.m_acCUMvField[0].CopyFrom(pcCU.GetCUMvField(REF_PIC_LIST_0), pcCU.GetTotalNumPart(), int(uiOffset))
     this.m_acCUMvField[1].CopyFrom(pcCU.GetCUMvField(REF_PIC_LIST_1), pcCU.GetTotalNumPart(), int(uiOffset))
 
-    uiTmp := G_uiMaxCUWidth * G_uiMaxCUHeight >> (uiDepth << 1)
+    uiTmp := this.GetSlice().GetSPS().GetMaxCUWidth() * this.GetSlice().GetSPS().GetMaxCUHeight() >> (uiDepth << 1)
     uiTmp2 := uiPartUnitIdx * uiTmp
     for i := uint(0); i < uiTmp; i++ {
         this.m_pcTrCoeffY[i+uiTmp2] = pcCU.GetCoeffY()[i]
@@ -1387,7 +1387,7 @@ func (this *TComDataCU) CopyToPic1(uhDepth uint) {
     this.m_acCUMvField[0].CopyTo2(rpcCU.GetCUMvField(REF_PIC_LIST_0), int(this.m_uiAbsIdxInLCU))
     this.m_acCUMvField[1].CopyTo2(rpcCU.GetCUMvField(REF_PIC_LIST_1), int(this.m_uiAbsIdxInLCU))
 
-    uiTmp := (G_uiMaxCUWidth * G_uiMaxCUHeight) >> (uhDepth << 1)
+    uiTmp := (this.GetSlice().GetSPS().GetMaxCUWidth() * this.GetSlice().GetSPS().GetMaxCUHeight()) >> (uhDepth << 1)
     uiTmp2 := this.m_uiAbsIdxInLCU * this.m_pcPic.GetMinCUWidth() * this.m_pcPic.GetMinCUHeight()
     for i := uint(0); i < uiTmp; i++ {
         rpcCU.GetCoeffY()[i+uiTmp2] = this.m_pcTrCoeffY[i] //,  sizeof(TCoeff)*uiTmp  );
@@ -1463,7 +1463,7 @@ func (this *TComDataCU) CopyToPic3(uhDepth, uiPartIdx, uiPartDepth uint) {
     this.m_acCUMvField[0].CopyTo4(rpcCU.GetCUMvField(REF_PIC_LIST_0), int(this.m_uiAbsIdxInLCU), uiPartStart, uiQNumPart)
     this.m_acCUMvField[1].CopyTo4(rpcCU.GetCUMvField(REF_PIC_LIST_1), int(this.m_uiAbsIdxInLCU), uiPartStart, uiQNumPart)
 
-    uiTmp := (G_uiMaxCUWidth * G_uiMaxCUHeight) >> ((uhDepth + uiPartDepth) << 1)
+    uiTmp := (this.GetSlice().GetSPS().GetMaxCUWidth() * this.GetSlice().GetSPS().GetMaxCUHeight()) >> ((uhDepth + uiPartDepth) << 1)
     uiTmp2 := uiPartOffset * this.m_pcPic.GetMinCUWidth() * this.m_pcPic.GetMinCUHeight()
     for i := uint(0); i < uiTmp; i++ {
         rpcCU.GetCoeffY()[i+uiTmp2] = this.m_pcTrCoeffY[i] //,  sizeof(TCoeff)*uiTmp  );
@@ -1667,7 +1667,7 @@ func (this *TComDataCU) GetLastValidPartIdx(iAbsPartIdx int) int {
 }
 func (this *TComDataCU) GetLastCodedQP(uiAbsPartIdx uint) int8 {
     var uiQUPartIdxMask uint
-    uiQUPartIdxMask = ^((1 << ((G_uiMaxCUDepth - this.GetSlice().GetPPS().GetMaxCuDQPDepth()) << 1)) - 1)
+    uiQUPartIdxMask = ^((1 << ((this.GetSlice().GetSPS().GetMaxCUDepth() - this.GetSlice().GetPPS().GetMaxCuDQPDepth()) << 1)) - 1)
     iLastValidPartIdx := this.GetLastValidPartIdx(int(uiAbsPartIdx & uiQUPartIdxMask))
 
     if uiAbsPartIdx < this.m_uiNumPartition && (this.GetSCUAddr()+uint(iLastValidPartIdx) < this.GetSliceStartCU(this.m_uiAbsIdxInLCU+uiAbsPartIdx)) {
@@ -3096,10 +3096,10 @@ func (this *TComDataCU) ClipMv(rcMv *TComMv) {
     iMvShift := uint(2)
     iOffset := 8
     iHorMax := int16(this.m_pcSlice.GetSPS().GetPicWidthInLumaSamples()+uint(iOffset)-this.m_uiCUPelX-1) << iMvShift
-    iHorMin := int16(-int(G_uiMaxCUWidth)-iOffset-int(this.m_uiCUPelX)+1) << iMvShift
+    iHorMin := int16(-int(this.GetSlice().GetSPS().GetMaxCUWidth())-iOffset-int(this.m_uiCUPelX)+1) << iMvShift
 
     iVerMax := int16(this.m_pcSlice.GetSPS().GetPicHeightInLumaSamples()+uint(iOffset)-this.m_uiCUPelY-1) << iMvShift
-    iVerMin := int16(-int(G_uiMaxCUHeight)-iOffset-int(this.m_uiCUPelY)+1) << iMvShift
+    iVerMin := int16(-int(this.GetSlice().GetSPS().GetMaxCUHeight())-iOffset-int(this.m_uiCUPelY)+1) << iMvShift
 
     rcMv.SetHor(MIN(iHorMax, MAX(iHorMin, rcMv.GetHor()).(int16)).(int16))
     rcMv.SetVer(MIN(iVerMax, MAX(iVerMin, rcMv.GetVer()).(int16)).(int16))
@@ -3350,7 +3350,7 @@ func (this *TComDataCU) GetPUBelowLeft(uiBLPartUnitIdx *uint, uiCurrPartUnitIdx 
 
 func (this *TComDataCU) GetQpMinCuLeft(uiLPartUnitIdx *uint, uiCurrAbsIdxInLCU uint) *TComDataCU {
     numPartInCUWidth := int(this.m_pcPic.GetNumPartInWidth())
-    absZorderQpMinCUIdx := (uiCurrAbsIdxInLCU >> ((G_uiMaxCUDepth - this.GetSlice().GetPPS().GetMaxCuDQPDepth()) << 1)) << ((G_uiMaxCUDepth - this.GetSlice().GetPPS().GetMaxCuDQPDepth()) << 1)
+    absZorderQpMinCUIdx := (uiCurrAbsIdxInLCU >> ((this.GetSlice().GetSPS().GetMaxCUDepth() - this.GetSlice().GetPPS().GetMaxCuDQPDepth()) << 1)) << ((this.GetSlice().GetSPS().GetMaxCUDepth() - this.GetSlice().GetPPS().GetMaxCuDQPDepth()) << 1)
     absRorderQpMinCUIdx := int(G_auiZscanToRaster[absZorderQpMinCUIdx])
 
     // check for left LCU boundary
@@ -3366,7 +3366,7 @@ func (this *TComDataCU) GetQpMinCuLeft(uiLPartUnitIdx *uint, uiCurrAbsIdxInLCU u
 }
 func (this *TComDataCU) GetQpMinCuAbove(aPartUnitIdx *uint, currAbsIdxInLCU uint) *TComDataCU {
     numPartInCUWidth := int(this.m_pcPic.GetNumPartInWidth())
-    absZorderQpMinCUIdx := (currAbsIdxInLCU >> ((G_uiMaxCUDepth - this.GetSlice().GetPPS().GetMaxCuDQPDepth()) << 1)) << ((G_uiMaxCUDepth - this.GetSlice().GetPPS().GetMaxCuDQPDepth()) << 1)
+    absZorderQpMinCUIdx := (currAbsIdxInLCU >> ((this.GetSlice().GetSPS().GetMaxCUDepth() - this.GetSlice().GetPPS().GetMaxCuDQPDepth()) << 1)) << ((this.GetSlice().GetSPS().GetMaxCUDepth() - this.GetSlice().GetPPS().GetMaxCuDQPDepth()) << 1)
     absRorderQpMinCUIdx := int(G_auiZscanToRaster[absZorderQpMinCUIdx])
 
     // check for top LCU boundary

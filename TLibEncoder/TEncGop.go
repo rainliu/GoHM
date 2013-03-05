@@ -504,14 +504,14 @@ func (this *TEncGOP) compressGOP(iPOCLast, iNumPicRcvd int, rcListPic, rcListPic
 
         uiInternalAddress := pcPic.GetNumPartInCU() - 4
         uiExternalAddress := pcPic.GetPicSym().GetNumberOfCUsInFrame() - 1
-        uiPosX := (uiExternalAddress%pcPic.GetFrameWidthInCU())*TLibCommon.G_uiMaxCUWidth + TLibCommon.G_auiRasterToPelX[TLibCommon.G_auiZscanToRaster[uiInternalAddress]]
-        uiPosY := (uiExternalAddress/pcPic.GetFrameWidthInCU())*TLibCommon.G_uiMaxCUHeight + TLibCommon.G_auiRasterToPelY[TLibCommon.G_auiZscanToRaster[uiInternalAddress]]
+        uiPosX := (uiExternalAddress%pcPic.GetFrameWidthInCU())*pcPic.GetSlice(0).GetSPS().GetMaxCUWidth() + TLibCommon.G_auiRasterToPelX[TLibCommon.G_auiZscanToRaster[uiInternalAddress]]
+        uiPosY := (uiExternalAddress/pcPic.GetFrameWidthInCU())*pcPic.GetSlice(0).GetSPS().GetMaxCUHeight() + TLibCommon.G_auiRasterToPelY[TLibCommon.G_auiZscanToRaster[uiInternalAddress]]
         uiWidth := pcSlice.GetSPS().GetPicWidthInLumaSamples()
         uiHeight := pcSlice.GetSPS().GetPicHeightInLumaSamples()
         for uiPosX >= uiWidth || uiPosY >= uiHeight {
             uiInternalAddress--
-            uiPosX = (uiExternalAddress%pcPic.GetFrameWidthInCU())*TLibCommon.G_uiMaxCUWidth + TLibCommon.G_auiRasterToPelX[TLibCommon.G_auiZscanToRaster[uiInternalAddress]]
-            uiPosY = (uiExternalAddress/pcPic.GetFrameWidthInCU())*TLibCommon.G_uiMaxCUHeight + TLibCommon.G_auiRasterToPelY[TLibCommon.G_auiZscanToRaster[uiInternalAddress]]
+            uiPosX = (uiExternalAddress%pcPic.GetFrameWidthInCU())*pcPic.GetSlice(0).GetSPS().GetMaxCUWidth() + TLibCommon.G_auiRasterToPelX[TLibCommon.G_auiZscanToRaster[uiInternalAddress]]
+            uiPosY = (uiExternalAddress/pcPic.GetFrameWidthInCU())*pcPic.GetSlice(0).GetSPS().GetMaxCUHeight() + TLibCommon.G_auiRasterToPelY[TLibCommon.G_auiZscanToRaster[uiInternalAddress]]
         }
         uiInternalAddress++
         if uiInternalAddress == pcPic.GetNumPartInCU() {
@@ -918,14 +918,14 @@ func (this *TEncGOP) compressGOP(iPOCLast, iNumPicRcvd int, rcListPic, rcListPic
 
                 uiInternalAddress = pcPic.GetPicSym().GetPicSCUAddr(pcSlice.GetSliceSegmentCurEndCUAddr()-1) % pcPic.GetNumPartInCU()
                 uiExternalAddress = pcPic.GetPicSym().GetPicSCUAddr(pcSlice.GetSliceSegmentCurEndCUAddr()-1) / pcPic.GetNumPartInCU()
-                uiPosX = (uiExternalAddress%pcPic.GetFrameWidthInCU())*TLibCommon.G_uiMaxCUWidth + TLibCommon.G_auiRasterToPelX[TLibCommon.G_auiZscanToRaster[uiInternalAddress]]
-                uiPosY = (uiExternalAddress/pcPic.GetFrameWidthInCU())*TLibCommon.G_uiMaxCUHeight + TLibCommon.G_auiRasterToPelY[TLibCommon.G_auiZscanToRaster[uiInternalAddress]]
+                uiPosX = (uiExternalAddress%pcPic.GetFrameWidthInCU())*pcPic.GetSlice(0).GetSPS().GetMaxCUWidth() + TLibCommon.G_auiRasterToPelX[TLibCommon.G_auiZscanToRaster[uiInternalAddress]]
+                uiPosY = (uiExternalAddress/pcPic.GetFrameWidthInCU())*pcPic.GetSlice(0).GetSPS().GetMaxCUHeight() + TLibCommon.G_auiRasterToPelY[TLibCommon.G_auiZscanToRaster[uiInternalAddress]]
                 uiWidth = pcSlice.GetSPS().GetPicWidthInLumaSamples()
                 uiHeight = pcSlice.GetSPS().GetPicHeightInLumaSamples()
                 for uiPosX >= uiWidth || uiPosY >= uiHeight {
                     uiInternalAddress--
-                    uiPosX = (uiExternalAddress%pcPic.GetFrameWidthInCU())*TLibCommon.G_uiMaxCUWidth + TLibCommon.G_auiRasterToPelX[TLibCommon.G_auiZscanToRaster[uiInternalAddress]]
-                    uiPosY = (uiExternalAddress/pcPic.GetFrameWidthInCU())*TLibCommon.G_uiMaxCUHeight + TLibCommon.G_auiRasterToPelY[TLibCommon.G_auiZscanToRaster[uiInternalAddress]]
+                    uiPosX = (uiExternalAddress%pcPic.GetFrameWidthInCU())*pcPic.GetSlice(0).GetSPS().GetMaxCUWidth() + TLibCommon.G_auiRasterToPelX[TLibCommon.G_auiZscanToRaster[uiInternalAddress]]
+                    uiPosY = (uiExternalAddress/pcPic.GetFrameWidthInCU())*pcPic.GetSlice(0).GetSPS().GetMaxCUHeight() + TLibCommon.G_auiRasterToPelY[TLibCommon.G_auiZscanToRaster[uiInternalAddress]]
                 }
                 uiInternalAddress++
                 if uiInternalAddress == pcPic.GetNumPartInCU() {

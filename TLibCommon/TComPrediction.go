@@ -404,10 +404,10 @@ func (this *TComPrediction) GetYuvPredTemp() *TComYuv {
     return &this.m_cYuvPredTemp
 }
 
-func (this *TComPrediction) InitTempBuff() {
+func (this *TComPrediction) InitTempBuff( uiMaxCUWidth, uiMaxCUHeight uint) {
     if this.m_piYuvExt == nil {
-        extWidth := G_uiMaxCUWidth + 16
-        extHeight := G_uiMaxCUHeight + 1
+        extWidth := uiMaxCUWidth + 16
+        extHeight := uiMaxCUHeight + 1
         var i, j int
         for i = 0; i < 4; i++ {
             this.m_filteredBlockTmp[i].Create(extWidth, extHeight+7)
@@ -415,21 +415,48 @@ func (this *TComPrediction) InitTempBuff() {
                 this.m_filteredBlock[i][j].Create(extWidth, extHeight)
             }
         }
-        this.m_iYuvExtHeight = int((G_uiMaxCUHeight + 2) << 4)
-        this.m_iYuvExtStride = int((G_uiMaxCUWidth + 8) << 4)
+        this.m_iYuvExtHeight = int((uiMaxCUHeight + 2) << 4)
+        this.m_iYuvExtStride = int((uiMaxCUWidth + 8) << 4)
         this.m_piYuvExt = make([]Pel, this.m_iYuvExtStride*this.m_iYuvExtHeight)
 
         // new structure
-        this.m_acYuvPred[0].Create(G_uiMaxCUWidth, G_uiMaxCUHeight)
-        this.m_acYuvPred[1].Create(G_uiMaxCUWidth, G_uiMaxCUHeight)
+        this.m_acYuvPred[0].Create(uiMaxCUWidth, uiMaxCUHeight)
+        this.m_acYuvPred[1].Create(uiMaxCUWidth, uiMaxCUHeight)
 
-        this.m_cYuvPredTemp.Create(G_uiMaxCUWidth, G_uiMaxCUHeight)
+        this.m_cYuvPredTemp.Create(uiMaxCUWidth, uiMaxCUHeight)
     }
 
-    if this.m_iLumaRecStride != int(G_uiMaxCUWidth>>1)+1 {
-        this.m_iLumaRecStride = int(G_uiMaxCUWidth>>1) + 1
+    if this.m_iLumaRecStride != int(uiMaxCUWidth>>1)+1 {
+        this.m_iLumaRecStride = int(uiMaxCUWidth>>1) + 1
         this.m_pLumaRecBuffer = make([]Pel, this.m_iLumaRecStride*this.m_iLumaRecStride)
     }
+}
+
+func (this *TComPrediction) DestroyTempBuff() {
+/*
+  if( m_piYuvExt != NULL ){
+    delete[] m_piYuvExt;
+    m_piYuvExt = NULL;
+  }
+  m_acYuvPred[0].destroy();
+  m_acYuvPred[1].destroy();
+
+  m_cYuvPredTemp.destroy();
+
+  if( m_pLumaRecBuffer!=NULL ){
+    delete [] m_pLumaRecBuffer;
+    m_pLumaRecBuffer = NULL;
+  }
+
+  Int i, j;
+  for (i = 0; i < 4; i++)
+  {
+    for (j = 0; j < 4; j++)
+    {
+      m_filteredBlock[i][j].destroy();
+    }
+    m_filteredBlockTmp[i].destroy();
+  }*/
 }
 
 func (this *TComPrediction) xPredIntraAng(bitDepth int, pSrc2 []Pel, srcStride int, rpDst []Pel, dstStride int,

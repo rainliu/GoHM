@@ -1335,8 +1335,8 @@ func (this *TComSampleAdaptiveOffset) xPCMSampleRestoration(pcCU *TComDataCU, ui
         piSrc = pcPicYuvRec.GetLumaAddr2(int(pcCU.GetAddr()), int(uiAbsZorderIdx))
         piPcm = pcCU.GetPCMSampleY()[uiLumaOffset:]
         uiStride = uint(pcPicYuvRec.GetStride())
-        uiWidth = (G_uiMaxCUWidth >> uiDepth)
-        uiHeight = (G_uiMaxCUHeight >> uiDepth)
+        uiWidth = (pcCU.GetSlice().GetSPS().GetMaxCUWidth() >> uiDepth)
+        uiHeight = (pcCU.GetSlice().GetSPS().GetMaxCUHeight() >> uiDepth)
         if pcCU.IsLosslessCoded(uiAbsZorderIdx) && !pcCU.GetIPCMFlag1(uiAbsZorderIdx) {
             uiPcmLeftShiftBit = 0
         } else {
@@ -1352,8 +1352,8 @@ func (this *TComSampleAdaptiveOffset) xPCMSampleRestoration(pcCU *TComDataCU, ui
         }
 
         uiStride = uint(pcPicYuvRec.GetCStride())
-        uiWidth = ((G_uiMaxCUWidth >> uiDepth) / 2)
-        uiHeight = ((G_uiMaxCUWidth >> uiDepth) / 2)
+        uiWidth = ((pcCU.GetSlice().GetSPS().GetMaxCUWidth() >> uiDepth) / 2)
+        uiHeight = ((pcCU.GetSlice().GetSPS().GetMaxCUHeight() >> uiDepth) / 2)
         if pcCU.IsLosslessCoded(uiAbsZorderIdx) && !pcCU.GetIPCMFlag1(uiAbsZorderIdx) {
             uiPcmLeftShiftBit = 0
         } else {

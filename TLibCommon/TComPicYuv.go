@@ -98,8 +98,8 @@ func (this *TComPicYuv) Create(iPicWidth, iPicHeight int, uiMaxCUWidth, uiMaxCUH
         numCuInHeight += 1
     }
 
-    this.m_iLumaMarginX = int(G_uiMaxCUWidth) + 16  // for 16-byte alignment
-    this.m_iLumaMarginY = int(G_uiMaxCUHeight) + 16 // margin for 8-tap filter and infinite padding
+    this.m_iLumaMarginX = int(uiMaxCUWidth) + 16  // for 16-byte alignment
+    this.m_iLumaMarginY = int(uiMaxCUHeight) + 16 // margin for 8-tap filter and infinite padding
 
     this.m_iChromaMarginX = this.m_iLumaMarginX >> 1
     this.m_iChromaMarginY = this.m_iLumaMarginY >> 1
@@ -162,8 +162,8 @@ func (this *TComPicYuv) CreateLuma(iPicWidth, iPicHeight int, uiMaxCUWidth, uiMa
         numCuInHeight += 1
     }
 
-    this.m_iLumaMarginX = int(G_uiMaxCUWidth) + 16  // for 16-byte alignment
-    this.m_iLumaMarginY = int(G_uiMaxCUHeight) + 16 // margin for 8-tap filter and infinite padding
+    this.m_iLumaMarginX = int(uiMaxCUWidth) + 16  // for 16-byte alignment
+    this.m_iLumaMarginY = int(uiMaxCUHeight) + 16 // margin for 8-tap filter and infinite padding
 
     this.m_apiPicBufY = make([]Pel, (this.m_iPicWidth+(this.m_iLumaMarginX<<1))*(this.m_iPicHeight+(this.m_iLumaMarginY<<1)))
     this.m_piPicOrgY = this.m_apiPicBufY[this.m_iLumaMarginY*this.GetStride()+this.m_iLumaMarginX:]

@@ -673,7 +673,7 @@ func (this *TEncCavlc) codeSPS(pcSPS *TLibCommon.TComSPS) {
     }
     //assert( pcSPS.GetMaxCUWidth() == pcSPS.GetMaxCUHeight() );
 
-    MinCUSize := pcSPS.GetMaxCUWidth() >> (pcSPS.GetMaxCUDepth() - TLibCommon.G_uiAddCUDepth)
+    MinCUSize := pcSPS.GetMaxCUWidth() >> (pcSPS.GetMaxCUDepth() - pcSPS.GetAddCUDepth())
     log2MinCUSize := uint(0)
     for MinCUSize > 1 {
         MinCUSize >>= 1
@@ -681,7 +681,7 @@ func (this *TEncCavlc) codeSPS(pcSPS *TLibCommon.TComSPS) {
     }
 
     this.WRITE_UVLC(log2MinCUSize-3, "log2_min_coding_block_size_minus3")
-    this.WRITE_UVLC(pcSPS.GetMaxCUDepth()-TLibCommon.G_uiAddCUDepth, "log2_diff_max_min_coding_block_size")
+    this.WRITE_UVLC(pcSPS.GetMaxCUDepth()-pcSPS.GetAddCUDepth(), "log2_diff_max_min_coding_block_size")
     this.WRITE_UVLC(pcSPS.GetQuadtreeTULog2MinSize()-2, "log2_min_transform_block_size_minus2")
     this.WRITE_UVLC(pcSPS.GetQuadtreeTULog2MaxSize()-pcSPS.GetQuadtreeTULog2MinSize(), "log2_diff_max_min_transform_block_size")
     this.WRITE_UVLC(pcSPS.GetQuadtreeTUMaxDepthInter()-1, "max_transform_hierarchy_depth_inter")

@@ -611,8 +611,9 @@ func (this *TDecSbac) ParsePPS(pcPPS *TLibCommon.TComPPS) {
     //do nothing
 }
 
-func (this *TDecSbac) ParseSliceHeader(rpcSlice *TLibCommon.TComSlice, parameterSetManager *TLibCommon.ParameterSetManager) {
+func (this *TDecSbac) ParseSliceHeader(rpcSlice *TLibCommon.TComSlice, parameterSetManager *TLibCommon.ParameterSetManager) bool {
     //do nothing
+    return false;
 }
 func (this *TDecSbac) ParseTerminatingBit(ruiBit *uint) {
     this.m_pcTDecBinIf.DecodeBinTrm(ruiBit)
@@ -956,7 +957,7 @@ func (this *TDecSbac) ParseSkipFlag(pcCU *TLibCommon.TComDataCU, uiAbsPartIdx, u
         pcCU.SetSkipFlagSubParts(true, uiAbsPartIdx, uiDepth)
         pcCU.SetPredModeSubParts(TLibCommon.MODE_INTER, uiAbsPartIdx, uiDepth)
         pcCU.SetPartSizeSubParts(TLibCommon.SIZE_2Nx2N, uiAbsPartIdx, uiDepth)
-        pcCU.SetSizeSubParts(TLibCommon.G_uiMaxCUWidth>>uiDepth, TLibCommon.G_uiMaxCUHeight>>uiDepth, uiAbsPartIdx, uiDepth)
+        pcCU.SetSizeSubParts(pcCU.GetSlice().GetSPS().GetMaxCUWidth()>>uiDepth, pcCU.GetSlice().GetSPS().GetMaxCUHeight()>>uiDepth, uiAbsPartIdx, uiDepth)
         pcCU.SetMergeFlagSubParts(true, uiAbsPartIdx, 0, uiDepth)
     }
 }
@@ -966,7 +967,7 @@ func (this *TDecSbac) ParseCUTransquantBypassFlag(pcCU *TLibCommon.TComDataCU, u
     pcCU.SetCUTransquantBypassSubParts(uiSymbol != 0, uiAbsPartIdx, uiDepth)
 }
 func (this *TDecSbac) ParseSplitFlag(pcCU *TLibCommon.TComDataCU, uiAbsPartIdx, uiDepth uint) {
-    if uiDepth == TLibCommon.G_uiMaxCUDepth-TLibCommon.G_uiAddCUDepth {
+    if uiDepth == pcCU.GetSlice().GetSPS().GetMaxCUDepth()-pcCU.GetSlice().GetSPS().GetAddCUDepth() {
         pcCU.SetDepthSubParts(uiDepth, uiAbsPartIdx)
         return
     }
@@ -1025,7 +1026,7 @@ func (this *TDecSbac) ParsePartSize(pcCU *TLibCommon.TComDataCU, uiAbsPartIdx, u
 
     if pcCU.IsIntra(uiAbsPartIdx) {
         uiSymbol = 1
-        if uiDepth == TLibCommon.G_uiMaxCUDepth-TLibCommon.G_uiAddCUDepth {
+        if uiDepth == pcCU.GetSlice().GetSPS().GetMaxCUDepth()-pcCU.GetSlice().GetSPS().GetAddCUDepth() {
             this.m_pcTDecBinIf.DecodeBin(&uiSymbol, this.m_cCUPartSizeSCModel.Get3(0, 0, 0))
         }
         if uiSymbol != 0 {
@@ -1049,7 +1050,7 @@ func (this *TDecSbac) ParsePartSize(pcCU *TLibCommon.TComDataCU, uiAbsPartIdx, u
         }
     } else {
         uiMaxNumBits := uint(2)
-        if uiDepth == TLibCommon.G_uiMaxCUDepth-TLibCommon.G_uiAddCUDepth && !((TLibCommon.G_uiMaxCUWidth>>uiDepth) == 8 && (TLibCommon.G_uiMaxCUHeight>>uiDepth) == 8) {
+        if uiDepth == pcCU.GetSlice().GetSPS().GetMaxCUDepth()-pcCU.GetSlice().GetSPS().GetAddCUDepth() && !((pcCU.GetSlice().GetSPS().GetMaxCUWidth()>>uiDepth) == 8 && (pcCU.GetSlice().GetSPS().GetMaxCUHeight()>>uiDepth) == 8) {
             uiMaxNumBits++
         }
         for ui := uint(0); ui < uiMaxNumBits; ui++ {
@@ -1085,7 +1086,7 @@ func (this *TDecSbac) ParsePartSize(pcCU *TLibCommon.TComDataCU, uiAbsPartIdx, u
         }
     }
     pcCU.SetPartSizeSubParts(eMode, uiAbsPartIdx, uiDepth)
-    pcCU.SetSizeSubParts(TLibCommon.G_uiMaxCUWidth>>uiDepth, TLibCommon.G_uiMaxCUHeight>>uiDepth, uiAbsPartIdx, uiDepth)
+    pcCU.SetSizeSubParts(pcCU.GetSlice().GetSPS().GetMaxCUWidth()>>uiDepth, pcCU.GetSlice().GetSPS().GetMaxCUHeight()>>uiDepth, uiAbsPartIdx, uiDepth)
 }
 func (this *TDecSbac) ParsePredMode(pcCU *TLibCommon.TComDataCU, uiAbsPartIdx, uiDepth uint) {
     if pcCU.GetSlice().IsIntra() {
@@ -1390,7 +1391,7 @@ func (this *TDecSbac) ParseIPCMInfo(pcCU *TLibCommon.TComDataCU, uiAbsPartIdx, u
         bIpcmFlag := true
 
         pcCU.SetPartSizeSubParts(TLibCommon.SIZE_2Nx2N, uiAbsPartIdx, uiDepth)
-        pcCU.SetSizeSubParts(TLibCommon.G_uiMaxCUWidth>>uiDepth, TLibCommon.G_uiMaxCUHeight>>uiDepth, uiAbsPartIdx, uiDepth)
+        pcCU.SetSizeSubParts(pcCU.GetSlice().GetSPS().GetMaxCUWidth()>>uiDepth, pcCU.GetSlice().GetSPS().GetMaxCUHeight()>>uiDepth, uiAbsPartIdx, uiDepth)
         pcCU.SetTrIdxSubParts(0, uiAbsPartIdx, uiDepth)
         pcCU.SetIPCMFlagSubParts(bIpcmFlag, uiAbsPartIdx, uiDepth)
 

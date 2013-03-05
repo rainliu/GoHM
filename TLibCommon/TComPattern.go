@@ -242,7 +242,7 @@ func (this *TComPattern) InitAdiPattern(pcCU *TComDataCU, uiZorderIdxInPart, uiP
     pcCU.DeriveLeftRightTopIdxAdi(&uiPartIdxLT, &uiPartIdxRT, uiZorderIdxInPart, uiPartDepth)
     pcCU.DeriveLeftBottomIdxAdi(&uiPartIdxLB, uiZorderIdxInPart, uiPartDepth)
 
-    iUnitSize = int(G_uiMaxCUWidth >> G_uiMaxCUDepth)
+    iUnitSize = int(pcCU.GetSlice().GetSPS().GetMaxCUWidth() >> pcCU.GetSlice().GetSPS().GetMaxCUDepth())
     iNumUnitsInCu = int(uiCuWidth) / iUnitSize
     iTotalUnits = (iNumUnitsInCu << 2) + 1
 
@@ -379,7 +379,7 @@ func (this *TComPattern) InitAdiPatternChroma(pcCU *TComDataCU, uiZorderIdxInPar
     pcCU.DeriveLeftRightTopIdxAdi(&uiPartIdxLT, &uiPartIdxRT, uiZorderIdxInPart, uiPartDepth)
     pcCU.DeriveLeftBottomIdxAdi(&uiPartIdxLB, uiZorderIdxInPart, uiPartDepth)
 
-    iUnitSize = int(G_uiMaxCUWidth>>G_uiMaxCUDepth) >> 1 // for chroma
+    iUnitSize = int(pcCU.GetSlice().GetSPS().GetMaxCUWidth()>>pcCU.GetSlice().GetSPS().GetMaxCUDepth()) >> 1 // for chroma
     iNumUnitsInCu = (int(uiCuWidth) / iUnitSize) >> 1    // for chroma
     iTotalUnits = (iNumUnitsInCu << 2) + 1
 

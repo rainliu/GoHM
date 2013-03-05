@@ -77,7 +77,7 @@ type TDecEntropyIf interface {
     ParseSPS(pcSPS *TLibCommon.TComSPS)
     ParsePPS(pcPPS *TLibCommon.TComPPS)
 
-    ParseSliceHeader(rpcSlice *TLibCommon.TComSlice, parameterSetManager *TLibCommon.ParameterSetManager)
+    ParseSliceHeader(rpcSlice *TLibCommon.TComSlice, parameterSetManager *TLibCommon.ParameterSetManager) bool
 
     ParseTerminatingBit(ruilsLast *uint)
 
@@ -295,8 +295,8 @@ func (this *TDecEntropy) DecodeSPS(pcSPS *TLibCommon.TComSPS) {
 func (this *TDecEntropy) DecodePPS(pcPPS *TLibCommon.TComPPS) {
     this.m_pcEntropyDecoderIf.ParsePPS(pcPPS)
 }
-func (this *TDecEntropy) DecodeSliceHeader(rpcSlice *TLibCommon.TComSlice, parameterSetManager *TLibCommon.ParameterSetManager) {
-    this.m_pcEntropyDecoderIf.ParseSliceHeader(rpcSlice, parameterSetManager)
+func (this *TDecEntropy) DecodeSliceHeader(rpcSlice *TLibCommon.TComSlice, parameterSetManager *TLibCommon.ParameterSetManager) bool {
+    return this.m_pcEntropyDecoderIf.ParseSliceHeader(rpcSlice, parameterSetManager)
 }
 
 func (this *TDecEntropy) DecodeTerminatingBit(ruiIsLast *uint) {

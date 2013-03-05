@@ -155,8 +155,8 @@ func (this *TEncTop) Create(pchTraceFile string) {
 //#endif
     // create processing unit classes
     this.m_cGOPEncoder.create()
-    this.m_cSliceEncoder.create(this.GetEncCfg().GetSourceWidth(), this.GetEncCfg().GetSourceHeight(), TLibCommon.G_uiMaxCUWidth, TLibCommon.G_uiMaxCUHeight, byte(TLibCommon.G_uiMaxCUDepth))
-    this.m_cCuEncoder.create(byte(TLibCommon.G_uiMaxCUDepth), TLibCommon.G_uiMaxCUWidth, TLibCommon.G_uiMaxCUHeight)
+    this.m_cSliceEncoder.create(this.GetEncCfg().GetSourceWidth(), this.GetEncCfg().GetSourceHeight(), this.GetEncCfg().GetMaxCUWidth(), this.GetEncCfg().GetMaxCUHeight(), byte(this.GetEncCfg().GetMaxCUDepth()))
+    this.m_cCuEncoder.create(byte(this.GetEncCfg().GetMaxCUDepth()), this.GetEncCfg().GetMaxCUWidth(), this.GetEncCfg().GetMaxCUHeight())
     if this.GetEncCfg().m_bUseSAO {
         fmt.Printf("not support SAO\n")
         /*
@@ -172,13 +172,13 @@ func (this *TEncTop) Create(pchTraceFile string) {
         this.m_cTrQuant.InitSliceQpDelta()
     }
     //#endif
-    this.m_cLoopFilter.Create(TLibCommon.G_uiMaxCUDepth)
+    this.m_cLoopFilter.Create(this.GetEncCfg().GetMaxCUDepth())
 
     //#if RATE_CONTROL_LAMBDA_DOMAIN
     if this.GetEncCfg().m_RCEnableRateControl {
         this.m_cRateCtrl.init(this.GetEncCfg().m_framesToBeEncoded, this.GetEncCfg().m_RCTargetBitrate, this.GetEncCfg().m_iFrameRate,
             this.GetEncCfg().m_iGOPSize, this.GetEncCfg().m_iSourceWidth, this.GetEncCfg().m_iSourceHeight,
-            int(TLibCommon.G_uiMaxCUWidth), int(TLibCommon.G_uiMaxCUHeight), this.GetEncCfg().m_RCKeepHierarchicalBit,
+            int(this.GetEncCfg().GetMaxCUWidth()), int(this.GetEncCfg().GetMaxCUHeight()), this.GetEncCfg().m_RCKeepHierarchicalBit,
             this.GetEncCfg().m_RCUseLCUSeparateModel, this.GetEncCfg().m_GOPList)
     }
     //#else
@@ -186,14 +186,14 @@ func (this *TEncTop) Create(pchTraceFile string) {
     //#endif
     // if SBAC-based RD optimization is used
     if this.GetEncCfg().m_bUseSBACRD {
-        this.m_pppcRDSbacCoder = make([][]*TEncSbac, TLibCommon.G_uiMaxCUDepth+1)
+        this.m_pppcRDSbacCoder = make([][]*TEncSbac, this.GetEncCfg().GetMaxCUDepth()+1)
         //#if FAST_BIT_EST
-        this.m_pppcBinCoderCABAC = make([][]*TEncBinCABACCounter, TLibCommon.G_uiMaxCUDepth+1)
+        this.m_pppcBinCoderCABAC = make([][]*TEncBinCABACCounter, this.GetEncCfg().GetMaxCUDepth()+1)
         //#else
         //    this.m_pppcBinCoderCABAC = new TEncBinCABAC** [TLibCommon.G_uiMaxCUDepth+1];
         //#endif
 
-        for iDepth := 0; iDepth < int(TLibCommon.G_uiMaxCUDepth+1); iDepth++ {
+        for iDepth := 0; iDepth < int(this.GetEncCfg().GetMaxCUDepth()+1); iDepth++ {
             this.m_pppcRDSbacCoder[iDepth] = make([]*TEncSbac, TLibCommon.CI_NUM)
             //#if FAST_BIT_EST
             this.m_pppcBinCoderCABAC[iDepth] = make([]*TEncBinCABACCounter, TLibCommon.CI_NUM)
@@ -236,14 +236,14 @@ func (this *TEncTop) Destroy() {
     // SBAC RD
     if this.GetEncCfg().m_bUseSBACRD {
         var iDepth int
-        for iDepth = 0; iDepth < int(TLibCommon.G_uiMaxCUDepth+1); iDepth++ {
+        for iDepth = 0; iDepth < int(this.GetEncCfg().GetMaxCUDepth()+1); iDepth++ {
             for iCIIdx := 0; iCIIdx < TLibCommon.CI_NUM; iCIIdx++ {
                 //delete this.m_pppcRDSbacCoder[iDepth][iCIIdx];
                 //delete this.m_pppcBinCoderCABAC[iDepth][iCIIdx];
             }
         }
 
-        for iDepth = 0; iDepth < int(TLibCommon.G_uiMaxCUDepth+1); iDepth++ {
+        for iDepth = 0; iDepth < int(this.GetEncCfg().GetMaxCUDepth()+1); iDepth++ {
             //delete [] this.m_pppcRDSbacCoder[iDepth];
             //delete [] this.m_pppcBinCoderCABAC[iDepth];
         }
@@ -252,14 +252,14 @@ func (this *TEncTop) Destroy() {
         //delete [] this.m_pppcBinCoderCABAC;
 
         for ui := 0; ui < this.m_iNumSubstreams; ui++ {
-            for iDepth = 0; iDepth < int(TLibCommon.G_uiMaxCUDepth+1); iDepth++ {
+            for iDepth = 0; iDepth < int(this.GetEncCfg().GetMaxCUDepth()+1); iDepth++ {
                 for iCIIdx := 0; iCIIdx < TLibCommon.CI_NUM; iCIIdx++ {
                     //delete this.m_ppppcRDSbacCoders  [ui][iDepth][iCIIdx];
                     //delete this.m_ppppcBinCodersCABAC[ui][iDepth][iCIIdx];
                 }
             }
 
-            for iDepth = 0; iDepth < int(TLibCommon.G_uiMaxCUDepth+1); iDepth++ {
+            for iDepth = 0; iDepth < int(this.GetEncCfg().GetMaxCUDepth()+1); iDepth++ {
                 //delete [] this.m_ppppcRDSbacCoders  [ui][iDepth];
                 //delete [] this.m_ppppcBinCodersCABAC[ui][iDepth];
             }
@@ -361,10 +361,10 @@ func (this *TEncTop) CreateWPPCoders(iNumSubstreams int) {
         this.m_ppppcRDSbacCoders = make([][][]*TEncSbac, iNumSubstreams)
         this.m_ppppcBinCodersCABAC = make([][][]*TEncBinCABAC, iNumSubstreams)
         for ui := 0; ui < iNumSubstreams; ui++ {
-            this.m_ppppcRDSbacCoders[ui] = make([][]*TEncSbac, TLibCommon.G_uiMaxCUDepth+1)
-            this.m_ppppcBinCodersCABAC[ui] = make([][]*TEncBinCABAC, TLibCommon.G_uiMaxCUDepth+1)
+            this.m_ppppcRDSbacCoders[ui] = make([][]*TEncSbac, this.GetEncCfg().GetMaxCUDepth()+1)
+            this.m_ppppcBinCodersCABAC[ui] = make([][]*TEncBinCABAC, this.GetEncCfg().GetMaxCUDepth()+1)
 
-            for iDepth := 0; iDepth < int(TLibCommon.G_uiMaxCUDepth+1); iDepth++ {
+            for iDepth := 0; iDepth < int(this.GetEncCfg().GetMaxCUDepth()+1); iDepth++ {
                 this.m_ppppcRDSbacCoders[ui][iDepth] = make([]*TEncSbac, TLibCommon.CI_NUM)
                 this.m_ppppcBinCodersCABAC[ui][iDepth] = make([]*TEncBinCABAC, TLibCommon.CI_NUM)
 
@@ -400,13 +400,13 @@ func (this *TEncTop) xGetNewPicBuffer() *TLibCommon.TComPic { ///< get picture b
         if this.GetEncCfg().GetUseAdaptiveQP() {
             pcEPic := TLibCommon.NewTComPic()
             pcEPic.Create(this.GetEncCfg().m_iSourceWidth, this.GetEncCfg().m_iSourceHeight,
-                TLibCommon.G_uiMaxCUWidth, TLibCommon.G_uiMaxCUHeight, TLibCommon.G_uiMaxCUDepth, this.m_cPPS.GetMaxCuDQPDepth()+1,
+                this.GetEncCfg().GetMaxCUWidth(), this.GetEncCfg().GetMaxCUHeight(), this.GetEncCfg().GetMaxCUDepth(), this.m_cPPS.GetMaxCuDQPDepth()+1,
                 this.GetEncCfg().m_conformanceWindow, this.GetEncCfg().m_defaultDisplayWindow, this.GetEncCfg().m_numReorderPics[:], false)
             rpcPic = pcEPic
         } else {
             rpcPic = TLibCommon.NewTComPic()
             rpcPic.Create(this.GetEncCfg().m_iSourceWidth, this.GetEncCfg().m_iSourceHeight,
-                TLibCommon.G_uiMaxCUWidth, TLibCommon.G_uiMaxCUHeight, TLibCommon.G_uiMaxCUDepth, 0,
+                this.GetEncCfg().GetMaxCUWidth(), this.GetEncCfg().GetMaxCUHeight(), this.GetEncCfg().GetMaxCUDepth(), 0,
                 this.GetEncCfg().m_conformanceWindow, this.GetEncCfg().m_defaultDisplayWindow, this.GetEncCfg().m_numReorderPics[:], false)
         }
         if this.GetEncCfg().GetUseSAO() {
@@ -455,9 +455,9 @@ func (this *TEncTop) xInitSPS() { ///< initialize SPS from encoder options
     this.m_cSPS.SetPicWidthInLumaSamples(uint(this.GetEncCfg().m_iSourceWidth))
     this.m_cSPS.SetPicHeightInLumaSamples(uint(this.GetEncCfg().m_iSourceHeight))
     this.m_cSPS.SetConformanceWindow(this.GetEncCfg().m_conformanceWindow)
-    this.m_cSPS.SetMaxCUWidth(TLibCommon.G_uiMaxCUWidth)
-    this.m_cSPS.SetMaxCUHeight(TLibCommon.G_uiMaxCUHeight)
-    this.m_cSPS.SetMaxCUDepth(TLibCommon.G_uiMaxCUDepth)
+    this.m_cSPS.SetMaxCUWidth(this.GetEncCfg().GetMaxCUWidth())
+    this.m_cSPS.SetMaxCUHeight(this.GetEncCfg().GetMaxCUHeight())
+    this.m_cSPS.SetMaxCUDepth(this.GetEncCfg().GetMaxCUDepth())
     this.m_cSPS.SetMinTrDepth(0)
     this.m_cSPS.SetMaxTrDepth(1)
 
@@ -479,14 +479,14 @@ func (this *TEncTop) xInitSPS() { ///< initialize SPS from encoder options
 
     var i uint
 
-    for i = 0; i < TLibCommon.G_uiMaxCUDepth-TLibCommon.G_uiAddCUDepth; i++ {
+    for i = 0; i < this.GetEncCfg().GetMaxCUDepth()-this.GetEncCfg().GetAddCUDepth(); i++ {
         this.m_cSPS.SetAMPAcc(i, int(TLibCommon.B2U(this.GetEncCfg().m_useAMP)))
         //this.m_cSPS.setAMPAcc( i, 1 );
     }
 
     this.m_cSPS.SetUseAMP(this.GetEncCfg().m_useAMP)
 
-    for i = TLibCommon.G_uiMaxCUDepth - TLibCommon.G_uiAddCUDepth; i < TLibCommon.G_uiMaxCUDepth; i++ {
+    for i = this.GetEncCfg().GetMaxCUDepth() - this.GetEncCfg().GetAddCUDepth(); i < this.GetEncCfg().GetMaxCUDepth(); i++ {
         this.m_cSPS.SetAMPAcc(i, 0)
     }
 

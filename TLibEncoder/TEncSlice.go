@@ -1567,8 +1567,8 @@ func (this *TEncSlice) xDetermineStartAndBoundingCUAddr(startCUAddr, boundingCUA
     //calculate real dependent slice start address
     uiInternalAddress := rpcPic.GetPicSym().GetPicSCUAddr(pcSlice.GetSliceSegmentCurStartCUAddr()) % rpcPic.GetNumPartInCU()
     uiExternalAddress := rpcPic.GetPicSym().GetPicSCUAddr(pcSlice.GetSliceSegmentCurStartCUAddr()) / rpcPic.GetNumPartInCU()
-    uiPosX := (uiExternalAddress%rpcPic.GetFrameWidthInCU())*TLibCommon.G_uiMaxCUWidth + TLibCommon.G_auiRasterToPelX[TLibCommon.G_auiZscanToRaster[uiInternalAddress]]
-    uiPosY := (uiExternalAddress/rpcPic.GetFrameWidthInCU())*TLibCommon.G_uiMaxCUHeight + TLibCommon.G_auiRasterToPelY[TLibCommon.G_auiZscanToRaster[uiInternalAddress]]
+    uiPosX := (uiExternalAddress%rpcPic.GetFrameWidthInCU())*pcSlice.GetSPS().GetMaxCUWidth() + TLibCommon.G_auiRasterToPelX[TLibCommon.G_auiZscanToRaster[uiInternalAddress]]
+    uiPosY := (uiExternalAddress/rpcPic.GetFrameWidthInCU())*pcSlice.GetSPS().GetMaxCUHeight() + TLibCommon.G_auiRasterToPelY[TLibCommon.G_auiZscanToRaster[uiInternalAddress]]
     uiWidth := pcSlice.GetSPS().GetPicWidthInLumaSamples()
     uiHeight := pcSlice.GetSPS().GetPicHeightInLumaSamples()
     for (uiPosX >= uiWidth || uiPosY >= uiHeight) && !(uiPosX >= uiWidth && uiPosY >= uiHeight) {
@@ -1577,8 +1577,8 @@ func (this *TEncSlice) xDetermineStartAndBoundingCUAddr(startCUAddr, boundingCUA
             uiInternalAddress = 0
             uiExternalAddress = rpcPic.GetPicSym().GetCUOrderMap(int(rpcPic.GetPicSym().GetInverseCUOrderMap(int(uiExternalAddress)) + 1))
         }
-        uiPosX = (uiExternalAddress%rpcPic.GetFrameWidthInCU())*TLibCommon.G_uiMaxCUWidth + TLibCommon.G_auiRasterToPelX[TLibCommon.G_auiZscanToRaster[uiInternalAddress]]
-        uiPosY = (uiExternalAddress/rpcPic.GetFrameWidthInCU())*TLibCommon.G_uiMaxCUHeight + TLibCommon.G_auiRasterToPelY[TLibCommon.G_auiZscanToRaster[uiInternalAddress]]
+        uiPosX = (uiExternalAddress%rpcPic.GetFrameWidthInCU())*pcSlice.GetSPS().GetMaxCUWidth() + TLibCommon.G_auiRasterToPelX[TLibCommon.G_auiZscanToRaster[uiInternalAddress]]
+        uiPosY = (uiExternalAddress/rpcPic.GetFrameWidthInCU())*pcSlice.GetSPS().GetMaxCUHeight() + TLibCommon.G_auiRasterToPelY[TLibCommon.G_auiZscanToRaster[uiInternalAddress]]
     }
     uiRealStartAddress := rpcPic.GetPicSym().GetPicSCUEncOrder(uiExternalAddress*rpcPic.GetNumPartInCU() + uiInternalAddress)
 
@@ -1588,8 +1588,8 @@ func (this *TEncSlice) xDetermineStartAndBoundingCUAddr(startCUAddr, boundingCUA
     //calculate real slice start address
     uiInternalAddress = rpcPic.GetPicSym().GetPicSCUAddr(pcSlice.GetSliceSegmentCurStartCUAddr()) % rpcPic.GetNumPartInCU()
     uiExternalAddress = rpcPic.GetPicSym().GetPicSCUAddr(pcSlice.GetSliceSegmentCurStartCUAddr()) / rpcPic.GetNumPartInCU()
-    uiPosX = (uiExternalAddress%rpcPic.GetFrameWidthInCU())*TLibCommon.G_uiMaxCUWidth + TLibCommon.G_auiRasterToPelX[TLibCommon.G_auiZscanToRaster[uiInternalAddress]]
-    uiPosY = (uiExternalAddress/rpcPic.GetFrameWidthInCU())*TLibCommon.G_uiMaxCUHeight + TLibCommon.G_auiRasterToPelY[TLibCommon.G_auiZscanToRaster[uiInternalAddress]]
+    uiPosX = (uiExternalAddress%rpcPic.GetFrameWidthInCU())*pcSlice.GetSPS().GetMaxCUWidth() + TLibCommon.G_auiRasterToPelX[TLibCommon.G_auiZscanToRaster[uiInternalAddress]]
+    uiPosY = (uiExternalAddress/rpcPic.GetFrameWidthInCU())*pcSlice.GetSPS().GetMaxCUHeight() + TLibCommon.G_auiRasterToPelY[TLibCommon.G_auiZscanToRaster[uiInternalAddress]]
     uiWidth = pcSlice.GetSPS().GetPicWidthInLumaSamples()
     uiHeight = pcSlice.GetSPS().GetPicHeightInLumaSamples()
     for (uiPosX >= uiWidth || uiPosY >= uiHeight) && !(uiPosX >= uiWidth && uiPosY >= uiHeight) {
@@ -1598,8 +1598,8 @@ func (this *TEncSlice) xDetermineStartAndBoundingCUAddr(startCUAddr, boundingCUA
             uiInternalAddress = 0
             uiExternalAddress = rpcPic.GetPicSym().GetCUOrderMap(int(rpcPic.GetPicSym().GetInverseCUOrderMap(int(uiExternalAddress)) + 1))
         }
-        uiPosX = (uiExternalAddress%rpcPic.GetFrameWidthInCU())*TLibCommon.G_uiMaxCUWidth + TLibCommon.G_auiRasterToPelX[TLibCommon.G_auiZscanToRaster[uiInternalAddress]]
-        uiPosY = (uiExternalAddress/rpcPic.GetFrameWidthInCU())*TLibCommon.G_uiMaxCUHeight + TLibCommon.G_auiRasterToPelY[TLibCommon.G_auiZscanToRaster[uiInternalAddress]]
+        uiPosX = (uiExternalAddress%rpcPic.GetFrameWidthInCU())*pcSlice.GetSPS().GetMaxCUWidth() + TLibCommon.G_auiRasterToPelX[TLibCommon.G_auiZscanToRaster[uiInternalAddress]]
+        uiPosY = (uiExternalAddress/rpcPic.GetFrameWidthInCU())*pcSlice.GetSPS().GetMaxCUHeight() + TLibCommon.G_auiRasterToPelY[TLibCommon.G_auiZscanToRaster[uiInternalAddress]]
     }
     uiRealStartAddress = rpcPic.GetPicSym().GetPicSCUEncOrder(uiExternalAddress*rpcPic.GetNumPartInCU() + uiInternalAddress)
 

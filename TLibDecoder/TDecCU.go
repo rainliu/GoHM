@@ -146,9 +146,9 @@ func (this *TDecCu) xDecodeCU(pcCU *TLibCommon.TComDataCU, uiAbsPartIdx, uiDepth
 
     bBoundary := false
     uiLPelX := pcCU.GetCUPelX() + TLibCommon.G_auiRasterToPelX[TLibCommon.G_auiZscanToRaster[uiAbsPartIdx]]
-    uiRPelX := uiLPelX + (TLibCommon.G_uiMaxCUWidth >> uiDepth) - 1
+    uiRPelX := uiLPelX + (pcCU.GetSlice().GetSPS().GetMaxCUWidth() >> uiDepth) - 1
     uiTPelY := pcCU.GetCUPelY() + TLibCommon.G_auiRasterToPelY[TLibCommon.G_auiZscanToRaster[uiAbsPartIdx]]
-    uiBPelY := uiTPelY + (TLibCommon.G_uiMaxCUHeight >> uiDepth) - 1
+    uiBPelY := uiTPelY + (pcCU.GetSlice().GetSPS().GetMaxCUHeight() >> uiDepth) - 1
 
     pcSlice := pcCU.GetPic().GetSlice(pcCU.GetPic().GetCurrSliceIdx())
     bStartInCU := pcCU.GetSCUAddr()+uiAbsPartIdx+uiCurNumParts > pcSlice.GetSliceSegmentCurStartCUAddr() && pcCU.GetSCUAddr()+uiAbsPartIdx < pcSlice.GetSliceSegmentCurStartCUAddr()
@@ -158,9 +158,9 @@ func (this *TDecCu) xDecodeCU(pcCU *TLibCommon.TComDataCU, uiAbsPartIdx, uiDepth
         bBoundary = true
     }
 
-    if ((uiDepth < uint(pcCU.GetDepth1(uiAbsPartIdx))) && (uiDepth < TLibCommon.G_uiMaxCUDepth-TLibCommon.G_uiAddCUDepth)) || bBoundary {
+    if ((uiDepth < uint(pcCU.GetDepth1(uiAbsPartIdx))) && (uiDepth < pcCU.GetSlice().GetSPS().GetMaxCUDepth()-pcCU.GetSlice().GetSPS().GetAddCUDepth())) || bBoundary {
         uiIdx := uiAbsPartIdx
-        if (TLibCommon.G_uiMaxCUWidth>>uiDepth) == pcCU.GetSlice().GetPPS().GetMinCuDQPSize() && pcCU.GetSlice().GetPPS().GetUseDQP() {
+        if (pcCU.GetSlice().GetSPS().GetMaxCUWidth()>>uiDepth) == pcCU.GetSlice().GetPPS().GetMinCuDQPSize() && pcCU.GetSlice().GetPPS().GetUseDQP() {
             this.SetdQPFlag(true)
             pcCU.SetQPSubParts(int(pcCU.GetRefQP(uiAbsPartIdx)), uiAbsPartIdx, uiDepth) // set QP to default QP
         }
@@ -181,7 +181,7 @@ func (this *TDecCu) xDecodeCU(pcCU *TLibCommon.TComDataCU, uiAbsPartIdx, uiDepth
 
             uiIdx += uiQNumParts
         }
-        if (TLibCommon.G_uiMaxCUWidth>>uiDepth) == pcCU.GetSlice().GetPPS().GetMinCuDQPSize() && pcCU.GetSlice().GetPPS().GetUseDQP() {
+        if (pcCU.GetSlice().GetSPS().GetMaxCUWidth()>>uiDepth) == pcCU.GetSlice().GetPPS().GetMinCuDQPSize() && pcCU.GetSlice().GetPPS().GetUseDQP() {
             if this.GetdQPFlag() {
                 var uiQPSrcPartIdx uint
                 if pcPic.GetCU(pcCU.GetAddr()).GetSliceSegmentStartCU(uiAbsPartIdx) != pcSlice.GetSliceSegmentCurStartCUAddr() {
@@ -195,7 +195,7 @@ func (this *TDecCu) xDecodeCU(pcCU *TLibCommon.TComDataCU, uiAbsPartIdx, uiDepth
         return
     }
 
-    if (TLibCommon.G_uiMaxCUWidth>>uiDepth) >= pcCU.GetSlice().GetPPS().GetMinCuDQPSize() && pcCU.GetSlice().GetPPS().GetUseDQP() {
+    if (pcCU.GetSlice().GetSPS().GetMaxCUWidth()>>uiDepth) >= pcCU.GetSlice().GetPPS().GetMinCuDQPSize() && pcCU.GetSlice().GetPPS().GetUseDQP() {
         this.SetdQPFlag(true)
         pcCU.SetQPSubParts(int(pcCU.GetRefQP(uiAbsPartIdx)), uiAbsPartIdx, uiDepth) // set QP to default QP
     }
@@ -279,7 +279,7 @@ func (this *TDecCu) xDecodeSliceEnd(pcCU *TLibCommon.TComDataCU, uiAbsPartIdx, u
     uiCurNumParts := pcPic.GetNumPartInCU() >> (uiDepth << 1)
     uiWidth := pcSlice.GetSPS().GetPicWidthInLumaSamples()
     uiHeight := pcSlice.GetSPS().GetPicHeightInLumaSamples()
-    uiGranularityWidth := TLibCommon.G_uiMaxCUWidth
+    uiGranularityWidth := pcCU.GetSlice().GetSPS().GetMaxCUWidth()
     uiPosX := pcCU.GetCUPelX() + TLibCommon.G_auiRasterToPelX[TLibCommon.G_auiZscanToRaster[uiAbsPartIdx]]
     uiPosY := pcCU.GetCUPelY() + TLibCommon.G_auiRasterToPelY[TLibCommon.G_auiZscanToRaster[uiAbsPartIdx]]
 
@@ -306,9 +306,9 @@ func (this *TDecCu) xDecompressCU(pcCU *TLibCommon.TComDataCU, uiAbsPartIdx, uiD
 
     bBoundary := false
     uiLPelX := pcCU.GetCUPelX() + TLibCommon.G_auiRasterToPelX[TLibCommon.G_auiZscanToRaster[uiAbsPartIdx]]
-    uiRPelX := uiLPelX + (TLibCommon.G_uiMaxCUWidth >> uiDepth) - 1
+    uiRPelX := uiLPelX + (pcCU.GetSlice().GetSPS().GetMaxCUWidth() >> uiDepth) - 1
     uiTPelY := pcCU.GetCUPelY() + TLibCommon.G_auiRasterToPelY[TLibCommon.G_auiZscanToRaster[uiAbsPartIdx]]
-    uiBPelY := uiTPelY + (TLibCommon.G_uiMaxCUHeight >> uiDepth) - 1
+    uiBPelY := uiTPelY + (pcCU.GetSlice().GetSPS().GetMaxCUHeight() >> uiDepth) - 1
 
     uiCurNumParts := pcPic.GetNumPartInCU() >> (uiDepth << 1)
     pcSlice := pcCU.GetPic().GetSlice(pcCU.GetPic().GetCurrSliceIdx())
@@ -317,7 +317,7 @@ func (this *TDecCu) xDecompressCU(pcCU *TLibCommon.TComDataCU, uiAbsPartIdx, uiD
         bBoundary = true
     }
 
-    if ((uiDepth < uint(pcCU.GetDepth1(uiAbsPartIdx))) && (uiDepth < TLibCommon.G_uiMaxCUDepth-TLibCommon.G_uiAddCUDepth)) || bBoundary {
+    if ((uiDepth < uint(pcCU.GetDepth1(uiAbsPartIdx))) && (uiDepth < pcCU.GetSlice().GetSPS().GetMaxCUDepth()-pcCU.GetSlice().GetSPS().GetAddCUDepth())) || bBoundary {
         uiNextDepth := uiDepth + 1
         uiQNumParts := pcCU.GetTotalNumPart() >> (uiNextDepth << 1)
         uiIdx := uiAbsPartIdx
@@ -741,8 +741,8 @@ func (this *TDecCu) xIntraRecChromaBlk(pcCU *TLibCommon.TComDataCU, uiTrDepth, u
 
 func (this *TDecCu) xReconPCM(pcCU *TLibCommon.TComDataCU, uiDepth uint) {
     // Luma
-    uiWidth := (TLibCommon.G_uiMaxCUWidth >> uiDepth)
-    uiHeight := (TLibCommon.G_uiMaxCUHeight >> uiDepth)
+    uiWidth := (pcCU.GetSlice().GetSPS().GetMaxCUWidth() >> uiDepth)
+    uiHeight := (pcCU.GetSlice().GetSPS().GetMaxCUHeight() >> uiDepth)
 
     piPcmY := pcCU.GetPCMSampleY()
     piRecoY := this.m_ppcYuvReco[uiDepth].GetLumaAddr2(0, uiWidth)
@@ -941,8 +941,8 @@ func (this *TDecCu) SetdQPFlag(b bool) {
 }
 func (this *TDecCu) xFillPCMBuffer(pCU *TLibCommon.TComDataCU, depth uint) {
     // Luma
-    width := (TLibCommon.G_uiMaxCUWidth >> depth)
-    height := (TLibCommon.G_uiMaxCUHeight >> depth)
+    width := (pCU.GetSlice().GetSPS().GetMaxCUWidth() >> depth)
+    height := (pCU.GetSlice().GetSPS().GetMaxCUHeight() >> depth)
 
     pPcmY := pCU.GetPCMSampleY()
     pRecoY := this.m_ppcYuvReco[depth].GetLumaAddr2(0, width)

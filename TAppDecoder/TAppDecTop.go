@@ -72,6 +72,7 @@ func (this *TAppDecTop) Destroy() {
 }
 
 func (this *TAppDecTop) Decode() (err error) {
+	bSkipPictureForBLA := false;
     var poc int
     var pcListPic *list.List           // = NULL;
     var nalUnit, oldNalUnit *list.List //vector<uint8_t>
@@ -136,12 +137,12 @@ func (this *TAppDecTop) Decode() (err error) {
                     bNewPicture = false
                 }
             } else {
-                bNewPicture = this.m_cTDecTop.Decode(&nalu, &this.m_iSkipFrame, &this.m_iPOCLastDisplay, !bNewPicture)
+                bNewPicture = this.m_cTDecTop.Decode(&nalu, &this.m_iSkipFrame, &this.m_iPOCLastDisplay, &bSkipPictureForBLA, !bNewPicture)
                 bPreviousPictureDecoded = true
             }
         }
         if bNewPicture || eof {
-            pcListPic = this.m_cTDecTop.ExecuteLoopFilters(&poc)
+            pcListPic = this.m_cTDecTop.ExecuteLoopFilters(&poc, bSkipPictureForBLA)
         }
 
         if pcListPic != nil {
@@ -209,10 +210,16 @@ func (this *TAppDecTop) xInitDecLib() {
 
 func (this *TAppDecTop) xWriteOutput(pcListPic *list.List, tId uint) {
     not_displayed := 0
-
+	maxNumReorderPics := 0;
+	
     for e := pcListPic.Front(); e != nil; e = e.Next() {
         pcPic := e.Value.(*TLibCommon.TComPic)
         if pcPic.GetOutputMark() && int(pcPic.GetPOC()) > this.m_iPOCLastDisplay {
+        	for i:=uint(0); i<TLibCommon.MAX_TLAYER; i++ {
+		        if pcPic.GetNumReorderPics(i)>maxNumReorderPics {
+		          maxNumReorderPics = pcPic.GetNumReorderPics(i);
+		        }
+		    }
             not_displayed++
         }
     }
@@ -220,7 +227,7 @@ func (this *TAppDecTop) xWriteOutput(pcListPic *list.List, tId uint) {
     for e := pcListPic.Front(); e != nil; e = e.Next() {
         pcPic := e.Value.(*TLibCommon.TComPic)
         //fmt.Printf("tId=%d, %v, %d, %d, %d, %d\n", tId, pcPic.GetOutputMark(), not_displayed, pcPic.GetNumReorderPics(tId), int(pcPic.GetPOC()), this.m_iPOCLastDisplay);
-        if pcPic.GetOutputMark() && (not_displayed > pcPic.GetNumReorderPics(tId) && int(pcPic.GetPOC()) > this.m_iPOCLastDisplay) {
+        if pcPic.GetOutputMark() && (not_displayed > maxNumReorderPics && int(pcPic.GetPOC()) > this.m_iPOCLastDisplay) {
             // write to file
             not_displayed--
             if this.m_pchReconFile != "" {

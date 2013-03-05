@@ -571,7 +571,7 @@ func (this *TComPic) CreateNonDBFilterInfo(sliceStartAddress map[int]int, sliceG
 
     if this.m_bIndependentSliceBoundaryForNDBFilter || this.m_bIndependentTileBoundaryForNDBFilter {
         this.m_pNDBFilterYuvTmp = NewTComPicYuv()
-        this.m_pNDBFilterYuvTmp.Create(int(picWidth), int(picHeight), G_uiMaxCUWidth, G_uiMaxCUHeight, G_uiMaxCUDepth)
+        this.m_pNDBFilterYuvTmp.Create(int(picWidth), int(picHeight), this.GetSlice(0).GetSPS().GetMaxCUWidth(), this.GetSlice(0).GetSPS().GetMaxCUHeight(), this.GetSlice(0).GetSPS().GetMaxCUDepth())
     }
 }
 func (this *TComPic) CreateNonDBFilterInfoLCU(tileID, sliceID int, pcCU *TComDataCU, startSU, endSU uint, sliceGranularyDepth int, picWidth, picHeight uint) {

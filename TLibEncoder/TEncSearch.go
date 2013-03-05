@@ -267,42 +267,42 @@ func (this *TEncSearch) init(pcEncCfg *TEncCfg,
         }
     }
 
-    this.InitTempBuff()
+    this.InitTempBuff(pcEncCfg.GetMaxCUWidth(), pcEncCfg.GetMaxCUHeight())
 
-    this.m_pTempPel = make([]TLibCommon.Pel, TLibCommon.G_uiMaxCUWidth*TLibCommon.G_uiMaxCUHeight)
+    this.m_pTempPel = make([]TLibCommon.Pel, pcEncCfg.GetMaxCUWidth()*pcEncCfg.GetMaxCUHeight())
 
     uiNumLayersToAllocate := pcEncCfg.GetQuadtreeTULog2MaxSize() - pcEncCfg.GetQuadtreeTULog2MinSize() + 1
     this.m_ppcQTTempCoeffY = make([][]TLibCommon.TCoeff, uiNumLayersToAllocate)
     this.m_ppcQTTempCoeffCb = make([][]TLibCommon.TCoeff, uiNumLayersToAllocate)
     this.m_ppcQTTempCoeffCr = make([][]TLibCommon.TCoeff, uiNumLayersToAllocate)
-    this.m_pcQTTempCoeffY = make([]TLibCommon.TCoeff, TLibCommon.G_uiMaxCUWidth*TLibCommon.G_uiMaxCUHeight)
-    this.m_pcQTTempCoeffCb = make([]TLibCommon.TCoeff, TLibCommon.G_uiMaxCUWidth*TLibCommon.G_uiMaxCUHeight>>2)
-    this.m_pcQTTempCoeffCr = make([]TLibCommon.TCoeff, TLibCommon.G_uiMaxCUWidth*TLibCommon.G_uiMaxCUHeight>>2)
+    this.m_pcQTTempCoeffY  = make([]TLibCommon.TCoeff, pcEncCfg.GetMaxCUWidth()*pcEncCfg.GetMaxCUHeight())
+    this.m_pcQTTempCoeffCb = make([]TLibCommon.TCoeff, pcEncCfg.GetMaxCUWidth()*pcEncCfg.GetMaxCUHeight()>>2)
+    this.m_pcQTTempCoeffCr = make([]TLibCommon.TCoeff, pcEncCfg.GetMaxCUWidth()*pcEncCfg.GetMaxCUHeight()>>2)
     //#if ADAPTIVE_QP_SELECTION
     this.m_ppcQTTempArlCoeffY = make([][]TLibCommon.TCoeff, uiNumLayersToAllocate)
     this.m_ppcQTTempArlCoeffCb = make([][]TLibCommon.TCoeff, uiNumLayersToAllocate)
     this.m_ppcQTTempArlCoeffCr = make([][]TLibCommon.TCoeff, uiNumLayersToAllocate)
-    this.m_pcQTTempArlCoeffY = make([]TLibCommon.TCoeff, TLibCommon.G_uiMaxCUWidth*TLibCommon.G_uiMaxCUHeight)
-    this.m_pcQTTempArlCoeffCb = make([]TLibCommon.TCoeff, TLibCommon.G_uiMaxCUWidth*TLibCommon.G_uiMaxCUHeight>>2)
-    this.m_pcQTTempArlCoeffCr = make([]TLibCommon.TCoeff, TLibCommon.G_uiMaxCUWidth*TLibCommon.G_uiMaxCUHeight>>2)
+    this.m_pcQTTempArlCoeffY  = make([]TLibCommon.TCoeff, pcEncCfg.GetMaxCUWidth()*pcEncCfg.GetMaxCUHeight())
+    this.m_pcQTTempArlCoeffCb = make([]TLibCommon.TCoeff, pcEncCfg.GetMaxCUWidth()*pcEncCfg.GetMaxCUHeight()>>2)
+    this.m_pcQTTempArlCoeffCr = make([]TLibCommon.TCoeff, pcEncCfg.GetMaxCUWidth()*pcEncCfg.GetMaxCUHeight()>>2)
     //#endif
 
-    uiNumPartitions := 1 << (TLibCommon.G_uiMaxCUDepth << 1)
+    uiNumPartitions := 1 << (pcEncCfg.GetMaxCUDepth() << 1)
     this.m_puhQTTempTrIdx = make([]byte, uiNumPartitions)
     this.m_puhQTTempCbf[0] = make([]byte, uiNumPartitions)
     this.m_puhQTTempCbf[1] = make([]byte, uiNumPartitions)
     this.m_puhQTTempCbf[2] = make([]byte, uiNumPartitions)
     this.m_pcQTTempTComYuv = make([]TLibCommon.TComYuv, uiNumLayersToAllocate)
     for ui := uint(0); ui < uiNumLayersToAllocate; ui++ {
-        this.m_ppcQTTempCoeffY[ui] = make([]TLibCommon.TCoeff, TLibCommon.G_uiMaxCUWidth*TLibCommon.G_uiMaxCUHeight)
-        this.m_ppcQTTempCoeffCb[ui] = make([]TLibCommon.TCoeff, TLibCommon.G_uiMaxCUWidth*TLibCommon.G_uiMaxCUHeight>>2)
-        this.m_ppcQTTempCoeffCr[ui] = make([]TLibCommon.TCoeff, TLibCommon.G_uiMaxCUWidth*TLibCommon.G_uiMaxCUHeight>>2)
+        this.m_ppcQTTempCoeffY[ui] = make([]TLibCommon.TCoeff, pcEncCfg.GetMaxCUWidth()*pcEncCfg.GetMaxCUHeight())
+        this.m_ppcQTTempCoeffCb[ui] = make([]TLibCommon.TCoeff, pcEncCfg.GetMaxCUWidth()*pcEncCfg.GetMaxCUHeight()>>2)
+        this.m_ppcQTTempCoeffCr[ui] = make([]TLibCommon.TCoeff, pcEncCfg.GetMaxCUWidth()*pcEncCfg.GetMaxCUHeight()>>2)
         //#if ADAPTIVE_QP_SELECTION
-        this.m_ppcQTTempArlCoeffY[ui] = make([]TLibCommon.TCoeff, TLibCommon.G_uiMaxCUWidth*TLibCommon.G_uiMaxCUHeight)
-        this.m_ppcQTTempArlCoeffCb[ui] = make([]TLibCommon.TCoeff, TLibCommon.G_uiMaxCUWidth*TLibCommon.G_uiMaxCUHeight>>2)
-        this.m_ppcQTTempArlCoeffCr[ui] = make([]TLibCommon.TCoeff, TLibCommon.G_uiMaxCUWidth*TLibCommon.G_uiMaxCUHeight>>2)
+        this.m_ppcQTTempArlCoeffY[ui] = make([]TLibCommon.TCoeff, pcEncCfg.GetMaxCUWidth()*pcEncCfg.GetMaxCUHeight())
+        this.m_ppcQTTempArlCoeffCb[ui] = make([]TLibCommon.TCoeff, pcEncCfg.GetMaxCUWidth()*pcEncCfg.GetMaxCUHeight()>>2)
+        this.m_ppcQTTempArlCoeffCr[ui] = make([]TLibCommon.TCoeff, pcEncCfg.GetMaxCUWidth()*pcEncCfg.GetMaxCUHeight()>>2)
         //#endif
-        this.m_pcQTTempTComYuv[ui].Create(TLibCommon.G_uiMaxCUWidth, TLibCommon.G_uiMaxCUHeight)
+        this.m_pcQTTempTComYuv[ui].Create(pcEncCfg.GetMaxCUWidth(), pcEncCfg.GetMaxCUHeight())
     }
     this.m_pSharedPredTransformSkip[0] = make([]TLibCommon.Pel, TLibCommon.MAX_TS_WIDTH*TLibCommon.MAX_TS_HEIGHT)
     this.m_pSharedPredTransformSkip[1] = make([]TLibCommon.Pel, TLibCommon.MAX_TS_WIDTH*TLibCommon.MAX_TS_HEIGHT)
@@ -315,7 +315,7 @@ func (this *TEncSearch) init(pcEncCfg *TEncCfg,
     this.m_ppcQTTempTUArlCoeffCb = make([]TLibCommon.TCoeff, TLibCommon.MAX_TS_WIDTH*TLibCommon.MAX_TS_HEIGHT)
     this.m_ppcQTTempTUArlCoeffCr = make([]TLibCommon.TCoeff, TLibCommon.MAX_TS_WIDTH*TLibCommon.MAX_TS_HEIGHT)
     //#endif
-    this.m_pcQTTempTransformSkipTComYuv.Create(TLibCommon.G_uiMaxCUWidth, TLibCommon.G_uiMaxCUHeight)
+    this.m_pcQTTempTransformSkipTComYuv.Create(pcEncCfg.GetMaxCUWidth(), pcEncCfg.GetMaxCUHeight())
 
     this.m_puhQTTempTransformSkipFlag[0] = make([]bool, uiNumPartitions)
     this.m_puhQTTempTransformSkipFlag[1] = make([]bool, uiNumPartitions)
@@ -1827,7 +1827,7 @@ func (this *TEncSearch) encodeResAndCalcRdInterCU(pcCU *TLibCommon.TComDataCU,
     }
     uiMaxTrMode := pcCU.GetSlice().GetSPS().GetMaxTrDepth() + uiTrLevel
 
-    for (uiWidth >> uiMaxTrMode) < (TLibCommon.G_uiMaxCUWidth >> TLibCommon.G_uiMaxCUDepth) {
+    for (uiWidth >> uiMaxTrMode) < (this.m_pcEncCfg.GetMaxCUWidth()>>this.m_pcEncCfg.GetMaxCUDepth()) {
         uiMaxTrMode--
     }
 

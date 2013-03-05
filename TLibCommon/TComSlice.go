@@ -1291,6 +1291,7 @@ type TComSPS struct {
     m_uiMaxCUWidth         uint
     m_uiMaxCUHeight        uint
     m_uiMaxCUDepth         uint
+    m_uiAddCUDepth		   uint
     m_uiMinTrDepth         uint
     m_uiMaxTrDepth         uint
     m_RPSList              *TComRPSList
@@ -1503,6 +1504,12 @@ func (this *TComSPS) SetMaxCUDepth(u uint) {
 }
 func (this *TComSPS) GetMaxCUDepth() uint {
     return this.m_uiMaxCUDepth
+}
+func (this *TComSPS) SetAddCUDepth  ( u uint) { 
+	this.m_uiAddCUDepth = u;      
+}
+func (this *TComSPS) GetAddCUDepth  ()  uint { 
+	return  this.m_uiAddCUDepth;  
 }
 func (this *TComSPS) SetUsePCM(b bool) {
     this.m_usePCM = b
@@ -2950,14 +2957,14 @@ func (this *TComSlice) SetRefPicList(rcListPic *list.List) {
     }
     for i = this.m_pcRPS.GetNumberOfNegativePictures() + this.m_pcRPS.GetNumberOfPositivePictures() + this.m_pcRPS.GetNumberOfLongtermPictures() - 1; i > this.m_pcRPS.GetNumberOfNegativePictures()+this.m_pcRPS.GetNumberOfPositivePictures()-1; i-- {
         if this.m_pcRPS.GetUsed(i) {
-            pcRefPic = this.xGetLongTermRefPic(rcListPic, this.m_pcRPS.GetPOC(i))
+            pcRefPic = this.xGetLongTermRefPic(rcListPic, this.m_pcRPS.GetPOC(i), this.m_pcRPS.GetCheckLTMSBPresent(i))
             pcRefPic.SetIsLongTerm(true)
             pcRefPic.GetPicYuvRec().ExtendPicBorder()
             RefPicSetLtCurr[NumPocLtCurr] = pcRefPic
             NumPocLtCurr++
         }
         if pcRefPic == nil {
-            pcRefPic = this.xGetLongTermRefPic(rcListPic, this.m_pcRPS.GetPOC(i))
+            pcRefPic = this.xGetLongTermRefPic(rcListPic, this.m_pcRPS.GetPOC(i), this.m_pcRPS.GetCheckLTMSBPresent(i))
         }
         pcRefPic.SetCheckLTMSBPresent(this.m_pcRPS.GetCheckLTMSBPresent(i))
     }
@@ -3246,6 +3253,9 @@ func (this *TComSlice) ApplyReferencePictureSet(rcListPic *list.List, pReference
             rpcPic.GetSlice(0).SetReferenced(false)
             rpcPic.SetIsLongTerm(false)
         }
+        if isReference==1 {
+     	 	rpcPic.GetSlice(0).SetReferenced( true );  
+    	}
         //check that pictures of higher temporal layers are not used
         //assert(rpcPic.GetSlice( 0 )->isReferenced()==0||rpcPic.GetUsedByCurr()==0||rpcPic.GetTLayer()<=this.GetTLayer());
         //check that pictures of higher or equal temporal layer are not in the RPS if the current picture is a TSA picture
@@ -3826,21 +3836,31 @@ func (this *TComSlice) xGetRefPic(rcListPic *list.List, poc int) *TComPic {
     return pcPic
 }
 
-func (this *TComSlice) xGetLongTermRefPic(rcListPic *list.List, poc int) *TComPic {
+func (this *TComSlice) xGetLongTermRefPic(rcListPic *list.List, poc int, bCheckLTMSBPresent bool) *TComPic {
     var pcPic *TComPic
     var pcStPic *TComPic
 
     for e := rcListPic.Front(); e != nil; e = e.Next() {
         pcPic = e.Value.(*TComPic)
-        if pcPic != nil &&
-            pcPic.GetPOC()%(1<<this.GetSPS().GetBitsForPOC()) == (uint(poc)%(1<<this.GetSPS().GetBitsForPOC())) {
-            if pcPic.GetIsLongTerm() {
-                return pcPic
-            } else {
-                pcStPic = pcPic
-            }
-            break
-        }
+        if bCheckLTMSBPresent==true {
+	      if pcPic != nil && pcPic.GetPOC() == uint(poc) {
+	        if pcPic.GetIsLongTerm() {
+	          return pcPic;
+	        }else {
+	          pcStPic = pcPic;
+	        }
+	        break;
+	      }
+	    }else{
+	        if pcPic != nil && pcPic.GetPOC()%(1<<this.GetSPS().GetBitsForPOC()) == (uint(poc)%(1<<this.GetSPS().GetBitsForPOC())) {
+	            if pcPic.GetIsLongTerm() {
+	                return pcPic
+	            } else {
+	                pcStPic = pcPic
+	            }
+	            break
+	        }
+	    }
     }
 
     return pcStPic

@@ -512,6 +512,7 @@ type TAppEncCfg struct {
     m_uiMaxCUWidth  uint ///< max. CU width in pixel
     m_uiMaxCUHeight uint ///< max. CU height in pixel
     m_uiMaxCUDepth  uint ///< max. CU depth
+    m_uiAddCUDepth	uint; 
 
     // transfom unit (TU) definition
     m_uiQuadtreeTULog2MaxSize uint
@@ -1154,18 +1155,19 @@ func (this *TAppEncCfg) ParseCfg(argc int, argv []string) error { ///< parse con
 // internal member functions
 func (this *TAppEncCfg) xSetGlobal() { ///< set global variables
     // set max CU width & height
-    TLibCommon.G_uiMaxCUWidth = this.m_uiMaxCUWidth
-    TLibCommon.G_uiMaxCUHeight = this.m_uiMaxCUHeight
+    //TLibCommon.G_uiMaxCUWidth = this.m_uiMaxCUWidth
+    //TLibCommon.G_uiMaxCUHeight = this.m_uiMaxCUHeight
 
     // compute actual CU depth with respect to config depth and max transform size
-    TLibCommon.G_uiAddCUDepth = 0
-    for (this.m_uiMaxCUWidth >> this.m_uiMaxCUDepth) > (1 << (this.m_uiQuadtreeTULog2MinSize + TLibCommon.G_uiAddCUDepth)) {
-        TLibCommon.G_uiAddCUDepth++
+    this.m_uiAddCUDepth = 0
+    for (this.m_uiMaxCUWidth >> this.m_uiMaxCUDepth) > (1 << (this.m_uiQuadtreeTULog2MinSize + this.m_uiAddCUDepth)) {
+        this.m_uiAddCUDepth++
     }
 
-    this.m_uiMaxCUDepth += TLibCommon.G_uiAddCUDepth
-    TLibCommon.G_uiAddCUDepth++
-    TLibCommon.G_uiMaxCUDepth = this.m_uiMaxCUDepth
+    this.m_uiMaxCUDepth += this.m_uiAddCUDepth
+    this.m_uiAddCUDepth++
+    //TLibCommon.G_uiMaxCUDepth = this.m_uiMaxCUDepth
+    //TLibCommon.G_uiAddCUDepth = this.m_uiAddCUDepth;
 
     // set internal bit-depth and constants
     TLibCommon.G_bitDepthY = this.m_internalBitDepthY

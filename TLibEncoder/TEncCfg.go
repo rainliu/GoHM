@@ -223,6 +223,12 @@ type TEncCfg struct {
     m_framesToBeEncoded int
     m_adLambdaModifier  [TLibCommon.MAX_TLAYER]float64
 
+  // coding unit (CU) definition
+        m_uiMaxCUWidth	uint;                                   ///< max. CU width in pixel
+        m_uiMaxCUHeight	uint;                                  ///< max. CU height in pixel
+        m_uiMaxCUDepth	uint;                                   ///< max. CU depth
+        m_uiAddCUDepth	uint;
+  
     /* profile & level */
     m_profile   TLibCommon.PROFILE
     m_levelTier TLibCommon.TIER
@@ -434,6 +440,16 @@ func (this *TEncCfg) SetConformanceWindow(confLeft, confRight, confTop, confBott
 
 func (this *TEncCfg) SetFramesToBeEncoded(i int) { this.m_framesToBeEncoded = i }
 
+  // coding unit (CU) definition
+func (this *TEncCfg) SetMaxCUWidth                   ( i uint)        { this.m_uiMaxCUWidth = i;}
+func (this *TEncCfg) SetMaxCUHeight                  ( i uint)        { this.m_uiMaxCUHeight = i;}
+func (this *TEncCfg) SetMaxCUDepth                   ( i uint)        { this.m_uiMaxCUDepth = i;}
+func (this *TEncCfg) SetAddCUDepth                   ( i uint)        { this.m_uiAddCUDepth = i;}
+func (this *TEncCfg) GetMaxCUWidth                   () uint       { return this.m_uiMaxCUWidth ;}
+func (this *TEncCfg) GetMaxCUHeight                  () uint       { return this.m_uiMaxCUHeight;}
+func (this *TEncCfg) GetMaxCUDepth                   () uint       { return this.m_uiMaxCUDepth ;}
+func (this *TEncCfg) GetAddCUDepth                   () uint       { return this.m_uiAddCUDepth ;}
+  
 //====== Coding Structure ========
 func (this *TEncCfg) SetIntraPeriod(i int) { this.m_uiIntraPeriod = uint(i) }
 func (this *TEncCfg) SetDecodingRefreshType(i int) {
@@ -687,10 +703,10 @@ func (this *TEncCfg) GetNumColumnsMinus1() int   { return this.m_iNumColumnsMinu
 func (this *TEncCfg) SetColumnWidth(columnWidth []int) {
     if this.m_iUniformSpacingIdr == 0 && this.m_iNumColumnsMinus1 > 0 {
         var m_iWidthInCU int
-        if this.m_iSourceWidth%int(TLibCommon.G_uiMaxCUWidth) != 0 {
-            m_iWidthInCU = this.m_iSourceWidth/int(TLibCommon.G_uiMaxCUWidth) + 1
+        if this.m_iSourceWidth%int(this.m_uiMaxCUWidth) != 0 {
+            m_iWidthInCU = this.m_iSourceWidth/int(this.m_uiMaxCUWidth) + 1
         } else {
-            m_iWidthInCU = this.m_iSourceWidth / int(TLibCommon.G_uiMaxCUWidth)
+            m_iWidthInCU = this.m_iSourceWidth/int(this.m_uiMaxCUWidth)
         }
         this.m_puiColumnWidth = make([]int, this.m_iNumColumnsMinus1)
 
@@ -711,10 +727,10 @@ func (this *TEncCfg) GetNumRowsMinus1() int {
 func (this *TEncCfg) SetRowHeight(rowHeight []int) {
     if this.m_iUniformSpacingIdr == 0 && this.m_iNumRowsMinus1 > 0 {
         var m_iHeightInCU int
-        if this.m_iSourceHeight%int(TLibCommon.G_uiMaxCUHeight) != 0 {
-            m_iHeightInCU = this.m_iSourceHeight/int(TLibCommon.G_uiMaxCUHeight) + 1
+        if this.m_iSourceHeight%int(this.m_uiMaxCUHeight) != 0 {
+            m_iHeightInCU = this.m_iSourceHeight/int(this.m_uiMaxCUHeight) + 1
         } else {
-            m_iHeightInCU = this.m_iSourceHeight / int(TLibCommon.G_uiMaxCUHeight)
+            m_iHeightInCU = this.m_iSourceHeight/int(this.m_uiMaxCUHeight)
         }
         this.m_puiRowHeight = make([]int, this.m_iNumRowsMinus1)
 

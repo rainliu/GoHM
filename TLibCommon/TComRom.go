@@ -185,10 +185,11 @@ func DestroyROM() {
 // Data structure related table & variable
 // ====================================================================================================================
 
-var G_uiMaxCUWidth = uint(MAX_CU_SIZE)
-var G_uiMaxCUHeight = uint(MAX_CU_SIZE)
-var G_uiMaxCUDepth = uint(MAX_CU_DEPTH)
-var G_uiAddCUDepth = uint(0)
+//var G_uiMaxCUWidth = uint(MAX_CU_SIZE)
+//var G_uiMaxCUHeight = uint(MAX_CU_SIZE)
+//var G_uiMaxCUDepth = uint(MAX_CU_DEPTH)
+//var G_uiAddCUDepth = uint(0)
+
 var G_auiZscanToRaster = [MAX_NUM_SPU_W * MAX_NUM_SPU_W]uint{0}
 var G_auiRasterToZscan = [MAX_NUM_SPU_W * MAX_NUM_SPU_W]uint{0}
 var G_auiRasterToPelX = [MAX_NUM_SPU_W * MAX_NUM_SPU_W]uint{0}

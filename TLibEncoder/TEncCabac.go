@@ -947,7 +947,7 @@ func (this *TEncSbac) codeMergeIndex(pcCU *TLibCommon.TComDataCU, uiAbsPartIdx u
 }
 
 func (this *TEncSbac) codeSplitFlag(pcCU *TLibCommon.TComDataCU, uiAbsPartIdx uint, uiDepth uint) {
-    if uiDepth == TLibCommon.G_uiMaxCUDepth-TLibCommon.G_uiAddCUDepth {
+    if uiDepth == pcCU.GetSlice().GetSPS().GetMaxCUDepth()-pcCU.GetSlice().GetSPS().GetAddCUDepth() {
         return
     }
 
@@ -971,7 +971,7 @@ func (this *TEncSbac) codeMVPIdx(pcCU *TLibCommon.TComDataCU, uiAbsPartIdx uint,
 func (this *TEncSbac) codePartSize(pcCU *TLibCommon.TComDataCU, uiAbsPartIdx uint, uiDepth uint) {
     eSize := pcCU.GetPartitionSize1(uiAbsPartIdx)
     if pcCU.IsIntra(uiAbsPartIdx) {
-        if uiDepth == TLibCommon.G_uiMaxCUDepth-TLibCommon.G_uiAddCUDepth {
+        if uiDepth == pcCU.GetSlice().GetSPS().GetMaxCUDepth()-pcCU.GetSlice().GetSPS().GetAddCUDepth() {
             this.m_pcBinIf.encodeBin(uint(TLibCommon.B2U(eSize == TLibCommon.SIZE_2Nx2N)), this.m_cCUPartSizeSCModel.Get3(0, 0, 0))
         }
         return
@@ -1006,7 +1006,7 @@ func (this *TEncSbac) codePartSize(pcCU *TLibCommon.TComDataCU, uiAbsPartIdx uin
     case TLibCommon.SIZE_nRx2N:
         this.m_pcBinIf.encodeBin(0, this.m_cCUPartSizeSCModel.Get3(0, 0, 0))
         this.m_pcBinIf.encodeBin(0, this.m_cCUPartSizeSCModel.Get3(0, 0, 1))
-        if uiDepth == TLibCommon.G_uiMaxCUDepth-TLibCommon.G_uiAddCUDepth && !(pcCU.GetWidth1(uiAbsPartIdx) == 8 && pcCU.GetHeight1(uiAbsPartIdx) == 8) {
+        if uiDepth == pcCU.GetSlice().GetSPS().GetMaxCUDepth()-pcCU.GetSlice().GetSPS().GetAddCUDepth() && !(pcCU.GetWidth1(uiAbsPartIdx) == 8 && pcCU.GetHeight1(uiAbsPartIdx) == 8) {
             this.m_pcBinIf.encodeBin(1, this.m_cCUPartSizeSCModel.Get3(0, 0, 2))
         }
         if pcCU.GetSlice().GetSPS().GetAMPAcc(uiDepth) != 0 {
@@ -1023,7 +1023,7 @@ func (this *TEncSbac) codePartSize(pcCU *TLibCommon.TComDataCU, uiAbsPartIdx uin
             }
         }
     case TLibCommon.SIZE_NxN:
-        if uiDepth == TLibCommon.G_uiMaxCUDepth-TLibCommon.G_uiAddCUDepth && !(pcCU.GetWidth1(uiAbsPartIdx) == 8 && pcCU.GetHeight1(uiAbsPartIdx) == 8) {
+        if uiDepth == pcCU.GetSlice().GetSPS().GetMaxCUDepth()-pcCU.GetSlice().GetSPS().GetAddCUDepth() && !(pcCU.GetWidth1(uiAbsPartIdx) == 8 && pcCU.GetHeight1(uiAbsPartIdx) == 8) {
             this.m_pcBinIf.encodeBin(0, this.m_cCUPartSizeSCModel.Get3(0, 0, 0))
             this.m_pcBinIf.encodeBin(0, this.m_cCUPartSizeSCModel.Get3(0, 0, 1))
             this.m_pcBinIf.encodeBin(0, this.m_cCUPartSizeSCModel.Get3(0, 0, 2))

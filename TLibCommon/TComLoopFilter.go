@@ -177,7 +177,7 @@ func (this *TComLoopFilter) xDeblockCU(pcCU *TComDataCU, uiAbsZorderIdx, uiDepth
     iDir := Edge
     for uiPartIdx := uiAbsZorderIdx; uiPartIdx < uiAbsZorderIdx+uiCurNumParts; uiPartIdx++ {
         var uiBSCheck bool
-        if (G_uiMaxCUWidth >> G_uiMaxCUDepth) == 4 {
+        if (pcCU.GetSlice().GetSPS().GetMaxCUWidth() >> pcCU.GetSlice().GetSPS().GetMaxCUDepth()) == 4 {
             uiBSCheck = (iDir == EDGE_VER && uiPartIdx%2 == 0) || (iDir == EDGE_HOR && (uiPartIdx-((uiPartIdx>>2)<<2))/2 == 0)
         } else {
             uiBSCheck = true
@@ -188,7 +188,7 @@ func (this *TComLoopFilter) xDeblockCU(pcCU *TComDataCU, uiAbsZorderIdx, uiDepth
         }
     }
 
-    uiPelsInPart := G_uiMaxCUWidth >> G_uiMaxCUDepth
+    uiPelsInPart := pcCU.GetSlice().GetSPS().GetMaxCUWidth() >> pcCU.GetSlice().GetSPS().GetMaxCUDepth()
     var PartIdxIncr uint
 
     if DEBLOCK_SMALLEST_BLOCK/uiPelsInPart != 0 {
@@ -265,8 +265,8 @@ func (this *TComLoopFilter) xSetEdgefilterTU(pcCU *TComDataCU, absTUPartIdx, uiA
     trWidth := uint(pcCU.GetWidth1(uiAbsZorderIdx) >> pcCU.GetTransformIdx1(uiAbsZorderIdx))
     trHeight := uint(pcCU.GetHeight1(uiAbsZorderIdx) >> pcCU.GetTransformIdx1(uiAbsZorderIdx))
 
-    uiWidthInBaseUnits := trWidth / (G_uiMaxCUWidth >> G_uiMaxCUDepth)
-    uiHeightInBaseUnits := trHeight / (G_uiMaxCUWidth >> G_uiMaxCUDepth)
+    uiWidthInBaseUnits := trWidth / (pcCU.GetSlice().GetSPS().GetMaxCUWidth() >> pcCU.GetSlice().GetSPS().GetMaxCUDepth())
+    uiHeightInBaseUnits := trHeight / (pcCU.GetSlice().GetSPS().GetMaxCUWidth() >> pcCU.GetSlice().GetSPS().GetMaxCUDepth())
 
     this.xSetEdgefilterMultiple(pcCU, absTUPartIdx, uiDepth, EDGE_VER, 0, this.m_stLFCUParam.bInternalEdge, uiWidthInBaseUnits, uiHeightInBaseUnits)
     this.xSetEdgefilterMultiple(pcCU, absTUPartIdx, uiDepth, EDGE_HOR, 0, this.m_stLFCUParam.bInternalEdge, uiWidthInBaseUnits, uiHeightInBaseUnits)
@@ -523,7 +523,7 @@ func (this *TComLoopFilter) xEdgeFilterLuma(pcCU *TComDataCU, uiAbsZorderIdx, ui
     iQP_Q := 0
     uiNumParts := pcCU.GetPic().GetNumPartInWidth() >> uiDepth
 
-    uiPelsInPart := G_uiMaxCUWidth >> G_uiMaxCUDepth
+    uiPelsInPart := pcCU.GetSlice().GetSPS().GetMaxCUWidth() >> pcCU.GetSlice().GetSPS().GetMaxCUDepth()
     uiBsAbsIdx := uint(0)
     uiBs := uint(0)
     var iOffset, iSrcStep int
@@ -634,7 +634,7 @@ func (this *TComLoopFilter) xEdgeFilterChroma(pcCU *TComDataCU, uiAbsZorderIdx, 
     iQP_P := 0
     iQP_Q := 0
 
-    uiPelsInPartChroma := G_uiMaxCUWidth >> (G_uiMaxCUDepth + 1)
+    uiPelsInPartChroma := pcCU.GetSlice().GetSPS().GetMaxCUWidth() >> (pcCU.GetSlice().GetSPS().GetMaxCUDepth() + 1)
 
     var iOffset, iSrcStep int
 
