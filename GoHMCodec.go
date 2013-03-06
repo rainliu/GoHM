@@ -41,6 +41,7 @@ import (
     "log"
     "os"
     "time"
+    "runtime/pprof"
 )
 
 func Encoder() {
@@ -98,6 +99,13 @@ func Decoder() {
 }
 
 func main() {
+	f, err := os.Create("cpuprofile.prof")
+   	if err != nil {
+    	log.Fatal(err)
+    }
+    pprof.StartCPUProfile(f)
+    defer pprof.StopCPUProfile()
+    
     fmt.Printf("GoHM Software Version [%s]\n", TLibCommon.NV_VERSION)
     if len(os.Args) <= 2 {
         fmt.Printf("Usage: \n")

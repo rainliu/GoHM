@@ -73,8 +73,9 @@ func (this *ContextModel3DBuffer) Get1(uiZ uint) []ContextModel {
 
 // initialization & copy functions
 func (this *ContextModel3DBuffer) InitBuffer(sliceType SliceType, qp int, ctxModel []byte) { ///< initialize 3D buffer by slice type & QP
+    ctxModel = ctxModel[uint(sliceType)*this.m_sizeXYZ:]
     for n := uint(0); n < this.m_sizeXYZ; n++ {
-        this.m_contextModel[n].Init(qp, int(ctxModel[uint(sliceType)*this.m_sizeXYZ+n]))
+        this.m_contextModel[n].Init(qp, int(ctxModel[n]))
         this.m_contextModel[n].SetBinsCoded(0)
     }
 }
@@ -83,10 +84,10 @@ var aStateToProbLPS = []float64{0.50000000, 0.47460857, 0.45050660, 0.42762859, 
 
 func (this *ContextModel3DBuffer) CalcCost(sliceType SliceType, qp int, ctxModel []byte) uint { ///< determine cost of choosing a probability table based on current probabilities
     cost := uint(0)
-
+	ctxModel = ctxModel[uint(sliceType)*this.m_sizeXYZ:]
     for n := uint(0); n < this.m_sizeXYZ; n++ {
         tmpContextModel := NewContextModel()
-        tmpContextModel.Init(qp, int(ctxModel[uint(sliceType)*this.m_sizeXYZ+n]))
+        tmpContextModel.Init(qp, int(ctxModel[n]))
 
         // Map the 64 CABAC states to their corresponding probability values
 
