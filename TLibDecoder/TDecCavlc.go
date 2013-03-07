@@ -93,7 +93,7 @@ func (this *SyntaxElementParser) SetSliceTrace(bSliceTrace bool) {
 func (this *SyntaxElementParser) GetSliceTrace() bool {
     return this.m_bSliceTrace
 }
-
+/*
 func (this *SyntaxElementParser) xTraceVUIHeader(pVUI *TLibCommon.TComVUI) {
     if this.GetTraceFile() != nil {
         io.WriteString(this.m_pTraceFile, fmt.Sprintf("========= VUI Parameter Set ===============================================\n")) //, pVPS.GetVPSId() );
@@ -152,7 +152,8 @@ func (this *SyntaxElementParser) XReadPredTr(pPel []TLibCommon.Pel, uiWidth, tra
 }
 func (this *SyntaxElementParser) XReadRecoTr(pPel []TLibCommon.Pel, uiWidth, traceLevel uint) {
 }
-
+*/
+/*
 func (this *SyntaxElementParser) DTRACE_CABAC_F(x float32) {
     if this.GetTraceFile() != nil {
         io.WriteString(this.m_pTraceFile, fmt.Sprintf("%f", x))
@@ -183,6 +184,7 @@ func (this *SyntaxElementParser) DTRACE_CABAC_N() {
         io.WriteString(this.m_pTraceFile, "\n")
     }
 }
+*/
 
 func (this *SyntaxElementParser) xReadCode(length uint, val *uint) {
     //assert ( uiLength > 0 );
@@ -447,7 +449,7 @@ func (this *TDecCavlc) ParseVPS(pcVPS *TLibCommon.TComVPS) {
 
     var uiCode uint
     //#if ENC_DEC_TRACE
-    this.xTraceVPSHeader(pcVPS)
+    //this.xTraceVPSHeader(pcVPS)
     //#endif
 
     this.READ_CODE(4, &uiCode, "vps_video_parameter_set_id")
@@ -538,7 +540,7 @@ func (this *TDecCavlc) ParseVPS(pcVPS *TLibCommon.TComVPS) {
 }
 func (this *TDecCavlc) ParseSPS(pcSPS *TLibCommon.TComSPS) {
     //#if ENC_DEC_TRACE
-    this.xTraceSPSHeader(pcSPS)
+    //this.xTraceSPSHeader(pcSPS)
     //#endif
 
     var uiCode uint
@@ -722,7 +724,7 @@ func (this *TDecCavlc) ParseSPS(pcSPS *TLibCommon.TComSPS) {
 
 func (this *TDecCavlc) ParsePPS(pcPPS *TLibCommon.TComPPS) {
     //#if ENC_DEC_TRACE
-    this.xTracePPSHeader(pcPPS)
+    //this.xTracePPSHeader(pcPPS)
     //#endif
     var uiCode uint
     var iCode int
@@ -873,7 +875,7 @@ func (this *TDecCavlc) ParsePPS(pcPPS *TLibCommon.TComPPS) {
 func (this *TDecCavlc) ParseVUI(pcVUI *TLibCommon.TComVUI, pcSPS *TLibCommon.TComSPS) {
     //#if ENC_DEC_TRACE
     //fprintf( g_hTrace, "----------- vui_parameters -----------\n");
-    this.xTraceVUIHeader(pcVUI)
+    //this.xTraceVUIHeader(pcVUI)
     //#endif
     var uiCode uint
 
@@ -1147,7 +1149,7 @@ func (this *TDecCavlc) ParseSliceHeader(rpcSlice *TLibCommon.TComSlice, paramete
     var iCode int
 
     //#if ENC_DEC_TRACE
-    this.xTraceSliceHeader(rpcSlice)
+    //this.xTraceSliceHeader(rpcSlice)
     //#endif
     //TComPPS* pps = NULL;
     //TComSPS* sps = NULL;

@@ -34,7 +34,7 @@
 package TLibDecoder
 
 import (
-    "fmt"
+    //"fmt"
     "gohm/TLibCommon"
 )
 
@@ -341,7 +341,7 @@ func (this *TDecCu) xDecompressCU(pcCU *TLibCommon.TComDataCU, uiAbsPartIdx, uiD
     this.m_ppcCU[uiDepth].CopySubCU(pcCU, uiAbsPartIdx, uiDepth)
 
     /*#ifdef ENC_DEC_TRACE*/
-    this.m_pcEntropyDecoder.m_pcEntropyDecoderIf.XTraceCUHeader(TLibCommon.TRACE_CU)
+    /*this.m_pcEntropyDecoder.m_pcEntropyDecoderIf.XTraceCUHeader(TLibCommon.TRACE_CU)
 
     this.m_pcEntropyDecoder.m_pcEntropyDecoderIf.XReadAeTr(int(this.m_ppcCU[uiDepth].GetCUPelX()), "cu_x", TLibCommon.TRACE_CU)
     this.m_pcEntropyDecoder.m_pcEntropyDecoderIf.XReadAeTr(int(this.m_ppcCU[uiDepth].GetCUPelY()), "cu_y", TLibCommon.TRACE_CU)
@@ -429,7 +429,7 @@ func (this *TDecCu) xDecompressCU(pcCU *TLibCommon.TComDataCU, uiAbsPartIdx, uiD
                 fmt.Printf("pu_inter_pred_mode error\n")
             }
         }
-    }
+    }*/
     /*#endif*/
 
     switch this.m_ppcCU[uiDepth].GetPredictionMode1(0) {
@@ -502,7 +502,7 @@ func (this *TDecCu) xIntraRecLumaBlk(pcCU *TLibCommon.TComDataCU, uiTrDepth, uiA
     uiLumaPredMode := pcCU.GetLumaIntraDir1(uiAbsPartIdx)
 
     /*#ifdef ENC_DEC_TRACE*/
-    blkX := int(TLibCommon.G_auiRasterToPelX[TLibCommon.G_auiZscanToRaster[uiAbsPartIdx]])
+    /*blkX := int(TLibCommon.G_auiRasterToPelX[TLibCommon.G_auiZscanToRaster[uiAbsPartIdx]])
     blkY := int(TLibCommon.G_auiRasterToPelY[TLibCommon.G_auiZscanToRaster[uiAbsPartIdx]])
 
     this.m_pcEntropyDecoder.m_pcEntropyDecoderIf.XTraceTUHeader(TLibCommon.TRACE_TU)
@@ -512,6 +512,7 @@ func (this *TDecCu) xIntraRecLumaBlk(pcCU *TLibCommon.TComDataCU, uiTrDepth, uiA
     this.m_pcEntropyDecoder.m_pcEntropyDecoderIf.XReadAeTr(blkY, "tu_y", TLibCommon.TRACE_TU)
     this.m_pcEntropyDecoder.m_pcEntropyDecoderIf.XReadAeTr(int(uiWidth), "tu_width", TLibCommon.TRACE_TU)
     this.m_pcEntropyDecoder.m_pcEntropyDecoderIf.XReadAeTr(int(uiHeight), "tu_height", TLibCommon.TRACE_TU)
+    */
     /*#endif*/
 
     uiZOrder := pcCU.GetZorderIdxInCU() + uiAbsPartIdx
@@ -543,23 +544,23 @@ func (this *TDecCu) xIntraRecLumaBlk(pcCU *TLibCommon.TComDataCU, uiTrDepth, uiA
     //assert(scalingListType < 6);
 
     /*#ifdef ENC_DEC_TRACE*/
-    this.m_pcEntropyDecoder.m_pcEntropyDecoderIf.XTraceCoefHeader(TLibCommon.TRACE_COEF)
+    /*this.m_pcEntropyDecoder.m_pcEntropyDecoderIf.XTraceCoefHeader(TLibCommon.TRACE_COEF)
 
     for k := uint(0); k < uiHeight; k++ {
         this.m_pcEntropyDecoder.m_pcEntropyDecoderIf.XReadCeofTr(pcCoeff[k*uiWidth:], uiWidth, TLibCommon.TRACE_COEF)
-    }
+    }*/
     /*#endif*/
     this.m_pcTrQuant.InvtransformNxN(pcCU.GetCUTransquantBypass1(uiAbsPartIdx), TLibCommon.TEXT_LUMA, uint(pcCU.GetLumaIntraDir1(uiAbsPartIdx)), piResi, uiStride, pcCoeff, uiWidth, uiHeight, scalingListType, useTransformSkip)
     /*#ifdef ENC_DEC_TRACE*/
-    this.m_pcEntropyDecoder.m_pcEntropyDecoderIf.XTraceResiHeader(TLibCommon.TRACE_RESI)
+    /*this.m_pcEntropyDecoder.m_pcEntropyDecoderIf.XTraceResiHeader(TLibCommon.TRACE_RESI)
 
     for k := uint(0); k < uiHeight; k++ {
         this.m_pcEntropyDecoder.m_pcEntropyDecoderIf.XReadResiTr(piResi[k*uiStride:], uiWidth, TLibCommon.TRACE_RESI)
-    }
+    }*/
     /*#endif*/
 
     /*#ifdef ENC_DEC_TRACE*/
-    {
+    /*{
         this.m_pcEntropyDecoder.m_pcEntropyDecoderIf.XTracePredHeader(TLibCommon.TRACE_PRED)
 
         pPred := piPred
@@ -570,6 +571,7 @@ func (this *TDecCu) xIntraRecLumaBlk(pcCU *TLibCommon.TComDataCU, uiTrDepth, uiA
     }
 
     this.m_pcEntropyDecoder.m_pcEntropyDecoderIf.XTraceRecoHeader(TLibCommon.TRACE_RECON)
+    */
     /*#endif*/
     //===== reconstruction =====
     pPred := piPred
@@ -582,7 +584,7 @@ func (this *TDecCu) xIntraRecLumaBlk(pcCU *TLibCommon.TComDataCU, uiTrDepth, uiA
             pRecIPred[uiY*uiRecIPredStride+uiX] = pReco[uiY*uiStride+uiX]
         }
         /*#ifdef ENC_DEC_TRACE*/
-        this.m_pcEntropyDecoder.m_pcEntropyDecoderIf.XReadRecoTr(pReco[uiY*uiStride:], uiWidth, TLibCommon.TRACE_RECON)
+        //this.m_pcEntropyDecoder.m_pcEntropyDecoderIf.XReadRecoTr(pReco[uiY*uiStride:], uiWidth, TLibCommon.TRACE_RECON)
         /*#endif*/
         /*pPred     += uiStride;
           pResi     += uiStride;
@@ -629,7 +631,7 @@ func (this *TDecCu) xIntraRecChromaBlk(pcCU *TLibCommon.TComDataCU, uiTrDepth, u
 
     /*#ifdef ENC_DEC_TRACE*/
     //if(uiChromaId==1){
-    blkX := int(TLibCommon.G_auiRasterToPelX[TLibCommon.G_auiZscanToRaster[uiAbsPartIdx]]) >> 1
+    /*blkX := int(TLibCommon.G_auiRasterToPelX[TLibCommon.G_auiZscanToRaster[uiAbsPartIdx]]) >> 1
     blkY := int(TLibCommon.G_auiRasterToPelY[TLibCommon.G_auiZscanToRaster[uiAbsPartIdx]]) >> 1
 
     this.m_pcEntropyDecoder.m_pcEntropyDecoderIf.XTraceTUHeader(TLibCommon.TRACE_TU)
@@ -639,6 +641,7 @@ func (this *TDecCu) xIntraRecChromaBlk(pcCU *TLibCommon.TComDataCU, uiTrDepth, u
     this.m_pcEntropyDecoder.m_pcEntropyDecoderIf.XReadAeTr(blkY, "tu_y", TLibCommon.TRACE_TU)
     this.m_pcEntropyDecoder.m_pcEntropyDecoderIf.XReadAeTr(int(uiWidth), "tu_width", TLibCommon.TRACE_TU)
     this.m_pcEntropyDecoder.m_pcEntropyDecoderIf.XReadAeTr(int(uiHeight), "tu_height", TLibCommon.TRACE_TU)
+    */
     //}
     /*#endif*/
 
@@ -692,22 +695,22 @@ func (this *TDecCu) xIntraRecChromaBlk(pcCU *TLibCommon.TComDataCU, uiTrDepth, u
     }
     //assert(scalingListType < 6);
     /*#ifdef ENC_DEC_TRACE*/
-    this.m_pcEntropyDecoder.m_pcEntropyDecoderIf.XTraceCoefHeader(TLibCommon.TRACE_COEF)
+    /*this.m_pcEntropyDecoder.m_pcEntropyDecoderIf.XTraceCoefHeader(TLibCommon.TRACE_COEF)
 
     for k := uint(0); k < uiHeight; k++ {
         this.m_pcEntropyDecoder.m_pcEntropyDecoderIf.XReadCeofTr(pcCoeff[k*uiWidth:], uiWidth, TLibCommon.TRACE_COEF)
-    }
+    }*/
     /*#endif*/
     this.m_pcTrQuant.InvtransformNxN(pcCU.GetCUTransquantBypass1(uiAbsPartIdx), eText, TLibCommon.REG_DCT, piResi, uiStride, pcCoeff, uiWidth, uiHeight, scalingListType, useTransformSkipChroma)
     /*#ifdef ENC_DEC_TRACE*/
-    this.m_pcEntropyDecoder.m_pcEntropyDecoderIf.XTraceResiHeader(TLibCommon.TRACE_RESI)
+    /*this.m_pcEntropyDecoder.m_pcEntropyDecoderIf.XTraceResiHeader(TLibCommon.TRACE_RESI)
 
     for k := uint(0); k < uiHeight; k++ {
         this.m_pcEntropyDecoder.m_pcEntropyDecoderIf.XReadResiTr(piResi[k*uiStride:], uiWidth, TLibCommon.TRACE_RESI)
-    }
+    }*/
     /*#endif*/
     /*#ifdef ENC_DEC_TRACE*/
-    {
+    /*{
         this.m_pcEntropyDecoder.m_pcEntropyDecoderIf.XTracePredHeader(TLibCommon.TRACE_PRED)
 
         pPred := piPred
@@ -718,6 +721,7 @@ func (this *TDecCu) xIntraRecChromaBlk(pcCU *TLibCommon.TComDataCU, uiTrDepth, u
     }
 
     this.m_pcEntropyDecoder.m_pcEntropyDecoderIf.XTraceRecoHeader(TLibCommon.TRACE_RECON)
+    */
     /*#endif*/
     //===== reconstruction =====
     pPred := piPred
@@ -730,7 +734,7 @@ func (this *TDecCu) xIntraRecChromaBlk(pcCU *TLibCommon.TComDataCU, uiTrDepth, u
             pRecIPred[uiY*uiRecIPredStride+uiX] = pReco[uiY*uiStride+uiX]
         }
         /*#ifdef ENC_DEC_TRACE*/
-        this.m_pcEntropyDecoder.m_pcEntropyDecoderIf.XReadRecoTr(pReco[uiY*uiStride:], uiWidth, TLibCommon.TRACE_RECON)
+        //this.m_pcEntropyDecoder.m_pcEntropyDecoderIf.XReadRecoTr(pReco[uiY*uiStride:], uiWidth, TLibCommon.TRACE_RECON)
         /*#endif*/
         /*pPred     += uiStride;
           pResi     += uiStride;
@@ -750,7 +754,7 @@ func (this *TDecCu) xReconPCM(pcCU *TLibCommon.TComDataCU, uiDepth uint) {
     uiStride := this.m_ppcYuvResi[uiDepth].GetStride()
 
     /*#ifdef ENC_DEC_TRACE*/
-    blkX := 0 //TLibCommon.G_auiRasterToPelX[ TLibCommon.G_auiZscanToRaster[ uiAbsPartIdx ] ];
+    /*blkX := 0 //TLibCommon.G_auiRasterToPelX[ TLibCommon.G_auiZscanToRaster[ uiAbsPartIdx ] ];
     blkY := 0 //TLibCommon.G_auiRasterToPelY[ TLibCommon.G_auiZscanToRaster[ uiAbsPartIdx ] ];
 
     this.m_pcEntropyDecoder.m_pcEntropyDecoderIf.XTraceTUHeader(TLibCommon.TRACE_TU)
@@ -760,6 +764,7 @@ func (this *TDecCu) xReconPCM(pcCU *TLibCommon.TComDataCU, uiDepth uint) {
     this.m_pcEntropyDecoder.m_pcEntropyDecoderIf.XReadAeTr(blkY, "tu_y", TLibCommon.TRACE_TU)
     this.m_pcEntropyDecoder.m_pcEntropyDecoderIf.XReadAeTr(int(uiWidth), "tu_width", TLibCommon.TRACE_TU)
     this.m_pcEntropyDecoder.m_pcEntropyDecoderIf.XReadAeTr(int(uiHeight), "tu_height", TLibCommon.TRACE_TU)
+    */
     /*#endif*/
 
     this.xDecodePCMTexture(pcCU, 0, piPcmY, piRecoY, uiStride, uiWidth, uiHeight, TLibCommon.TEXT_LUMA)
@@ -776,7 +781,7 @@ func (this *TDecCu) xReconPCM(pcCU *TLibCommon.TComDataCU, uiDepth uint) {
     uiCStride := this.m_ppcYuvReco[uiDepth].GetCStride()
 
     /*#ifdef ENC_DEC_TRACE*/
-    CblkX := 0 //TLibCommon.G_auiRasterToPelX[ TLibCommon.G_auiZscanToRaster[ uiAbsPartIdx ] ]>>1;
+    /*CblkX := 0 //TLibCommon.G_auiRasterToPelX[ TLibCommon.G_auiZscanToRaster[ uiAbsPartIdx ] ]>>1;
     CblkY := 0 //TLibCommon.G_auiRasterToPelY[ TLibCommon.G_auiZscanToRaster[ uiAbsPartIdx ] ]>>1;
 
     this.m_pcEntropyDecoder.m_pcEntropyDecoderIf.XTraceTUHeader(TLibCommon.TRACE_TU)
@@ -786,18 +791,20 @@ func (this *TDecCu) xReconPCM(pcCU *TLibCommon.TComDataCU, uiDepth uint) {
     this.m_pcEntropyDecoder.m_pcEntropyDecoderIf.XReadAeTr(CblkY, "tu_y", TLibCommon.TRACE_TU)
     this.m_pcEntropyDecoder.m_pcEntropyDecoderIf.XReadAeTr(int(uiCWidth), "tu_width", TLibCommon.TRACE_TU)
     this.m_pcEntropyDecoder.m_pcEntropyDecoderIf.XReadAeTr(int(uiCHeight), "tu_height", TLibCommon.TRACE_TU)
+    */
     /*#endif*/
 
     this.xDecodePCMTexture(pcCU, 0, piPcmCb, pRecoCb, uiCStride, uiCWidth, uiCHeight, TLibCommon.TEXT_CHROMA_U)
 
     /*#ifdef ENC_DEC_TRACE*/
-    this.m_pcEntropyDecoder.m_pcEntropyDecoderIf.XTraceTUHeader(TLibCommon.TRACE_TU)
+    /*this.m_pcEntropyDecoder.m_pcEntropyDecoderIf.XTraceTUHeader(TLibCommon.TRACE_TU)
 
     this.m_pcEntropyDecoder.m_pcEntropyDecoderIf.XReadAeTr(2, "tu_color", TLibCommon.TRACE_TU)
     this.m_pcEntropyDecoder.m_pcEntropyDecoderIf.XReadAeTr(CblkX, "tu_x", TLibCommon.TRACE_TU)
     this.m_pcEntropyDecoder.m_pcEntropyDecoderIf.XReadAeTr(CblkY, "tu_y", TLibCommon.TRACE_TU)
     this.m_pcEntropyDecoder.m_pcEntropyDecoderIf.XReadAeTr(int(uiCWidth), "tu_width", TLibCommon.TRACE_TU)
     this.m_pcEntropyDecoder.m_pcEntropyDecoderIf.XReadAeTr(int(uiCHeight), "tu_height", TLibCommon.TRACE_TU)
+    */
     /*#endif*/
     this.xDecodePCMTexture(pcCU, 0, piPcmCr, pRecoCr, uiCStride, uiCWidth, uiCHeight, TLibCommon.TEXT_CHROMA_V)
 }
@@ -841,7 +848,7 @@ func (this *TDecCu) xDecodePCMTexture(pcCU *TLibCommon.TComDataCU, uiPartIdx uin
     var uiPicStride, uiPcmLeftShiftBit uint
 
     /* #ifdef ENC_DEC_TRACE*/
-    this.m_pcEntropyDecoder.m_pcEntropyDecoderIf.XTraceCoefHeader(TLibCommon.TRACE_COEF)
+    /*this.m_pcEntropyDecoder.m_pcEntropyDecoderIf.XTraceCoefHeader(TLibCommon.TRACE_COEF)
 
     var coeffs [64]TLibCommon.TCoeff
     for uiY = 0; uiY < uiHeight; uiY++ {
@@ -870,7 +877,7 @@ func (this *TDecCu) xDecodePCMTexture(pcCU *TLibCommon.TComDataCU, uiPartIdx uin
     this.m_pcEntropyDecoder.m_pcEntropyDecoderIf.XTraceRecoHeader(TLibCommon.TRACE_RECON)
     for uiY = 0; uiY < uiHeight; uiY++ {
         this.m_pcEntropyDecoder.m_pcEntropyDecoderIf.XReadRecoTr(piPCM[uiY*uiWidth:], uiWidth, TLibCommon.TRACE_RECON)
-    }
+    }*/
     /*#endif*/
 
     if ttText == TLibCommon.TEXT_LUMA {
@@ -984,7 +991,7 @@ func (this *TDecCu) InvRecurTransformNxN(pcCU *TLibCommon.TComDataCU, pcYuvPred 
     uiAddr, uiStride, uiWidth, uiHeight, uiMaxTrMode, uiTrMode uint, rpcCoeff []TLibCommon.TCoeff) {
     if pcCU.GetCbf3(uiAbsPartIdx, eTxt, uiTrMode) == 0 {
         /*#ifdef ENC_DEC_TRACE*/
-        chroma := eTxt != TLibCommon.TEXT_LUMA
+        /*chroma := eTxt != TLibCommon.TEXT_LUMA
         blkX := int(TLibCommon.G_auiRasterToPelX[TLibCommon.G_auiZscanToRaster[uiAbsPartIdx]]) >> TLibCommon.B2U(chroma)
         blkY := int(TLibCommon.G_auiRasterToPelY[TLibCommon.G_auiZscanToRaster[uiAbsPartIdx]]) >> TLibCommon.B2U(chroma)
 
@@ -1046,7 +1053,7 @@ func (this *TDecCu) InvRecurTransformNxN(pcCU *TLibCommon.TComDataCU, pcYuvPred 
         for k := uint(0); k < uiHeight; k++ {
             this.m_pcEntropyDecoder.m_pcEntropyDecoderIf.XReadRecoTr(pReco[k*uiPredStride:], uiWidth, TLibCommon.TRACE_RECON)
             //pReco += uiStride;
-        }
+        }*/
         /*#endif*/
         return
     }
@@ -1065,7 +1072,7 @@ func (this *TDecCu) InvRecurTransformNxN(pcCU *TLibCommon.TComDataCU, pcYuvPred 
         }
         pResi := rpcResidual[uiAddr:]
         /*#ifdef ENC_DEC_TRACE*/
-        chroma := eTxt != TLibCommon.TEXT_LUMA
+        /*chroma := eTxt != TLibCommon.TEXT_LUMA
         blkX := int(TLibCommon.G_auiRasterToPelX[TLibCommon.G_auiZscanToRaster[uiAbsPartIdx]]) >> TLibCommon.B2U(chroma)
         blkY := int(TLibCommon.G_auiRasterToPelY[TLibCommon.G_auiZscanToRaster[uiAbsPartIdx]]) >> TLibCommon.B2U(chroma)
 
@@ -1080,6 +1087,7 @@ func (this *TDecCu) InvRecurTransformNxN(pcCU *TLibCommon.TComDataCU, pcYuvPred 
         this.m_pcEntropyDecoder.m_pcEntropyDecoderIf.XReadAeTr(blkY, "tu_y", TLibCommon.TRACE_TU)
         this.m_pcEntropyDecoder.m_pcEntropyDecoderIf.XReadAeTr(int(uiWidth), "tu_width", TLibCommon.TRACE_TU)
         this.m_pcEntropyDecoder.m_pcEntropyDecoderIf.XReadAeTr(int(uiHeight), "tu_height", TLibCommon.TRACE_TU)
+        */
         /*#endif*/
 
         var scalingListType int
@@ -1090,22 +1098,22 @@ func (this *TDecCu) InvRecurTransformNxN(pcCU *TLibCommon.TComDataCU, pcYuvPred 
         }
         //assert(scalingListType < 6);
         /*#ifdef ENC_DEC_TRACE*/
-        this.m_pcEntropyDecoder.m_pcEntropyDecoderIf.XTraceCoefHeader(TLibCommon.TRACE_COEF)
+        /*this.m_pcEntropyDecoder.m_pcEntropyDecoderIf.XTraceCoefHeader(TLibCommon.TRACE_COEF)
 
         for k := uint(0); k < uiHeight; k++ {
             this.m_pcEntropyDecoder.m_pcEntropyDecoderIf.XReadCeofTr(rpcCoeff[k*uiWidth:], uiWidth, TLibCommon.TRACE_COEF)
-        }
+        }*/
         /*#endif*/
         this.m_pcTrQuant.InvtransformNxN(pcCU.GetCUTransquantBypass1(uiAbsPartIdx), eTxt, TLibCommon.REG_DCT, pResi, uiStride, rpcCoeff, uiWidth, uiHeight, scalingListType, pcCU.GetTransformSkip2(uiAbsPartIdx, eTxt))
         /*#ifdef ENC_DEC_TRACE*/
-        this.m_pcEntropyDecoder.m_pcEntropyDecoderIf.XTraceResiHeader(TLibCommon.TRACE_RESI)
+        /*this.m_pcEntropyDecoder.m_pcEntropyDecoderIf.XTraceResiHeader(TLibCommon.TRACE_RESI)
 
         for k := uint(0); k < uiHeight; k++ {
             this.m_pcEntropyDecoder.m_pcEntropyDecoderIf.XReadResiTr(pResi[k*uiStride:], uiWidth, TLibCommon.TRACE_RESI)
-        }
+        }*/
         /*#endif*/
         /*#ifdef ENC_DEC_TRACE*/
-        var piPred []TLibCommon.Pel
+        /*var piPred []TLibCommon.Pel
         if eTxt == TLibCommon.TEXT_LUMA {
             piPred = pcYuvPred.GetLumaAddr1(uiAbsPartIdx)
         } else if eTxt == TLibCommon.TEXT_CHROMA_U {
@@ -1133,7 +1141,7 @@ func (this *TDecCu) InvRecurTransformNxN(pcCU *TLibCommon.TComDataCU, pcYuvPred 
                 }
             }
             this.m_pcEntropyDecoder.m_pcEntropyDecoderIf.XReadRecoTr(pReco[:], uiWidth, TLibCommon.TRACE_RECON)
-        }
+        }*/
         /*#endif*/
     } else {
         uiTrMode++

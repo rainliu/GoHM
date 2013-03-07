@@ -47,7 +47,7 @@ import (
 type TDecEntropyIf interface {
     //public:
     //  Virtual list for SBAC/CAVLC
-    XTraceLCUHeader(traceLevel uint)
+    /*XTraceLCUHeader(traceLevel uint)
     XTraceCUHeader(traceLevel uint)
     XTracePUHeader(traceLevel uint)
     XTraceTUHeader(traceLevel uint)
@@ -59,14 +59,14 @@ type TDecEntropyIf interface {
     XReadCeofTr(pCoeff []TLibCommon.TCoeff, uiWidth, traceLevel uint)
     XReadResiTr(pPel []TLibCommon.Pel, uiWidth, traceLevel uint)
     XReadPredTr(pPel []TLibCommon.Pel, uiWidth, traceLevel uint)
-    XReadRecoTr(pPel []TLibCommon.Pel, uiWidth, traceLevel uint)
+    XReadRecoTr(pPel []TLibCommon.Pel, uiWidth, traceLevel uint)*/
 
-    DTRACE_CABAC_F(x float32)
+    /*DTRACE_CABAC_F(x float32)
     DTRACE_CABAC_V(x uint)
     DTRACE_CABAC_VL(x uint)
     DTRACE_CABAC_T(x string)
     DTRACE_CABAC_X(x uint)
-    DTRACE_CABAC_N()
+    DTRACE_CABAC_N()*/
 
     ResetEntropy(pcSlice *TLibCommon.TComSlice)
     SetBitstream(p *TLibCommon.TComInputBitstream)
@@ -473,13 +473,13 @@ func (this *TDecEntropy) xDecodeTransform(pcCU *TLibCommon.TComDataCU, offsetLum
 
         {
             //DTRACE_CABAC_VL( TLibCommon.G_nSymbolCounter++ );
-            this.m_pcEntropyDecoderIf.DTRACE_CABAC_T("\tTrIdx: abspart=")
+            /*this.m_pcEntropyDecoderIf.DTRACE_CABAC_T("\tTrIdx: abspart=")
             this.m_pcEntropyDecoderIf.DTRACE_CABAC_V(uiAbsPartIdx)
             this.m_pcEntropyDecoderIf.DTRACE_CABAC_T("\tdepth=")
             this.m_pcEntropyDecoderIf.DTRACE_CABAC_V(uiDepth)
             this.m_pcEntropyDecoderIf.DTRACE_CABAC_T("\ttrdepth=")
             this.m_pcEntropyDecoderIf.DTRACE_CABAC_V(uiTrDepth)
-            this.m_pcEntropyDecoderIf.DTRACE_CABAC_T("\n")
+            this.m_pcEntropyDecoderIf.DTRACE_CABAC_T("\n")*/
         }
 
         pcCU.SetCbfSubParts4(0, TLibCommon.TEXT_LUMA, uiAbsPartIdx, uiDepth)

@@ -34,7 +34,7 @@
 package TLibDecoder
 
 import (
-    "fmt"
+    //"fmt"
     "gohm/TLibCommon"
     "io"
 )
@@ -334,7 +334,7 @@ type TDecSbac struct { //: public TDecEntropyIf
     m_cTransformSkipSCModel         *TLibCommon.ContextModel3DBuffer
     m_CUTransquantBypassFlagSCModel *TLibCommon.ContextModel3DBuffer
 }
-
+/*
 func (this *TDecSbac) XTraceLCUHeader(traceLevel uint) {
     if this.GetTraceFile() != nil && (traceLevel&TLibCommon.TRACE_LEVEL) != 0 {
         io.WriteString(this.m_pTraceFile, "========= LCU Parameter Set ===============================================\n") //, pLCU.GetAddr());
@@ -426,7 +426,8 @@ func (this *TDecSbac) XReadRecoTr(pPel []TLibCommon.Pel, uiWidth, traceLevel uin
         io.WriteString(this.m_pTraceFile, "\n")
     }
 }
-
+*/
+/*
 func (this *TDecSbac) DTRACE_CABAC_F(x float32) {
     if this.GetTraceFile() != nil && TLibCommon.TRACE_CABAC {
         //fmt.Printf("%f", x)
@@ -463,7 +464,7 @@ func (this *TDecSbac) DTRACE_CABAC_N() {
         io.WriteString(this.m_pTraceFile, "\n")
     }
 }
-
+*/
 /*func (this *TDecSbac) DTRACE_CABAC_R(x,y) {
 	if this.GetTraceFile()!=nil {
 		io.WriteString(this.m_pTraceFile, fmt.Sprintf (x,    y ));
@@ -711,7 +712,7 @@ func (this *TDecSbac) ParseSaoOneLcuInterleaving(rx, ry int, pSaoParam *TLibComm
             this.ParseSaoMerge(&uiSymbol)
             pSaoParam.SaoLcuParam[0][iAddr].MergeLeftFlag = uiSymbol != 0
             //#ifdef ENC_DEC_TRACE
-            this.XReadAeTr(int(uiSymbol), "sao_merge_left_flag", TLibCommon.TRACE_LCU)
+            //this.XReadAeTr(int(uiSymbol), "sao_merge_left_flag", TLibCommon.TRACE_LCU)
             //#endif
         }
         if pSaoParam.SaoLcuParam[0][iAddr].MergeLeftFlag == false {
@@ -719,7 +720,7 @@ func (this *TDecSbac) ParseSaoOneLcuInterleaving(rx, ry int, pSaoParam *TLibComm
                 this.ParseSaoMerge(&uiSymbol)
                 pSaoParam.SaoLcuParam[0][iAddr].MergeUpFlag = uiSymbol != 0
                 //#ifdef ENC_DEC_TRACE
-                this.XReadAeTr(int(uiSymbol), "sao_merge_up_flag", TLibCommon.TRACE_LCU)
+                //this.XReadAeTr(int(uiSymbol), "sao_merge_up_flag", TLibCommon.TRACE_LCU)
                 //#endif
             }
         }
@@ -771,11 +772,11 @@ func (this *TDecSbac) ParseSaoOffset(psSaoLcuParam *TLibCommon.SaoLcuParam, comp
     } else {
         this.ParseSaoTypeIdx(&uiSymbol)
         //#ifdef ENC_DEC_TRACE
-        if compIdx == 0 {
+        /*if compIdx == 0 {
             this.XReadAeTr(int(uiSymbol), "sao_type_idx_luma", TLibCommon.TRACE_LCU)
         } else {
             this.XReadAeTr(int(uiSymbol), "sao_type_idx_chroma", TLibCommon.TRACE_LCU)
-        }
+        }*/
         //#endif
     }
     psSaoLcuParam.TypeIdx = int(uiSymbol) - 1
@@ -795,14 +796,14 @@ func (this *TDecSbac) ParseSaoOffset(psSaoLcuParam *TLibCommon.SaoLcuParam, comp
                 this.ParseSaoMaxUvlc(&uiSymbol, uint(offsetTh-1))
                 psSaoLcuParam.Offset[i] = int(uiSymbol)
                 //#ifdef ENC_DEC_TRACE
-                this.XReadAeTr(int(uiSymbol), "sao_offset_abs", TLibCommon.TRACE_LCU)
+                //this.XReadAeTr(int(uiSymbol), "sao_offset_abs", TLibCommon.TRACE_LCU)
                 //#endif
             }
             for i := 0; i < psSaoLcuParam.Length; i++ {
                 if psSaoLcuParam.Offset[i] != 0 {
                     this.m_pcTDecBinIf.DecodeBinEP(&uiSymbol)
                     //#ifdef ENC_DEC_TRACE
-                    this.XReadAeTr(int(uiSymbol), "sao_offset_sign", TLibCommon.TRACE_LCU)
+                    //this.XReadAeTr(int(uiSymbol), "sao_offset_sign", TLibCommon.TRACE_LCU)
                     //#endif
                     if uiSymbol != 0 {
                         psSaoLcuParam.Offset[i] = -psSaoLcuParam.Offset[i]
@@ -812,39 +813,39 @@ func (this *TDecSbac) ParseSaoOffset(psSaoLcuParam *TLibCommon.SaoLcuParam, comp
             this.ParseSaoUflc(5, &uiSymbol)
             psSaoLcuParam.SubTypeIdx = int(uiSymbol)
             //#ifdef ENC_DEC_TRACE
-            this.XReadAeTr(int(uiSymbol), "sao_band_position", TLibCommon.TRACE_LCU)
+            //this.XReadAeTr(int(uiSymbol), "sao_band_position", TLibCommon.TRACE_LCU)
             //#endif
         } else if psSaoLcuParam.TypeIdx < 4 {
             this.ParseSaoMaxUvlc(&uiSymbol, uint(offsetTh-1))
             psSaoLcuParam.Offset[0] = int(uiSymbol)
             //#ifdef ENC_DEC_TRACE
-            this.XReadAeTr(int(uiSymbol), "sao_offset_abs", TLibCommon.TRACE_LCU)
+            //this.XReadAeTr(int(uiSymbol), "sao_offset_abs", TLibCommon.TRACE_LCU)
             //#endif
             this.ParseSaoMaxUvlc(&uiSymbol, uint(offsetTh-1))
             psSaoLcuParam.Offset[1] = int(uiSymbol)
             //#ifdef ENC_DEC_TRACE
-            this.XReadAeTr(int(uiSymbol), "sao_offset_abs", TLibCommon.TRACE_LCU)
+            //this.XReadAeTr(int(uiSymbol), "sao_offset_abs", TLibCommon.TRACE_LCU)
             //#endif
             this.ParseSaoMaxUvlc(&uiSymbol, uint(offsetTh-1))
             psSaoLcuParam.Offset[2] = -int(uiSymbol)
             //#ifdef ENC_DEC_TRACE
-            this.XReadAeTr(int(uiSymbol), "sao_offset_abs", TLibCommon.TRACE_LCU)
+            //this.XReadAeTr(int(uiSymbol), "sao_offset_abs", TLibCommon.TRACE_LCU)
             //#endif
             this.ParseSaoMaxUvlc(&uiSymbol, uint(offsetTh-1))
             psSaoLcuParam.Offset[3] = -int(uiSymbol)
             //#ifdef ENC_DEC_TRACE
-            this.XReadAeTr(int(uiSymbol), "sao_offset_abs", TLibCommon.TRACE_LCU)
+            //this.XReadAeTr(int(uiSymbol), "sao_offset_abs", TLibCommon.TRACE_LCU)
             //#endif
             if compIdx != 2 {
                 this.ParseSaoUflc(2, &uiSymbol)
                 psSaoLcuParam.SubTypeIdx = int(uiSymbol)
                 psSaoLcuParam.TypeIdx += psSaoLcuParam.SubTypeIdx
                 //#ifdef ENC_DEC_TRACE
-                if compIdx == 0 {
+                /*if compIdx == 0 {
                     this.XReadAeTr(int(uiSymbol), "sao_eo_class_luma", TLibCommon.TRACE_LCU)
                 } else {
                     this.XReadAeTr(int(uiSymbol), "sao_eo_class_chroma", TLibCommon.TRACE_LCU)
-                }
+                }*/
                 //#endif
             }
         }
@@ -946,12 +947,12 @@ func (this *TDecSbac) ParseSkipFlag(pcCU *TLibCommon.TComDataCU, uiAbsPartIdx, u
     uiCtxSkip := pcCU.GetCtxSkipFlag(uiAbsPartIdx)
     this.m_pcTDecBinIf.DecodeBin(&uiSymbol, this.m_cCUSkipFlagSCModel.Get3(0, 0, uiCtxSkip))
     //this.DTRACE_CABAC_VL( g_nSymbolCounter++ );
-    this.DTRACE_CABAC_T("\tSkipFlag")
+    /*this.DTRACE_CABAC_T("\tSkipFlag")
     this.DTRACE_CABAC_T("\tuiCtxSkip: ")
     this.DTRACE_CABAC_V(uiCtxSkip)
     this.DTRACE_CABAC_T("\tuiSymbol: ")
     this.DTRACE_CABAC_V(uiSymbol)
-    this.DTRACE_CABAC_T("\n")
+    this.DTRACE_CABAC_T("\n")*/
 
     if uiSymbol != 0 {
         pcCU.SetSkipFlagSubParts(true, uiAbsPartIdx, uiDepth)
@@ -975,7 +976,7 @@ func (this *TDecSbac) ParseSplitFlag(pcCU *TLibCommon.TComDataCU, uiAbsPartIdx, 
     var uiSymbol uint
     this.m_pcTDecBinIf.DecodeBin(&uiSymbol, this.m_cCUSplitFlagSCModel.Get3(0, 0, pcCU.GetCtxSplitFlag(uiAbsPartIdx, uiDepth)))
     //this.DTRACE_CABAC_VL( g_nSymbolCounter++ )
-    this.DTRACE_CABAC_T("\tSplitFlag\n")
+    //this.DTRACE_CABAC_T("\tSplitFlag\n")
     pcCU.SetDepthSubParts(uiDepth+uiSymbol, uiAbsPartIdx)
 
     return
@@ -986,13 +987,13 @@ func (this *TDecSbac) ParseMergeFlag(pcCU *TLibCommon.TComDataCU, uiAbsPartIdx, 
     pcCU.SetMergeFlagSubParts(uiSymbol != 0, uiAbsPartIdx, uiPUIdx, uiDepth)
 
     /*this.DTRACE_CABAC_VL( g_nSymbolCounter++ );*/
-    this.DTRACE_CABAC_T("\tMergeFlag: ")
+    /*this.DTRACE_CABAC_T("\tMergeFlag: ")
     this.DTRACE_CABAC_V(uiSymbol)
     this.DTRACE_CABAC_T("\tAddress: ")
     this.DTRACE_CABAC_V(pcCU.GetAddr())
     this.DTRACE_CABAC_T("\tuiAbsPartIdx: ")
     this.DTRACE_CABAC_V(uiAbsPartIdx)
-    this.DTRACE_CABAC_T("\n")
+    this.DTRACE_CABAC_T("\n")*/
 }
 func (this *TDecSbac) ParseMergeIndex(pcCU *TLibCommon.TComDataCU, ruiMergeIndex *uint) {
     uiUnaryIdx := uint(0)
@@ -1014,10 +1015,10 @@ func (this *TDecSbac) ParseMergeIndex(pcCU *TLibCommon.TComDataCU, ruiMergeIndex
     *ruiMergeIndex = uiUnaryIdx
 
     /*this.DTRACE_CABAC_VL( g_nSymbolCounter++ )*/
-    this.DTRACE_CABAC_T("\tparseMergeIndex()")
+    /*this.DTRACE_CABAC_T("\tparseMergeIndex()")
     this.DTRACE_CABAC_T("\tuiMRGIdx= ")
     this.DTRACE_CABAC_V(*ruiMergeIndex)
-    this.DTRACE_CABAC_T("\n")
+    this.DTRACE_CABAC_T("\n")*/
 }
 func (this *TDecSbac) ParsePartSize(pcCU *TLibCommon.TComDataCU, uiAbsPartIdx, uiDepth uint) {
     var uiSymbol, uiMode uint
@@ -1297,12 +1298,12 @@ func (this *TDecSbac) ParseMvd(pcCU *TLibCommon.TComDataCU, uiAbsPartIdx, uiPart
 func (this *TDecSbac) ParseTransformSubdivFlag(ruiSubdivFlag *uint, uiLog2TransformBlockSize uint) {
     this.m_pcTDecBinIf.DecodeBin(ruiSubdivFlag, this.m_cCUTransSubdivFlagSCModel.Get3(0, 0, uiLog2TransformBlockSize))
     /*this.DTRACE_CABAC_VL( g_nSymbolCounter++ )*/
-    this.DTRACE_CABAC_T("\tparseTransformSubdivFlag()")
+    /*this.DTRACE_CABAC_T("\tparseTransformSubdivFlag()")
     this.DTRACE_CABAC_T("\tsymbol=")
     this.DTRACE_CABAC_V(*ruiSubdivFlag)
     this.DTRACE_CABAC_T("\tctx=")
     this.DTRACE_CABAC_V(uiLog2TransformBlockSize)
-    this.DTRACE_CABAC_T("\n")
+    this.DTRACE_CABAC_T("\n")*/
 }
 func (this *TDecSbac) ParseQtCbf(pcCU *TLibCommon.TComDataCU, uiAbsPartIdx uint, eType TLibCommon.TextType, uiTrDepth, uiDepth uint) {
     var uiSymbol uint
@@ -1313,9 +1314,8 @@ func (this *TDecSbac) ParseQtCbf(pcCU *TLibCommon.TComDataCU, uiAbsPartIdx uint,
     } else {
         this.m_pcTDecBinIf.DecodeBin(&uiSymbol, this.m_cCUQtCbfSCModel.Get3(0, uint(eType), uiCtx))
     }
-    /*
-       this.DTRACE_CABAC_VL( g_nSymbolCounter++ )*/
-    this.DTRACE_CABAC_T("\tparseQtCbf()")
+    /*this.DTRACE_CABAC_VL( g_nSymbolCounter++ )*/
+    /*this.DTRACE_CABAC_T("\tparseQtCbf()")
     this.DTRACE_CABAC_T("\tsymbol=")
     this.DTRACE_CABAC_V(uiSymbol)
     this.DTRACE_CABAC_T("\tctx=")
@@ -1324,7 +1324,7 @@ func (this *TDecSbac) ParseQtCbf(pcCU *TLibCommon.TComDataCU, uiAbsPartIdx uint,
     this.DTRACE_CABAC_V(uint(eType))
     this.DTRACE_CABAC_T("\tuiAbsPartIdx=")
     this.DTRACE_CABAC_V(uiAbsPartIdx)
-    this.DTRACE_CABAC_T("\n")
+    this.DTRACE_CABAC_T("\n")*/
 
     pcCU.SetCbfSubParts4(byte(uiSymbol<<uiTrDepth), eType, uiAbsPartIdx, uiDepth)
 }
@@ -1333,14 +1333,14 @@ func (this *TDecSbac) ParseQtRootCbf(uiAbsPartIdx uint, uiQtRootCbf *uint) {
     uiCtx := uint(0)
     this.m_pcTDecBinIf.DecodeBin(&uiSymbol, this.m_cCUQtRootCbfSCModel.Get3(0, 0, uiCtx))
     /*this.DTRACE_CABAC_VL( g_nSymbolCounter++ )*/
-    this.DTRACE_CABAC_T("\tparseQtRootCbf()")
+    /*this.DTRACE_CABAC_T("\tparseQtRootCbf()")
     this.DTRACE_CABAC_T("\tsymbol=")
     this.DTRACE_CABAC_V(uiSymbol)
     this.DTRACE_CABAC_T("\tctx=")
     this.DTRACE_CABAC_V(uiCtx)
     this.DTRACE_CABAC_T("\tuiAbsPartIdx=")
     this.DTRACE_CABAC_V(uiAbsPartIdx)
-    this.DTRACE_CABAC_T("\n")
+    this.DTRACE_CABAC_T("\n")*/
 
     *uiQtRootCbf = uiSymbol
 }
@@ -1508,7 +1508,7 @@ func (this *TDecSbac) ParseLastSignificantXY(uiPosLastX *uint, uiPosLastY *uint,
 }
 func (this *TDecSbac) ParseCoeffNxN(pcCU *TLibCommon.TComDataCU, pcCoef []TLibCommon.TCoeff, uiAbsPartIdx, uiWidth, uiHeight, uiDepth uint, eTType TLibCommon.TextType) {
     /*this.DTRACE_CABAC_VL( TLibCommon.GnSymbolCounter++ )*/
-    this.DTRACE_CABAC_T("\tparseCoeffNxN()\teType=")
+    /*this.DTRACE_CABAC_T("\tparseCoeffNxN()\teType=")
     this.DTRACE_CABAC_V(uint(eTType))
     this.DTRACE_CABAC_T("\twidth=")
     this.DTRACE_CABAC_V(uiWidth)
@@ -1530,7 +1530,7 @@ func (this *TDecSbac) ParseCoeffNxN(pcCU *TLibCommon.TComDataCU, pcCoef []TLibCo
     this.DTRACE_CABAC_V(TLibCommon.G_auiRasterToPelY[TLibCommon.G_auiZscanToRaster[uiAbsPartIdx]])
     this.DTRACE_CABAC_T("\tpredmode=")
     this.DTRACE_CABAC_V(uint(pcCU.GetPredictionMode1(uiAbsPartIdx)))
-    this.DTRACE_CABAC_T("\n")
+    this.DTRACE_CABAC_T("\n")*/
 
     if uiWidth > pcCU.GetSlice().GetSPS().GetMaxTrSize() {
         uiWidth = pcCU.GetSlice().GetSPS().GetMaxTrSize()
@@ -1637,11 +1637,11 @@ func (this *TDecSbac) ParseCoeffNxN(pcCU *TLibCommon.TComDataCU, pcCoef []TLibCo
             this.m_pcTDecBinIf.DecodeBin(&uiSigCoeffGroup, &baseCoeffGroupCtx[uiCtxSig])
 
             //this.DTRACE_CABAC_VL( g_nSymbolCounter++ );
-            this.DTRACE_CABAC_T("\tuiSigCoeffGroup")
+            /*this.DTRACE_CABAC_T("\tuiSigCoeffGroup")
             this.DTRACE_CABAC_V(uiSigCoeffGroup)
             this.DTRACE_CABAC_T("\tuiCtxSig: ")
             this.DTRACE_CABAC_V(uiCtxSig)
-            this.DTRACE_CABAC_T("\n")
+            this.DTRACE_CABAC_T("\n")*/
 
             uiSigCoeffGroupFlag[iCGBlkPos] = uiSigCoeffGroup
         }
@@ -1661,11 +1661,11 @@ func (this *TDecSbac) ParseCoeffNxN(pcCU *TLibCommon.TComDataCU, pcCoef []TLibCo
                     this.m_pcTDecBinIf.DecodeBin(&uiSig, &baseCtx[uiCtxSig])
 
                     //this.DTRACE_CABAC_VL( g_nSymbolCounter++ );
-                    this.DTRACE_CABAC_T("\tuiSig")
+                    /*this.DTRACE_CABAC_T("\tuiSig")
                     this.DTRACE_CABAC_V(uiSig)
                     this.DTRACE_CABAC_T("\tuiCtxSig: ")
                     this.DTRACE_CABAC_V(uiCtxSig)
-                    this.DTRACE_CABAC_T("\n")
+                    this.DTRACE_CABAC_T("\n")*/
                 } else {
                     uiSig = 1
                 }
@@ -1717,11 +1717,11 @@ func (this *TDecSbac) ParseCoeffNxN(pcCU *TLibCommon.TComDataCU, pcCoef []TLibCo
             for idx := int(0); idx < numC1Flag; idx++ {
                 this.m_pcTDecBinIf.DecodeBin(&uiBin, &baseCtxMod[c1])
                 //this.DTRACE_CABAC_VL( g_nSymbolCounter++ );
-                this.DTRACE_CABAC_T("\tuiBin")
+                /*this.DTRACE_CABAC_T("\tuiBin")
                 this.DTRACE_CABAC_V(uiBin)
                 this.DTRACE_CABAC_T("\tc1: ")
                 this.DTRACE_CABAC_V(uint(c1))
-                this.DTRACE_CABAC_T("\n")
+                this.DTRACE_CABAC_T("\n")*/
 
                 if uiBin == 1 {
                     c1 = 0
@@ -1745,11 +1745,11 @@ func (this *TDecSbac) ParseCoeffNxN(pcCU *TLibCommon.TComDataCU, pcCoef []TLibCo
                     this.m_pcTDecBinIf.DecodeBin(&uiBin, &baseCtxMod[0])
 
                     //this.DTRACE_CABAC_VL( g_nSymbolCounter++ );
-                    this.DTRACE_CABAC_T("\tuiBin")
+                    /*this.DTRACE_CABAC_T("\tuiBin")
                     this.DTRACE_CABAC_V(uiBin)
                     this.DTRACE_CABAC_T("\tc1: ")
                     this.DTRACE_CABAC_V(0)
-                    this.DTRACE_CABAC_T("\n")
+                    this.DTRACE_CABAC_T("\n")*/
 
                     absCoeff[firstC2FlagIdx] = int(uiBin) + 2
                 }
@@ -1759,21 +1759,21 @@ func (this *TDecSbac) ParseCoeffNxN(pcCU *TLibCommon.TComDataCU, pcCoef []TLibCo
             if signHidden && beValid {
                 this.m_pcTDecBinIf.DecodeBinsEP(&coeffSigns, numNonZero-1)
                 //this.DTRACE_CABAC_VL( g_nSymbolCounter++ );
-                this.DTRACE_CABAC_T("\tcoeffSigns")
+                /*this.DTRACE_CABAC_T("\tcoeffSigns")
                 this.DTRACE_CABAC_V(coeffSigns)
                 this.DTRACE_CABAC_T("\tnumNonZero-1: ")
                 this.DTRACE_CABAC_V(uint(numNonZero - 1))
-                this.DTRACE_CABAC_T("\n")
+                this.DTRACE_CABAC_T("\n")*/
 
                 coeffSigns <<= uint(32 - (numNonZero - 1))
             } else {
                 this.m_pcTDecBinIf.DecodeBinsEP(&coeffSigns, numNonZero)
                 //this.DTRACE_CABAC_VL( g_nSymbolCounter++ );
-                this.DTRACE_CABAC_T("\tcoeffSigns")
+                /*this.DTRACE_CABAC_T("\tcoeffSigns")
                 this.DTRACE_CABAC_V(coeffSigns)
                 this.DTRACE_CABAC_T("\tnumNonZero: ")
                 this.DTRACE_CABAC_V(uint(numNonZero))
-                this.DTRACE_CABAC_T("\n")
+                this.DTRACE_CABAC_T("\n")*/
 
                 coeffSigns <<= uint(32 - numNonZero)
             }
@@ -1792,11 +1792,11 @@ func (this *TDecSbac) ParseCoeffNxN(pcCU *TLibCommon.TComDataCU, pcCoef []TLibCo
                         var uiLevel uint
                         this.xReadCoefRemainExGolomb(&uiLevel, uint(uiGoRiceParam))
                         //this.DTRACE_CABAC_VL( g_nSymbolCounter++ );
-                        this.DTRACE_CABAC_T("\tuiLevel")
+                        /*this.DTRACE_CABAC_T("\tuiLevel")
                         this.DTRACE_CABAC_V(uiLevel)
                         this.DTRACE_CABAC_T("\tuiGoRiceParam: ")
                         this.DTRACE_CABAC_V(uint(uiGoRiceParam))
-                        this.DTRACE_CABAC_T("\n")
+                        this.DTRACE_CABAC_T("\n")*/
 
                         absCoeff[idx] = int(uiLevel + baseLevel)
                         if absCoeff[idx] > 3*(1<<uint(uiGoRiceParam)) {
@@ -1853,7 +1853,7 @@ func (this *TDecSbac) ParseTransformSkipFlags(pcCU *TLibCommon.TComDataCU, uiAbs
         }
     }
     /*this.DTRACE_CABAC_VL( TLibCommon.GnSymbolCounter++ )*/
-    this.DTRACE_CABAC_T("\tparseTransformSkip()")
+    /*this.DTRACE_CABAC_T("\tparseTransformSkip()")
     this.DTRACE_CABAC_T("\tsymbol=")
     this.DTRACE_CABAC_V(useTransformSkip)
     this.DTRACE_CABAC_T("\tAddr=")
@@ -1862,7 +1862,7 @@ func (this *TDecSbac) ParseTransformSkipFlags(pcCU *TLibCommon.TComDataCU, uiAbs
     this.DTRACE_CABAC_V(uint(eTType))
     this.DTRACE_CABAC_T("\tuiAbsPartIdx=")
     this.DTRACE_CABAC_V(uiAbsPartIdx)
-    this.DTRACE_CABAC_T("\n")
+    this.DTRACE_CABAC_T("\n")*/
 
     pcCU.SetTransformSkipSubParts4(useTransformSkip != 0, eTType, uiAbsPartIdx, uiDepth)
 }
