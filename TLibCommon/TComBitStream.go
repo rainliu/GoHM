@@ -292,6 +292,7 @@ type TComInputBitstream struct {
 
     //protected:
     m_fifo_idx uint /// Read index into m_fifo
+    m_fifo_ptr *list.Element
 
     m_num_held_bits uint
     m_held_bits     byte
@@ -306,7 +307,7 @@ type TComInputBitstream struct {
  */
 
 func NewTComInputBitstream(buf *list.List) *TComInputBitstream { // std::vector<uint8_t>* buf);
-    return &TComInputBitstream{buf, 0, 0, 0, 0}
+    return &TComInputBitstream{buf, 0, buf.Front(), 0, 0, 0}
 }
 
 // interface for decoding
@@ -314,6 +315,7 @@ func (this *TComInputBitstream) PseudoRead(uiNumberOfBits uint, ruiBits *uint) {
     saved_num_held_bits := this.m_num_held_bits
     saved_held_bits := this.m_held_bits
     saved_fifo_idx := this.m_fifo_idx
+    saved_fifo_ptr := this.m_fifo_ptr
 
     var num_bits_to_read uint
     if uiNumberOfBits < this.GetNumBitsLeft() {
@@ -324,6 +326,7 @@ func (this *TComInputBitstream) PseudoRead(uiNumberOfBits uint, ruiBits *uint) {
     this.Read(num_bits_to_read, ruiBits)
     *ruiBits <<= uint(uiNumberOfBits - num_bits_to_read)
 
+	this.m_fifo_ptr = saved_fifo_ptr
     this.m_fifo_idx = saved_fifo_idx
     this.m_held_bits = saved_held_bits
     this.m_num_held_bits = saved_num_held_bits
@@ -406,7 +409,7 @@ func (this *TComInputBitstream) ReadByte1(ruiBits *uint) (err error) {
         return err
     }
 
-    idx := uint(0)
+    /*idx := uint(0)
     elm := this.m_fifo.Front()
     for ; elm != nil; elm = elm.Next() {
         if this.m_fifo_idx == idx {
@@ -414,9 +417,10 @@ func (this *TComInputBitstream) ReadByte1(ruiBits *uint) (err error) {
         }
 
         idx++
-    }
+    }*/
 
-    *ruiBits = uint(elm.Value.(byte)) //this.m_fifo.(*m_fifo)[m_fifo_idx++];
+    *ruiBits = uint(this.m_fifo_ptr.Value.(byte));//uint(elm.Value.(byte)) //this.m_fifo.(*m_fifo)[m_fifo_idx++];
+    this.m_fifo_ptr=this.m_fifo_ptr.Next()
     this.m_fifo_idx++
 
     return nil
@@ -434,9 +438,9 @@ func (this *TComInputBitstream) GetHeldBits() byte {
 }
 func (this *TComInputBitstream) Copy(src *TComOutputBitstream) {
 }
-func (this *TComInputBitstream) GetByteLocation() uint {
+/*func (this *TComInputBitstream) GetByteLocation() uint {
     return this.m_fifo_idx
-}
+}*/
 
 // Peek at bits in word-storage. Used in determining if we have completed reading of current bitstream and therefore slice in LCEC.
 func (this *TComInputBitstream) PeekBits(uiBits uint) uint {
@@ -480,7 +484,7 @@ func (this *TComInputBitstream) ExtractSubstream(uiNumBits uint) *TComInputBitst
         uiByte <<= 8 - (uiNumBits & 0x7)
         buf.PushBack(byte(uiByte))
     }
-    return &TComInputBitstream{buf, 0, 0, 0, 0}
+    return &TComInputBitstream{buf, 0, buf.Front(), 0, 0, 0}
 }
 func (this *TComInputBitstream) DeleteFifo() { // Delete internal fifo of bitstream.
     //delete m_fifo;

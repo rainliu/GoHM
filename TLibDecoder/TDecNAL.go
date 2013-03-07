@@ -55,10 +55,10 @@ func NewInputNALUnit() *InputNALUnit {
 
 func (this *InputNALUnit) Read(nalUnitBuf *list.List) *list.List {
     /* perform anti-emulation prevention */
-    pcBitstream := TLibCommon.NewTComInputBitstream(nil)
+    //pcBitstream := TLibCommon.NewTComInputBitstream(nil)
 
     firstByte := nalUnitBuf.Front().Value.(byte)
-    oldNalUnitBuf := this.convertPayloadToRBSP(nalUnitBuf, pcBitstream, (firstByte&64) == 0)
+    oldNalUnitBuf := this.convertPayloadToRBSP(nalUnitBuf, /*pcBitstream,*/ (firstByte&64) == 0)
 
     this.m_Bitstream = TLibCommon.NewTComInputBitstream(nalUnitBuf)
 
@@ -75,7 +75,7 @@ func (this *InputNALUnit) SetBitstream(bitstream *TLibCommon.TComInputBitstream)
     this.m_Bitstream = bitstream
 }
 
-func (this *InputNALUnit) convertPayloadToRBSP(nalUnitBuf *list.List, pcBitstream *TLibCommon.TComInputBitstream, isVclNalUnit bool) *list.List {
+func (this *InputNALUnit) convertPayloadToRBSP(nalUnitBuf *list.List, /*pcBitstream *TLibCommon.TComInputBitstream,*/ isVclNalUnit bool) *list.List {
     zeroCount := 0
     it_write := list.New()
     oldBuf := list.New()
