@@ -550,7 +550,7 @@ func (this *TDecSbac) ResetEntropy(pSlice *TLibCommon.TComSlice) {
             //assert(0);
         }
     }
-
+    
     this.m_cCUSplitFlagSCModel.InitBuffer(sliceType, qp, TLibCommon.INIT_SPLIT_FLAG[:])
     this.m_cCUSkipFlagSCModel.InitBuffer(sliceType, qp, TLibCommon.INIT_SKIP_FLAG[:])
     this.m_cCUMergeFlagExtSCModel.InitBuffer(sliceType, qp, TLibCommon.INIT_MERGE_FLAG_EXT[:])
@@ -1872,6 +1872,7 @@ func (this *TDecSbac) UpdateContextTables(eSliceType TLibCommon.SliceType, iQp i
     this.m_pcTDecBinIf.DecodeBinTrm(&uiBit)
     this.m_pcTDecBinIf.Finish()
     this.m_pcBitstream.ReadOutTrailingBits()
+    
     this.m_cCUSplitFlagSCModel.InitBuffer(eSliceType, iQp, TLibCommon.INIT_SPLIT_FLAG[:])
     this.m_cCUSkipFlagSCModel.InitBuffer(eSliceType, iQp, TLibCommon.INIT_SKIP_FLAG[:])
     this.m_cCUMergeFlagExtSCModel.InitBuffer(eSliceType, iQp, TLibCommon.INIT_MERGE_FLAG_EXT[:])
@@ -1899,6 +1900,7 @@ func (this *TDecSbac) UpdateContextTables(eSliceType TLibCommon.SliceType, iQp i
     this.m_cCUTransSubdivFlagSCModel.InitBuffer(eSliceType, iQp, TLibCommon.INIT_TRANS_SUBDIV_FLAG[:])
     this.m_cTransformSkipSCModel.InitBuffer(eSliceType, iQp, TLibCommon.INIT_TRANSFORMSKIP_FLAG[:])
     this.m_CUTransquantBypassFlagSCModel.InitBuffer(eSliceType, iQp, TLibCommon.INIT_CU_TRANSQUANT_BYPASS_FLAG[:])
+    
     this.m_pcTDecBinIf.Start()
 }
 

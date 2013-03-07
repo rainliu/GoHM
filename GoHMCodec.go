@@ -120,4 +120,11 @@ func main() {
             fmt.Printf("Unknown argment %s\n", os.Args[1])
         }
     }
+    
+    m, err := os.Create("memprofile.prof")
+    if err != nil {
+    	log.Fatal(err)
+    }
+    pprof.WriteHeapProfile(m)
+    m.Close()
 }

@@ -132,14 +132,20 @@ func (this *ContextModel) Init(qp, initValue int) { ///< initialize state with i
     } else if initState > 126 {
         initState = 126
     }
+	
+    if initState >= 64{
+    	this.m_ucState = byte((initState-64)<<1) + 1;
+    }else{
+    	this.m_ucState = byte((63-initState)<<1);
+    }
 
-    mpState := B2U(initState >= 64)
-
+    /*
+	mpState :=B2U(initState >= 64);
     if mpState != 0 {
         this.m_ucState = byte((initState-64)<<1) + mpState
     } else {
         this.m_ucState = byte((63-initState)<<1) + mpState
-    }
+    }*/
 }
 
 func (this *ContextModel) UpdateLPS() {
