@@ -276,6 +276,7 @@ func (this *TDecTop) ExecuteLoopFilters(poc *int, bSkipPictureForBLA bool) *list
     this.m_cGopDecoder.FilterPicture(this.m_pcPic)
 
     TLibCommon.SortPicList(this.m_pcListPic) // sorting for application output
+    
     *poc = this.m_pcPic.GetSlice(this.m_uiSliceIdx - 1).GetPOC()
     this.m_cCuDecoder.Destroy()
     this.m_bFirstSliceInPicture = true
@@ -333,7 +334,7 @@ func (this *TDecTop) xGetNewPicBuffer(pcSlice *TLibCommon.TComSlice) (rpcPic *TL
     if !bBufferIsAvailable {
         //There is no room for this picture, either because of faulty encoder or dropped NAL. Extend the buffer.
         this.m_iMaxRefPicNum++
-        rpcPic := TLibCommon.NewTComPic()
+        rpcPic = TLibCommon.NewTComPic()
         this.m_pcListPic.PushBack(rpcPic)
     }
 

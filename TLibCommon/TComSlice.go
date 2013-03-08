@@ -1015,7 +1015,7 @@ type TComVUI struct {
     m_neutralChromaIndicationFlag    bool
     m_fieldSeqFlag                   bool
 
-    m_defaultDisplayWindow               *Window
+    m_defaultDisplayWindow               Window
     m_frameFieldInfoPresentFlag          bool
     m_hrdParametersPresentFlag           bool
     m_bitstreamRestrictionFlag           bool
@@ -1195,9 +1195,9 @@ func (this *TComVUI) SetFieldSeqFlag(i bool) {
 func (this *TComVUI) GetFrameFieldInfoPresentFlag() bool  { return this.m_frameFieldInfoPresentFlag }
 func (this *TComVUI) SetFrameFieldInfoPresentFlag(i bool) { this.m_frameFieldInfoPresentFlag = i }
 
-func (this *TComVUI) GetDefaultDisplayWindow() *Window { return this.m_defaultDisplayWindow }
+func (this *TComVUI) GetDefaultDisplayWindow() *Window { return &this.m_defaultDisplayWindow }
 func (this *TComVUI) SetDefaultDisplayWindow(defaultDisplayWindow *Window) {
-    this.m_defaultDisplayWindow = defaultDisplayWindow
+    this.m_defaultDisplayWindow = *defaultDisplayWindow
 }
 
 func (this *TComVUI) GetHrdParametersPresentFlag() bool {
