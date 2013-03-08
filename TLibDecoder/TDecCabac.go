@@ -34,7 +34,7 @@
 package TLibDecoder
 
 import (
-    //"fmt"
+    "fmt"
     "gohm/TLibCommon"
     "io"
 )
@@ -334,7 +334,7 @@ type TDecSbac struct { //: public TDecEntropyIf
     m_cTransformSkipSCModel         *TLibCommon.ContextModel3DBuffer
     m_CUTransquantBypassFlagSCModel *TLibCommon.ContextModel3DBuffer
 }
-/*
+
 func (this *TDecSbac) XTraceLCUHeader(traceLevel uint) {
     if this.GetTraceFile() != nil && (traceLevel&TLibCommon.TRACE_LEVEL) != 0 {
         io.WriteString(this.m_pTraceFile, "========= LCU Parameter Set ===============================================\n") //, pLCU.GetAddr());
@@ -426,7 +426,6 @@ func (this *TDecSbac) XReadRecoTr(pPel []TLibCommon.Pel, uiWidth, traceLevel uin
         io.WriteString(this.m_pTraceFile, "\n")
     }
 }
-*/
 /*
 func (this *TDecSbac) DTRACE_CABAC_F(x float32) {
     if this.GetTraceFile() != nil && TLibCommon.TRACE_CABAC {
@@ -712,7 +711,7 @@ func (this *TDecSbac) ParseSaoOneLcuInterleaving(rx, ry int, pSaoParam *TLibComm
             this.ParseSaoMerge(&uiSymbol)
             pSaoParam.SaoLcuParam[0][iAddr].MergeLeftFlag = uiSymbol != 0
             //#ifdef ENC_DEC_TRACE
-            //this.XReadAeTr(int(uiSymbol), "sao_merge_left_flag", TLibCommon.TRACE_LCU)
+            this.XReadAeTr(int(uiSymbol), "sao_merge_left_flag", TLibCommon.TRACE_LCU)
             //#endif
         }
         if pSaoParam.SaoLcuParam[0][iAddr].MergeLeftFlag == false {
@@ -720,7 +719,7 @@ func (this *TDecSbac) ParseSaoOneLcuInterleaving(rx, ry int, pSaoParam *TLibComm
                 this.ParseSaoMerge(&uiSymbol)
                 pSaoParam.SaoLcuParam[0][iAddr].MergeUpFlag = uiSymbol != 0
                 //#ifdef ENC_DEC_TRACE
-                //this.XReadAeTr(int(uiSymbol), "sao_merge_up_flag", TLibCommon.TRACE_LCU)
+                this.XReadAeTr(int(uiSymbol), "sao_merge_up_flag", TLibCommon.TRACE_LCU)
                 //#endif
             }
         }
@@ -772,11 +771,11 @@ func (this *TDecSbac) ParseSaoOffset(psSaoLcuParam *TLibCommon.SaoLcuParam, comp
     } else {
         this.ParseSaoTypeIdx(&uiSymbol)
         //#ifdef ENC_DEC_TRACE
-        /*if compIdx == 0 {
+        if compIdx == 0 {
             this.XReadAeTr(int(uiSymbol), "sao_type_idx_luma", TLibCommon.TRACE_LCU)
         } else {
             this.XReadAeTr(int(uiSymbol), "sao_type_idx_chroma", TLibCommon.TRACE_LCU)
-        }*/
+        }
         //#endif
     }
     psSaoLcuParam.TypeIdx = int(uiSymbol) - 1
@@ -796,14 +795,14 @@ func (this *TDecSbac) ParseSaoOffset(psSaoLcuParam *TLibCommon.SaoLcuParam, comp
                 this.ParseSaoMaxUvlc(&uiSymbol, uint(offsetTh-1))
                 psSaoLcuParam.Offset[i] = int(uiSymbol)
                 //#ifdef ENC_DEC_TRACE
-                //this.XReadAeTr(int(uiSymbol), "sao_offset_abs", TLibCommon.TRACE_LCU)
+                this.XReadAeTr(int(uiSymbol), "sao_offset_abs", TLibCommon.TRACE_LCU)
                 //#endif
             }
             for i := 0; i < psSaoLcuParam.Length; i++ {
                 if psSaoLcuParam.Offset[i] != 0 {
                     this.m_pcTDecBinIf.DecodeBinEP(&uiSymbol)
                     //#ifdef ENC_DEC_TRACE
-                    //this.XReadAeTr(int(uiSymbol), "sao_offset_sign", TLibCommon.TRACE_LCU)
+                    this.XReadAeTr(int(uiSymbol), "sao_offset_sign", TLibCommon.TRACE_LCU)
                     //#endif
                     if uiSymbol != 0 {
                         psSaoLcuParam.Offset[i] = -psSaoLcuParam.Offset[i]
@@ -813,39 +812,39 @@ func (this *TDecSbac) ParseSaoOffset(psSaoLcuParam *TLibCommon.SaoLcuParam, comp
             this.ParseSaoUflc(5, &uiSymbol)
             psSaoLcuParam.SubTypeIdx = int(uiSymbol)
             //#ifdef ENC_DEC_TRACE
-            //this.XReadAeTr(int(uiSymbol), "sao_band_position", TLibCommon.TRACE_LCU)
+            this.XReadAeTr(int(uiSymbol), "sao_band_position", TLibCommon.TRACE_LCU)
             //#endif
         } else if psSaoLcuParam.TypeIdx < 4 {
             this.ParseSaoMaxUvlc(&uiSymbol, uint(offsetTh-1))
             psSaoLcuParam.Offset[0] = int(uiSymbol)
             //#ifdef ENC_DEC_TRACE
-            //this.XReadAeTr(int(uiSymbol), "sao_offset_abs", TLibCommon.TRACE_LCU)
+            this.XReadAeTr(int(uiSymbol), "sao_offset_abs", TLibCommon.TRACE_LCU)
             //#endif
             this.ParseSaoMaxUvlc(&uiSymbol, uint(offsetTh-1))
             psSaoLcuParam.Offset[1] = int(uiSymbol)
             //#ifdef ENC_DEC_TRACE
-            //this.XReadAeTr(int(uiSymbol), "sao_offset_abs", TLibCommon.TRACE_LCU)
+            this.XReadAeTr(int(uiSymbol), "sao_offset_abs", TLibCommon.TRACE_LCU)
             //#endif
             this.ParseSaoMaxUvlc(&uiSymbol, uint(offsetTh-1))
             psSaoLcuParam.Offset[2] = -int(uiSymbol)
             //#ifdef ENC_DEC_TRACE
-            //this.XReadAeTr(int(uiSymbol), "sao_offset_abs", TLibCommon.TRACE_LCU)
+            this.XReadAeTr(int(uiSymbol), "sao_offset_abs", TLibCommon.TRACE_LCU)
             //#endif
             this.ParseSaoMaxUvlc(&uiSymbol, uint(offsetTh-1))
             psSaoLcuParam.Offset[3] = -int(uiSymbol)
             //#ifdef ENC_DEC_TRACE
-            //this.XReadAeTr(int(uiSymbol), "sao_offset_abs", TLibCommon.TRACE_LCU)
+            this.XReadAeTr(int(uiSymbol), "sao_offset_abs", TLibCommon.TRACE_LCU)
             //#endif
             if compIdx != 2 {
                 this.ParseSaoUflc(2, &uiSymbol)
                 psSaoLcuParam.SubTypeIdx = int(uiSymbol)
                 psSaoLcuParam.TypeIdx += psSaoLcuParam.SubTypeIdx
                 //#ifdef ENC_DEC_TRACE
-                /*if compIdx == 0 {
+                if compIdx == 0 {
                     this.XReadAeTr(int(uiSymbol), "sao_eo_class_luma", TLibCommon.TRACE_LCU)
                 } else {
                     this.XReadAeTr(int(uiSymbol), "sao_eo_class_chroma", TLibCommon.TRACE_LCU)
-                }*/
+                }
                 //#endif
             }
         }

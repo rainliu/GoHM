@@ -93,7 +93,7 @@ func (this *SyntaxElementParser) SetSliceTrace(bSliceTrace bool) {
 func (this *SyntaxElementParser) GetSliceTrace() bool {
     return this.m_bSliceTrace
 }
-/*
+
 func (this *SyntaxElementParser) xTraceVUIHeader(pVUI *TLibCommon.TComVUI) {
     if this.GetTraceFile() != nil {
         io.WriteString(this.m_pTraceFile, fmt.Sprintf("========= VUI Parameter Set ===============================================\n")) //, pVPS.GetVPSId() );
@@ -152,7 +152,6 @@ func (this *SyntaxElementParser) XReadPredTr(pPel []TLibCommon.Pel, uiWidth, tra
 }
 func (this *SyntaxElementParser) XReadRecoTr(pPel []TLibCommon.Pel, uiWidth, traceLevel uint) {
 }
-*/
 /*
 func (this *SyntaxElementParser) DTRACE_CABAC_F(x float32) {
     if this.GetTraceFile() != nil {
@@ -449,7 +448,7 @@ func (this *TDecCavlc) ParseVPS(pcVPS *TLibCommon.TComVPS) {
 
     var uiCode uint
     //#if ENC_DEC_TRACE
-    //this.xTraceVPSHeader(pcVPS)
+    this.xTraceVPSHeader(pcVPS)
     //#endif
 
     this.READ_CODE(4, &uiCode, "vps_video_parameter_set_id")
@@ -540,7 +539,7 @@ func (this *TDecCavlc) ParseVPS(pcVPS *TLibCommon.TComVPS) {
 }
 func (this *TDecCavlc) ParseSPS(pcSPS *TLibCommon.TComSPS) {
     //#if ENC_DEC_TRACE
-    //this.xTraceSPSHeader(pcSPS)
+    this.xTraceSPSHeader(pcSPS)
     //#endif
 
     var uiCode uint
@@ -724,7 +723,7 @@ func (this *TDecCavlc) ParseSPS(pcSPS *TLibCommon.TComSPS) {
 
 func (this *TDecCavlc) ParsePPS(pcPPS *TLibCommon.TComPPS) {
     //#if ENC_DEC_TRACE
-    //this.xTracePPSHeader(pcPPS)
+    this.xTracePPSHeader(pcPPS)
     //#endif
     var uiCode uint
     var iCode int
@@ -875,7 +874,7 @@ func (this *TDecCavlc) ParsePPS(pcPPS *TLibCommon.TComPPS) {
 func (this *TDecCavlc) ParseVUI(pcVUI *TLibCommon.TComVUI, pcSPS *TLibCommon.TComSPS) {
     //#if ENC_DEC_TRACE
     //fprintf( g_hTrace, "----------- vui_parameters -----------\n");
-    //this.xTraceVUIHeader(pcVUI)
+    this.xTraceVUIHeader(pcVUI)
     //#endif
     var uiCode uint
 
@@ -1149,7 +1148,7 @@ func (this *TDecCavlc) ParseSliceHeader(rpcSlice *TLibCommon.TComSlice, paramete
     var iCode int
 
     //#if ENC_DEC_TRACE
-    //this.xTraceSliceHeader(rpcSlice)
+    this.xTraceSliceHeader(rpcSlice)
     //#endif
     //TComPPS* pps = NULL;
     //TComSPS* sps = NULL;
@@ -1244,6 +1243,7 @@ func (this *TDecCavlc) ParseSliceHeader(rpcSlice *TLibCommon.TComSlice, paramete
 		    }
             iPrevPOCmsb := int(iPrevPOC - iPrevPOClsb)
             var iPOCmsb int
+            //fmt.Printf("iPrevPOC %d, iPOClsb %d, iPrevPOClsb %d, iMaxPOClsb %d\n", iPrevPOC, iPOClsb, iPrevPOClsb, iMaxPOClsb);
             if (iPOClsb < iPrevPOClsb) && ((iPrevPOClsb - iPOClsb) >= (iMaxPOClsb / 2)) {
                 iPOCmsb = iPrevPOCmsb + iMaxPOClsb
             } else if (iPOClsb > iPrevPOClsb) && ((iPOClsb - iPrevPOClsb) > (iMaxPOClsb / 2)) {
@@ -1251,6 +1251,7 @@ func (this *TDecCavlc) ParseSliceHeader(rpcSlice *TLibCommon.TComSlice, paramete
             } else {
                 iPOCmsb = iPrevPOCmsb
             }
+            //fmt.Printf("iPOCmsb %d + iPOClsb %d\n", iPOCmsb, iPOClsb);
             if rpcSlice.GetNalUnitType() == TLibCommon.NAL_UNIT_CODED_SLICE_BLA ||
                 rpcSlice.GetNalUnitType() == TLibCommon.NAL_UNIT_CODED_SLICE_BLANT ||
                 rpcSlice.GetNalUnitType() == TLibCommon.NAL_UNIT_CODED_SLICE_BLA_N_LP {
@@ -1258,7 +1259,8 @@ func (this *TDecCavlc) ParseSliceHeader(rpcSlice *TLibCommon.TComSlice, paramete
                 iPOCmsb = 0
             }
             rpcSlice.SetPOC(iPOCmsb + iPOClsb)
-
+			//fmt.Printf("iPOC %d = iPOCmsb %d + iPOClsb %d\n", rpcSlice.GetPOC(), iPOCmsb, iPOClsb);
+			
             var rps *TLibCommon.TComReferencePictureSet
             this.READ_FLAG(&uiCode, "short_term_ref_pic_set_sps_flag")
             if uiCode == 0 { // use short-term reference picture set explicitly signalled in slice header

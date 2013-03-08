@@ -2320,6 +2320,8 @@ type wpACDCParam struct {
     iDC int64
 }
 
+var TComSlice_prevPOC   int
+
 /// slice header class
 type TComSlice struct {
     //private:
@@ -2330,7 +2332,7 @@ type TComSlice struct {
     m_PicOutputFlag        bool ///< pic_output_flag
     m_iPOC                 int
     m_iLastIDR             int
-    m_prevPOC              int
+    //m_prevPOC              int
     m_pcRPS                *TComReferencePictureSet
     m_LocalRPS             TComReferencePictureSet
     m_iBDidx               int
@@ -2618,7 +2620,7 @@ func (this *TComSlice) GetRPSidx() int {
     return this.m_iBDidx
 }
 func (this *TComSlice) GetPrevPOC() int {
-    return this.m_prevPOC
+    return TComSlice_prevPOC;//this.m_prevPOC
 }
 func (this *TComSlice) GetRefPicListModification() *TComRefPicListModification {
     return &this.m_RefPicListModification
@@ -2771,7 +2773,8 @@ func (this *TComSlice) IsReferenced() bool {
 func (this *TComSlice) SetPOC(i int) {
     this.m_iPOC = i
     if this.GetTLayer() == 0 {
-        this.m_prevPOC = i
+    	//this.m_prevPOC = i
+    	TComSlice_prevPOC = i
     }
 }
 func (this *TComSlice) SetNalUnitType(e NalUnitType) {
