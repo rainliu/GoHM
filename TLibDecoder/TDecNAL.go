@@ -112,9 +112,13 @@ func (this *InputNALUnit) convertPayloadToRBSP(nalUnitBuf *list.List, /*pcBitstr
         it_read := e.Value.(byte)
         for it_read == 0x00 {
             it_write.Remove(e)
-            e = e.Prev()
-            it_read = e.Value.(byte)
             n++
+            e = it_write.Back()
+            if e!=nil{
+            	it_read = e.Value.(byte)
+            }else{
+            	break;
+            }
         }
 
         if n > 0 {
