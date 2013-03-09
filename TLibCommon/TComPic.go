@@ -282,8 +282,8 @@ func (this *TComPic) GetSlice(i uint) *TComSlice {
     return this.m_apcPicSym.GetSlice(i)
 }
 
-func (this *TComPic) GetPOC() uint {
-    return uint(this.m_apcPicSym.GetSlice(this.m_uiCurrSliceIdx).GetPOC())
+func (this *TComPic) GetPOC() int {
+    return this.m_apcPicSym.GetSlice(this.m_uiCurrSliceIdx).GetPOC()
 }
 func (this *TComPic) GetCU(uiCUAddr uint) *TComDataCU {
     return this.m_apcPicSym.GetCU(uiCUAddr)

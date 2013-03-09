@@ -44,6 +44,7 @@ import (
 // ====================================================================================================================
 // Class definition
 // ====================================================================================================================
+var s_PicNo=0;
 
 /// GOP decoder class
 type TDecGop struct {
@@ -232,8 +233,9 @@ func (this *TDecGop) FilterPicture(rpcPic *TLibCommon.TComPic) {
     }
 
     //-- For time output for each slice
-    fmt.Printf("\nPOC %4d TId: %1d ( %s-SLICE, QP%3d ) ", pcSlice.GetPOC(), pcSlice.GetTLayer(), c, pcSlice.GetSliceQp())
-
+    fmt.Printf("\nPIC %4d POC %4d TId: %1d ( %s-SLICE, QP%3d ) ", s_PicNo, pcSlice.GetPOC(), pcSlice.GetTLayer(), c, pcSlice.GetSliceQp())
+	s_PicNo++;
+	
     this.m_dDecTime += time.Now().Sub(iBeforeTime)
     fmt.Printf("[DT %10v] ", this.m_dDecTime)
     this.m_dDecTime = 0

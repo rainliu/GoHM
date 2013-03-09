@@ -3831,7 +3831,7 @@ func (this *TComSlice) xGetRefPic(rcListPic *list.List, poc int) *TComPic {
 
     for e := rcListPic.Front(); e != nil; e = e.Next() {
         pcPic = e.Value.(*TComPic)
-        if pcPic.GetPOC() == uint(poc) {
+        if pcPic.GetPOC() == poc {
             break
         }
     }
@@ -3842,11 +3842,17 @@ func (this *TComSlice) xGetRefPic(rcListPic *list.List, poc int) *TComPic {
 func (this *TComSlice) xGetLongTermRefPic(rcListPic *list.List, poc int, bCheckLTMSBPresent bool) *TComPic {
     var pcPic *TComPic
     var pcStPic *TComPic
-
+    
+    if rcListPic.Front()!=nil {
+    	pcStPic = rcListPic.Front().Value.(*TComPic);
+    }else{
+    	pcStPic = nil;
+    }
+    
     for e := rcListPic.Front(); e != nil; e = e.Next() {
         pcPic = e.Value.(*TComPic)
         if bCheckLTMSBPresent==true {
-	      if pcPic != nil && pcPic.GetPOC() == uint(poc) {
+	      if pcPic != nil && pcPic.GetPOC() == poc {
 	        if pcPic.GetIsLongTerm() {
 	          return pcPic;
 	        }else {
@@ -3855,7 +3861,7 @@ func (this *TComSlice) xGetLongTermRefPic(rcListPic *list.List, poc int, bCheckL
 	        break;
 	      }
 	    }else{
-	        if pcPic != nil && pcPic.GetPOC()%(1<<this.GetSPS().GetBitsForPOC()) == (uint(poc)%(1<<this.GetSPS().GetBitsForPOC())) {
+	        if pcPic != nil && pcPic.GetPOC()%int(1<<this.GetSPS().GetBitsForPOC()) == poc%int(1<<this.GetSPS().GetBitsForPOC()) {
 	            if pcPic.GetIsLongTerm() {
 	                return pcPic
 	            } else {
