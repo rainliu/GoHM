@@ -405,7 +405,7 @@ func (this *TComPrediction) GetYuvPredTemp() *TComYuv {
 }
 
 func (this *TComPrediction) InitTempBuff( uiMaxCUWidth, uiMaxCUHeight uint) {
-    if this.m_piYuvExt == nil {
+    //if this.m_piYuvExt == nil {
         extWidth := uiMaxCUWidth + 16
         extHeight := uiMaxCUHeight + 1
         var i, j int
@@ -424,7 +424,7 @@ func (this *TComPrediction) InitTempBuff( uiMaxCUWidth, uiMaxCUHeight uint) {
         this.m_acYuvPred[1].Create(uiMaxCUWidth, uiMaxCUHeight)
 
         this.m_cYuvPredTemp.Create(uiMaxCUWidth, uiMaxCUHeight)
-    }
+    //}
 
     if this.m_iLumaRecStride != int(uiMaxCUWidth>>1)+1 {
         this.m_iLumaRecStride = int(uiMaxCUWidth>>1) + 1
@@ -673,6 +673,8 @@ func (this *TComPrediction) xPredIntraPlanar(pSrc2 []Pel, srcStride int, rpDst [
 
 // motion compensation functions
 func (this *TComPrediction) xPredInterUni(pcCU *TComDataCU, uiPartAddr uint, iWidth, iHeight int, eRefPicList RefPicList, rpcYuvPred *TComYuv, bi bool) {
+    //fmt.Printf("xPredInterUni (%d,%d)\n", rpcYuvPred.GetWidth(), rpcYuvPred.GetHeight());
+    
     iRefIdx := pcCU.GetCUMvField(eRefPicList).GetRefIdx(int(uiPartAddr)) //assert (iRefIdx >= 0);
     cMv := pcCU.GetCUMvField(eRefPicList).GetMv(int(uiPartAddr))
     pcCU.ClipMv(&cMv)
@@ -738,6 +740,7 @@ func (this *TComPrediction) XPredInterLumaBlk(cu *TComDataCU, refPic *TComPicYuv
 
     dstStride := int(dstPic.GetStride())
     dst := dstPic.GetLumaAddr1(partAddr)
+    //fmt.Printf("dstPic (%d,%d)\n",dstPic.GetWidth(),dstPic.GetHeight());
 
     xFrac := int(mv.GetHor() & 0x3)
     yFrac := int(mv.GetVer() & 0x3)
@@ -854,7 +857,9 @@ func (this *TComPrediction) xCheckIdenticalMotion(pcCU *TComDataCU, PartAddr uin
 func (this *TComPrediction) MotionCompensation(pcCU *TComDataCU, pcYuvPred *TComYuv, eRefPicList RefPicList, iPartIdx int) {
     var iWidth, iHeight int
     var uiPartAddr uint
-
+	
+	//fmt.Printf("motionCompensation (%d,%d)\n", pcYuvPred.GetWidth(), pcYuvPred.GetHeight());
+	
     if iPartIdx >= 0 {
         pcCU.GetPartIndexAndSize(uint(iPartIdx), &uiPartAddr, &iWidth, &iHeight)
         if eRefPicList != REF_PIC_LIST_X {

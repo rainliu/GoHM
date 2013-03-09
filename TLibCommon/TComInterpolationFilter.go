@@ -34,7 +34,7 @@
 package TLibCommon
 
 import (
-//"fmt"
+	//"fmt"
 )
 
 const NTAPS_LUMA = 8                                   ///< Number of taps for luma
@@ -235,7 +235,8 @@ func (this *TComInterpolationFilter) filter(N int, isVertical, isFirst, isLast b
     }
 
     //fmt.Printf("%d %d %d %d\n", B2U(isFirst), B2U(isLast), shift, offset);
-
+	//fmt.Printf("height=%d,width=%d\n", height, width);
+	
     for row = 0; row < height; row++ {
         for col = 0; col < width; col++ {
             var sum int

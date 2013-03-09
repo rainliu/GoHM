@@ -71,6 +71,8 @@ func (this *TDecCu) Init(pcEntropyDecoder *TDecEntropy, pcTrQuant *TLibCommon.TC
 
 /// create internal buffers
 func (this *TDecCu) Create(uiMaxDepth, uiMaxWidth, uiMaxHeight uint) {
+	//fmt.Printf("uiMaxDepth=%d, uiMaxWidth=%d,uiMaxHeight=%d\n",uiMaxDepth,  uiMaxWidth,  uiMaxHeight);
+	
     this.m_uiMaxDepth = uiMaxDepth + 1
 
     this.m_ppcYuvResi = make([]*TLibCommon.TComYuv, this.m_uiMaxDepth-1)
@@ -80,9 +82,10 @@ func (this *TDecCu) Create(uiMaxDepth, uiMaxWidth, uiMaxHeight uint) {
     var uiNumPartitions uint
     for ui := uint(0); ui < this.m_uiMaxDepth-1; ui++ {
         uiNumPartitions = 1 << ((this.m_uiMaxDepth - ui - 1) << 1)
-        uiWidth := uiMaxWidth >> ui
-        uiHeight := uiMaxHeight >> ui
-
+        uiWidth := (uiMaxWidth >> ui)
+        uiHeight := (uiMaxHeight >> ui)
+		//fmt.Printf("uiWidth=%d, uiHeight=%d\n",uiWidth,  uiHeight);
+	
         this.m_ppcYuvResi[ui] = TLibCommon.NewTComYuv()
         this.m_ppcYuvResi[ui].Create(uiWidth, uiHeight)
         this.m_ppcYuvReco[ui] = TLibCommon.NewTComYuv()
@@ -451,6 +454,7 @@ func (this *TDecCu) xDecompressCU(pcCU *TLibCommon.TComDataCU, uiAbsPartIdx, uiD
 }
 
 func (this *TDecCu) xReconInter(pcCU *TLibCommon.TComDataCU, uiDepth uint) {
+	//fmt.Printf("xReconInter %d, %d, uiDepth=%d\n", this.m_ppcYuvReco[uiDepth].GetWidth(),this.m_ppcYuvReco[uiDepth].GetHeight(), uiDepth);
     // inter prediction
     this.m_pcPrediction.MotionCompensation(pcCU, this.m_ppcYuvReco[uiDepth], TLibCommon.REF_PIC_LIST_X, -1)
 
