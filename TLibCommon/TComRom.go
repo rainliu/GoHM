@@ -68,7 +68,7 @@ const TRACE_RESI = 0x0080
 const TRACE_PRED = 0x0100
 const TRACE_RECON = 0x0200
 
-const TRACE_LEVEL = 0x003F //0x0FFF //0x007F     
+const TRACE_LEVEL = 0x00FF //0x0FFF //0x007F     
 const TRACE_CABAC = true
 
 const COUNTER_START = 1
@@ -447,6 +447,7 @@ UInt64 G_nSymbolCounter = 0;
 Bool   G_bSliceTrace = true;
 #endif
 */
+var G_uiPicNo = uint(0);
 // ====================================================================================================================
 // Scanning order & context model mapping
 // ====================================================================================================================

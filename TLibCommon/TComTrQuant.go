@@ -255,6 +255,16 @@ func (this *TComTrQuant) InvtransformNxN(transQuantBypass bool, eText TextType, 
             bitDepth = G_bitDepthC
         }
         this.xDeQuant(bitDepth, pcCoeff, this.m_plTempCoeff, int(uiWidth), int(uiHeight), scalingListType)
+       
+       /*if G_uiPicNo==70 && uiWidth==4 && pcCoeff[0]==-1 {
+	      for  k := uint(0); k<uiHeight; k++ {
+	        for  j:= uint(0); j<uiWidth; j++ {
+	          fmt.Printf("%8d ", this.m_plTempCoeff[k*uiWidth+j]);
+	        }
+	        fmt.Printf("\n");
+	      }
+	    }*/
+    
         if useTransformSkip == true {
             this.xITransformSkip(bitDepth, this.m_plTempCoeff, rpcResidual, uiStride, int(uiWidth), int(uiHeight))
         } else {
@@ -1773,7 +1783,11 @@ func (this *TComTrQuant) xDeQuant(bitDepth int, pSrc []TCoeff, pDes []int, iWidt
         iShift += 4
 
         piDequantCoef := this.GetDequantCoeff(uint(scalingListType), uint(this.m_cQP.m_iRem), uint(uiLog2TrSize-2))
-
+			
+		/*if G_uiPicNo==70 && iWidth==4 && pSrc[0]==-1 {
+      		fmt.Printf("%8d %d %d %d\n", piDequantCoef[0], this.m_cQP.m_iRem, iShift, this.m_cQP.m_iPer);
+    	}*/
+    
         if iShift > this.m_cQP.m_iPer {
             iAdd = 1 << uint(iShift-this.m_cQP.m_iPer-1)
             for n := 0; n < iWidth*iHeight; n++ {
@@ -1784,10 +1798,22 @@ func (this *TComTrQuant) xDeQuant(bitDepth int, pSrc []TCoeff, pDes []int, iWidt
         } else {
             for n := 0; n < iWidth*iHeight; n++ {
                 clipQCoef = CLIP3(TCoeff(-32768), TCoeff(32767), piQCoef[n]).(TCoeff)
-                iCoeffQ = CLIP3(int(-32768), int(32767), (int(clipQCoef)*piDequantCoef[n])<<uint(this.m_cQP.m_iPer-iShift)).(int)
+                /*if G_uiPicNo==70 && iWidth==4 && pSrc[0]==-1 {
+                	fmt.Printf("%d ", clipQCoef);
+                }*/
+                iCoeffQ = CLIP3(int(-32768), int(32767), int(clipQCoef)*piDequantCoef[n]).(int)
+                /*if G_uiPicNo==70 && iWidth==4 && pSrc[0]==-1 {
+                	fmt.Printf("(%d %d %d %d)", iCoeffQ, clipQCoef, piDequantCoef[n], int(clipQCoef) * piDequantCoef[n]);
+                }*/
                 piCoef[n] = CLIP3(-32768, 32767, iCoeffQ<<uint(this.m_cQP.m_iPer-iShift)).(int)
+            	/*if G_uiPicNo==70 && iWidth==4 && pSrc[0]==-1 {
+                	fmt.Printf("%d ", piCoef[n]);
+                }*/
             }
         }
+        /*if G_uiPicNo==70 && iWidth==4 && pSrc[0]==-1 {
+	        fmt.Printf("\n");
+	    }*/
     } else {
         iAdd = 1 << uint(iShift-1)
         scale := G_invQuantScales[this.m_cQP.m_iRem] << uint(this.m_cQP.m_iPer)
@@ -1851,10 +1877,10 @@ func (this *TComTrQuant) fastInverseDst(tmp []int16, block []int16, shift uint) 
         c[2] = int(tmp[i]) - int(tmp[12+i])
         c[3] = 74 * int(tmp[4+i])
 
-        block[4*i+0] = int16(CLIP3(-32768, 32767, (29*c[0]+55*c[1]+c[3]+rnd_factor)>>shift).(int))
-        block[4*i+1] = int16(CLIP3(-32768, 32767, (55*c[2]-29*c[1]+c[3]+rnd_factor)>>shift).(int))
-        block[4*i+2] = int16(CLIP3(-32768, 32767, (74*(int(tmp[i])-int(tmp[8+i])+int(tmp[12+i]))+rnd_factor)>>shift).(int))
-        block[4*i+3] = int16(CLIP3(-32768, 32767, (55*c[0]+29*c[2]-c[3]+rnd_factor)>>shift).(int))
+        block[4*i+0] = int16(CLIP3(int(-32768), int(32767), int((29*c[0]+55*c[1]+c[3]+rnd_factor)>>shift)).(int))
+        block[4*i+1] = int16(CLIP3(int(-32768), int(32767), int((55*c[2]-29*c[1]+c[3]+rnd_factor)>>shift)).(int))
+        block[4*i+2] = int16(CLIP3(int(-32768), int(32767), int((74*(int(tmp[i])-int(tmp[8+i])+int(tmp[12+i]))+rnd_factor)>>shift)).(int))
+        block[4*i+3] = int16(CLIP3(int(-32768), int(32767), int((55*c[0]+29*c[2]-c[3]+rnd_factor)>>shift)).(int))
     }
 }
 
@@ -1872,10 +1898,10 @@ func (this *TComTrQuant) partialButterflyInverse4(src []int16, dst []int16, shif
         E[1] = int(G_aiT4[0][1])*int(src[0+j]) + int(G_aiT4[2][1])*int(src[2*line+j])
 
         /* Combining even and odd terms at each hierarchy levels to calculate the final spatial domain vector */
-        dst[0+j*4] = int16(CLIP3(-32768, 32767, (E[0]+O[0]+add)>>shift).(int))
-        dst[1+j*4] = int16(CLIP3(-32768, 32767, (E[1]+O[1]+add)>>shift).(int))
-        dst[2+j*4] = int16(CLIP3(-32768, 32767, (E[1]-O[1]+add)>>shift).(int))
-        dst[3+j*4] = int16(CLIP3(-32768, 32767, (E[0]-O[0]+add)>>shift).(int))
+        dst[0+j*4] = int16(CLIP3(int(-32768), int(32767), int((E[0]+O[0]+add)>>shift)).(int))
+        dst[1+j*4] = int16(CLIP3(int(-32768), int(32767), int((E[1]+O[1]+add)>>shift)).(int))
+        dst[2+j*4] = int16(CLIP3(int(-32768), int(32767), int((E[1]-O[1]+add)>>shift)).(int))
+        dst[3+j*4] = int16(CLIP3(int(-32768), int(32767), int((E[0]-O[0]+add)>>shift)).(int))
 
         //src ++;
         //dst += 4;

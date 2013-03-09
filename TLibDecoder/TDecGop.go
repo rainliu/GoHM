@@ -233,8 +233,8 @@ func (this *TDecGop) FilterPicture(rpcPic *TLibCommon.TComPic) {
     }
 
     //-- For time output for each slice
-    fmt.Printf("\nPIC %4d POC %4d TId: %1d ( %s-SLICE, QP%3d ) ", s_PicNo, pcSlice.GetPOC(), pcSlice.GetTLayer(), c, pcSlice.GetSliceQp())
-	s_PicNo++;
+    fmt.Printf("\nPIC %4d POC %4d TId: %1d ( %s-SLICE, QP%3d ) ", TLibCommon.G_uiPicNo, pcSlice.GetPOC(), pcSlice.GetTLayer(), c, pcSlice.GetSliceQp())
+	TLibCommon.G_uiPicNo++;
 	
     this.m_dDecTime += time.Now().Sub(iBeforeTime)
     fmt.Printf("[DT %10v] ", this.m_dDecTime)
