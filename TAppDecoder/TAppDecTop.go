@@ -238,7 +238,12 @@ func (this *TAppDecTop) xWriteOutput(pcListPic *list.List, tId uint) {
                 } else {
                     defDisp = TLibCommon.NewWindow()
                 }
-
+				
+				/*fmt.Printf("(%d %d) (%d %d) (%d %d) (%d %d)\n", conf.GetWindowLeftOffset(), defDisp.GetWindowLeftOffset(),
+               conf.GetWindowRightOffset(), defDisp.GetWindowRightOffset(),
+               conf.GetWindowTopOffset(), defDisp.GetWindowTopOffset(),
+               conf.GetWindowBottomOffset(), defDisp.GetWindowBottomOffset());*/
+               
                 this.m_cTVideoIOYuvReconFile.Write(pcPic.GetPicYuvRec(),
                     conf.GetWindowLeftOffset()+defDisp.GetWindowLeftOffset(),
                     conf.GetWindowRightOffset()+defDisp.GetWindowRightOffset(),

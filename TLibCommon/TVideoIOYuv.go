@@ -229,11 +229,11 @@ func (this *TVideoIOYuv) Read(pPicYuv *TComPicYuv, aiPad []int) bool {
  * @param aiPad       source padding size, aiPad[0] = horizontal, aiPad[1] = vertical
  * @return true for success, false in case of error
  */
-func (this *TVideoIOYuv) Write(pPicYuv *TComPicYuv, cropLeft, cropRight, cropTop, cropBottom int) bool {
+func (this *TVideoIOYuv) Write(pPicYuv *TComPicYuv, confLeft, confRight, confTop, confBottom int) bool {
     // compute actual YUV frame size excluding padding size
     iStride := pPicYuv.GetStride()
-    width := pPicYuv.GetWidth() - cropLeft - cropRight
-    height := pPicYuv.GetHeight() - cropTop - cropBottom
+    width := pPicYuv.GetWidth() - confLeft - confRight
+    height := pPicYuv.GetHeight() - confTop - confBottom
     is16bit := this.m_fileBitDepthY > 8 || this.m_fileBitDepthC > 8
     var dstPicYuv *TComPicYuv
     retval := true
@@ -270,9 +270,9 @@ func (this *TVideoIOYuv) Write(pPicYuv *TComPicYuv, cropLeft, cropRight, cropTop
         dstPicYuv = pPicYuv
     }
     // location of upper left pel in a plane
-    planeOffset := 0 //cropLeft + cropTop * iStride;
+    planeOffset := confLeft + confTop * iStride;
 
-    if !this.writePlane(this.m_cHandle, dstPicYuv.GetLumaAddr(), is16bit, iStride, width, height, planeOffset) {
+    if !this.writePlane(this.m_cHandle, dstPicYuv.GetLumaAddr()[planeOffset:], is16bit, iStride, width, height) {
         retval = false
         goto exit
     }
@@ -280,16 +280,18 @@ func (this *TVideoIOYuv) Write(pPicYuv *TComPicYuv, cropLeft, cropRight, cropTop
     width >>= 1
     height >>= 1
     iStride >>= 1
-    cropLeft >>= 1
-    cropRight >>= 1
+    confLeft >>= 1
+    confRight >>= 1
+    confTop >>= 1;
+  	confBottom >>= 1;
 
-    planeOffset = 0 // cropLeft + cropTop * iStride;
+    planeOffset = confLeft + confTop * iStride;
 
-    if !this.writePlane(this.m_cHandle, dstPicYuv.GetCbAddr(), is16bit, iStride, width, height, planeOffset) {
+    if !this.writePlane(this.m_cHandle, dstPicYuv.GetCbAddr()[planeOffset:], is16bit, iStride, width, height) {
         retval = false
         goto exit
     }
-    if !this.writePlane(this.m_cHandle, dstPicYuv.GetCrAddr(), is16bit, iStride, width, height, planeOffset) {
+    if !this.writePlane(this.m_cHandle, dstPicYuv.GetCrAddr()[planeOffset:], is16bit, iStride, width, height) {
         retval = false
         goto exit
     }
@@ -353,7 +355,7 @@ func (this *TVideoIOYuv) readPlane(dst []Pel, fd *os.File, is16bit bool, stride,
     return true
 }
 
-func (this *TVideoIOYuv) writePlane(fd *os.File, src []Pel, is16bit bool, stride, width, height, planeOffset int) bool {
+func (this *TVideoIOYuv) writePlane(fd *os.File, src []Pel, is16bit bool, stride, width, height int) bool {
     var write_len, x, y int
 
     if is16bit {
