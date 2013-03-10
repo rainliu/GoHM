@@ -157,6 +157,7 @@ func (this *TAppDecTop) Decode() (err error) {
                 this.m_cTVideoIOYuvReconFile.Open(this.m_pchReconFile, true, this.m_outputBitDepthY, this.m_outputBitDepthC, TLibCommon.G_bitDepthY, TLibCommon.G_bitDepthC) // write mode
                 recon_opened = true
             }
+            //fmt.Printf("bNewPicture=%d m_nalUnitType=%d ", TLibCommon.B2U(bNewPicture), nalu.GetNalUnitType());
             if bNewPicture &&
                 (nalu.GetNalUnitType() == TLibCommon.NAL_UNIT_CODED_SLICE_IDR ||
                     nalu.GetNalUnitType() == TLibCommon.NAL_UNIT_CODED_SLICE_IDR_N_LP ||
@@ -243,7 +244,8 @@ func (this *TAppDecTop) xWriteOutput(pcListPic *list.List, tId uint) {
                conf.GetWindowRightOffset(), defDisp.GetWindowRightOffset(),
                conf.GetWindowTopOffset(), defDisp.GetWindowTopOffset(),
                conf.GetWindowBottomOffset(), defDisp.GetWindowBottomOffset());*/
-               
+                //fmt.Printf(" [xWriteOutput POC %4d] ", pcPic.GetPOC());
+                
                 this.m_cTVideoIOYuvReconFile.Write(pcPic.GetPicYuvRec(),
                     conf.GetWindowLeftOffset()+defDisp.GetWindowLeftOffset(),
                     conf.GetWindowRightOffset()+defDisp.GetWindowRightOffset(),
@@ -295,6 +297,8 @@ func (this *TAppDecTop) xFlushOutput(pcListPic *list.List) {
                 } else {
                     defDisp = TLibCommon.NewWindow()
                 }
+                
+                //fmt.Printf(" [xFlushOutput POC %4d] ", pcPic.GetPOC());
 
                 this.m_cTVideoIOYuvReconFile.Write(pcPic.GetPicYuvRec(),
                     conf.GetWindowLeftOffset()+defDisp.GetWindowLeftOffset(),

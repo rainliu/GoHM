@@ -237,7 +237,7 @@ func (this *TDecGop) FilterPicture(rpcPic *TLibCommon.TComPic) {
 	TLibCommon.G_uiPicNo++;
 	
     this.m_dDecTime += time.Now().Sub(iBeforeTime)
-    fmt.Printf("[DT %10v] ", this.m_dDecTime)
+    //fmt.Printf("[DT %10v] ", this.m_dDecTime)
     this.m_dDecTime = 0
 
     for iRefList := 0; iRefList < 2; iRefList++ {

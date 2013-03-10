@@ -267,19 +267,19 @@ func (this *TDecTop) DeletePicBuffer() {
 func (this *TDecTop) ExecuteLoopFilters(poc *int, bSkipPictureForBLA bool) *list.List {
     if this.m_pcPic == nil || bSkipPictureForBLA {
         /* nothing to deblock */
-        return nil
+        return this.m_pcListPic
     }
 
     //pcPic := this.m_pcPic
 
     // Execute Deblock + Cleanup
     this.m_cGopDecoder.FilterPicture(this.m_pcPic)
-
+	
     TLibCommon.SortPicList(this.m_pcListPic) // sorting for application output
     *poc = this.m_pcPic.GetSlice(this.m_uiSliceIdx - 1).GetPOC()
     this.m_cCuDecoder.Destroy()
     this.m_bFirstSliceInPicture = true
-
+	
     return this.m_pcListPic
 }
 
