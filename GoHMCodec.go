@@ -41,7 +41,7 @@ import (
     "log"
     "os"
     "time"
-    //"runtime/pprof"
+    "runtime/pprof"
 )
 
 func Encoder() {
@@ -99,12 +99,12 @@ func Decoder() {
 }
 
 func main() {
-	/*f, err := os.Create("cpuprofile.prof")
+	f, err := os.Create("cpuprofile.prof")
    	if err != nil {
     	log.Fatal(err)
     }
     pprof.StartCPUProfile(f)
-    defer pprof.StopCPUProfile()*/
+    defer pprof.StopCPUProfile()
     
     fmt.Printf("GoHM Software Version [%s]\n", TLibCommon.NV_VERSION)
     if len(os.Args) <= 2 {
@@ -121,10 +121,10 @@ func main() {
         }
     }
     
-    /*m, err := os.Create("memprofile.prof")
+    m, err := os.Create("memprofile.prof")
     if err != nil {
     	log.Fatal(err)
     }
     pprof.WriteHeapProfile(m)
-    m.Close()*/
+    m.Close()
 }

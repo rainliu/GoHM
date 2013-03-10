@@ -38,14 +38,13 @@ import (
     "errors"
     "fmt"
     "io"
-    "os"
 )
 
 type InputByteStream struct {
     //private:
     m_NumFutureBytes uint     /* number of valid bytes in m_FutureBytes */
     m_FutureBytes    uint32   /* bytes that have been peeked */
-    m_Input          *os.File /* Input stream to read from */
+    m_Input          io.Reader /* Input stream to read from */
 }
 
 //public:
@@ -58,7 +57,7 @@ type InputByteStream struct {
  *
  * Side-effects: the exception mask of istream is set to eofbit
  */
-func NewInputByteStream(istream *os.File) *InputByteStream {
+func NewInputByteStream(istream io.Reader) *InputByteStream {
     return &InputByteStream{m_NumFutureBytes: 0, m_FutureBytes: 0, m_Input: istream}
 }
 
