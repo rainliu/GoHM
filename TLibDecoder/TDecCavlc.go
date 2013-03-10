@@ -1353,6 +1353,12 @@ func (this *TDecCavlc) ParseSliceHeader(rpcSlice *TLibCommon.TComSlice, paramete
                 offset += rps.GetNumberOfLongtermPictures()
                 rps.SetNumberOfPictures(offset)
             }
+            /*if TLibCommon.G_uiPicNo>380 && firstSliceSegmentInPic==1 {
+		        for i:=0;i<rps.GetNumberOfPictures();i++ {
+		          fmt.Printf("%d ", rps.GetPOC(i));
+		        }
+		      }*/
+		      
             if rpcSlice.GetNalUnitType() == TLibCommon.NAL_UNIT_CODED_SLICE_BLA ||
                 rpcSlice.GetNalUnitType() == TLibCommon.NAL_UNIT_CODED_SLICE_BLANT ||
                 rpcSlice.GetNalUnitType() == TLibCommon.NAL_UNIT_CODED_SLICE_BLA_N_LP {

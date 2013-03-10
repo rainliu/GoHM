@@ -347,6 +347,7 @@ func (this *TDecTop) xGetNewPicBuffer(pcSlice *TLibCommon.TComSlice) (rpcPic *TL
 }
 
 func (this *TDecTop) xCreateLostPicture(iLostPOC int) {
+	fmt.Printf("xCreateLostPicture is not implemented yet!")
 }
 
 func (this *TDecTop) xActivateParameterSets() {
@@ -464,11 +465,11 @@ func (this *TDecTop) xDecodeSlice(nalu *InputNALUnit, iSkipFrame *int, iPOCLastD
     this.m_bFirstSliceInSequence = false
 
     //detect lost reference picture and insert copy of earlier frame.
-    /*lostPoc := this.m_apcSlicePilot.CheckThatAllRefPicsAreAvailable(this.m_pcListPic, this.m_apcSlicePilot.GetRPS(), true, this.m_pocRandomAccess);
-      for lostPoc > 0 {
+    lostPoc := this.m_apcSlicePilot.CheckThatAllRefPicsAreAvailable(this.m_pcListPic, this.m_apcSlicePilot.GetRPS(), true, this.m_pocRandomAccess);
+    for lostPoc > 0 {
         this.xCreateLostPicture(lostPoc-1);
         lostPoc = this.m_apcSlicePilot.CheckThatAllRefPicsAreAvailable(this.m_pcListPic, this.m_apcSlicePilot.GetRPS(), true, this.m_pocRandomAccess);
-      }*/
+    }
     if this.m_bFirstSliceInPicture {
         // Buffer initialize for prediction.
         this.m_cPrediction.InitTempBuff(this.m_apcSlicePilot.GetSPS().GetMaxCUWidth(), this.m_apcSlicePilot.GetSPS().GetMaxCUHeight())
