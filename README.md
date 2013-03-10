@@ -11,4 +11,4 @@ v1.0.b03092013
 v1.0.b03032013
  -Initial release candidate for GoHM 1.0
  -Compatible with H.265/HEVC HM10.0 
- -Not support features: SAO, ScalingList, 
+ -Not support features in encoder: SAO, ScalingList, 
