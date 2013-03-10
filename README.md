@@ -6,12 +6,12 @@ H.265/HEVC HM Video Codec in Go
 
 Release Note:
 
-v1.0.b03092013
++v1.0.b03092013
  
  -fix multiple bugs in decoder
  
  
-v1.0.b03032013
++v1.0.b03032013
  
  -Initial release candidate for GoHM 1.0
  
