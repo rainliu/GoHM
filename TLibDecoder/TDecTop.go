@@ -274,12 +274,12 @@ func (this *TDecTop) ExecuteLoopFilters(poc *int, bSkipPictureForBLA bool) *list
 
     // Execute Deblock + Cleanup
     this.m_cGopDecoder.FilterPicture(this.m_pcPic)
-	
+
     TLibCommon.SortPicList(this.m_pcListPic) // sorting for application output
     *poc = this.m_pcPic.GetSlice(this.m_uiSliceIdx - 1).GetPOC()
     this.m_cCuDecoder.Destroy()
     this.m_bFirstSliceInPicture = true
-	
+
     return this.m_pcListPic
 }
 
@@ -417,44 +417,17 @@ func (this *TDecTop) xDecodeSlice(nalu *InputNALUnit, iSkipFrame *int, iPOCLastD
 
   	if this.m_apcSlicePilot.IsNextSlice() {
     	this.m_prevSkipPictureForBLA        = false;
-
-	    // Skip pictures due to random access
-	    if this.IsRandomAccessSkipPicture(iSkipFrame, &iPOCLastDisplay) {
-	      return false;
-	    }
-	    // Skip TFD pictures associated with BLA/BLANT pictures
-	    if this.IsSkipPictureForBLA(&iPOCLastDisplay) {
-	      this.m_prevSkipPictureForBLA = true;
-	      return false;
-	    }
-	  }else{
-	    // Skip TFD pictures associated with BLA/BLANT pictures
-	    if this.IsSkipPictureForBLA(&iPOCLastDisplay) {
-	      this.m_prevSkipPictureForBLA = true;
-	      return false;
-	    }
-	}
-
-/*  this.m_cEntropyDecoder.DecodeSliceHeader(this.m_apcSlicePilot, this.m_parameterSetManagerDecoder)
-    if this.m_apcSlicePilot.IsNextSlice() {
-        // Skip pictures due to random access
-        if this.IsRandomAccessSkipPicture(iSkipFrame, &iPOCLastDisplay) {
-            return false
-        }
-        // Skip TFD pictures associated with BLA/BLANT pictures
-        if this.IsSkipPictureForBLA(&iPOCLastDisplay) {
-            return false
-        }
     }
-
-    // exit when a new picture is found
-    if this.m_apcSlicePilot.IsNextSlice() && this.m_apcSlicePilot.GetPOC() != this.m_prevPOC && !this.m_bFirstSliceInSequence {
-        if this.m_prevPOC >= this.m_pocRandomAccess {
-            this.m_prevPOC = this.m_apcSlicePilot.GetPOC()
-            return true
-        }
-        this.m_prevPOC = this.m_apcSlicePilot.GetPOC()
-    }*/
+	// Skip pictures due to random access
+	if this.IsRandomAccessSkipPicture(iSkipFrame, &iPOCLastDisplay) {
+	  this.m_prevSkipPictureForBLA = true;
+	  return false;
+	}
+	// Skip TFD pictures associated with BLA/BLANT pictures
+	if this.IsSkipPictureForBLA(&iPOCLastDisplay) {
+	  this.m_prevSkipPictureForBLA = true;
+	  return false;
+	}
 
     // actual decoding starts here
     this.xActivateParameterSets()
@@ -670,14 +643,14 @@ func (this *TDecTop) xDecodeVPS() {
 
     this.m_cEntropyDecoder.DecodeVPS(vps)
     this.m_parameterSetManagerDecoder.SetVPS(vps)
-    
+
     this.m_prevPOC = TLibCommon.MAX_INT;
 }
 func (this *TDecTop) xDecodeSPS() {
     sps := TLibCommon.NewTComSPS()
     this.m_cEntropyDecoder.DecodeSPS(sps)
     this.m_parameterSetManagerDecoder.SetSPS(sps)
-    
+
     this.m_prevPOC = TLibCommon.MAX_INT;
 }
 func (this *TDecTop) xDecodePPS() {
@@ -699,7 +672,7 @@ func (this *TDecTop) xDecodePPS() {
             this.m_cSliceDecoder.SetCtxMem(ctx, st)
         }
     }
-    
+
     this.m_prevPOC = TLibCommon.MAX_INT;
 }
 

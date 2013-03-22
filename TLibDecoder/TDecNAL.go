@@ -55,12 +55,14 @@ func NewInputNALUnit() *InputNALUnit {
 
 func (this *InputNALUnit) Read(nalUnitBuf *list.List) *list.List {
     /* perform anti-emulation prevention */
-    //pcBitstream := TLibCommon.NewTComInputBitstream(nil)
+    pcBitstream := TLibCommon.NewTComInputBitstream(nil)
 
     firstByte := nalUnitBuf.Front().Value.(byte)
-    oldNalUnitBuf := this.convertPayloadToRBSP(nalUnitBuf, /*pcBitstream,*/ (firstByte&64) == 0)
+    oldNalUnitBuf := this.convertPayloadToRBSP(nalUnitBuf, pcBitstream, (firstByte&64) == 0)
 
     this.m_Bitstream = TLibCommon.NewTComInputBitstream(nalUnitBuf)
+
+    this.m_Bitstream.SetEmulationPreventionByteLocation(pcBitstream.GetEmulationPreventionByteLocation());
 
     this.readNalUnitHeader()
 
@@ -75,15 +77,22 @@ func (this *InputNALUnit) SetBitstream(bitstream *TLibCommon.TComInputBitstream)
     this.m_Bitstream = bitstream
 }
 
-func (this *InputNALUnit) convertPayloadToRBSP(nalUnitBuf *list.List, /*pcBitstream *TLibCommon.TComInputBitstream,*/ isVclNalUnit bool) *list.List {
+func (this *InputNALUnit) convertPayloadToRBSP(nalUnitBuf *list.List, pcBitstream *TLibCommon.TComInputBitstream, isVclNalUnit bool) *list.List {
     zeroCount := 0
     it_write := list.New()
     oldBuf := list.New()
-    for e := nalUnitBuf.Front(); e != nil; e = e.Next() {
+
+    pos := uint(0);
+    pcBitstream.ClearEmulationPreventionByteLocation();
+
+    for e := nalUnitBuf.Front(); e != nil; e, pos = e.Next(), pos+1 {
         //assert(zeroCount < 2 || *it_read >= 0x03);
         it_read := e.Value.(byte)
         oldBuf.PushBack(it_read)
         if zeroCount == 2 && it_read == 0x03 {
+            pcBitstream.PushEmulationPreventionByteLocation( pos );
+            pos++;
+
             zeroCount = 0
 
             e = e.Next()

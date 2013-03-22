@@ -1260,7 +1260,7 @@ func (this *TDecCavlc) ParseSliceHeader(rpcSlice *TLibCommon.TComSlice, paramete
             }
             rpcSlice.SetPOC(iPOCmsb + iPOClsb)
 			//fmt.Printf("iPOC %d = iPOCmsb %d + iPOClsb %d\n", rpcSlice.GetPOC(), iPOCmsb, iPOClsb);
-			
+
             var rps *TLibCommon.TComReferencePictureSet
             this.READ_FLAG(&uiCode, "short_term_ref_pic_set_sps_flag")
             if uiCode == 0 { // use short-term reference picture set explicitly signalled in slice header
@@ -1342,6 +1342,9 @@ func (this *TDecCavlc) ParseSliceHeader(rpcSlice *TLibCommon.TComSlice, paramete
                         rps.SetDeltaPOC(j, -rpcSlice.GetPOC()+pocLTCurr)
                         rps.SetCheckLTMSBPresent(j, true)
                     } else {
+                        if (j == offset+rps.GetNumberOfLongtermPictures()-1) || (j == offset+int(numOfLtrp-numLtrpInSPS)-1) {//|| (pocLsbLt != prevLSB) {
+                            deltaPocMSBCycleLT = 0
+                        }
                         rps.SetPOC(j, pocLsbLt)
                         rps.SetDeltaPOC(j, -rpcSlice.GetPOC()+pocLsbLt)
                         rps.SetCheckLTMSBPresent(j, false)
@@ -1358,7 +1361,7 @@ func (this *TDecCavlc) ParseSliceHeader(rpcSlice *TLibCommon.TComSlice, paramete
 		          fmt.Printf("%d ", rps.GetPOC(i));
 		        }
 		      }*/
-		      
+
             if rpcSlice.GetNalUnitType() == TLibCommon.NAL_UNIT_CODED_SLICE_BLA ||
                 rpcSlice.GetNalUnitType() == TLibCommon.NAL_UNIT_CODED_SLICE_BLANT ||
                 rpcSlice.GetNalUnitType() == TLibCommon.NAL_UNIT_CODED_SLICE_BLA_N_LP {
@@ -1579,19 +1582,49 @@ func (this *TDecCavlc) ParseSliceHeader(rpcSlice *TLibCommon.TComSlice, paramete
         rpcSlice.SetLFCrossSliceBoundaryFlag(uiCode != 0)
     }
 
+    var entryPointOffset []uint;
+    var numEntryPointOffsets, offsetLenMinus1 uint
     if pps.GetTilesEnabledFlag() || pps.GetEntropyCodingSyncEnabledFlag() {
-        //var entryPointOffset *uint;
-        var numEntryPointOffsets, offsetLenMinus1 uint
-
         this.READ_UVLC(&numEntryPointOffsets, "num_entry_point_offsets")
         rpcSlice.SetNumEntryPointOffsets(int(numEntryPointOffsets))
         if numEntryPointOffsets > 0 {
             this.READ_UVLC(&offsetLenMinus1, "offset_len_minus1")
         }
-        entryPointOffset := make([]uint, numEntryPointOffsets)
+        entryPointOffset = make([]uint, numEntryPointOffsets)
         for idx := uint(0); idx < numEntryPointOffsets; idx++ {
             this.READ_CODE(offsetLenMinus1+1, &uiCode, "entry_point_offset_minus1")
             entryPointOffset[idx] = uiCode + 1
+        }
+    }else{
+        rpcSlice.SetNumEntryPointOffsets ( 0 );
+    }
+
+    if pps.GetSliceHeaderExtensionPresentFlag(){
+        this.READ_UVLC(&uiCode,"slice_header_extension_length");
+        for i:=uint(0); i<uiCode; i++ {
+            var ignore uint;
+            this.READ_CODE(8,&ignore,"slice_header_extension_data_byte");
+        }
+    }
+    this.m_pcBitstream.ReadByteAlignment();
+
+    if pps.GetTilesEnabledFlag() || pps.GetEntropyCodingSyncEnabledFlag() {
+        endOfSliceHeaderLocation := uint(this.m_pcBitstream.GetByteLocation());
+        curEntryPointOffset      := uint(0);
+        prevEntryPointOffset     := uint(0);
+        for idx:=uint(0); idx<numEntryPointOffsets; idx++{
+            curEntryPointOffset += entryPointOffset[ idx ];
+
+            emulationPreventionByteCount := uint(0);
+            for curByteIdx := uint(0); curByteIdx<this.m_pcBitstream.NumEmulationPreventionBytesRead(); curByteIdx++ {
+               if this.m_pcBitstream.GetEmulationPreventionByteLocationIdx( curByteIdx ) >= ( prevEntryPointOffset + endOfSliceHeaderLocation ) &&
+                  this.m_pcBitstream.GetEmulationPreventionByteLocationIdx( curByteIdx ) <  ( curEntryPointOffset  + endOfSliceHeaderLocation )  {
+                  emulationPreventionByteCount++;
+               }
+            }
+
+            entryPointOffset[ idx ] -= emulationPreventionByteCount;
+            prevEntryPointOffset = curEntryPointOffset;
         }
 
         if pps.GetTilesEnabledFlag() {
@@ -1613,24 +1646,8 @@ func (this *TDecCavlc) ParseSliceHeader(rpcSlice *TLibCommon.TComSlice, paramete
                 }
             }
         }
-
-        /*if entryPointOffset
-          {
-            delete [] entryPointOffset;
-          }*/
-    } else {
-        rpcSlice.SetNumEntryPointOffsets(0)
     }
 
-    if pps.GetSliceHeaderExtensionPresentFlag() {
-        this.READ_UVLC(&uiCode, "slice_header_extension_length")
-        for i := uint(0); i < uiCode; i++ {
-            var ignore uint
-            this.READ_CODE(8, &ignore, "slice_header_extension_data_byte")
-        }
-    }
-    this.m_pcBitstream.ReadByteAlignment()
-    
     return firstSliceSegmentInPic==1;
 }
 func (this *TDecCavlc) ParseTerminatingBit(ruiBit *uint) {

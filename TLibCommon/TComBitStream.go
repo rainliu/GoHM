@@ -290,6 +290,8 @@ func (this *TComOutputBitstream) WriteRBSPTrailingBits() {
 type TComInputBitstream struct {
     m_fifo *list.List //std::vector<uint8_t> *m_fifo; /// FIFO for storage of complete bytes
 
+    m_emulationPreventionByteLocation map[uint]uint; //  std::vector<UInt>
+
     //protected:
     m_fifo_idx uint /// Read index into m_fifo
     m_fifo_ptr *list.Element
@@ -307,7 +309,11 @@ type TComInputBitstream struct {
  */
 
 func NewTComInputBitstream(buf *list.List) *TComInputBitstream { // std::vector<uint8_t>* buf);
-    return &TComInputBitstream{buf, 0, buf.Front(), 0, 0, 0}
+    if buf!=nil {
+        return &TComInputBitstream{buf, make(map[uint]uint), 0, buf.Front(), 0, 0, 0}
+    }
+
+    return &TComInputBitstream{nil, make(map[uint]uint), 0, nil, 0, 0, 0}
 }
 
 // interface for decoding
@@ -438,9 +444,9 @@ func (this *TComInputBitstream) GetHeldBits() byte {
 }
 func (this *TComInputBitstream) Copy(src *TComOutputBitstream) {
 }
-/*func (this *TComInputBitstream) GetByteLocation() uint {
+func (this *TComInputBitstream) GetByteLocation() uint {
     return this.m_fifo_idx
-}*/
+}
 
 // Peek at bits in word-storage. Used in determining if we have completed reading of current bitstream and therefore slice in LCEC.
 func (this *TComInputBitstream) PeekBits(uiBits uint) uint {
@@ -484,7 +490,7 @@ func (this *TComInputBitstream) ExtractSubstream(uiNumBits uint) *TComInputBitst
         uiByte <<= 8 - (uiNumBits & 0x7)
         buf.PushBack(byte(uiByte))
     }
-    return &TComInputBitstream{buf, 0, buf.Front(), 0, 0, 0}
+    return &TComInputBitstream{buf, make(map[uint]uint), 0, buf.Front(), 0, 0, 0}
 }
 func (this *TComInputBitstream) DeleteFifo() { // Delete internal fifo of bitstream.
     //delete m_fifo;
@@ -505,5 +511,13 @@ func (this *TComInputBitstream) ReadByteAlignment() {
         //assert(code == 0);
     }
 }
+
+func (this *TComInputBitstream) PushEmulationPreventionByteLocation  ( pos uint)           { this.m_emulationPreventionByteLocation[uint(len(this.m_emulationPreventionByteLocation))] = pos; }
+func (this *TComInputBitstream) NumEmulationPreventionBytesRead      () uint               { return uint(len(this.m_emulationPreventionByteLocation));     }
+func (this *TComInputBitstream) GetEmulationPreventionByteLocation   () map[uint]uint      { return this.m_emulationPreventionByteLocation;          }
+func (this *TComInputBitstream) GetEmulationPreventionByteLocationIdx( idx uint)  uint     { return this.m_emulationPreventionByteLocation[ idx ];   }
+func (this *TComInputBitstream) ClearEmulationPreventionByteLocation ()                    { this.m_emulationPreventionByteLocation = make(map[uint]uint); }
+func (this *TComInputBitstream) SetEmulationPreventionByteLocation   ( vec map[uint]uint)  { this.m_emulationPreventionByteLocation = vec;           }
+
 
 //! \}
