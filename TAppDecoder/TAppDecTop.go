@@ -108,7 +108,7 @@ func (this *TAppDecTop) Decode() (err error) {
 
         if !bNewPicture {
             nalUnit = list.New() //vector<uint8_t>
-            eof = bytestream.ByteStreamNALUnit(nalUnit, &stats)
+            eof,_ = bytestream.ByteStreamNALUnit(nalUnit, &stats)
         } else {
             nalUnit = oldNalUnit
         }

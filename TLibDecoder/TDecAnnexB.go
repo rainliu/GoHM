@@ -255,16 +255,38 @@ func (this *InputByteStream) byteStreamNALUnit(nalUnit *list.List, stats *AnnexB
     return nil
 }
 
-func (this *InputByteStream) ByteStreamNALUnit(nalUnit *list.List, stats *AnnexBStats) bool {
+func (this *InputByteStream) ByteStreamNALUnit(nalUnit *list.List, stats *AnnexBStats) (bool, error) {
+    var err error
     eof := false
 
-    if err := this.byteStreamNALUnit(nalUnit, stats); err != nil {
+    if err = this.byteStreamNALUnit(nalUnit, stats); err != nil {
         eof = true
     }
 
     stats.NumBytesInNALUnit = uint(nalUnit.Len())
-    return eof
+    return eof, err
 }
+
+func (this *InputByteStream) ByteStreamNALUnits(nalUnits *list.List) error{
+	var stats AnnexBStats
+	var err error
+	eof := false
+	
+	for !eof {
+		nalUnit := list.New()
+		eof, err = this.ByteStreamNALUnit(nalUnit, &stats);
+		if nalUnit.Len() == 0 {
+			return errors.New("Warning: Attempt to decode an empty NAL unit\n");
+		}else if err !=nil  {
+			return err;
+		}else{
+			nalUnits.PushBack(nalUnit);
+		}
+	}
+	
+	return nil;
+}
+
 
 /**
  * Statistics associated with AnnexB bytestreams
